@@ -17,7 +17,14 @@ class NLPContext:
         logger.info("loading Q & A models...")
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         logger.info(f"using {device}-device for nlp_operations!")
-        self.tokenizer, self.model = QandAmodels(self.model_type)
+
+    @property
+    def tokenizer(self):
+        return QandAmodels(self.model_type)[0]
+
+    @property
+    def model(self):
+        return QandAmodels(self.model_type)[1]
 
     def __call__(self):
         return self.tokenizer, self.model
