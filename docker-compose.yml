@@ -1,0 +1,17 @@
+version: '3.6'
+
+services:
+  trainer:
+    #image: registry.gitlab.com/componardo/pydoxtools/pydoxtoolstrainer:latest
+    image: yeus/pydoxtools:latest
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    # command: [ "jupyter", "lab", "--allow-root", "--ip", "0.0.0.0", "--no-browser"]
+    ports:
+      - 8888:8888 # jupyters
+      - 6006:6006 # tensorboard
+    #volumes:
+    #  - $HOME/comcharax_data:/root/comcharax_data
+
+

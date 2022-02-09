@@ -1,0 +1,98 @@
+[tool.poetry]
+name = "pydoxtools"
+version = "0.1.0"
+description = "This library contains a set of tools in order to extract structured information from documents"
+authors = ["thomas meschede <yeusblender@gmail.com>", "Claus Meschede <claus.meschede@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.7.11" #this python version is necessary in order to work on pytorch/pytorch image
+goose3 = { optional = true, version = ">=3.1.6" }
+# we are using this version of readability as the other version has a little bug...
+readability-lxml = { optional = true, version = ">=0.8.1" }
+appdirs = ">=1.4.4"
+langdetect = { optional = true, version = ">=1.0.8" }
+transformers = { optional = true, version = ">=3.0.2" }
+# TODO: get rid of this library, can be replace by custom function
+tldextract = { optional = true, version = ">=2.2.3" }
+"pdfminer.six" = { optional = true, version = ">=20200726" }
+extruct = { optional = true, version = ">=0.9.0" }
+pandas = { optional = true, version = ">=1.0.5" }
+quantulum3 = { optional = true, version = ">=0.7.4" }
+quantities = { optional = true, version = ">=0.12.4" }
+tqdm = { optional = true, version = ">=4.47.0" }
+# TODO: upgrade spacy
+spacy = { optional = true, version = ">=2.3.2" }
+xx-ent-wiki-sm = { optional = true, url = "https://github.com/explosion/spacy-models/releases/download/xx_ent_wiki_sm-2.3.0/xx_ent_wiki_sm-2.3.0.tar.gz#egg=xx_ent_wiki_sm==2.3.0" }
+en_core_web_md = { optional = true, url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_md-2.3.0/en_core_web_md-2.3.0.tar.gz#egg=en_core_web_md==2.3.0" }
+de_core_news_md = { optional = true, url = "https://github.com/explosion/spacy-models/releases/download/de_core_news_md-2.3.0/de_core_news_md-2.3.0.tar.gz#egg=de_core_news_md==2.3.0" }
+urlextract = { optional = true, version = ">=1.1.0" }
+pydantic = { version = ">=1.7.2" }
+# TODO: try to get rid of this and move it only to "development"
+pytorch-lightning = { optional = true, version = ">=1.5.6" }
+beautifulsoup4 = { optional = true, version = ">=4.9.3" }
+joblib = ">=1.0.1"
+lxml = { optional = true, version = ">=4.6.2" }
+# stemming is needed for quantulum3
+stemming = { optional = true, version = ">=1.0.1" }
+Pint = ">=0.16.1"
+# we actually don't really "use" price-parser, we only need the list f currencies
+# that it provides.
+price-parser = ">=0.3.4"
+# used to "repair" pdfs
+pikepdf = ">=2.10.0"
+Faker = { version = "^10.0.0", optional = true }
+fastparquet = { version = "^0.7.2", optional = true }
+matplotlib = { version = "^3.5.1", optional = true }
+# torch = { version = "^1.10.1", optional = true }
+# torch = ">=1.7.1+cpu" #doesnt work because of the "+cpu" part... so we have to do the following
+# which version to download can be found by executing this:
+# pip install torch==1.7.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
+# torch = { optional = true, url = "https://download.pytorch.org/whl/cpu/torch-1.7.1%2Bcpu-cp38-cp38-linux_x86_64.whl" }
+# the version of torch below only works with the nvidia/cuda:11.3.1-cudnn8-runtime-ubuntu20.04 dockerfile
+# torch = { optional = true, url = "https://download.pytorch.org/whl/cu113/torch-1.10.1%2Bcu113-cp38-cp38-linux_x86_64.whl" }
+# torch = { optional = true, version = "1.10.1" }
+# TODO: until webdavclient removes a bug in push:
+#       https://github.com/ezhov-evgeny/webdav-client-python-3/issues/89
+#       we need to use our own fork. check regularly if we can revert to the master
+#webdavclient3 = {version = "^3.14.6", optional = true}
+webdavclient3 = { git = "https://github.com/yeus/webdav-client-python-3.git", optional = true, branch = "master"}
+pdf2image = {version = "^1.16.0", optional = true}
+Shapely = {version = "^1.8.0", optional = true}
+scikit-learn = {version = "^1.0.2", optional = true}
+
+[tool.poetry.extras]
+# extraction-transformation-load facilities
+etl = ["goose3", "langdetect", "tldextract", "spacy", "pdfminer.six",
+    "extruct", "camelot-py", "o pencv-python", "xx-ent-wiki-sm",
+    "en_core_web_md", "de_core_news_md", "urlextract", "quantulum3", "stemming",
+    "quantities", "readability-lxml", "pandas", "beautifulsoup4"]
+inference = ["transformers", "scikit-learn", "tqdm", "pytorch-lightning", "spacy", "beautifulsoup4", "pandas", "urlextract"]
+training = ["Faker", "fastparquet", "matplotlib", "pdfminer.six", "pandas", "spacy",
+    "scikit-learn", "tqdm", "torch", "pytorch-lightning", "transformers"]
+# the pytorch-docker option below should be used in combination with the pytorch/pytorch dockerimage
+pytorch-docker = ["Faker", "fastparquet", "matplotlib", "pdfminer.six", "pandas", "spacy",
+    "scikit-learn", "tqdm", "webdavclient3"]
+
+[tool.poetry.dev-dependencies]
+pytest = ">=6.0.1"
+pip = ">=21.0.1"
+yattag = ">=1.13.2" #for html text coloring
+# TODO: find a better place for this? Is more a crawler thing or
+# something that is needed in order to build training datasets
+# or for picture-based classification tasks
+# selenium = ">=3.141.0" #only needed for html-js- crawling/screenshots
+jupyterlab = "^3.2.5"
+jupytext = "^1.13.4"
+ipywidgets = "^7.6.5"
+#jupyter-tensorboard = "^0.2.0"
+tensorboard = "^2.7.0"
+pigeonXT-jupyter = "^0.6.1" # for labeling purposes...
+odfpy = "^1.4.1"
+openpyxl = "^3.0.9"
+optuna = "^2.10.0"
+hnswlib = "^0.6.0"
+
+
+[build-system]
+requires = ["poetry>==1.1.1"]
+build-backend = "poetry.masonry.api"

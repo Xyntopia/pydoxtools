@@ -1,0 +1,8 @@
+comcharax_lib.egg-info
+
+.idea
+
+__pycache__
+**/.ipynb_checkpoints/
+**/lightning_logs/
+training_data/

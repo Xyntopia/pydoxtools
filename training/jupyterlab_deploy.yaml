@@ -1,0 +1,73 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pydoxtools.training
+  annotations:
+    cert-manager.io/issuer: "letsencrypt-prod"
+    #cert-manager.io/issuer: "letsencrypt-staging"
+    acme.cert-manager.io/http01-edit-in-place: "true"
+    kubernetes.io/ingress.allow-http: "false"
+spec:
+  tls:
+  - hosts:
+    - pydoxtools.componardo.com
+    secretName: pydoxtools-training-tls
+  rules:
+  - host: "pydoxtools.componardo.com"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: jupyterlab
+            port:
+              number: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jupyterlab
+spec:
+  #type: NodePort
+  selector:
+    app: pydoxtools.jupyterlab
+  ports:
+    - protocol: TCP
+      port: 80 #8888
+      targetPort: 80 #8888
+      name: jupyterlabhttp
+    - protocol: TCP
+      port: 8787
+      targetPort: 8787
+      name: dask
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pydoxtools.jupyterlab
+  labels:
+    app: pydoxtools.jupyterlab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pydoxtools.jupyterlab
+  template:
+    metadata:
+      labels:
+        app: pydoxtools.jupyterlab
+    spec:
+      restartPolicy: Always
+      imagePullSecrets:
+      - name: regcred
+      containers:
+      - name: pydoxtools-jupyterlab
+        image: yeus/pydoxtools:latest
+        command: ["jupyter", "lab", "--ip=*", "--port=80", "--allow-root", "--no-browser", "--LabApp.base_url=/", "--LabApp.custom_display_url='https://pydoxtools.componardo.com/'"]
+        ports:
+        - containerPort: 80
+          name: jupyterlab
+        - containerPort: 8787
+          name: dask
