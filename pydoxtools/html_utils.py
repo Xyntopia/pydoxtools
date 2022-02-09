@@ -19,9 +19,8 @@ from urllib.parse import urlparse
 import bs4
 import pandas as pd
 from bs4 import BeautifulSoup
-from pydoxtools import file_utils
-from pydoxtools.settings import settings
 from lxml.html.clean import Cleaner
+from pydoxtools.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -137,11 +136,6 @@ def absolute_url_path(url: str, path: str) -> str:
         return path
     else:
         return urlparse(url)._replace(path=path).geturl()
-
-
-def get_unique_pdf_file(pdf_link: str, url: str) -> str:
-    new_pdf_link = absolute_url_path(url, pdf_link)
-    return file_utils.generate_unique_pdf_filename_from_url(new_pdf_link)
 
 
 def clean_all(html):

@@ -15,7 +15,7 @@ import pandas as pd
 from tqdm import tqdm
 
 import pydoxtools.geometry_utils as gu
-from pydoxtools import pdf_utils
+from pydoxtools import pdf_utils, html_utils, file_utils
 from pydoxtools.geometry_utils import box_cols
 from pydoxtools.settings import settings
 
@@ -25,6 +25,11 @@ box_cols = gu.box_cols
 
 logger = logging.getLogger(__name__)
 tqdm.pandas()
+
+
+def get_unique_pdf_file(pdf_link: str, url: str) -> str:
+    new_pdf_link = html_utils.absolute_url_path(url, pdf_link)
+    return file_utils.generate_unique_pdf_filename_from_url(new_pdf_link)
 
 
 # TODO: make it possible to find more than just one neighbouring area

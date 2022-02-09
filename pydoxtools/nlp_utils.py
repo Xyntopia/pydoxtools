@@ -444,9 +444,9 @@ def get_keywords():
     wordranks = pd.DataFrame(zip(similarity, tokwords),
                              columns=['similarity', 'words'])
     wordranks['importance'] = importance * wordranks['similarity']
-    colhtml = html_utils.color_text(tokwords, similarity)
-    oib = html_utils.oib
-    oib(colhtml)
+    #colhtml = html_utils.color_text(tokwords, similarity)
+    #oib = html_utils.oib
+    #oib(colhtml)
 
 
 # def topic_similarity(model):
@@ -473,7 +473,6 @@ def string_embeddings(text, method="fast"):
     this method converts a text of arbitrary length into
     a vector.
     """
-    text_short = html_utils.get_pure_html_text(text)
     if method == "fast":
         tokenizer, _ = load_tokenizer()
         vs, toktxt = get_embeddings(text_short, tokenizer)
@@ -485,14 +484,10 @@ def string_embeddings(text, method="fast"):
     return vs
 
 
-def num_apperances_of_tag(tag_name, html):
-    soup = html_utils.BeautifulSoup(html)
-    return len(soup.find_all(tag_name))
-
-
-# @memory.cache
 def page2vec(page_str, url=None, method="slow"):
     """
+    TODO: use the document class for this....
+
     calculate a fingerprint from any arbitrary webpage
     
     TODO: include potential incoming links in fingerprint.
@@ -516,7 +511,9 @@ def page2vec(page_str, url=None, method="slow"):
         ]
     elif method in ["slow", "fast"]:
         try:
-            vs = string_embeddings(page_str, method)
+            # TODO: can we somehow move html_utils out of this file?
+            text_short = html_utils.get_pure_html_text(text)
+            vs = string_embeddings(text_short, method)
         except:
             logger.exception(f"can not convert: {url}")
             return None
