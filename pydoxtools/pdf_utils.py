@@ -18,6 +18,7 @@ import re
 import typing
 from abc import ABC, abstractmethod
 from pathlib import Path
+import tempfile
 
 import numpy as np
 import pandas as pd
@@ -39,7 +40,7 @@ from sklearn.neighbors import KernelDensity
 
 import pydoxtools.list_utils
 from pydoxtools import geometry_utils as gu
-from pydoxtools import models
+from pydoxtools import models, document
 from pydoxtools.geometry_utils import box_cols, x0, x1, y1, pairwise_txtbox_dist
 from pydoxtools.settings import settings
 
@@ -383,7 +384,7 @@ def _close_open_cells(open_cells, h_lines, df_le, elem_scan_tol,
     return new_cells, still_open
 
 
-class PDFBase(ABC):
+class PDFBase(document.Base):
     """
     This class collects functions that are valid for pages, as well as entire documents...
     """
@@ -671,7 +672,11 @@ class PDFDocument(PDFBase):
         extracted_page_numbers = set()
         pages_bbox = {}
         # TODO: perform this lazily for each page
-        for page_layout in extract_pages(self.fobj,
+        if isinstance(self.fobj, tempfile.SpooledTemporaryFile):
+            fobj = self.fobj._file
+        else:
+            fobj = self.fobj
+        for page_layout in extract_pages(fobj,
                                          laparams=self.laparams,
                                          page_numbers=self.page_numbers,
                                          maxpages=self.maxpages):
