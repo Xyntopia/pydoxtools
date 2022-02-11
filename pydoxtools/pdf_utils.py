@@ -1565,7 +1565,7 @@ def extract_pdf_data(pdf_file) -> models.DocumentData_:
 
     def extract_data(f):
         pdfi = PDFDocument(pdf_file, maxpages=10)
-        tables = pdfi.tables + [pdfi.list_lines]
+        tables = [df.to_dict() for df in pdfi.tables_df] + [pdfi.list_lines]
         tables = pydoxtools.list_utils.deep_str_convert(tables)
         try:
             filename = f.name
@@ -1576,7 +1576,7 @@ def extract_pdf_data(pdf_file) -> models.DocumentData_:
             titles=pdfi.titles.get("text", pd.Series()).to_list(),
             textboxes=pdfi.txt_boxes,
             docinfo=[pydoxtools.list_utils.deep_str_convert(_get_meta_infos(f))],
-            tables=tables
+            tables=[t for t in tables]
         )
 
         return data

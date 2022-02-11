@@ -2,26 +2,24 @@
 
 import base64
 import functools
+import html
 import logging
 import re
 from io import BytesIO
 from typing import List
 from urllib.parse import urlsplit
-import html
 
 import extruct
 import langdetect.lang_detect_exception
 import lxml
 import numpy as np
 import pandas as pd
+import pydoxtools.list_utils
 import readability
 from bs4 import BeautifulSoup, NavigableString
-
-import pydoxtools.list_utils
-from pydoxtools import component_extraction
+from goose3 import Goose
 from pydoxtools import models, html_utils
 from pydoxtools.html_utils import logger
-from goose3 import Goose
 
 try:
     # import a couple libraries that are only
@@ -233,9 +231,9 @@ def extract_html_data(raw_html, url):
 
     pdf_links = html_utils.get_pdf_links(raw_html)
 
-    #TODO: gather a list of thing sthrough regular expressions
-    #product_ids = []
-    #prices
+    # TODO: gather a list of thing sthrough regular expressions
+    # product_ids = []
+    # prices
     regex_ex = {}
 
     data = models.DocumentData_(

@@ -28,7 +28,7 @@ import datetime
 import gzip
 import logging
 from enum import Enum
-from typing import List, Optional, Dict, Union, Set
+from typing import List, Optional, Dict, Union, Set, Any
 
 import pandas as pd
 from pydantic import BaseModel, Field, AnyHttpUrl
@@ -70,7 +70,7 @@ class DocumentData_(BaseModel):
     images: List = []
     titles: List[str] = []
     docinfo: List[Dict[str, str]] = []
-    tables: List[List] = []
+    tables: List[Dict[str,Dict[str,Any]]] = []
     raw_content: List[str] = []
     keywords: List[str] = []
     url: str = None
