@@ -34,7 +34,7 @@ from pdfminer.layout import LTChar, LTTextLineVertical, LTCurve, LTFigure, LTTex
 from pdfminer.layout import LTTextContainer
 from pdfminer.pdfinterp import resolve1
 from pdfminer.pdfparser import PDFParser
-from pydoxtools import document
+from pydoxtools import document, list_utils
 from pydoxtools import geometry_utils as gu
 from pydoxtools.geometry_utils import box_cols, x0, x1, y1, pairwise_txtbox_dist
 from pydoxtools.settings import settings
@@ -728,15 +728,6 @@ class PDFDocument(PDFBase):
 
         return lines, graphic_elements, extracted_page_numbers, pages_bbox
 
-    @property
-    def filename(self) -> str:
-        if isinstance(self.fobj, str):
-            return self.fobj
-        elif isinstance(self.fobj, Path):
-            return str(self.fobj)
-        else:
-            return self.fobj.name
-
     @cached_property
     def df_le(self) -> pd.DataFrame:
         """line elements of page"""
@@ -783,8 +774,13 @@ class PDFDocument(PDFBase):
         return [PDFPage(p, self) for p in self.extracted_pages]
 
     @cached_property
-    def tables(self):
+    def table_objs(self):
         return [t for p in self.pages for t in p.tables]
+
+    @cached_property
+    def tables(self):
+        tables = [df.to_dict() for df in self.tables_df] + [self.list_lines]
+        return tables
 
     @cached_property
     def tables_df(self):
@@ -800,7 +796,11 @@ class PDFDocument(PDFBase):
 
     @cached_property
     def meta_infos(self):
-        return get_meta_infos_safe(self.fobj)
+        # TODO: generalize the "safe" calling of functions for pdfs somehow...
+        #       maybe by using a cached "safe" pdf file? or of something goes wrong, simply replacing the fobj
+        #       with a repaired pdf?
+        meta = [list_utils.deep_str_convert(get_meta_infos_safe(self.fobj))]
+        return meta
 
 
 class PDFPage(PDFBase):

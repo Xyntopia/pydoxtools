@@ -100,7 +100,7 @@ pdfi = pdf_utils.PDFDocument(pdf_file)
 # ## plot textboxes & characters
 
 # %%
-t = pdfi.tables[0]
+t = pdfi.table_objs[0]
 t.df_words
 
 # %%
@@ -114,7 +114,7 @@ t.df
 
 print(pdf_file)
 p = pdfi.pages[0]
-area = pdfi.tables[0].bbox + [-10,-10,10,10]
+area = pdfi.table_objs[0].bbox + [-10, -10, 10, 10]
 #p = pdfi.pages[page]
 boxes, box_levels = p.detect_table_area_candidates()
 images = vda.cached_pdf2image(pdfi.fobj)

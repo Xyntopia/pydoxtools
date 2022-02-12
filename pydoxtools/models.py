@@ -27,10 +27,8 @@ properties (calculated & stored) are indicated by lower letters
 import datetime
 import gzip
 import logging
-from enum import Enum
-from typing import List, Optional, Dict, Union, Set, Any
+from typing import List, Optional, Dict, Any
 
-import pandas as pd
 from pydantic import BaseModel, Field, AnyHttpUrl
 
 logger = logging.getLogger(__name__)
@@ -59,24 +57,35 @@ class Webpage(BaseModel):
         self.html = gzip.decompress(self.html).decode('utf-8') if self.html else None
         return self
 
-# TODO: rename this model...
-class DocumentData_(BaseModel):
+
+class DocumentExtract(BaseModel):
     """
     All of the data that we can currently extract from a document
     such as a pdf, excel file, html page etc...
     """
+    uid: Optional[str]
+    source: str = Field(
+        ..., description="Where does the extracted data come from? (Examples: URL, 'pdfupload', parent-URL, or a path)"
+    )
+    type: str = Field(..., description="filetype of the data such as 'html' or 'pdf' or 'doc'")
+    filename: Optional[str]
+
     lang: str = None
     textboxes: List[str] = []
+    list_lines: List[str] = []
     urls: List[str] = []
     images: List = []
     titles: List[str] = []
     meta_infos: List[Dict[str, str]] = []
-    tables: List[Dict[str,Dict[str,Any]]] = []
+    tables: List[Dict[str, Dict[str, Any]]] = []
     raw_content: List[str] = []
     keywords: List[str] = []
     url: str = None
-    final_url: List[str] = [] # url extracted from the document itself where it points to "itself"
+    final_url: List[str] = []  # url extracted from the document itself where it points to "itself"
     schemadata: Dict = {}  # schema.org data extracted from html meta tags
     product_ids: Dict[str, str] = {}
     pdf_links: List[str] = []
     price: List[str] = []
+
+    class Config:
+        orm_mode = True

@@ -1,10 +1,11 @@
 from abc import ABC
+from functools import cached_property
 from pathlib import Path
 from typing import List, Dict, Any, Union, BinaryIO
 
-import pydoxtools
-from pydoxtools import models, list_utils
+import langdetect
 import pandas as pd
+from pydoxtools import models, nlp_utils
 
 
 class Base(ABC):
@@ -29,17 +30,8 @@ class Base(ABC):
         return f"{self.__module__}.{self.__class__.__name__}({self._fobj},{self.source})>"
 
     @property
-    def model(self) -> models.DocumentData_:
-        tables = [df.to_dict() for df in self.tables_df] + [self.list_lines]
-        tables = list_utils.deep_str_convert(tables)
-        data = models.DocumentData_(
-            file=self.filename,
-            titles=self.titles,
-            textboxes=self.textboxes,
-            meta_infos=[list_utils.deep_str_convert(self.meta_infos)],
-            tables=[t for t in tables]
-        )
-
+    def model(self) -> models.DocumentExtract:
+        data = models.DocumentExtract.from_orm(self)
         return data
 
     # TODO: calculate md5-hash for the document and
@@ -47,6 +39,8 @@ class Base(ABC):
     #       we need this for caching purposes but also in order
     #       check if a document already exists...
 
+    # TODO: test this for path, string, fobj and string path for different
+    #       documents
     @property
     def filename(self) -> str:
         if isinstance(self._fobj, str):
@@ -84,9 +78,14 @@ class Base(ABC):
     def tables_df(self) -> List["pd.DataFrame"]:
         return []
 
-    @property
+    @cached_property
     def lang(self) -> str:
-        return ""
+        text = self.full_text.strip()
+        if text:
+            lang = langdetect.detect(text)
+        else:
+            lang = "unknown"
+        return lang
 
     @property
     def textboxes(self) -> List[str]:
@@ -98,7 +97,8 @@ class Base(ABC):
 
     @property
     def urls(self) -> List[str]:
-        return []
+        urls = nlp_utils.get_urls_from_text(self.full_text)
+        return urls
 
     @property
     def images(self) -> List:
