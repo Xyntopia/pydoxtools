@@ -95,7 +95,7 @@ class Base(ABC):
     def full_text(self) -> str:
         return ""
 
-    @property
+    @cached_property
     def urls(self) -> List[str]:
         urls = nlp_utils.get_urls_from_text(self.full_text)
         return urls

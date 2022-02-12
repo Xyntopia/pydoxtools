@@ -6,7 +6,7 @@ This file implements common models used "all over the place" by componardo/comch
 
 "internal" models based on "pydantic" have an "underscore" as suffix:
 
-Component_
+ComponentData
 
 the corresponding DB model in neo4j is just called:
 
