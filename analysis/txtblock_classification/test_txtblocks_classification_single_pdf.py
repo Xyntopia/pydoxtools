@@ -18,6 +18,7 @@
 # %load_ext autoreload
 # %autoreload 2
 # from pydoxtools import nlp_utils
+import pydoxtools
 from pydoxtools import pdf_utils, classifier, nlp_utils
 from pydoxtools import webdav_utils as wu
 from pydoxtools.settings import settings
@@ -88,7 +89,7 @@ file
 model = classifier.load_classifier("text_block")
 
 # %%
-txtblocks = pd.DataFrame(pdf_utils.get_pdf_text(file, boxes=True), columns=["txt"])
+txtblocks = pd.DataFrame(pydoxtools.load_document(file).textboxes)
 pred = txtblocks.txt.apply(lambda x: model.predict_proba([x])[0])
 txtblocks[["add_prob", "ukn_prob"]] = pred.apply(pd.Series).round(2)
 pretty_print(txtblocks)

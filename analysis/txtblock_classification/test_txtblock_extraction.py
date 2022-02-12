@@ -18,6 +18,7 @@
 # %load_ext autoreload
 # %autoreload 2
 # from pydoxtools import nlp_utils
+import pydoxtools
 from pydoxtools import pdf_utils, classifier, nlp_utils
 from pydoxtools import geometry_utils as gu
 from pydoxtools.visual_document_analysis import plot_boxes
@@ -163,7 +164,7 @@ boxes = bx = features[box_cols].values
 ax = plot_boxes(boxes, page.page_bbox, groups=groups)
 
 # %%
-txtblocks = pd.DataFrame(pdf_utils.get_pdf_text(file, boxes=True), columns=["txt"])
+txtblocks = pd.DataFrame(pydoxtools.load_document(file).textboxes)
 pretty_print(txtblocks)
 
 # %%

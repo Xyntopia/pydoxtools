@@ -15,10 +15,9 @@ import hashlib
 import logging
 import operator
 import re
-import typing
-from abc import ABC, abstractmethod
-from pathlib import Path
 import tempfile
+import typing
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -35,14 +34,12 @@ from pdfminer.layout import LTChar, LTTextLineVertical, LTCurve, LTFigure, LTTex
 from pdfminer.layout import LTTextContainer
 from pdfminer.pdfinterp import resolve1
 from pdfminer.pdfparser import PDFParser
-from sklearn.ensemble import IsolationForest
-from sklearn.neighbors import KernelDensity
-
-import pydoxtools.list_utils
+from pydoxtools import document
 from pydoxtools import geometry_utils as gu
-from pydoxtools import models, document
 from pydoxtools.geometry_utils import box_cols, x0, x1, y1, pairwise_txtbox_dist
 from pydoxtools.settings import settings
+from sklearn.ensemble import IsolationForest
+from sklearn.neighbors import KernelDensity
 
 logger = logging.getLogger(__name__)
 
@@ -390,7 +387,6 @@ class PDFBase(document.Base):
     """
 
     @property
-    @abstractmethod
     def df_le(self) -> pd.DataFrame:
         """this method should provide a dataframe of the extracted line elements of a pdf"""
         return pd.DataFrame()
@@ -403,13 +399,13 @@ class PDFBase(document.Base):
         return boxes
 
     @cached_property
-    def txt_boxes(self) -> typing.List:
+    def textboxes(self) -> typing.List:
         boxes = self.txt_box_df
         return boxes.get("text", pd.Series()).to_list()
 
     @cached_property
     def full_text(self) -> str:
-        return "\n".join(self.txt_boxes)
+        return "\n".join(self.textboxes)
 
     @functools.lru_cache()
     def __detect_titles(self) -> pd.DataFrame:
@@ -458,7 +454,7 @@ class PDFBase(document.Base):
         # titles = l.query("outliers==-1")
         titles = dfl.query("outliers==-1 and wordcount<10")
         titles = titles[titles['size'] >= titles['size'].quantile(0.75)]
-        return titles
+        return titles.get("text", pd.Series()).to_list()
 
     @cached_property
     def side_titles(self) -> pd.DataFrame:
@@ -559,26 +555,17 @@ class PDFDocument(PDFBase):
     - join lines that are part of the same "box" as "textboxes"
     - extract table data
 
-
-    TODO: implement a "get_lines(self, page)" method
-          where we automatically extract the lines fo a specific page
-          or reuse them if they are already there...
-
-    TODO: implement the "call" function in a similar way as the "pre_cache_doc_extraction"
-            was used.
-
-    TODO: introduce as many as possible "cached-properties" in order to speed
-            up calculations significantly and also make code
-            much easier to understand...
-
-
+    TODO: move extract_elements into the page class...
     """
 
-    def __init__(self,
-                 fobj: typing.Union[str, typing.BinaryIO],
-                 table_extraction_params: typing.Optional[TableExtractionParameters] = None,
-                 page_numbers=None, maxpages=0,
-                 laparams=LAParams()):
+    def __init__(
+            self,
+            fobj: typing.Union[str, typing.BinaryIO],
+            source,
+            table_extraction_params: typing.Optional[TableExtractionParameters] = None,
+            page_numbers=None, maxpages=0,
+            laparams=LAParams()
+    ):
         """
 
         :param fobj: a file-like object for the PDF file
@@ -597,7 +584,7 @@ class PDFDocument(PDFBase):
            all_texts=False
         )
         """
-        self.fobj = fobj
+        super().__init__(fobj, source)
         self.laparams = laparams
         self.page_numbers = page_numbers
         self.maxpages = maxpages
@@ -639,7 +626,7 @@ class PDFDocument(PDFBase):
         res = (self.table_metrics, self.titles)
         # res = (
         #    self.pages, self.tables, self.table_metrics, self.side_content,
-        #    self.txt_boxes, self.full_text, self.list_lines, self.main_content,
+        #    self.textboxes, self.full_text, self.list_lines, self.main_content,
         #    self.titles, self.meta_infos, self.side_titles, self.pages_bbox
         # )
         # also cache all pages...
@@ -830,7 +817,7 @@ class PDFPage(PDFBase):
         to pre-cache all calculations this is done here by simply calling all functions..."""
         res = (
             self.tables, self.side_content,
-            self.txt_boxes, self.full_text, self.main_content,
+            self.textboxes, self.full_text, self.main_content,
             self.titles, self.side_titles
         )
         return self
@@ -1532,75 +1519,3 @@ class PDFTable:
             return pd.concat([tm, m1, m2])
         except:  # something didn't work maybe there are no graphics elements?
             return pd.concat([tm, m1])
-
-
-def filter_correct_finished_tables(table, table_area):
-    """
-    TODO: update this function after hyperparameter optimization was applied...
-
-    filter final tables for "good" and "bad" tables...
-
-    This function was generated using a decision tree from sklearn
-    and converted into code
-
-    It can be updated with the jupyter notebook "generate pdf table features
-    """
-    if table.empty:
-        return False
-
-    wordnum = table.apply(lambda x: x.str.split().str.len()).values.sum() / table.size
-    box_points_groups_fast = table_area.get("method", None) == 'box_points_groups_fast'
-    if wordnum / (abs(box_points_groups_fast) + 1e-7) <= 38243734.0:
-        return True  # classification scores: [[3.2e-02 8.0e+01]]
-    else:  # if wordnum/box_points_groups_fast > 38243734.0
-        return False  # classification scores: [[0.025 0.   ]]
-
-
-def extract_pdf_data(pdf_file) -> models.DocumentData_:
-    """
-    Extract raw data from pdf without interpreting them.
-
-    :param pdf_file: filename of pdf
-    """
-
-    def extract_data(f):
-        pdfi = PDFDocument(pdf_file, maxpages=10)
-        tables = [df.to_dict() for df in pdfi.tables_df] + [pdfi.list_lines]
-        tables = pydoxtools.list_utils.deep_str_convert(tables)
-        try:
-            filename = f.name
-        except AttributeError:
-            filename = f
-        data = models.DocumentData_(
-            file=filename,
-            titles=pdfi.titles.get("text", pd.Series()).to_list(),
-            textboxes=pdfi.txt_boxes,
-            docinfo=[pydoxtools.list_utils.deep_str_convert(_get_meta_infos(f))],
-            tables=[t for t in tables]
-        )
-
-        return data
-
-    return repair_pdf_if_damaged(extract_data)(pdf_file)
-
-
-extract_pdf_data_cached = memory.cache(extract_pdf_data)
-
-
-def get_pdf_text(fobj, boxes=False, maxpages=0) -> typing.List[str]:
-    """
-    extract text from pdf file
-
-    :param fobj: pdf file-like object or path or string
-    :param boxes: if we want to return the text organized as "text-boxes"
-    :return: string
-    """
-    pdf = PDFDocument(fobj)
-    if boxes:
-        return pdf.txt_boxes
-    else:
-        return [pdf.full_text]
-
-
-get_pdf_text_safe = repair_pdf_if_damaged(get_pdf_text)
-get_pdf_text_safe_cached = memory.cache(get_pdf_text_safe)

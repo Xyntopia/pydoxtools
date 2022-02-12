@@ -39,6 +39,8 @@ logger = logging.getLogger(__name__)
 class Webpage(BaseModel):
     """
     Corresponds to scraped webpages
+
+    TODO: get rid of this and have it as a standard "document"
     """
     url: AnyHttpUrl = Field(...)
     crawl_time: datetime.datetime = None
@@ -57,7 +59,7 @@ class Webpage(BaseModel):
         self.html = gzip.decompress(self.html).decode('utf-8') if self.html else None
         return self
 
-
+# TODO: rename this model...
 class DocumentData_(BaseModel):
     """
     All of the data that we can currently extract from a document
@@ -66,16 +68,15 @@ class DocumentData_(BaseModel):
     lang: str = None
     textboxes: List[str] = []
     urls: List[str] = []
-    file: str = None
     images: List = []
     titles: List[str] = []
-    docinfo: List[Dict[str, str]] = []
+    meta_infos: List[Dict[str, str]] = []
     tables: List[Dict[str,Dict[str,Any]]] = []
     raw_content: List[str] = []
     keywords: List[str] = []
     url: str = None
-    final_url: List[str] = []
-    schemadata: Dict = {}  # schema.org data extracted from html meta tagss
+    final_url: List[str] = [] # url extracted from the document itself where it points to "itself"
+    schemadata: Dict = {}  # schema.org data extracted from html meta tags
     product_ids: Dict[str, str] = {}
     pdf_links: List[str] = []
     price: List[str] = []

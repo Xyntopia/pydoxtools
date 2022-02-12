@@ -236,6 +236,7 @@ def extract_html_data(raw_html, url):
     # prices
     regex_ex = {}
 
+    # TODO: add meta_infos
     data = models.DocumentData_(
         raw_content=[main_content_html, main_content_html2],
         keywords=keywords.split(),

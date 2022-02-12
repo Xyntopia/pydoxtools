@@ -2,7 +2,7 @@ __version__ = '0.1.0'
 
 import logging
 from pathlib import Path
-from typing import Union, IO
+from typing import Union, IO, List
 
 from pydoxtools import pdf_utils, document
 
@@ -14,7 +14,8 @@ class LoadDocumentError(Exception):
 logger = logging.getLogger(__name__)
 
 
-def load_document(fobj: Union[str, Path, IO]) -> document.Base:
+def load_document(fobj: Union[str, Path, IO], source: str = "",
+                  page_numbers: List[int] = None, maxpages: int = 0) -> document.Base:
     """takes a file-like object/string/path and returns a document corresponding to the
     filetype which can be used to extract data in a lazy fashion."""
     try:
@@ -22,7 +23,7 @@ def load_document(fobj: Union[str, Path, IO]) -> document.Base:
         # TODO: first try to check if the file is binary or string
         #       if string, chck if the path exists, if it doesn't take
         #       the "file" as a normal string/textdocument...
-        doc = pdf_utils.PDFDocument(fobj)
+        doc = pdf_utils.PDFDocument(fobj, source, page_numbers=page_numbers, maxpages=maxpages)
         return doc
     except:
         logger.exception()
