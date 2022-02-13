@@ -34,12 +34,13 @@ from pdfminer.layout import LTChar, LTTextLineVertical, LTCurve, LTFigure, LTTex
 from pdfminer.layout import LTTextContainer
 from pdfminer.pdfinterp import resolve1
 from pdfminer.pdfparser import PDFParser
+from sklearn.ensemble import IsolationForest
+from sklearn.neighbors import KernelDensity
+
 from pydoxtools import document, list_utils
 from pydoxtools import geometry_utils as gu
 from pydoxtools.geometry_utils import box_cols, x0, x1, y1, pairwise_txtbox_dist
 from pydoxtools.settings import settings
-from sklearn.ensemble import IsolationForest
-from sklearn.neighbors import KernelDensity
 
 logger = logging.getLogger(__name__)
 
@@ -439,7 +440,7 @@ class PDFBase(document.Base):
         # detect outliers to isolate titles and other content from "normal"
         # content
         # TODO: this could be subject to some hyperparameter optimization...
-        df = dfl[features]
+        df = dfl[list(features)]
         clf = IsolationForest()  # contamination=0.05)
         clf.fit(df)
         dfl['outliers'] = clf.predict(df)
@@ -779,7 +780,7 @@ class PDFDocument(PDFBase):
 
     @cached_property
     def tables(self):
-        tables = [df.to_dict() for df in self.tables_df] + [self.list_lines]
+        tables = [df.to_dict() for df in self.tables_df] + [{0: dict(enumerate(self.list_lines))}]
         return tables
 
     @cached_property
