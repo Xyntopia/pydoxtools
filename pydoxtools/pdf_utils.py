@@ -448,9 +448,9 @@ class PDFBase(document.Base):
         return dfl
 
     @cached_property
-    def titles(self) -> pd.DataFrame:
+    def titles(self) -> typing.List:
         if self.df_le.empty:
-            return pd.DataFrame()
+            return []
         dfl = self.__detect_titles()
         # titles = l.query("outliers==-1")
         titles = dfl.query("outliers==-1 and wordcount<10")
