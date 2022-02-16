@@ -780,7 +780,9 @@ class PDFDocument(PDFBase):
 
     @cached_property
     def tables(self):
-        tables = [df.to_dict() for df in self.tables_df] + [{0: dict(enumerate(self.list_lines))}]
+        tables = [df.to_dict('index') for df in self.tables_df]
+        # append lists as a 1-D table as well...
+        tables.append({i: {0: line} for i, line in enumerate(self.list_lines)})
         return tables
 
     @cached_property

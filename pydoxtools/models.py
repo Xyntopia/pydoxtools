@@ -77,6 +77,8 @@ class DocumentExtract(BaseModel):
     images: List = []
     titles: List[str] = []
     meta_infos: List[Dict[str, str]] = []
+    # tables are row-wise!!  [{index -> {column -> value } }]
+    # for a pandas dataframe we can export it like this:  df.to_dict('index')
     tables: List[Dict[str, Dict[str, Any]]] = []
     raw_content: List[str] = []
     keywords: List[str] = []

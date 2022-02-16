@@ -72,6 +72,11 @@ class Base(ABC):
 
     @property
     def tables(self) -> List[Dict[str, Dict[str, Any]]]:
+        """
+        table in the following (row - wise) format:
+
+        [{index -> {column -> value } }]
+        """
         return []
 
     @property
