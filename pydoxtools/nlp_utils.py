@@ -10,32 +10,33 @@ TODO: refactor this... there are a lot of functions and it would
 
 TODO: think about how to disribute functions between nlp_utils and
       classifier
+
+TODO: move the inference parts into the "document" class in order to make them document
+      agnostic
 """
 
 import functools
 import logging
+from difflib import SequenceMatcher
 from typing import Optional
 
+import numpy as np
+import pandas as pd
 import sklearn as sk
 import sklearn.linear_model
 import spacy
 import torch
 import transformers as transformers
-
-# from transformers import pipeline #for sentiment analysis
-
-compare = sklearn.metrics.pairwise.cosine_similarity
-
-import pandas as pd
-import numpy as np
-from tqdm import tqdm
 from pydoxtools import html_utils
 from pydoxtools.settings import settings
-from urlextract import URLExtract
-from difflib import SequenceMatcher
 from scipy.spatial.distance import pdist, squareform
+from tqdm import tqdm
+from urlextract import URLExtract
 
 logger = logging.getLogger(__name__)
+
+# from transformers import pipeline #for sentiment analysis
+compare = sklearn.metrics.pairwise.cosine_similarity
 
 
 def str_similarity(a, b):
@@ -339,10 +340,21 @@ def download_nlp_models():
     if we need more models, we can find them here:
 
     https://spacy.io/usage/models#download-manual
+
+    we can use this function to pre-download & initialize
+    our models in a dockerfile like this:
+
+        python -c 'from pydoxtools import nlp_utils; nlp_utils.download_nlp_models()'
+
     """
-    spacy.cli.download("en_core_web_md")
-    spacy.cli.download("de_core_news_md")
-    spacy.cli.download("xx_ent_wiki_sm")
+    model_names = [
+        'xx_ent_wiki_sm', 'en_core_web_md', 'de_core_news_md',
+       'en_core_web_sm', 'de_core_news_sm'
+    ]
+    for n in model_names:
+        spacy.cli.download(n)
+    load_models()
+    load_tokenizer()
 
 
 def preload_models():
