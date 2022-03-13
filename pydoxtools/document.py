@@ -1,10 +1,11 @@
 from abc import ABC
 from functools import cached_property
 from pathlib import Path
-from typing import List, Dict, Any, Union, BinaryIO
+from typing import List, Dict, Any, Union, BinaryIO, Tuple
 
 import langdetect
 import pandas as pd
+
 from pydoxtools import models, nlp_utils
 
 
@@ -20,11 +21,22 @@ class Base(ABC):
     def __init__(
             self,
             fobj: Union[str, Path, BinaryIO],
-            source: Union[str, Path]
+            source: Union[str, Path],
+            ner_model: str = "",
+            ner_model_spacy_size: str = "",
             # Where does the extracted data come from? (Examples: URL, 'pdfupload', parent-URL, or a path)"
     ):
+        """
+        ner model:
+
+        if a "ner_model" was specified use that.
+        else if "ner_model_spacy_size" was specified, use generic spacy language model
+        else  use generic, multilingual ner model "xx_ent_wiki_sm"
+        """
         self._fobj = fobj
         self._source = source
+        self._ner_model = ner_model if ner_model else "xx_ent_wiki_sm"
+        self._ner_model_size = ner_model_spacy_size
 
     def __repr__(self):
         return f"{self.__module__}.{self.__class__.__name__}({self._fobj},{self.source})>"
@@ -33,6 +45,11 @@ class Base(ABC):
     def model(self) -> models.DocumentExtract:
         data = models.DocumentExtract.from_orm(self)
         return data
+
+    # TODO: more configuration options:
+    #       - which nlp models (spacy/transformers) to use
+    #       - should "full text" include tables?
+    #       - should ner include tables/figures?
 
     # TODO: calculate md5-hash for the document and
     #       use __eq__ with that hash...
@@ -96,9 +113,30 @@ class Base(ABC):
     def textboxes(self) -> List[str]:
         return []
 
-    @property
+    @cached_property
     def full_text(self) -> str:
         return ""
+
+    @cached_property
+    def ner(self) -> List[Tuple[str, str]]:
+        # TODO: add transformers as ner recognition as well:
+        #       from transformers import pipeline
+        #
+        # #ner_pipe = pipeline("ner")
+        # #good results = "xlm-roberta-large-finetuned-conll03-english" # large but good
+        # #name = "sshleifer/tiny-dbmdz-bert-large-cased-finetuned-conll03-english" #small and bad
+        # name = "Davlan/distilbert-base-multilingual-cased-ner-hrl"
+        # model = name
+        # tokenizer= name
+        # ner_pipe = pipeline(task="ner", model=model, tokenizer=tokenizer)
+        if self._ner_model_size:
+            model_id = nlp_utils.get_spacy_model_id(self.lang, self._ner_model_size)
+            nlp = nlp_utils.load_cached_spacy_model(model_id)
+        else:
+            nlp = nlp_utils.load_cached_spacy_model(self._ner_model)
+
+        res = nlp_utils.extract_entities_spacy(self.full_text, nlp)
+        return res
 
     @cached_property
     def urls(self) -> List[str]:

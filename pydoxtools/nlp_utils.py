@@ -12,18 +12,17 @@ TODO: think about how to disribute functions between nlp_utils and
       classifier
 """
 
-import logging
-
-logger = logging.getLogger(__name__)
-
-import torch
 import functools
-import transformers as transformers
-# from transformers import pipeline #for sentiment analysis
+import logging
+from typing import Optional
 
-import spacy
 import sklearn as sk
 import sklearn.linear_model
+import spacy
+import torch
+import transformers as transformers
+
+# from transformers import pipeline #for sentiment analysis
 
 compare = sklearn.metrics.pairwise.cosine_similarity
 
@@ -35,6 +34,8 @@ from pydoxtools.settings import settings
 from urlextract import URLExtract
 from difflib import SequenceMatcher
 from scipy.spatial.distance import pdist, squareform
+
+logger = logging.getLogger(__name__)
 
 
 def str_similarity(a, b):
@@ -52,6 +53,7 @@ logger.info(f"using {device}-device for nlp_operations!")
 memory = settings.get_memory_cache()
 urlextractor = URLExtract(extract_email=True, cache_dns=True, extract_localhost=True)
 urlextractor.update_when_older(7)  # updates when list is older that 7 days
+
 
 # TODO: enhance this with "textrank" algorithms
 def self_similarity_matrix(strlist):
@@ -72,17 +74,6 @@ def self_similarity_matrix(strlist):
 def get_urls_from_text(text):
     urls = urlextractor.find_urls(text, only_unique=False, check_dns=True)
     return urls
-
-
-@functools.lru_cache()
-def get_spacy_model(model_type, size="sm"):
-    logger.info(f"load spacy model: {model_type}")
-    if model_type == 'en':
-        return spacy.load(f'en_core_web_{size}')
-    elif model_type == 'de':
-        return spacy.load(f'de_core_news_{size}')
-    else:
-        return spacy.load('xx_ent_wiki_sm')
 
 
 def tokenize_windows(txt, tokenizer, win_len=500, overlap=50,
@@ -327,6 +318,50 @@ def load_models():
     return model, tokenizer
 
 
+def get_spacy_model_id(model_type, size="sm") -> Optional[str]:
+    """size can be: sm, md, lg or trf where "trf" is transformer """
+    logger.info(f"load spacy model: {model_type}")
+    if model_type == 'en':
+        return f'en_core_web_{size}'
+    elif model_type == 'de':
+        return f'de_core_news_{size}'
+    else:
+        return None
+
+
+@functools.lru_cache()
+def load_cached_spacy_model(model_id: str):
+    return spacy.load(model_id)
+
+
+def download_nlp_models():
+    """download models and other necessary stuff
+    if we need more models, we can find them here:
+
+    https://spacy.io/usage/models#download-manual
+    """
+    spacy.cli.download("en_core_web_md")
+    spacy.cli.download("de_core_news_md")
+    spacy.cli.download("xx_ent_wiki_sm")
+
+
+def preload_models():
+    """load spacy models into cache"""
+    # TODO: generalize this function:
+    #       - specify a model list
+    #       - model list should be changeable through user
+    #       - combine spacy & transformers model load functions
+    load_tokenizer()
+    load_models()
+    load_cached_spacy_model("en", "sm")
+
+
+def reset_models():
+    """clear models from memory"""
+    load_models.cache_clear()
+    load_tokenizer.cache_clear()
+
+
 def veclengths(x):
     return np.sqrt((x * x).sum(axis=1))
 
@@ -444,9 +479,9 @@ def get_keywords():
     wordranks = pd.DataFrame(zip(similarity, tokwords),
                              columns=['similarity', 'words'])
     wordranks['importance'] = importance * wordranks['similarity']
-    #colhtml = html_utils.color_text(tokwords, similarity)
-    #oib = html_utils.oib
-    #oib(colhtml)
+    # colhtml = html_utils.color_text(tokwords, similarity)
+    # oib = html_utils.oib
+    # oib(colhtml)
 
 
 # def topic_similarity(model):
@@ -475,12 +510,12 @@ def string_embeddings(text, method="fast"):
     """
     if method == "fast":
         tokenizer, _ = load_tokenizer()
-        vs, toktxt = get_embeddings(text_short, tokenizer)
+        vs, toktxt = get_embeddings(text, tokenizer)
         vs = vs.mean(axis=0)
     elif method == "slow":
         model, tokenizer = load_models()
         vs, toktxt = longtxt_embeddings(
-            text_short, model, tokenizer, np.mean)
+            text, model, tokenizer, np.mean)
     return vs
 
 
@@ -512,7 +547,7 @@ def page2vec(page_str, url=None, method="slow"):
     elif method in ["slow", "fast"]:
         try:
             # TODO: can we somehow move html_utils out of this file?
-            text_short = html_utils.get_pure_html_text(text)
+            text_short = html_utils.get_pure_html_text(page_str)
             vs = string_embeddings(text_short, method)
         except:
             logger.exception(f"can not convert: {url}")
@@ -553,6 +588,24 @@ def topic_similarity(html, topic, method="slow"):
 
 
 def extract_entities_spacy(text, nlp):
+    """extract entitis from text
+    
+    "nlp" can either be a spacy nlp object or a transformers pipeline
+
+    # TODO: move this into our "doc" class
+    """
+    # TODO: also enable transformers pipelines like this:
+
+    # from transformers import pipeline
+
+    # ner_pipe = pipeline("ner")
+    # good results = "xlm-roberta-large-finetuned-conll03-english" # large but good
+    # name = "sshleifer/tiny-dbmdz-bert-large-cased-finetuned-conll03-english" #small and bad
+    # name = "Davlan/distilbert-base-multilingual-cased-ner-hrl"
+    # model = name
+    # tokenizer= name
+    # ner_pipe = pipeline(task="ner", model=model, tokenizer=tokenizer)
+
     doc = nlp(text)
     return [(ent.text, ent.label_) for ent in doc.ents]
 

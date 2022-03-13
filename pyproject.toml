@@ -20,12 +20,6 @@ pandas = { optional = true, version = ">=1.0.5" }
 quantulum3 = { optional = true, version = ">=0.7.4" }
 quantities = { optional = true, version = ">=0.12.4" }
 tqdm = { optional = true, version = ">=4.47.0" }
-# TODO: upgrade spacy
-spacy = { optional = true, version = ">=2.3.2" }
-# download spacy models already during installation...
-xx-ent-wiki-sm = { optional = true, url = "https://github.com/explosion/spacy-models/releases/download/xx_ent_wiki_sm-2.3.0/xx_ent_wiki_sm-2.3.0.tar.gz#egg=xx_ent_wiki_sm==2.3.0" }
-en_core_web_md = { optional = true, url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_md-2.3.0/en_core_web_md-2.3.0.tar.gz#egg=en_core_web_md==2.3.0" }
-de_core_news_md = { optional = true, url = "https://github.com/explosion/spacy-models/releases/download/de_core_news_md-2.3.0/de_core_news_md-2.3.0.tar.gz#egg=de_core_news_md==2.3.0" }
 urlextract = { optional = true, version = ">=1.1.0" }
 pydantic = { version = ">=1.7.2" }
 beautifulsoup4 = { optional = true, version = ">=4.9.3" }
@@ -50,6 +44,7 @@ pytorch-lightning = { optional = true, version = ">=1.5.6" }
 pdf2image = { version = "^1.16.0", optional = true }
 Shapely = { version = "^1.8.0", optional = true }
 scikit-learn = { version = "^1.0.2", optional = true }
+spacy = {version = "^3.2.3", optional = true}
 
 [tool.poetry.extras]
 # extraction-transformation-load facilities
