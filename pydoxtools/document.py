@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import List, Dict, Any, Union, BinaryIO, Tuple
 
 import langdetect
+import numpy
 import pandas as pd
 from pydoxtools import models, nlp_utils, classifier
 from pydoxtools.list_utils import group_by
@@ -149,11 +150,17 @@ class Base(ABC):
         return urls
 
     @cached_property
-    def text_block_classes(self) -> Dict[str, Any]:
+    def text_block_classes(self) -> pd.DataFrame:
         model: classifier.txt_block_classifier = classifier.load_classifier('text_block')
         blocks = self.textboxes
-        classes = model.predict_proba(blocks).numpy().round(3)
-        return classes
+        classes = model.predict_proba(blocks).numpy()
+        txtblocks = pd.DataFrame(self.textboxes, columns=["txt"])
+        txtblocks[["add_prob", "ukn_prob"]] = classes.round(3)
+        return txtblocks
+
+    @cached_property
+    def addresses(self) -> List:
+        return self.text_block_classes[self.text_block_classes['add_prob'] > 0.5].txt.tolist()
 
     @property
     def images(self) -> List:

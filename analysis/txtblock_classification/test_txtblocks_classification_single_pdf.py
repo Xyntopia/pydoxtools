@@ -234,3 +234,8 @@ Fax:+86(10)530 5533
 model.predict_proba(example_address).numpy().round(3)
 
 # %%
+# filter for addresses
+add = [a[0] for a in list(zip(example_address,model.predict_proba(example_address)[:,0])) if a[1]>0.5]
+add
+
+# %%
