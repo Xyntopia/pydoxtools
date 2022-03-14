@@ -1961,6 +1961,18 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
+name = "pytesseract"
+version = "0.3.9"
+description = "Python-tesseract is a python wrapper for Google's Tesseract-OCR"
+category = "main"
+optional = true
+python-versions = ">=3.7"
+
+[package.dependencies]
+packaging = ">=21.3"
+Pillow = ">=8.0.0"
+
+[[package]]
 name = "pytest"
 version = "6.2.5"
 description = "pytest: simple powerful testing with Python"
@@ -2959,7 +2971,7 @@ training = ["fastparquet", "pdfminer.six", "pandas", "spacy", "scikit-learn", "t
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7.11" #this python version is necessary in order to work on pytorch/pytorch docker image
-content-hash = "646e7382a206716dc1904cb32643fe027ff601930453aa58c5479e04d927867d"
+content-hash = "9f54fa91fc642feea6b017a7c7ed92602249ea206e0a3e1d8d416b8ed431b4f2"
 
 [metadata.files]
 absl-py = [
@@ -4450,6 +4462,10 @@ pyrsistent = [
     {file = "pyrsistent-0.18.0-cp39-cp39-win32.whl", hash = "sha256:f3ef98d7b76da5eb19c37fda834d50262ff9167c65658d1d8f974d2e4d90676b"},
     {file = "pyrsistent-0.18.0-cp39-cp39-win_amd64.whl", hash = "sha256:404e1f1d254d314d55adb8d87f4f465c8693d6f902f67eb6ef5b4526dc58e6ea"},
     {file = "pyrsistent-0.18.0.tar.gz", hash = "sha256:773c781216f8c2900b42a7b638d5b517bb134ae1acbebe4d1e8f1f41ea60eb4b"},
+]
+pytesseract = [
+    {file = "pytesseract-0.3.9-py2.py3-none-any.whl", hash = "sha256:fecda37d1e4eaf744c657cd03a5daab4eb97c61506ac5550274322c8ae32eca2"},
+    {file = "pytesseract-0.3.9.tar.gz", hash = "sha256:7e2bafc7f48d1bb71443ce4633a56f5e21925a98f220a36c336297edcd1956d0"},
 ]
 pytest = [
     {file = "pytest-6.2.5-py3-none-any.whl", hash = "sha256:7310f8d27bc79ced999e760ca304d69f6ba6c6649c0b60fb0e04a4a77cacc134"},

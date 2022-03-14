@@ -35,5 +35,5 @@ def load_document(fobj: Union[str, Path, IO], source: str = "",
         doc = pdf_utils.PDFDocument(fobj, source, page_numbers=page_numbers, maxpages=maxpages)
         return doc
     except:
-        logger.exception()
+        logger.exception("something went wrong!")
         raise LoadDocumentError(f"Could not open document {fobj}!")
