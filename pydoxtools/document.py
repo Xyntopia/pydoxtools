@@ -8,7 +8,6 @@ import pandas as pd
 from pydoxtools import models, nlp_utils
 from pydoxtools.list_utils import group_by
 
-
 class Base(ABC):
     """
     This class is the base for all document classes in pydoxtools and
@@ -148,6 +147,10 @@ class Base(ABC):
     def urls(self) -> List[str]:
         urls = nlp_utils.get_urls_from_text(self.full_text)
         return urls
+
+    @cached_property
+    def text_block_classes(self) -> Dict[str, Any]:
+        model = clasload_classifier
 
     @property
     def images(self) -> List:

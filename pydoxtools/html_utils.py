@@ -218,10 +218,9 @@ if __name__ == "__main__":
     import sys
 
     sys.path.append("..")
-    import comcharax
-    import comcharax.db_utils
 
-    ldata = comcharax.db_utils.load_labeled_webpages()
+    import pydoxtools.training
+    ldata = pydoxtools.training.load_labeled_webpages()
 
     ldata['len'] = ldata.raw_html.str.len()
 
