@@ -5,8 +5,8 @@ from typing import List, Dict, Any, Union, BinaryIO, Tuple
 
 import langdetect
 import pandas as pd
-
 from pydoxtools import models, nlp_utils
+from pydoxtools.list_utils import group_by
 
 
 class Base(ABC):
@@ -137,6 +137,12 @@ class Base(ABC):
 
         res = nlp_utils.extract_entities_spacy(self.full_text, nlp)
         return res
+
+    @cached_property
+    def grouped_ner(self) -> Dict[str, Any]:
+        """Group labels from named entity recognition."""
+        groups = group_by([n[::-1] for n in self.ner])
+        return groups
 
     @cached_property
     def urls(self) -> List[str]:

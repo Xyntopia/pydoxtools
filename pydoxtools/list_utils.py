@@ -11,8 +11,10 @@ import datetime
 import logging
 import math
 import numbers
-from itertools import islice
+from itertools import islice, groupby
+from operator import itemgetter
 from random import randint
+from typing import List, Tuple, Any, Dict
 
 import pandas as pd
 
@@ -86,6 +88,7 @@ def deep_str_convert(obj):
 
     return res
 
+
 def random_chunks(li, prob_dist):
     """splits a list into random chunks with sizes according to prob_func"""
     it = iter(li)
@@ -96,7 +99,19 @@ def random_chunks(li, prob_dist):
         else:
             break
 
+
 def random_chunks_uniform(li, min_size=1, max_size=20):
     """splits a list into random uniformly sized chunks"""
     prob_dist = lambda: randint(min_size, max_size)
     return random_chunks(li, prob_dist)
+
+
+def group_by(data: List[Tuple[str, Any]]) -> Dict[str, Any]:
+    """group data given as a list of tuples where the first element of the tuple
+    specfies the group key.
+    """
+    groups = {}
+    for k, group in groupby(sorted(data, key=itemgetter(0)), lambda x: x[0]):
+        groups[k] = [g[1:] for g in group]
+
+    return groups
