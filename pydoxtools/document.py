@@ -159,7 +159,7 @@ class Base(ABC):
         return txtblocks
 
     @cached_property
-    def addresses(self) -> List:
+    def addresses(self) -> List[str]:
         return self.text_block_classes[self.text_block_classes['add_prob'] > 0.5].txt.tolist()
 
     @property
