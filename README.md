@@ -18,4 +18,16 @@ It will analyze documents and do the following operations:
 
 ## Installation
 
+### OCR
+
+The ocr functionality relies on the Open Source Software
+[tesseract](https://github.com/tesseract-ocr/tesseract) to extract
+pdf files from images and image-based pdfs.
+
+In order to install OCR functionality it's best to follow the instructions on their 
+[webpage](https://tesseract-ocr.github.io/). In most linux distributions it
+can be as simple as:
+
+    sudo apt install tesseract-ocr
+
 ## License TODO

@@ -81,12 +81,20 @@ nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.c
 # %%
 file = settings.TRAINING_DATA_DIR / "pdfs/datasheet/Datenblatt_PSL-Family.37.pdf"
 file = settings.TRAINING_DATA_DIR / "pdfs/datasheet/remo-m_fixed-wing.2f.pdf"
+file = settings.TRAINING_DATA_DIR / "pdfs/datasheet/2-NeON2_V5_N1K_0LG_Datasheet_LGxxxN1K-V5_201905_EN.e5.pdf"
 
 # %%
 file
+
+# %%
+
+# %%
 
 # %%
 doc = pydoxtools.load_document(file)
 
 # %%
 doc.text_block_classes[doc.text_block_classes['add_prob'] > 0.5].txt.tolist()
+
+# %%
+doc.textboxes
