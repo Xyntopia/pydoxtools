@@ -5,7 +5,7 @@ from typing import List, Dict, Any, Union, BinaryIO, Tuple
 
 import langdetect
 import pandas as pd
-from pydoxtools import models, nlp_utils
+from pydoxtools import models, nlp_utils, classifier
 from pydoxtools.list_utils import group_by
 
 class Base(ABC):
@@ -75,7 +75,7 @@ class Base(ABC):
         return self._fobj
 
     @property
-    def type(self) -> str:
+    def mime_type(self) -> str:
         """
         type such as "pdf", "html" etc...  can also be the mimetype!
         TODO: maybe we can do something generic here?
@@ -150,7 +150,10 @@ class Base(ABC):
 
     @cached_property
     def text_block_classes(self) -> Dict[str, Any]:
-        model = clasload_classifier
+        model: classifier.txt_block_classifier = classifier.load_classifier('text_block')
+        blocks = self.textboxes
+        classes = model.predict_proba(blocks).numpy().round(3)
+        return classes
 
     @property
     def images(self) -> List:
