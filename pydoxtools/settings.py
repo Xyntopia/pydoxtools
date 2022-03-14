@@ -29,7 +29,6 @@ logger = logging.getLogger(__name__)
 # from base64 import b64encode
 
 _FILE_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
-_SOURCE_DIR = Path(_FILE_DIR).parent.parent
 _HOME = Path.home()
 
 appname = "pydoxtools"
@@ -41,7 +40,7 @@ class _Settings(BaseSettings):
 
     @property
     def MODELDIR(self) -> Path:
-        return self.APPDATA / "models"
+        return self.CACHE_DIR_BASE / "models"
 
     # TODO: download classifiers in cache memory...
     def CLASSIFIER_STORE(self, name) -> Path:

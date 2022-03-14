@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.13.6
+#       jupytext_version: 1.13.7
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -89,7 +89,7 @@ file
 model = classifier.load_classifier("text_block")
 
 # %%
-txtblocks = pd.DataFrame(pydoxtools.load_document(file).textboxes)
+txtblocks = pd.DataFrame(pydoxtools.load_document(file).textboxes, columns=["txt"])
 pred = txtblocks.txt.apply(lambda x: model.predict_proba([x])[0])
 txtblocks[["add_prob", "ukn_prob"]] = pred.apply(pd.Series).round(2)
 pretty_print(txtblocks)
