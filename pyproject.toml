@@ -5,7 +5,7 @@ description = "This library contains a set of tools in order to extract structur
 authors = ["thomas meschede <yeusblender@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.8" #this python version is necessary in order to work on pytorch/pytorch docker image
+python = "^3.8"
 goose3 = { optional = true, version = ">=3.1.6" }
 # we are using this version of readability as the other version has a little bug...
 readability-lxml = { optional = true, version = ">=0.8.1" }
