@@ -5,18 +5,17 @@ description = "This library contains a set of tools in order to extract structur
 authors = ["thomas meschede <yeusblender@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.7.11" #this python version is necessary in order to work on pytorch/pytorch docker image
+python = "^3.8" #this python version is necessary in order to work on pytorch/pytorch docker image
 goose3 = { optional = true, version = ">=3.1.6" }
 # we are using this version of readability as the other version has a little bug...
 readability-lxml = { optional = true, version = ">=0.8.1" }
 appdirs = ">=1.4.4"
 langdetect = { optional = true, version = ">=1.0.8" }
-transformers = { optional = true, version = ">=3.0.2" }
+transformers = { optional = true, version = ">=4.17.0" }
 # TODO: get rid of this library, can be replace by custom function
 tldextract = { optional = true, version = ">=2.2.3" }
 "pdfminer.six" = { optional = true, version = ">=20200726" }
 extruct = { optional = true, version = ">=0.9.0" }
-pandas = { optional = true, version = ">=1.0.5" }
 quantulum3 = { optional = true, version = ">=0.7.4" }
 quantities = { optional = true, version = ">=0.12.4" }
 tqdm = { optional = true, version = ">=4.47.0" }
@@ -27,11 +26,8 @@ joblib = ">=1.0.1"
 lxml = { optional = true, version = ">=4.6.2" }
 # stemming is needed for quantulum3
 stemming = { optional = true, version = ">=1.0.1" }
+# TODO: try to replace quantulum with Pint
 Pint = ">=0.16.1"
-# TODO: we actually don't really "use" price-parser, we only need the list of currencies
-#       that it provides. so we should try to get rid of this (use the list manually for example? or
-#       download it somewhere and regularly update...)
-price-parser = ">=0.3.4"
 # used to "repair" pdfs
 pikepdf = ">=2.10.0"
 fastparquet = { version = "^0.7.2", optional = true }
@@ -46,14 +42,15 @@ Shapely = { version = "^1.8.0", optional = true }
 scikit-learn = { version = "^1.0.2", optional = true }
 spacy = {version = "^3.2.3", optional = true}
 pytesseract = {version = "^0.3.9", optional = true}
+pandas = "^1.4.1"
 
 [tool.poetry.extras]
 # extraction-transformation-load facilities
 etl = ["goose3", "langdetect", "tldextract", "spacy", "pdfminer.six",
-    "extruct", "camelot-py", "o pencv-python", "xx-ent-wiki-sm",
-    "en_core_web_md", "de_core_news_md", "urlextract", "quantulum3", "stemming",
-    "quantities", "readability-lxml", "pandas", "beautifulsoup4"]
-inference = ["transformers", "scikit-learn", "tqdm", "torch", "pytorch-lightning", "spacy", "beautifulsoup4", "pandas", "urlextract"]
+    "extruct", "urlextract", "quantulum3", "stemming",
+    "quantities", "readability-lxml", "pandas", "beautifulsoup4", "pytesseract"]
+inference = ["transformers", "scikit-learn", "tqdm", "torch", "pytorch-lightning", "spacy",
+    "beautifulsoup4", "pandas", "urlextract"]
 training = ["Faker", "fastparquet", "matplotlib", "pdfminer.six", "pandas", "spacy",
     "scikit-learn", "tqdm", "torch", "pytorch-lightning", "transformers", "torch"]
 # the pytorch-docker option below should be used in combination with the pytorch/pytorch dockerimage
@@ -64,18 +61,11 @@ pytorch-docker = ["Faker", "fastparquet", "matplotlib", "pdfminer.six", "pandas"
 # libraries required for training and analyzing the training datasets
 # thats why there are so many ;).
 [tool.poetry.dev-dependencies]
-matplotlib = { version = "^3.5.1", optional = true }
+matplotlib = "^3.5.1"
 pytest = ">=6.0.1"
-pip = ">=21.0.1"
 yattag = ">=1.13.2" #for html text coloring
-# TODO: find a better place for this? Is more a crawler thing or
-# something that is needed in order to build training datasets
-# or for picture-based classification tasks
-# selenium = ">=3.141.0" #only needed for html-js- crawling/screenshots
 jupyterlab = "^3.2.5"
-jupytext = "^1.13.4"
 ipywidgets = "^7.6.5"
-#jupyter-tensorboard = "^0.2.0"
 tensorboard = "^2.7.0"
 pigeonXT-jupyter = "^0.6.1" # for labeling purposes...
 odfpy = "^1.4.1"
@@ -86,8 +76,9 @@ hnswlib = "^0.6.0"
 #       https://github.com/ezhov-evgeny/webdav-client-python-3/issues/89
 #       we need to use our own fork. check regularly if we can revert to the master
 #webdavclient3 = {version = "^3.14.6", optional = true}
-webdavclient3 = { git = "https://github.com/yeus/webdav-client-python-3.git", optional = true, branch = "master" }
-Faker = { version = "^10.0.0", optional = true }
+webdavclient3 = { git = "https://github.com/yeus/webdav-client-python-3.git", branch = "master" }
+Faker = { version = "^10.0.0" }
+jupytext = "^1.13.7"
 
 [build-system]
 requires = ["poetry>==1.1.1"]
