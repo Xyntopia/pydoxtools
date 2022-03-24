@@ -730,6 +730,10 @@ class PDFDocument(PDFBase):
         return lines, graphic_elements, extracted_page_numbers, pages_bbox
 
     @cached_property
+    def mime_type(self) -> str:
+        return "application/pdf"
+
+    @cached_property
     def df_le(self) -> pd.DataFrame:
         """line elements of page"""
         lines, _, _, _ = self.extract_pdf_elements()
@@ -853,6 +857,9 @@ class PDFPage(PDFBase):
         TODO: some of the following operations might be more efficient in the table-graph-search
         """
 
+        if self.df_ge.empty:
+            return pd.DataFrame()
+
         # TODO: filter specifically for each coordinate
         # TODO: filter for "unique-coordinate-density"
         #       as tables are ordered, we can assume that if we
@@ -912,7 +919,7 @@ class PDFPage(PDFBase):
     @cached_property
     def df_ge(self) -> pd.DataFrame:
         """graphic elements of page"""
-        if not self.parent_document.df_le.empty:
+        if not self.parent_document.df_ge.empty:
             return self.parent_document.df_ge[
                 self.parent_document.df_ge.p_id == self.pagenum].copy()
         else:
@@ -945,8 +952,9 @@ class PDFPage(PDFBase):
               in order to make sure we don't sort out any valid tables...
         """
         boxes = pd.concat([
-            self.df_le[box_cols] if "t" in self.tbe.extraction_method else pd.DataFrame(),
-            self.df_ge_f[box_cols] if "g" in self.tbe.extraction_method else pd.DataFrame(),
+            self.df_le[box_cols] if ("t" in self.tbe.extraction_method and (not self.df_le.empty)) else pd.DataFrame(),
+            self.df_ge_f[box_cols] if (
+                        "g" in self.tbe.extraction_method and (not self.df_ge_f.empty)) else pd.DataFrame(),
         ])
         if len(boxes) == 0:
             return pd.DataFrame(), []
