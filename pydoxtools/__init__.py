@@ -22,6 +22,7 @@ def load_document(fobj: Union[str, Path, IO], source: str = "",
                   ocr: bool = False, ocr_lang="eng") -> document.Base:
     """takes a file-like object/string/path and returns a document corresponding to the
     filetype which can be used to extract data in a lazy fashion."""
+    f_name = fobj.name
     try:
         # TODO: add other document types
         # TODO: first try to check if the file is binary or string
@@ -34,6 +35,9 @@ def load_document(fobj: Union[str, Path, IO], source: str = "",
 
         doc = pdf_utils.PDFDocument(fobj, source, page_numbers=page_numbers, maxpages=maxpages)
         return doc
+    except pytesseract.pytesseract.TesseractError:
+        logger.exception("tesseract problems")
+        raise LoadDocumentError(f"language {ocr_lang} not supported!")
     except:
         logger.exception("something went wrong!")
-        raise LoadDocumentError(f"Could not open document {fobj}!")
+        raise LoadDocumentError(f"Could not open document {f_name}!")

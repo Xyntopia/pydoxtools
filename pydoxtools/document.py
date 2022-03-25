@@ -42,6 +42,10 @@ class Base(ABC):
         return f"{self.__module__}.{self.__class__.__name__}({self._fobj},{self.source})>"
 
     @property
+    def type(self):
+        return 'unknown'
+
+    @property
     def model(self) -> models.DocumentExtract:
         data = models.DocumentExtract.from_orm(self)
         return data
