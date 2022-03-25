@@ -5,8 +5,8 @@ import logging
 from pathlib import Path
 from typing import Union, IO, List
 
+import pydoxtools.ocr_language_mappings
 from PIL import Image
-
 from pydoxtools import pdf_utils, document
 
 
@@ -30,7 +30,17 @@ def load_document(fobj: Union[str, Path, IO], source: str = "",
         #       the "file" as a normal string/textdocument...
         if ocr:
             import pytesseract
-            pdf = pytesseract.image_to_pdf_or_hocr(Image.open(fobj), extension='pdf', lang=ocr_lang)
+            if ocr_lang == "auto":
+                pdf = pytesseract.image_to_pdf_or_hocr(Image.open(fobj), extension='pdf', lang=None)
+                doc = pdf_utils.PDFDocument(io.BytesIO(pdf), source, page_numbers=page_numbers, maxpages=maxpages)
+                # TODO: if doc.lang is in ocr_langauge (for example when using: "eng+auto") then don't
+                #       do anything.. as we already have the right document
+                lang = doc.lang
+                lang = pydoxtools.ocr_language_mappings.langdetect2tesseract.get(lang, None)
+                fobj.seek(0)
+            else:
+                lang = ocr_lang
+            pdf = pytesseract.image_to_pdf_or_hocr(Image.open(fobj), extension='pdf', lang=lang)
             fobj = io.BytesIO(pdf)
 
         doc = pdf_utils.PDFDocument(fobj, source, page_numbers=page_numbers, maxpages=maxpages)
