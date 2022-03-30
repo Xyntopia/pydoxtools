@@ -18,7 +18,7 @@ TODO: move the inference parts into the "document" class in order to make them d
 import functools
 import logging
 from difflib import SequenceMatcher
-from typing import Optional
+from typing import Optional, List
 
 import numpy as np
 import pandas as pd
@@ -27,11 +27,12 @@ import sklearn.linear_model
 import spacy
 import torch
 import transformers as transformers
-from pydoxtools import html_utils
-from pydoxtools.settings import settings
 from scipy.spatial.distance import pdist, squareform
 from tqdm import tqdm
 from urlextract import URLExtract
+
+from pydoxtools import html_utils
+from pydoxtools.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -136,7 +137,6 @@ def transform_to_contextual_embeddings(input_ids_t, model, tokenizer=None, lang=
 
 # TODO: prepare for long texts to do the tokenization in batches
 # otherwise well run out of memory :(
-@memory.cache(ignore=["tokenizer"])
 def longtxt_word_embeddings_fullword_vocab(txt, tokenizer):
     """
     generate whole-word embeddings (without pseudo-syllables)
@@ -147,7 +147,6 @@ def longtxt_word_embeddings_fullword_vocab(txt, tokenizer):
     return fullword_embeddings(toktxt, vs)
 
 
-@memory.cache(ignore=["model", "tokenizer"])
 def longtxt_embeddings_fullword(txt, model, tokenizer):
     """
     generate whole-word embeddings (without pseudo-syllables)
@@ -157,7 +156,6 @@ def longtxt_embeddings_fullword(txt, model, tokenizer):
     return fullword_embeddings(toktxt, vs)
 
 
-@memory.cache(ignore=["model", "tokenizer"])
 def longtxt_embeddings(txt, model, tokenizer,
                        pooling=None,
                        overlap=50,
@@ -289,7 +287,6 @@ def build_pipe(X, params):
 
 
 @functools.lru_cache()
-@memory.cache
 def get_bert_vocabulary():
     model, tokenizer = load_models()
     # return and transform embeddings into numpy array
@@ -335,7 +332,7 @@ def load_cached_spacy_model(model_id: str):
     return spacy.load(model_id)
 
 
-def download_nlp_models():
+def download_nlp_models(options: List[str] = None):
     """download models and other necessary stuff
     if we need more models, we can find them here:
 
@@ -349,8 +346,11 @@ def download_nlp_models():
     """
     model_names = [
         'xx_ent_wiki_sm', 'en_core_web_md', 'de_core_news_md',
-       'en_core_web_sm', 'de_core_news_sm'
+        'en_core_web_sm', 'de_core_news_sm'
     ]
+    if 'lg' in options:
+        model_names += ['en_core_web_lg', 'de_core_news_lg']
+
     for n in model_names:
         spacy.cli.download(n)
     load_models()
@@ -406,7 +406,6 @@ def get_embeddings(txt, tokenizer):
     return tok_vecs, txttok
 
 
-@memory.cache
 def fullword_embeddings(toktxt, vs):
     """
     get embeddings for entire words by sowing wordpieces back together.
@@ -514,7 +513,6 @@ example_urls = [
 ]
 
 
-@memory.cache
 def string_embeddings(text, method="fast"):
     """
     this method converts a text of arbitrary length into
@@ -570,7 +568,6 @@ def page2vec(page_str, url=None, method="slow"):
 
 
 # TODO implement this function for reinforcement link following
-@memory.cache
 def link2vec(source_html, source_url, link_context, link_url):
     raise NotImplementedError()
 
