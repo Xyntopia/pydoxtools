@@ -20,7 +20,7 @@
 # from pydoxtools import nlp_utils
 import pydoxtools
 from pydoxtools import pdf_utils, classifier, nlp_utils
-from pydoxtools import geometry_utils as gu
+from pydoxtools import cluster_utils as gu
 from pydoxtools.visual_document_analysis import plot_boxes
 from pydoxtools import webdav_utils as wu
 from pydoxtools.settings import settings

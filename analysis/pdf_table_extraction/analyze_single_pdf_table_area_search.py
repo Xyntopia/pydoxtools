@@ -35,7 +35,7 @@ logging.getLogger('readability.readability').setLevel(logging.WARNING)
 from pydoxtools import nlp_utils
 from pydoxtools import pdf_utils, file_utils
 from pydoxtools import visual_document_analysis as vda
-from pydoxtools import geometry_utils as gu
+from pydoxtools import cluster_utils as gu
 
 box_cols = pdf_utils.box_cols
 from pydoxtools.settings import settings

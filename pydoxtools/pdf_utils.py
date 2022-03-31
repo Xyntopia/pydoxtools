@@ -38,8 +38,8 @@ from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import KernelDensity
 
 from pydoxtools import document, list_utils
-from pydoxtools import geometry_utils as gu
-from pydoxtools.geometry_utils import box_cols, x0, x1, y1, pairwise_txtbox_dist
+from pydoxtools import cluster_utils as gu
+from pydoxtools.cluster_utils import box_cols, x0, x1, y1, pairwise_txtbox_dist
 from pydoxtools.settings import settings
 
 logger = logging.getLogger(__name__)

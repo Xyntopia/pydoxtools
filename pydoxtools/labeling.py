@@ -14,9 +14,9 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-import pydoxtools.geometry_utils as gu
+import pydoxtools.cluster_utils as gu
 from pydoxtools import pdf_utils, html_utils, file_utils
-from pydoxtools.geometry_utils import box_cols
+from pydoxtools.cluster_utils import box_cols
 from pydoxtools.settings import settings
 
 logger = logging.getLogger(__name__)
