@@ -26,7 +26,8 @@ import sklearn as sk
 import sklearn.linear_model
 import spacy
 import torch
-import transformers as transformers
+import transformers
+from transformers import AutoTokenizer, AutoModel
 from scipy.spatial.distance import pdist, squareform
 from tqdm import tqdm
 from urlextract import URLExtract
@@ -159,7 +160,8 @@ def longtxt_embeddings_fullword(txt, model, tokenizer):
 def longtxt_embeddings(txt, model, tokenizer,
                        pooling=None,
                        overlap=50,
-                       longtextcap=True):
+                       longtextcap=True,
+                       status_bar=False):
     """
     generate wordpiece embeddings (pseudo-syllables) using transformer model
     and text windowing. The individual windows are stitched
@@ -172,7 +174,8 @@ def longtxt_embeddings(txt, model, tokenizer,
                                         overlap=overlap)
     if longtextcap:
         tok_wins = tok_wins[:100]
-    if len(tok_wins) > 100:  # only use tqdm for "long lasting" transformations
+
+    if status_bar:  # only use tqdm for "long lasting" transformations
         vec_wins = [transform_to_contextual_embeddings(win, model=model)
                     for win in tqdm(tok_wins)]
     else:
@@ -301,15 +304,12 @@ def load_tokenizer():
 
 
 @functools.lru_cache()
-def load_models():
+def load_models(model_name: str = 'distilbert-base-multilingual-cased'):
     logger.info(f"load model on device: {device}")
-    # tokenizer = ts.BertTokenizer.from_pretrained('bert-base-multilingual-cased')
-    # config = ts.BertConfig.from_pretrained('bert-base-multilingual-cased', output_hidden_states=True)
-    # model = ts.BertModel.from_pretrained('bert-base-multilingual-cased', config=config)
-    tokenizer = transformers.DistilBertTokenizer.from_pretrained('distilbert-base-multilingual-cased')
-    config = transformers.DistilBertConfig.from_pretrained('distilbert-base-multilingual-cased',
-                                                           output_hidden_states=True)
-    model = transformers.DistilBertModel.from_pretrained('distilbert-base-multilingual-cased', config=config)
+
+    tokenizer = transformers.AutoTokenizer.from_pretrained(model_name)
+    #model = AutoModelForQuestionAnswering.from_pretrained(model_name, output_hidden_states=True)
+    model = AutoModel.from_pretrained(model_name, output_hidden_states=True)
 
     model.to(device)
     model.eval()
@@ -439,6 +439,7 @@ def fullword_embeddings(toktxt, vs):
                 cur_vec += [v]
                 continue
         newtoks += [cur_word.replace("##", syl_sep)]
+        # TODO:  replace np.mean with np.sum here and below?
         newvs += [np.mean(cur_vec, axis=0)]
         cur_vec = [v]
         cur_word = tok
