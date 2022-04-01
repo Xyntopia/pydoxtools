@@ -2,6 +2,7 @@
 """
 Potentially cython-optimizable code for geometric calculations should go here.
 """
+import difflib
 import functools
 import typing
 from typing import List, Tuple
@@ -190,7 +191,7 @@ def pairwise_box_gap_distance_along_axis_func(boxes, pair_idx, axis):
 
 
 def pairwise_euclidean_distance(data, pair_idx):
-    """calculates pairwise manhatten distance"""
+    """calculates pairwise euclidean distance"""
     d = data[pair_idx[0], :] - data[pair_idx[1], :]
     d = np.sqrt((d * d).sum(1))
     return d
@@ -199,6 +200,24 @@ def pairwise_euclidean_distance(data, pair_idx):
 def pairwise_manhatten_distance(data, pair_idx):
     """calculates pairwise manhatten distance"""
     d = np.abs(data[pair_idx[0], :] - data[pair_idx[1], :]).sum(1)
+    return d
+
+
+def pairwise_string_diff(strdata: str, pair_idx):
+    """Calculate pairwise distance between strings using
+    python difflib SequenceMatcher"""
+    d = [1 - difflib.SequenceMatcher(None, strdata[i_a], strdata[i_b]).ratio()
+         for i_a, i_b in zip(*pair_idx)]
+    return d
+
+
+def pairwise_cosine_distance(data, pair_idx):
+    """calculates pairwise cosine similarity (distance)"""
+    a, b = data[pair_idx[0], :], data[pair_idx[1], :]
+    IaI = np.sqrt((a * a).sum(1))
+    IbI = np.sqrt((b * b).sum(1))
+    ab = (a * b).sum(1)
+    d = ab / (IaI * IbI)
     return d
 
 

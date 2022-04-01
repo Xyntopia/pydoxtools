@@ -350,6 +350,8 @@ def download_nlp_models(options: List[str] = None):
     ]
     if 'lg' in options:
         model_names += ['en_core_web_lg', 'de_core_news_lg']
+    if 'trf' in options:
+        model_names += ['en_core_web_trf', 'de_dep_news_trf']
 
     for n in model_names:
         spacy.cli.download(n)
