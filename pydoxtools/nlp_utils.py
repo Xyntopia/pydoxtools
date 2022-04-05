@@ -27,13 +27,14 @@ import sklearn.linear_model
 import spacy
 import torch
 import transformers
-from transformers import AutoTokenizer, AutoModel
-from scipy.spatial.distance import pdist, squareform
-from tqdm import tqdm
-from urlextract import URLExtract
-
 from pydoxtools import html_utils
 from pydoxtools.settings import settings
+from scipy.spatial.distance import pdist, squareform
+from spacy.language import Language
+from spacy.tokens import Doc
+from tqdm import tqdm
+from transformers import AutoTokenizer, AutoModel
+from urlextract import URLExtract
 
 logger = logging.getLogger(__name__)
 
@@ -308,7 +309,7 @@ def load_models(model_name: str = 'distilbert-base-multilingual-cased'):
     logger.info(f"load model on device: {device}")
 
     tokenizer = transformers.AutoTokenizer.from_pretrained(model_name)
-    #model = AutoModelForQuestionAnswering.from_pretrained(model_name, output_hidden_states=True)
+    # model = AutoModelForQuestionAnswering.from_pretrained(model_name, output_hidden_states=True)
     model = AutoModel.from_pretrained(model_name, output_hidden_states=True)
 
     model.to(device)
@@ -632,3 +633,59 @@ def extract_entities_spacy(text, nlp):
 def convert_ids_to_string(tokenizer, ids):
     a = tokenizer.convert_ids_to_tokens(ids)
     return tokenizer.convert_tokens_to_string(a)
+
+
+@Language.factory('trf_vectors')
+class TrfContextualVectors:
+    """
+    Spacy pipeline which add transformer vectors to each token based on user hooks.
+
+    https://spacy.io/usage/processing-pipelines#custom-components-user-hooks
+    https://github.com/explosion/spaCy/discussions/6511
+    """
+
+    def __init__(self, nlp: Language, name: str):
+        # TODO: we can configure this class for different pooling methods...
+        self.name = name
+        Doc.set_extension("trf_token_vecs", default=None)
+
+    def __call__(self, sdoc):
+        # inject hooks from this class into the pipeline
+        if type(sdoc) == str:
+            sdoc = self._nlp(sdoc)
+
+        # pre-calculate all vectors for every token:
+
+        # calculate groups for spacy token boundaries in the trf vectors
+        vec_idx_splits = np.cumsum(sdoc._.trf_data.align.lengths)
+        # get transformer vectors and reshape them into one large continous tensor
+        trf_vecs = sdoc._.trf_data.tensors[0].reshape(-1, 768)
+        # calculate mapping groups from spacy tokens to transformer vector indices
+        vec_idxs = np.split(sdoc._.trf_data.align.dataXd, vec_idx_splits)
+
+        # take sum of mapped transformer vector indices for spacy vectors
+        # TOOD: add more pooling methods than just sum...
+        #       if we do this we probabyl need to declare a factory function...
+        vecs = np.stack([trf_vecs[idx].sum(0) for idx in vec_idxs[:-1]])
+        sdoc._.trf_token_vecs = vecs
+
+        sdoc.user_token_hooks["vector"] = self.vector
+        # sdoc.user_span_hooks["vector"] = self.vector
+        # sdoc.user_hooks["vector"] = self.vector
+        sdoc.user_token_hooks["has_vector"] = self.has_vector
+        # sdoc.user_token_hooks["similarity"] = self.similarity
+        # sdoc.user_span_hooks["similarity"] = self.similarity
+        # sdoc.user_hooks["similarity"] = self.similarity
+        return sdoc
+
+    def vector(self, token):
+        return token.doc._.trf_token_vecs[token.i]
+
+    def has_vector(self, token):
+        return True
+
+# we are creating a factory here as our tranformers vector calculation is stateful
+# and we need a specific class for this..
+# @Language.factory("my_component", default_config={"some_setting": True})
+# def my_component(nlp, name, some_setting: bool):
+#    return MyComponent(some_setting=some_setting)
