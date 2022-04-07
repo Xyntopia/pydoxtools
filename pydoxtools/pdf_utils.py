@@ -34,13 +34,12 @@ from pdfminer.layout import LTChar, LTTextLineVertical, LTCurve, LTFigure, LTTex
 from pdfminer.layout import LTTextContainer
 from pdfminer.pdfinterp import resolve1
 from pdfminer.pdfparser import PDFParser
-from sklearn.ensemble import IsolationForest
-from sklearn.neighbors import KernelDensity
-
-from pydoxtools import document, list_utils
 from pydoxtools import cluster_utils as gu
+from pydoxtools import document, list_utils
 from pydoxtools.cluster_utils import box_cols, x0, x1, y1, pairwise_txtbox_dist
 from pydoxtools.settings import settings
+from sklearn.ensemble import IsolationForest
+from sklearn.neighbors import KernelDensity
 
 logger = logging.getLogger(__name__)
 
@@ -561,17 +560,12 @@ class PDFDocument(PDFBase):
 
     def __init__(
             self,
-            fobj: typing.Union[str, typing.BinaryIO],
-            source,
             table_extraction_params: typing.Optional[TableExtractionParameters] = None,
             page_numbers=None, maxpages=0,
-            laparams=LAParams()
+            laparams=LAParams(),
+            **kwargs
     ):
         """
-
-        :param fobj: a file-like object for the PDF file
-                     to be worked on.
-
         :param laparams: An LAParams object from pdfminer.layout. If None, uses
         some default settings that often work well.
 
@@ -585,7 +579,7 @@ class PDFDocument(PDFBase):
            all_texts=False
         )
         """
-        super().__init__(fobj, source)
+        super().__init__(kwargs.pop('fobj'), kwargs.pop('source'),**kwargs)
         self.laparams = laparams
         self.page_numbers = page_numbers
         self.maxpages = maxpages
@@ -954,7 +948,7 @@ class PDFPage(PDFBase):
         boxes = pd.concat([
             self.df_le[box_cols] if ("t" in self.tbe.extraction_method and (not self.df_le.empty)) else pd.DataFrame(),
             self.df_ge_f[box_cols] if (
-                        "g" in self.tbe.extraction_method and (not self.df_ge_f.empty)) else pd.DataFrame(),
+                    "g" in self.tbe.extraction_method and (not self.df_ge_f.empty)) else pd.DataFrame(),
         ])
         if len(boxes) == 0:
             return pd.DataFrame(), []

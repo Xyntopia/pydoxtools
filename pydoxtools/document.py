@@ -3,11 +3,13 @@ from functools import cached_property
 from pathlib import Path
 from typing import List, Dict, Any, Union, BinaryIO, Tuple
 
+import hnswlib
 import langdetect
-import numpy
 import pandas as pd
+import spacy.tokens
 from pydoxtools import models, nlp_utils, classifier
 from pydoxtools.list_utils import group_by
+
 
 class Base(ABC):
     """
@@ -22,21 +24,21 @@ class Base(ABC):
             self,
             fobj: Union[str, Path, BinaryIO],
             source: Union[str, Path],
-            ner_model: str = "",
-            ner_model_spacy_size: str = "",
+            spacy_model: str = "",
+            model_size: str = "",
             # Where does the extracted data come from? (Examples: URL, 'pdfupload', parent-URL, or a path)"
     ):
         """
         ner model:
 
-        if a "ner_model" was specified use that.
-        else if "ner_model_spacy_size" was specified, use generic spacy language model
+        if a "spacy_model" was specified use that.
+        else if "model_size" was specified, use generic spacy language model
         else  use generic, multilingual ner model "xx_ent_wiki_sm"
         """
         self._fobj = fobj
         self._source = source
-        self._ner_model = ner_model if ner_model else "xx_ent_wiki_sm"
-        self._ner_model_size = ner_model_spacy_size
+        self._spacy_model = spacy_model
+        self._model_size = model_size
 
     def __repr__(self):
         return f"{self.__module__}.{self.__class__.__name__}({self._fobj},{self.source})>"
@@ -44,6 +46,63 @@ class Base(ABC):
     @property
     def type(self):
         return 'unknown'
+
+    @cached_property
+    def spacy_model_id(self) -> str:
+        if self._spacy_model:
+            nlpmodelid = self._spacy_model
+        elif self._model_size:
+            nlpmodelid = nlp_utils.get_spacy_model_id(self.lang, self._model_size)
+        else:
+            nlpmodelid = "xx_ent_wiki_sm"
+
+        return nlpmodelid
+
+    @cached_property
+    def spacy_nlp(self) -> spacy.Language:
+        nlp = nlp_utils.load_cached_spacy_model(self.spacy_model_id)
+        return nlp
+
+    @cached_property
+    def spacy_doc(self):
+        return self.spacy_nlp(self.full_text)
+
+    @property
+    def vectors(self):
+        # TODO: this is the "old" method without spacy... we might consider
+        #       to use this method again in order to leverage more huggingface models such as the multilingual one...
+        #       the problem is a little bit, that "custom" huggingface mdoels don't 100% align with
+        #       the spacy tokens...
+        # model,tokenizer = nlp_utils.load_models()
+        # v = nlp_utils.longtxt_embeddings_fullword(doc.full_text, model, tokenizer)
+        # v[1]
+        # pd.DataFrame(list(zip(v[1],df['text'])), columns=['trf','tok']).head(50)
+        return self.spacy_doc._.trf_token_vecs
+
+    @cached_property
+    def knn_index(self):
+        index = hnswlib.Index(space='cosine', dim=self.vectors.shape[1])
+        # Initing index - the maximum number of elements should be known beforehand
+        index.init_index(max_elements=len(self.spacy_doc) + 1, ef_construction=200, M=16)
+
+        # Element insertion (can be called several times):
+        index.add_items(data=self.vectors, ids=list(t.i for t in self.spacy_doc))
+        # Controlling the recall by setting ef:
+        index.set_ef(100)  # ef should always be > k
+
+        return index
+
+    def knn_query(self, txt: Union[str, spacy.tokens.Token], k: int = 5):
+        if isinstance(txt, str):
+            search_vec = self.spacy_nlp(txt).vector
+        else:
+            search_vec = txt.vector
+        similar = self.knn_index.knn_query([search_vec], k=k)
+        return [(self.spacy_doc[i], score) for i, score in zip(similar[0][0], similar[1][0])]
+
+    # TODO: save document structure as a graph...
+    # nx.write_graphml_lxml(G,'test.graphml')
+    # nx.write_graphml(G,'test.graphml')
 
     @property
     def model(self) -> models.DocumentExtract:
@@ -133,11 +192,12 @@ class Base(ABC):
         # model = name
         # tokenizer= name
         # ner_pipe = pipeline(task="ner", model=model, tokenizer=tokenizer)
-        if self._ner_model_size:
-            model_id = nlp_utils.get_spacy_model_id(self.lang, self._ner_model_size)
+        # TODO: replace the below by self.model
+        if self._model_size:
+            model_id = nlp_utils.get_spacy_model_id(self.lang, self._model_size)
             nlp = nlp_utils.load_cached_spacy_model(model_id)
         else:
-            nlp = nlp_utils.load_cached_spacy_model(self._ner_model)
+            nlp = nlp_utils.load_cached_spacy_model(self._spacy_model)
 
         res = nlp_utils.extract_entities_spacy(self.full_text, nlp)
         return res

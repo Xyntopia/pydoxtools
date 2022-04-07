@@ -31,9 +31,9 @@ from pydoxtools import html_utils
 from pydoxtools.settings import settings
 from scipy.spatial.distance import pdist, squareform
 from spacy.language import Language
-from spacy.tokens import Doc
+from spacy.tokens import Doc, Span, Token
 from tqdm import tqdm
-from transformers import AutoTokenizer, AutoModel
+from transformers import AutoModel
 from urlextract import URLExtract
 
 logger = logging.getLogger(__name__)
@@ -330,7 +330,12 @@ def get_spacy_model_id(model_type, size="sm") -> Optional[str]:
 
 @functools.lru_cache()
 def load_cached_spacy_model(model_id: str):
-    return spacy.load(model_id)
+    """load spacy nlp model and in case of a transformer model add custom vector pipeline..."""
+    nlp = spacy.load(model_id)
+    if model_id[-3:] == "trf":
+        nlp.add_pipe('trf_vectors')
+
+    return nlp
 
 
 def download_nlp_models(options: List[str] = None):
@@ -669,17 +674,27 @@ class TrfContextualVectors:
         vecs = np.stack([trf_vecs[idx].sum(0) for idx in vec_idxs[:-1]])
         sdoc._.trf_token_vecs = vecs
 
-        sdoc.user_token_hooks["vector"] = self.vector
-        # sdoc.user_span_hooks["vector"] = self.vector
-        # sdoc.user_hooks["vector"] = self.vector
+        sdoc.user_token_hooks["vector"] = self.token_vector
+        sdoc.user_span_hooks["vector"] = self.span_vector
+        sdoc.user_hooks["vector"] = self.doc_vector
         sdoc.user_token_hooks["has_vector"] = self.has_vector
+        sdoc.user_span_hooks["has_vector"] = self.has_vector
+        sdoc.user_hooks["has_vector"] = self.has_vector
         # sdoc.user_token_hooks["similarity"] = self.similarity
         # sdoc.user_span_hooks["similarity"] = self.similarity
         # sdoc.user_hooks["similarity"] = self.similarity
         return sdoc
 
-    def vector(self, token):
+    def token_vector(self, token: Token):
         return token.doc._.trf_token_vecs[token.i]
+
+    def span_vector(self, span: Span):
+        vecs = span.doc._.trf_token_vecs
+        return vecs[span.start: span.end].sum(0)
+
+    def doc_vector(self, doc: Doc):
+        vecs = doc._.trf_token_vecs
+        return vecs.sum(0)
 
     def has_vector(self, token):
         return True

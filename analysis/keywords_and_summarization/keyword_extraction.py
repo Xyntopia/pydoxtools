@@ -14,6 +14,7 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 import torch
+import spacy
 from spacy.language import Language
 from spacy.tokens import Doc
 from IPython.core.display import display
@@ -49,39 +50,13 @@ pdf_file = settings.TRAINING_DATA_DIR / "pdfs/whitepaper/En-Sci-Application-Brie
 # pdf_file=random.choice(files)
 print(pdf_file.absolute())
 
-pdf = load_document(pdf_file)
+pdf = load_document(pdf_file, model_size="trf")
 doc = pdf
 
 # +
 #TODO: does not work for spacy3 right now !!! import neuralcoref
 #TODO: import coreferee doesn't work with "en_core_web_trf" as well!!
 # -
-
-nlpmodelid = nlp_utils.get_spacy_model_id('de', 'medium')
-# nlpmodelid = "de_core_news_lg" #sm, md, lg and "trf" for transformer
-# nlpmodelid = "de_dep_news_trf"
-nlpmodelid = "en_core_web_trf"
-# nlpmodelid = "en_core_web_lg"
-nlpmodelid
-nlp = nlp_utils.load_cached_spacy_model(nlpmodelid)
-
-nlp.add_pipe('trf_vectors')
-# nlp.add_pipe('coreferee')
-# nlp.add_pipe("merge_entities") #TODO: we can not do this, as we'll get the wrong BERT vector mapping to tokens... :(
-# nlp.add_pipe("merge_noun_chunks") #TODO: we can not do this, as we'll get the wrong BERT vector mapping to tokens... :(
-# sdoc = nlp(doc.full_text[:1000])
-sdoc = nlp(doc.full_text)
-
-sdoc.has_annotation("DEP")
-
-# +
-# list(sdoc.noun_chunks)
-# -
-
-spacy.explain('CD')
-
-t = sdoc[27]
-t.tag_
 
 token_props = [
     'text', 'lemma_', 'pos_', 'pos', 'tag_', 'dep_', 'dep', 'shape_',
@@ -92,7 +67,7 @@ token_props = [
     'ent_type_', 'ent_kb_id_',
     'prefix_', 'suffix_'
 ]
-df = pd.DataFrame([[getattr(t, tp) for tp in token_props] + [t] for t in sdoc])
+df = pd.DataFrame([[getattr(t, tp) for tp in token_props] + [t] for t in doc.spacy_doc])
 df.columns = token_props + ['tok']
 # df.query('ent_type_!=""')
 sel = ['i', 'text', 'pos_', 'pos', 'tag_', 'dep_', 'head', 'ent_type_', 'ent_kb_id_']
@@ -110,58 +85,33 @@ df.query('ent_type_!=""')
 # df.to_dict('index').items()
 
 # +
-# nx.write_graphml_lxml(G,'test.graphml')
-# nx.write_graphml(G,'test.graphml')
+# doc.spacy_nlp("Gas").vector
 
 # +
-# model,tokenizer = nlp_utils.load_models()
-# v = nlp_utils.longtxt_embeddings_fullword(doc.full_text, model, tokenizer)
-# v[1]
-# pd.DataFrame(list(zip(v[1],df['text'])), columns=['trf','tok']).head(50)
-
-# x = pd.DataFrame(list(zip(v[1],df.query("pos!=103")['text'])), columns=['trf','tok'])
-# x
-
-# x.query("trf!=tok")
-
-# df.query("pos!=103")['text']
-
-# +
-p = hnswlib.Index(space='cosine', dim=sdoc._.trf_token_vecs.shape[1])
-# Initing index - the maximum number of elements should be known beforehand
-p.init_index(max_elements=len(sdoc) + 1, ef_construction=200, M=16)
-
-# Element insertion (can be called several times):
-p.add_items(data=sdoc._.trf_token_vecs, ids=df.index)
-# Controlling the recall by setting ef:
-p.set_ef(100)  # ef should always be > k
+# TODO: classify entities using search knn_queries? which company or organization?
 # -
 
-similar = p.knn_query([sdoc[25].vector], k=20)
-display(similar[1].round(3))
-# sdoc[similar[0][0]]
-similar[0][0]
-
-spacy.explain("NNP")
+doc.knn_query(doc.spacy_doc[30], k=20)
+doc.knn_query("modular payload", k=20)[0][0].sent
 
 # getting similarity between entities
 ents = df.loc[df.ent_type_ != ""]
 
-e = sdoc.ents[0]
+e = doc.spacy_doc.ents[0]
 e.start, e.end
 # calculate the vector sum of every entitity
 
-ent_vecs = np.stack([vecs[e.start: e.end].mean(0) for e in sdoc.ents])
+ent_vecs = np.stack([e.vector for e in doc.spacy_doc.ents])
 
 ent_vecs
 
-ent_txt = np.array([e.text for e in sdoc.ents])
-# labels, _ =cu.distance_cluster(ent_vecs, distance_threshold=0.05, pairwise_distance_func=pairwise_cosine_distance)
-labels, _ = cu.distance_cluster(ent_txt, distance_threshold=0.3, pairwise_distance_func=cu.pairwise_string_diff)
+ent_txt = np.array([e.text for e in doc.spacy_doc.ents])
+labels, _ =cu.distance_cluster(ent_vecs, distance_threshold=0.001, pairwise_distance_func=cu.pairwise_cosine_distance)
+#labels, _ = cu.distance_cluster(ent_txt, distance_threshold=0.3, pairwise_distance_func=cu.pairwise_string_diff)
 
 labels
 
-entdf = pd.DataFrame({"label": labels, "ents": sdoc.ents}).groupby("label").agg(list)  #
+entdf = pd.DataFrame({"label": labels, "ents": doc.spacy_doc.ents}).groupby("label").agg(list)  #
 HTML(entdf.to_html())
 
 # +
@@ -173,13 +123,13 @@ HTML(entdf.to_html())
 #    t.
 # -
 
-words = list(sdoc.noun_chunks)
+words = list(doc.spacy_doc.noun_chunks)
 
 # +
-noun_vecs = np.stack([vecs[e.start: e.end].mean(0) for e in words])
+noun_vecs = np.stack([e.vector for e in words])
 noun_ids = {i:nc for i,nc in enumerate(words)}
 
-p = hnswlib.Index(space='cosine', dim=vecs.shape[1])
+p = hnswlib.Index(space='cosine', dim=doc.vectors.shape[1])
 # Initing index - the maximum number of elements should be known beforehand
 p.init_index(max_elements=len(noun_vecs) + 1, ef_construction=200, M=16)
 
@@ -213,15 +163,4 @@ keywords
 # +
 # try out coreference based on nearest neighbours..
 
-list(sdoc.sents)[10]
-
-# +
-# which company or organization?
-# -
-
-search_word = nlp("company")
-search_word.
-
-similar = p.knn_query([noun_vecs[ni]], k=3)
-
-
+list(doc.spacy_doc.sents)[10]

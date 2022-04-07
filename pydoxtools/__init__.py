@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 def load_document(fobj: Union[str, Path, IO], source: str = "",
                   page_numbers: List[int] = None, maxpages: int = 0,
-                  ocr: bool = False, ocr_lang="eng") -> document.Base:
+                  ocr: bool = False, ocr_lang="eng", model_size="") -> document.Base:
     """takes a file-like object/string/path and returns a document corresponding to the
     filetype which can be used to extract data in a lazy fashion."""
     f_name = fobj.name
@@ -43,7 +43,10 @@ def load_document(fobj: Union[str, Path, IO], source: str = "",
             pdf = pytesseract.image_to_pdf_or_hocr(Image.open(fobj), extension='pdf', lang=lang)
             fobj = io.BytesIO(pdf)
 
-        doc = pdf_utils.PDFDocument(fobj, source, page_numbers=page_numbers, maxpages=maxpages)
+        doc = pdf_utils.PDFDocument(
+            fobj=fobj, source=source, page_numbers=page_numbers, maxpages=maxpages,
+            model_size=model_size
+        )
         return doc
     except pytesseract.pytesseract.TesseractError:
         logger.exception("tesseract problems")
