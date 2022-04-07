@@ -80,9 +80,13 @@ class Base(ABC):
         return self.spacy_doc._.trf_token_vecs
 
     @cached_property
-    def knn_index(self):
+    def index(self):
+        """create a nearest neighbour search index"""
         index = hnswlib.Index(space='cosine', dim=self.vectors.shape[1])
-        # Initing index - the maximum number of elements should be known beforehand
+        # max_elements defines the maximum number of elements that can be stored in
+        # the structure(can be increased/shrunk).
+        # ef_construction: quality vs speed parameter
+        # M = max number of outgoing connections in the graph...
         index.init_index(max_elements=len(self.spacy_doc) + 1, ef_construction=200, M=16)
 
         # Element insertion (can be called several times):
@@ -97,7 +101,7 @@ class Base(ABC):
             search_vec = self.spacy_nlp(txt).vector
         else:
             search_vec = txt.vector
-        similar = self.knn_index.knn_query([search_vec], k=k)
+        similar = self.index.knn_query([search_vec], k=k)
         return [(self.spacy_doc[i], score) for i, score in zip(similar[0][0], similar[1][0])]
 
     # TODO: save document structure as a graph...
