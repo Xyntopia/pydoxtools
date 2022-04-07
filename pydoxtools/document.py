@@ -102,7 +102,7 @@ class Base(ABC):
         else:
             search_vec = txt.vector
         similar = self.index.knn_query([search_vec], k=k)
-        return [(self.spacy_doc[i], score) for i, score in zip(similar[0][0], similar[1][0])]
+        return [(self.spacy_doc[i], dist) for i, dist in zip(similar[0][0], similar[1][0])]
 
     # TODO: save document structure as a graph...
     # nx.write_graphml_lxml(G,'test.graphml')

@@ -103,8 +103,6 @@ e.start, e.end
 
 ent_vecs = np.stack([e.vector for e in doc.spacy_doc.ents])
 
-ent_vecs
-
 ent_txt = np.array([e.text for e in doc.spacy_doc.ents])
 labels, _ =cu.distance_cluster(ent_vecs, distance_threshold=0.001, pairwise_distance_func=cu.pairwise_cosine_distance)
 #labels, _ = cu.distance_cluster(ent_txt, distance_threshold=0.3, pairwise_distance_func=cu.pairwise_string_diff)
@@ -159,8 +157,18 @@ keywords
 
 # +
 #display(componardo.visualization.draw(G))
+# -
 
-# +
+len(doc.spacy_doc.ents)
+
 # try out coreference based on nearest neighbours..
+sent = list(doc.spacy_doc.sents)[10]
 
-list(doc.spacy_doc.sents)[10]
+[(t.text,t.pos_) for t in sent]
+
+w = sent[0]
+w.morph
+
+doc.knn_query(sent[0], k=50)
+
+
