@@ -1,3 +1,4 @@
+import functools
 from abc import ABC
 from functools import cached_property
 from pathlib import Path
@@ -5,10 +6,36 @@ from typing import List, Dict, Any, Union, BinaryIO, Tuple
 
 import hnswlib
 import langdetect
+import numpy as np
 import pandas as pd
 import spacy.tokens
 from pydoxtools import models, nlp_utils, classifier
 from pydoxtools.list_utils import group_by
+
+
+class TokenCollection:
+    def __init__(self, tokens: List[spacy.tokens.Token]):
+        self._tokens = tokens
+
+    @cached_property
+    def vector(self):
+        return np.mean([t.vector for t in self._tokens], 0)
+
+    @cached_property
+    def text(self):
+        return self.__str__()
+
+    def __len__(self):
+        return len(self._tokens)
+
+    def __getitem__(self, item):
+        return self._tokens[item]
+
+    def __str__(self):
+        return " ".join(t.text for t in self._tokens)
+
+    def __repr__(self):
+        return "|".join(t.text for t in self._tokens)
 
 
 class Base(ABC):
@@ -69,6 +96,7 @@ class Base(ABC):
 
     @property
     def vectors(self):
+        # TODO: also use vectors without context! (using BERT embeddings for example...)
         # TODO: this is the "old" method without spacy... we might consider
         #       to use this method again in order to leverage more huggingface models such as the multilingual one...
         #       the problem is a little bit, that "custom" huggingface mdoels don't 100% align with
@@ -79,30 +107,75 @@ class Base(ABC):
         # pd.DataFrame(list(zip(v[1],df['text'])), columns=['trf','tok']).head(50)
         return self.spacy_doc._.trf_token_vecs
 
-    @cached_property
-    def index(self):
-        """create a nearest neighbour search index"""
-        index = hnswlib.Index(space='cosine', dim=self.vectors.shape[1])
-        # max_elements defines the maximum number of elements that can be stored in
-        # the structure(can be increased/shrunk).
-        # ef_construction: quality vs speed parameter
-        # M = max number of outgoing connections in the graph...
-        index.init_index(max_elements=len(self.spacy_doc) + 1, ef_construction=200, M=16)
+    @property
+    def trf_embeddings(self):
+        trfc = self.spacy_nlp.components[0][1]
+        return trfc.model.transformer.embeddings.word_embeddings
 
-        # Element insertion (can be called several times):
-        index.add_items(data=self.vectors, ids=list(t.i for t in self.spacy_doc))
-        # Controlling the recall by setting ef:
-        index.set_ef(100)  # ef should always be > k
+    @cached_property
+    def noun_chunks(self) -> List[TokenCollection]:
+        token_list = []
+        for nc in self.spacy_doc.noun_chunks:
+            tc = TokenCollection([t for t in nc if t.pos_ not in ["DET", "SPACE", "PRON"]])
+            if len(tc) > 0:
+                token_list.append(tc)
+        # filter = ["DET"]
+        return token_list
+
+    @functools.lru_cache()
+    def index(self, filter: str = ""):
+        """create a nearest neighbour search index
+
+        pos_filter creates an index only for
+
+        TODO: document this function a little better
+        """
+        index = hnswlib.Index(space='cosine', dim=self.vectors.shape[1])
+        if filter == "noun_chunks":
+            vecs = [e.vector for e in self.noun_chunks]
+            idx = list(range(len(vecs)))
+
+            index.init_index(max_elements=len(vecs) + 1, ef_construction=200, M=16)
+            # Element insertion (can be called several times):
+            index.add_items(data=vecs, ids=idx)
+        elif filter:
+            token_list = [t for t in self.spacy_doc if (t.pos_ in filter)]
+            vecs = [t.vector for t in token_list]
+            idx = [t.i for t in token_list]
+
+            index.init_index(max_elements=len(vecs) + 1, ef_construction=200, M=16)
+            # Element insertion (can be called several times):
+            index.add_items(data=vecs, ids=idx)
+        else:
+            # max_elements defines the maximum number of elements that can be stored in
+            # the structure(can be increased/shrunk).
+            # ef_construction: quality vs speed parameter
+            # M = max number of outgoing connections in the graph...
+            index.init_index(max_elements=len(self.spacy_doc) + 1, ef_construction=200, M=16)
+            # Element insertion (can be called several times):
+            index.add_items(data=self.vectors, ids=list(t.i for t in self.spacy_doc))
+            # Controlling the recall by setting ef:
+            # index.set_ef(100)  # ef should always be > k
 
         return index
 
-    def knn_query(self, txt: Union[str, spacy.tokens.Token], k: int = 5):
+    def knn_query(self, txt: Union[str, spacy.tokens.Token, np.ndarray, list], k: int = 5, filter="", indices=False):
         if isinstance(txt, str):
             search_vec = self.spacy_nlp(txt).vector
+        elif isinstance(txt, np.ndarray):
+            search_vec = txt
         else:
             search_vec = txt.vector
-        similar = self.index.knn_query([search_vec], k=k)
-        return [(self.spacy_doc[i], dist) for i, dist in zip(similar[0][0], similar[1][0])]
+        similar = self.index(filter=filter).knn_query([search_vec], k=k)
+        if filter == "noun_chunks":
+            wordlist = self.noun_chunks
+        else:  # default behaviour
+            wordlist = self.spacy_doc
+
+        if indices:
+            return [(i, wordlist[i], dist) for i, dist in zip(similar[0][0], similar[1][0])]
+        else:
+            return [(wordlist[i], dist) for i, dist in zip(similar[0][0], similar[1][0])]
 
     # TODO: save document structure as a graph...
     # nx.write_graphml_lxml(G,'test.graphml')
