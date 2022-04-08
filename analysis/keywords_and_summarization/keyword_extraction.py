@@ -8,6 +8,7 @@
 import logging
 from operator import attrgetter
 
+
 import componardo.visualization
 import hnswlib
 import networkx as nx
@@ -23,6 +24,12 @@ from pydoxtools import nlp_utils, load_document
 from pydoxtools import pdf_utils, file_utils, cluster_utils as cu
 from pydoxtools.settings import settings
 from tqdm import tqdm
+
+# be careful to not install "umap" it will cause issues with umap, "umap-learn" is the right package
+# pip install umap-learn pandas matplotlib datashader bokeh holoviews scikit-image and colorcet
+import umap
+import umap.plot
+
 
 logger = logging.getLogger(__name__)
 
@@ -127,25 +134,35 @@ HTML(entdf.to_html())
 # maybe also get an context-less vector by leveragin the TRF embeddings
 doc.knn_query("task",filter="noun_chunks", k=20)
 
+
 # +
 # build noun-similarity graph
+def similarity_graph(doc):
+    """this function buils a "directed similarity graph" by taking the similarity of words in a document
+    and connecting tokens which are similar. This can then be used for further analysis
+    such as textrank (wordranks, sentence ranks, paragraph ranking) etc...
+    """
+    G = nx.DiGraph()
+    for ni,nc in enumerate(doc.noun_chunks):
+        G.add_node(ni, label=nc.text, **componardo.visualization.graphviz_node_style())
+        similar = doc.knn_query(nc, k=3, filter="noun_chunks", indices=True)
+        #links = links[links<0.3]
+        for nj,nc,d in similar:
+            G.add_edge(ni, nj, weight=1-d, dir="forward")
+    return G
 
-G = nx.DiGraph()
-for ni,nc in enumerate(doc.noun_chunks):
-    G.add_node(ni, label=nc.text, **componardo.visualization.graphviz_node_style())
-    similar = doc.knn_query(nc, k=3, filter="noun_chunks", indices=True)
-    #links = links[links<0.3]
-    for nj,nc,d in similar:
-        G.add_edge(ni, nj, weight=1-d, dir="forward")
+def textrank_keywords(doc):
+    G = similarity_graph(doc)
+    keywords = ((doc.noun_chunks[k],v) for k,v in nx.pagerank(G, weight='weight').items())
+    return sorted(keywords, key=lambda x: x[1], reverse=True)[:30]
 
-keywords = sorted([(doc.noun_chunks[k],v) for k,v in nx.pagerank(G, weight='weight').items()], key=lambda x: x[1], reverse=True)[:20]
-keywords
+textrank_keywords(doc)
 # -
 
 # try document vector based kw extraction
 # we check which noun-hunks are the "closest" to the document vector, assuming
 # that they represent the document in the best way
-doc.knn_query(doc.spacy_doc,filter="noun_chunks", k=20)
+doc.knn_query(doc.spacy_doc,filter="noun_chunks", k=30)
 
 # try clustering based keyword extraction
 vecs = np.stack([t.vector for t in doc.noun_chunks])
@@ -156,15 +173,15 @@ labels, _ =cu.distance_cluster(vecs, distance_threshold=0.1, pairwise_distance_f
 groups = pd.DataFrame({"label": labels, "ents": doc.noun_chunks}).groupby("label").agg(list)  #
 #HTML(groups.to_html())
 
-# +
-# be careful to not install "umap" it will cause issues with umap, "umap-learn" is the right package
-# pip install umap-learn pandas matplotlib datashader bokeh holoviews scikit-image and colorcet
-import umap
-import umap.plot
-
-reducer = umap.UMAP(min_dist=0.001, n_neighbors=10, metric="cosine")
+# %%time
+reducer = umap.UMAP(
+    n_neighbors=20, #determines "locality" of the clusters
+    min_dist=0.0, #packing distance 0 for clustering to get better clusters ;)
+    n_components=5, #final dimensionality 
+    random_state=42,
+    metric="cosine"
+)
 mapper = reducer.fit(vecs)
-# -
 
 cos_dist = cu.calc_pairwise_matrix(cu.pairwise_cosine_distance, vecs, diag=0)
 cos_dist = cos_dist-cos_dist.min()
@@ -173,33 +190,21 @@ cos_dist.max(), cos_dist.min()
 
 pd.DataFrame(cos_dist.flatten()).hist(bins=100)
 
-# +
-from sklearn.decomposition import PCA, KernelPCA
-
-pca = PCA(n_components=30)
-kernel_pca = KernelPCA(
-    n_components=None, kernel="rbf", gamma=10, fit_inverse_transform=True, alpha=0.1
-)
-
-vecs_pca = pca.fit(vecs).transform(vecs)
-vecs_kernel_pca = kernel_pca.fit(vecs).transform(vecs)
-# -
-
 import sklearn.cluster as cluster
 import hdbscan
 kmeans_labels = cluster.KMeans(n_clusters=5).fit_predict(mapper.embedding_)
 #cluster = hdbscan.HDBSCAN(min_samples=1, min_cluster_size=2, metric='precomputed')
 #cluster = hdbscan.HDBSCAN(min_samples=5, min_cluster_size=10, cluster_selection_epsilon=0.01)
 #cluster = hdbscan.HDBSCAN(min_samples=2, min_cluster_size=5)
-cluster = hdbscan.HDBSCAN(min_cluster_size=len(doc.noun_chunks)//20)
-cluster = hdbscan.HDBSCAN()
+cluster = hdbscan.HDBSCAN(min_cluster_size=len(doc.noun_chunks)//35)
+#cluster = hdbscan.HDBSCAN()
 #hdbscan_labels = cluster.fit(cos_dist).labels_
 hdbscan_labels = cluster.fit(mapper.embedding_).labels_
 #hdbscan_labels = cluster.fit(vecs).labels_
 #hdbscan_labels = cluster.fit(vecs_pca).labels_
 print(hdbscan_labels)
 df_labels = pd.DataFrame({"label": hdbscan_labels, "txt": nc_txt, "nc":list(range(len(nc_txt)))})
-df_labels = pd.DataFrame({"label": kmeans_labels, "txt": nc_txt, "nc":list(range(len(nc_txt)))})
+#df_labels = pd.DataFrame({"label": kmeans_labels, "txt": nc_txt, "nc":list(range(len(nc_txt)))})
 groups = df_labels.groupby("label").agg(list)  #
 HTML(groups.to_html())
 
@@ -211,13 +216,19 @@ for i in groups.index:
         kw.append((i,*res[:]))
 kw
 
-umap.plot.points(mapper, labels=hdbscan_labels, show_legend=False)
-
-umap.plot.points(mapper, labels=kmeans_labels, show_legend=False)
+mapper2D = umap.UMAP(
+    n_neighbors=10, #determines "locality" of the clusters
+    min_dist=0.0, #packing distance 0 for clustering to get better clusters ;)
+    n_components=2, #final dimensionality 
+    random_state=0,
+    metric="cosine"
+).fit(vecs)
+umap.plot.points(mapper2D, labels=hdbscan_labels, show_legend=False)
+umap.plot.points(mapper2D, labels=kmeans_labels, show_legend=False)
 
 #p = umap.plot.interactive(mapper, labels=fmnist.target[:30000], hover_data=hover_data, point_size=2)
 #hover_data = {ni:nc.text for ni,nc in doc.noun_chunks.items()}
-p = umap.plot.interactive(mapper, point_size=10, labels=hdbscan_labels, hover_data=df_labels)
+p = umap.plot.interactive(mapper2D, point_size=10, labels=hdbscan_labels, hover_data=df_labels)
 umap.plot.show(p)
 
 
