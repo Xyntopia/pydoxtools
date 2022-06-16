@@ -43,16 +43,17 @@ scikit-learn = { version = "^1.0.2", optional = true }
 spacy = {version = "^3.2.3", optional = true}
 pytesseract = {version = "^0.3.9", optional = true}
 pandas = "^1.4.1"
+hnswlib = {version = "^0.6.2", optional = true}
 
 [tool.poetry.extras]
 # extraction-transformation-load facilities
 etl = ["goose3", "langdetect", "tldextract", "spacy", "pdfminer.six",
     "extruct", "urlextract", "quantulum3", "stemming",
-    "quantities", "readability-lxml", "pandas", "beautifulsoup4", "pytesseract"]
+    "quantities", "readability-lxml", "pandas", "beautifulsoup4", "pytesseract", "hnswlib"]
 inference = ["transformers", "scikit-learn", "tqdm", "torch", "pytorch-lightning", "spacy",
-    "beautifulsoup4", "pandas", "urlextract"]
+    "beautifulsoup4", "pandas", "urlextract", "hnswlib"]
 training = ["Faker", "fastparquet", "matplotlib", "pdfminer.six", "pandas", "spacy",
-    "scikit-learn", "tqdm", "torch", "pytorch-lightning", "transformers", "torch"]
+    "scikit-learn", "tqdm", "torch", "pytorch-lightning", "transformers", "torch", "hnswlib"]
 # the pytorch-docker option below should be used in combination with the pytorch/pytorch dockerimage
 pytorch-docker = ["Faker", "fastparquet", "matplotlib", "pdfminer.six", "pandas", "spacy",
     "scikit-learn", "tqdm", "webdavclient3"]
