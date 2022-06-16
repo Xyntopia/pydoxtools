@@ -2,7 +2,7 @@ import numpy as np
 import sklearn as sk
 
 
-TODO: merge this with geometry_utils
+TODO: merge this with cluster_utils
 
 def vec_lengths(x):
     return np.sqrt((x*x).sum(axis=1))

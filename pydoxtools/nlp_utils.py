@@ -27,6 +27,7 @@ import sklearn.linear_model
 import spacy
 import torch
 import transformers
+from transformers import AutoModel, AutoTokenizer
 from pydoxtools import html_utils
 from pydoxtools.settings import settings
 from scipy.spatial.distance import pdist, squareform
@@ -139,7 +140,7 @@ def transform_to_contextual_embeddings(input_ids_t, model, tokenizer=None, lang=
 
 # TODO: prepare for long texts to do the tokenization in batches
 # otherwise well run out of memory :(
-def longtxt_word_embeddings_fullword_vocab(txt, tokenizer):
+def longtxt_word_embeddings_fullword_only_static_embeddings(txt, tokenizer):
     """
     generate whole-word embeddings (without pseudo-syllables)
     using only transformers tokenizer without

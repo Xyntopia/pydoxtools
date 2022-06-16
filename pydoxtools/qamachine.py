@@ -41,6 +41,8 @@ def answer_questions_on_long_text(questions, text, nlp_context) -> Dict[str,List
 
 @functools.lru_cache()
 def QandAmodels(model_type):
+    # TODO: only load model "id" and use that id
+    #        with transformers AutoModel etc...
     logger.info("loading Q & A model and tokenizer")
 
     if model_type == "slow":
