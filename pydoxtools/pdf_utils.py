@@ -770,6 +770,8 @@ class PDFDocument(PDFBase):
     @cached_property
     def pages(self) -> typing.List["PDFPage"]:
         # TODO: get number of pages from "meta_infos"
+        # TODO: make sure resulting class is compatible with pdf pages...
+        #       that probably requires quiet a bit of "reworking" ;).
         return [PDFPage(p, self) for p in self.extracted_pages]
 
     @cached_property

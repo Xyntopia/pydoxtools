@@ -5,8 +5,9 @@ import logging
 from pathlib import Path
 from typing import Union, IO, List
 
-import pydoxtools.ocr_language_mappings
 from PIL import Image
+
+import pydoxtools.ocr_language_mappings
 from pydoxtools import pdf_utils, document
 
 
@@ -28,6 +29,7 @@ def load_document(fobj: Union[str, Path, IO], source: str = "",
         # TODO: first try to check if the file is binary or string
         #       if string, chck if the path exists, if it doesn't take
         #       the "file" as a normal string/textdocument...
+        # TODO: move these functions into the document class itself...
         if ocr:
             import pytesseract
             if ocr_lang == "auto":

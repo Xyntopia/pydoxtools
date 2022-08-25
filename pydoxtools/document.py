@@ -9,6 +9,7 @@ import langdetect
 import numpy as np
 import pandas as pd
 import spacy.tokens
+
 from pydoxtools import models, nlp_utils, classifier
 from pydoxtools.list_utils import group_by
 
@@ -256,6 +257,19 @@ class Base(ABC):
     @cached_property
     def full_text(self) -> str:
         return ""
+
+    @cached_property
+    def pages(self) -> list[str]:
+        """automatically divide text into approx. pages"""
+        page_word_size = 500
+        words = self.full_text.split()
+        # for i in range(len(words)):
+        pages = list(words[i:i + page_word_size] for i in range(0, len(words), page_word_size))
+        return pages
+
+    @cached_property
+    def num_pages(self) -> int:
+        return len(self.pages)
 
     @cached_property
     def ner(self) -> List[Tuple[str, str]]:
