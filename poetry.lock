@@ -2732,6 +2732,7 @@ typing-extensions = "*"
 [package.source]
 type = "url"
 url = "https://download.pytorch.org/whl/cpu/torch-1.12.1%2Bcpu-cp310-cp310-linux_x86_64.whl"
+
 [[package]]
 name = "torchmetrics"
 version = "0.9.3"
@@ -3042,8 +3043,8 @@ training = ["fastparquet", "pdfminer.six", "pandas", "spacy", "scikit-learn", "t
 
 [metadata]
 lock-version = "1.1"
-python-versions = ">=3.8,<3.12"
-content-hash = "29e4e0fabd98eb26c14ce1d6c0bc995a7d68add2dca43198abbcd0798322f259"
+python-versions = ">=3.8,<3.12" # python version constraints are caused by scipy
+content-hash = "30dcc73d5a0f2b29745dd4a5534c7ea6c73c282767db222a8e532fc51ac2a8f5"
 
 [metadata.files]
 absl-py = [

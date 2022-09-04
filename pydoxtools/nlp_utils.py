@@ -351,6 +351,10 @@ def download_nlp_models(options: List[str] = None):
         python -c 'from pydoxtools import nlp_utils; nlp_utils.download_nlp_models()'
 
     """
+    # get huggingface/transformer models
+    load_models()
+    load_tokenizer()
+
     model_names = [
         'xx_ent_wiki_sm', 'en_core_web_md', 'de_core_news_md',
         'en_core_web_sm', 'de_core_news_sm'
@@ -362,9 +366,11 @@ def download_nlp_models(options: List[str] = None):
             model_names += ['en_core_web_trf', 'de_dep_news_trf']
 
     for n in model_names:
-        spacy.cli.download(n)
-    load_models()
-    load_tokenizer()
+        try:
+            spacy.load(n)
+            logger.info(f"model {n} is already installed!")
+        except IOError:
+            spacy.cli.download(n)
 
 
 def preload_models():
