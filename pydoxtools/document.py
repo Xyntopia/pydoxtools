@@ -40,7 +40,7 @@ class TokenCollection:
         return "|".join(t.text for t in self._tokens)
 
 
-class Base(ABC):
+class DocumentLoader(ABC):
     """
     This class is the base for all document classes in pydoxtools and
     defines a common interface for all.

@@ -381,7 +381,7 @@ def _close_open_cells(open_cells, h_lines, df_le, elem_scan_tol,
     return new_cells, still_open
 
 
-class PDFBase(document.Base):
+class PDFDocumentLoader(document.DocumentLoader):
     """
     This class collects functions that are valid for pages, as well as entire documents...
     """
@@ -543,7 +543,7 @@ class TableExtractionParameters(pydantic.BaseModel):
         )
 
 
-class PDFDocument(PDFBase):
+class PDFDocument(PDFDocumentLoader):
     """
     Loads a pdf file and can extract all kinds of information from it.
 
@@ -806,7 +806,7 @@ class PDFDocument(PDFBase):
         return meta
 
 
-class PDFPage(PDFBase):
+class PDFPage(PDFDocumentLoader):
     def __init__(self, pagenum: int, parent_doc: PDFDocument):
         self.pagenum = pagenum
         self.parent_document = parent_doc
