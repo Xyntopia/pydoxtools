@@ -8,17 +8,12 @@
 import logging
 from operator import attrgetter
 
-
-import componardo.visualization
-import hnswlib
-import networkx as nx
 import numpy as np
 import pandas as pd
 import torch
 import spacy
-from spacy.language import Language
-from spacy.tokens import Doc
-from IPython.core.display import display
+import networkx as nx
+from componardo import visualization as vz
 from IPython.display import HTML
 from pydoxtools import nlp_utils, load_document
 from pydoxtools import pdf_utils, file_utils, cluster_utils as cu
@@ -27,9 +22,7 @@ from tqdm import tqdm
 
 # be careful to not install "umap" it will cause issues with umap, "umap-learn" is the right package
 # pip install umap-learn pandas matplotlib datashader bokeh holoviews scikit-image and colorcet
-import umap
 import umap.plot
-
 
 logger = logging.getLogger(__name__)
 
@@ -57,36 +50,14 @@ pdf_file = settings.TRAINING_DATA_DIR / "pdfs/whitepaper/En-Sci-Application-Brie
 # pdf_file=random.choice(files)
 print(pdf_file.absolute())
 
+import pytextrank
 pdf = load_document(pdf_file, model_size="trf")
+pdf.spacy_nlp.add_pipe("textrank")
 doc = pdf
 
 # +
 #TODO: does not work for spacy3 right now !!! import neuralcoref
 #TODO: import coreferee doesn't work with "en_core_web_trf" as well!!
-# -
-
-token_props = [
-    'text', 'lemma_', 'pos_', 'pos', 'tag_', 'dep_', 'dep', 'shape_',
-    'head', 'subtree', 'i',
-    'morph',
-    'is_alpha', 'is_stop', 'is_ascii', 'is_title',
-    'like_url', 'like_num', 'like_email',
-    'ent_type_', 'ent_kb_id_',
-    'prefix_', 'suffix_'
-]
-df = pd.DataFrame([[getattr(t, tp) for tp in token_props] + [t] for t in doc.spacy_doc])
-df.columns = token_props + ['tok']
-# df.query('ent_type_!=""')
-sel = ['i', 'text', 'pos_', 'pos', 'tag_', 'dep_', 'head', 'ent_type_', 'ent_kb_id_']
-df = df[sel]
-df['head.pos_'] = df['head'].apply(attrgetter('pos_'))
-df['head.dep_'] = df['head'].apply(attrgetter('dep_'))
-df['head.i'] = df['head'].apply(attrgetter('i'))
-df.dep_ = df.dep_.apply(spacy.explain)
-# with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
-# display(df.head(20))
-# df[sel]
-df.query('ent_type_!=""')
 
 # +
 # df.to_dict('index').items()
@@ -100,13 +71,6 @@ df.query('ent_type_!=""')
 
 doc.knn_query(doc.spacy_doc[30], k=20)
 doc.knn_query("modular payload", k=20)[0][0].sent
-
-# getting similarity between entities
-ents = df.loc[df.ent_type_ != ""]
-
-e = doc.spacy_doc.ents[0]
-e.start, e.end
-# calculate the vector sum of every entitity
 
 ent_vecs = np.stack([e.vector for e in doc.spacy_doc.ents])
 
@@ -129,35 +93,20 @@ HTML(entdf.to_html())
 #    t.
 # -
 
-# tospacy_nlp-based keyembeddings# TODO: use the "document vector" + some keyword sum to get better keywords...
-# with just a simple keyword this doesn't really seem to work.
-# maybe also get an context-less vector by leveragin the TRF embeddings
-doc.knn_query("task",filter="noun_chunks", k=20)
+G = doc.similarity_graph(k=4, max_distance=0.2, method="noun_chunks")
+G = vz.simple_graphviz_styling(G)
+#vz.draw(G, "neato")
 
+for phrase in doc.spacy_doc._.phrases:
+    print(phrase.text)
+    print(phrase.rank, phrase.count)
+    print(phrase.chunks)
 
-# +
 # build noun-similarity graph
-def similarity_graph(doc):
-    """this function buils a "directed similarity graph" by taking the similarity of words in a document
-    and connecting tokens which are similar. This can then be used for further analysis
-    such as textrank (wordranks, sentence ranks, paragraph ranking) etc...
-    """
-    G = nx.DiGraph()
-    for ni,nc in enumerate(doc.noun_chunks):
-        G.add_node(ni, label=nc.text, **componardo.visualization.graphviz_node_style())
-        similar = doc.knn_query(nc, k=3, filter="noun_chunks", indices=True)
-        #links = links[links<0.3]
-        for nj,nc,d in similar:
-            G.add_edge(ni, nj, weight=1-d, dir="forward")
-    return G
+doc.textrank_keywords(k=10, max_links=3, max_distance=0.2, method="noun_chunks")
 
-def textrank_keywords(doc):
-    G = similarity_graph(doc)
-    keywords = ((doc.noun_chunks[k],v) for k,v in nx.pagerank(G, weight='weight').items())
-    return sorted(keywords, key=lambda x: x[1], reverse=True)[:30]
-
-textrank_keywords(doc)
-# -
+# build noun-similarity graph
+doc.textrank_keywords(k=3, max_distance=0.2)
 
 # try document vector based kw extraction
 # we check which noun-hunks are the "closest" to the document vector, assuming
@@ -193,6 +142,8 @@ pd.DataFrame(cos_dist.flatten()).hist(bins=100)
 import sklearn.cluster as cluster
 import hdbscan
 kmeans_labels = cluster.KMeans(n_clusters=5).fit_predict(mapper.embedding_)
+# n_init iterations the algorithm is run
+spectral_labels = cluster.SpectralClustering(n_clusters=5, random_state=42, n_components=5, n_init=10).fit_predict(mapper.embedding_)
 #cluster = hdbscan.HDBSCAN(min_samples=1, min_cluster_size=2, metric='precomputed')
 #cluster = hdbscan.HDBSCAN(min_samples=5, min_cluster_size=10, cluster_selection_epsilon=0.01)
 #cluster = hdbscan.HDBSCAN(min_samples=2, min_cluster_size=5)
@@ -203,8 +154,8 @@ hdbscan_labels = cluster.fit(mapper.embedding_).labels_
 #hdbscan_labels = cluster.fit(vecs).labels_
 #hdbscan_labels = cluster.fit(vecs_pca).labels_
 print(hdbscan_labels)
-df_labels = pd.DataFrame({"label": hdbscan_labels, "txt": nc_txt, "nc":list(range(len(nc_txt)))})
-#df_labels = pd.DataFrame({"label": kmeans_labels, "txt": nc_txt, "nc":list(range(len(nc_txt)))})
+labels=spectral_labels
+df_labels = pd.DataFrame({"label": labels, "txt": nc_txt, "nc":list(range(len(nc_txt)))})
 groups = df_labels.groupby("label").agg(list)  #
 HTML(groups.to_html())
 
@@ -223,12 +174,12 @@ mapper2D = umap.UMAP(
     random_state=0,
     metric="cosine"
 ).fit(vecs)
-umap.plot.points(mapper2D, labels=hdbscan_labels, show_legend=False)
-umap.plot.points(mapper2D, labels=kmeans_labels, show_legend=False)
+umap.plot.points(mapper2D, labels=labels, show_legend=False)
+#umap.plot.points(mapper2D, labels=kmeans_labels, show_legend=False)
 
 #p = umap.plot.interactive(mapper, labels=fmnist.target[:30000], hover_data=hover_data, point_size=2)
 #hover_data = {ni:nc.text for ni,nc in doc.noun_chunks.items()}
-p = umap.plot.interactive(mapper2D, point_size=10, labels=hdbscan_labels, hover_data=df_labels)
+p = umap.plot.interactive(mapper2D, point_size=10, labels=labels, hover_data=df_labels)
 umap.plot.show(p)
 
 

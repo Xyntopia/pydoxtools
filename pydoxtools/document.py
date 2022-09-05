@@ -6,6 +6,7 @@ from typing import List, Dict, Any, Union, BinaryIO, Tuple
 
 import hnswlib
 import langdetect
+import networkx as nx
 import numpy as np
 import pandas as pd
 import spacy.tokens
@@ -92,7 +93,7 @@ class Base(ABC):
         return nlp
 
     @cached_property
-    def spacy_doc(self):
+    def spacy_doc(self) -> spacy.tokens.Doc:
         return self.spacy_nlp(self.full_text)
 
     @property
@@ -123,6 +124,10 @@ class Base(ABC):
         # filter = ["DET"]
         return token_list
 
+    @cached_property
+    def sents(self) -> List[spacy.tokens.Span]:
+        return list(self.spacy_doc.sents)
+
     @functools.lru_cache()
     def index(self, filter: str = ""):
         """create a nearest neighbour search index
@@ -134,6 +139,13 @@ class Base(ABC):
         index = hnswlib.Index(space='cosine', dim=self.vectors.shape[1])
         if filter == "noun_chunks":
             vecs = [e.vector for e in self.noun_chunks]
+            idx = list(range(len(vecs)))
+
+            index.init_index(max_elements=len(vecs) + 1, ef_construction=200, M=16)
+            # Element insertion (can be called several times):
+            index.add_items(data=vecs, ids=idx)
+        elif filter == "sents":
+            vecs = [s.vector for s in self.sents]
             idx = list(range(len(vecs)))
 
             index.init_index(max_elements=len(vecs) + 1, ef_construction=200, M=16)
@@ -160,7 +172,11 @@ class Base(ABC):
 
         return index
 
-    def knn_query(self, txt: Union[str, spacy.tokens.Token, np.ndarray, list], k: int = 5, filter="", indices=False):
+    def knn_query(
+            self,
+            txt: Union[str, spacy.tokens.Token, np.ndarray, TokenCollection],
+            k: int = 5, filter="", indices=False
+    ) -> List[Tuple]:
         if isinstance(txt, str):
             search_vec = self.spacy_nlp(txt).vector
         elif isinstance(txt, np.ndarray):
@@ -170,6 +186,8 @@ class Base(ABC):
         similar = self.index(filter=filter).knn_query([search_vec], k=k)
         if filter == "noun_chunks":
             wordlist = self.noun_chunks
+        elif filter == "sents":
+            wordlist = self.sents
         else:  # default behaviour
             wordlist = self.spacy_doc
 
@@ -177,6 +195,41 @@ class Base(ABC):
             return [(i, wordlist[i], dist) for i, dist in zip(similar[0][0], similar[1][0])]
         else:
             return [(wordlist[i], dist) for i, dist in zip(similar[0][0], similar[1][0])]
+
+    # @cached_property
+    @functools.lru_cache
+    def similarity_graph(self, k=4, max_distance=0.2, method="noun_chunks"):
+        """
+        this function buils a "directed similarity graph" by taking the similarity of words in a document
+        and connecting tokens which are similar. This can then be used for further analysis
+        such as textrank (wordranks, sentence ranks, paragraph ranking) etc...
+        """
+        G = nx.DiGraph()
+        if method == "noun_chunks":
+            source = self.noun_chunks
+        elif method == "sents":
+            source = self.sents
+        else:
+            raise NotImplementedError(f"can not have method: '{method}'")
+
+        for i, span in enumerate(source):
+            G.add_node(i, label=span.text)
+            # we take k+1 here, as the first element will always be the query token itself...
+            similar = self.knn_query(span, k=k + 1, filter=method, indices=True)
+            # links = links[links<0.3]
+            doc_sim = nlp_utils.cos_similarity(self.spacy_doc.vector[None, :], span.vector[None, :])[0]
+            for j, _, d in similar:
+                if (not i == j) and (d <= max_distance):
+                    G.add_edge(i, j, weight=(1 - d))
+        return G
+
+    @functools.lru_cache
+    def textrank_keywords(self, k=30, max_links=4, max_distance=0.2, method="noun_chunks"):
+        """extract keywords by textrank from a similarity graph of a spacy document"""
+        G = self.similarity_graph(k=max_links, max_distance=max_distance, method=method)
+        spans = getattr(self, method)
+        keywords = ((spans[i], score) for i, score in nx.pagerank(G, weight='weight').items())
+        return sorted(keywords, key=lambda x: x[1], reverse=True)[:k]
 
     # TODO: save document structure as a graph...
     # nx.write_graphml_lxml(G,'test.graphml')

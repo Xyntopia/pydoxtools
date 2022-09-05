@@ -53,9 +53,6 @@ print(pdf_file.absolute())
 pdf = load_document(pdf_file, model_size="trf")
 doc = pdf
 
-entdf = pd.DataFrame({"label": labels, "ents": doc.spacy_doc.ents}).groupby("label").agg(list)  #
-HTML(entdf.to_html())
-
 # try out coreference based on nearest neighbours..
 sent = list(doc.spacy_doc.sents)[10]
 
@@ -64,10 +61,22 @@ sent = list(doc.spacy_doc.sents)[10]
 w = sent[0]
 w.morph
 
+sent = list(doc.spacy_doc.sents)[8]
+sent
 
+pd.DataFrame([(t.text, t.pos_,spacy.explain(t.pos_),t.tag_,spacy.explain(t.tag_), t.morph) for t in sent])
 
+print(sent[11])
+[(r,r[0].sent) for r in doc.knn_query(sent[11], k=10, pos_filter="PRON")]
 
+pron = sent[1]
+pron
 
-doc.knn_query(sent[0], k=50)
+# search for all words...
+doc.knn_query(pron, k=10)
+
+pd.DataFrame(list((s.text,s) for s in doc.spacy_doc.sents))
+
+doc.knn_query(sent[0], k=50, pos_filter="NOUN")
 
 

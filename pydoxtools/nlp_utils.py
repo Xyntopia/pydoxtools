@@ -233,7 +233,17 @@ def create_cross_lingual_contextual_embeddings(txt, model, tokenizer, lang=False
 
 
 def cos_compare(X, Y):
+    """TODO: replace cos_compare with cos_similarty based on numpy..."""
     return sk.metrics.pairwise.cosine_similarity(X, Y)
+
+
+def cos_similarity(a, b):
+    """compare to vectors using cosine similarity"""
+    IaI = np.sqrt((a * a).sum(1))
+    IbI = np.sqrt((b * b).sum(1))
+    ab = (a * b).sum(1)
+    d = ab / (IaI * IbI)
+    return d
 
 
 """
@@ -693,13 +703,16 @@ class TrfContextualVectors:
         # sdoc.user_hooks["similarity"] = self.similarity
         return sdoc
 
+    @functools.lru_cache
     def token_vector(self, token: Token):
         return token.doc._.trf_token_vecs[token.i]
 
+    @functools.lru_cache
     def span_vector(self, span: Span):
         vecs = span.doc._.trf_token_vecs
         return vecs[span.start: span.end].sum(0)
 
+    @functools.lru_cache
     def doc_vector(self, doc: Doc):
         vecs = doc._.trf_token_vecs
         return vecs.sum(0)
