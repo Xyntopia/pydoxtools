@@ -59,10 +59,6 @@ class Webpage(BaseModel):
 
 
 class DocumentExtract(BaseModel):
-    """
-    All of the data that we can currently extract from a document
-    such as a pdf, excel file, html page etc...
-    """
     uid: Optional[str]
     source: str = Field(
         ..., description="Where does the extracted data come from? (Examples: URL, 'pdfupload', parent-URL, or a path)"

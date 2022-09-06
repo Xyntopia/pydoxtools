@@ -203,7 +203,7 @@ def _close_open_cells(open_cells, h_lines, df_le, elem_scan_tol,
     return new_cells, still_open
 
 
-class PDFTable:
+class TableExtractor(Extractor):
     def __init__(self, parent_page: PDFPageOld, initial_area: np.ndarray):
         self.parent_page: PDFPageOld = parent_page
         self.initial_area: np.ndarray = initial_area
@@ -211,6 +211,14 @@ class PDFTable:
         self.max_lines = 1000
 
         self._debug = {}
+
+        self.laparams = laparams
+        if table_extraction_params:
+            # override default parameters with those from function call:
+            self.tbe = table_extraction_params
+        else:
+            # set default table extraction parameters
+            self.tbe = TableExtractionParameters.reduced_params()
 
     @property
     def tbe(self) -> TableExtractionParameters:
@@ -718,6 +726,44 @@ class PDFTable:
             return pd.concat([tm, m1, m2])
         except:  # something didn't work maybe there are no graphics elements?
             return pd.concat([tm, m1])
+
+    @cached_property
+    def table_objs(self):
+        return [t for p in self.pages for t in p.tables]
+
+    @cached_property
+    def tables(self):
+        tables = [df.to_dict('index') for df in self.tables_df]
+        # append lists as a 1-D table as well...
+        tables.append({i: {0: line} for i, line in enumerate(self.list_lines)})
+        return tables
+
+    @cached_property
+    def tables_df(self):
+        return [t.df for p in self.pages for t in p.tables]
+
+    @cached_property
+    def table_metrics(self):
+        return [t.metrics for p in self.pages for t in p.tables]
+
+    @cached_property
+    def table_metrics_X(self) -> pd.DataFrame:
+        return pd.DataFrame([t.metrics_X for p in self.pages for t in p.tables])
+
+    @cached_property
+    def list_lines(self) -> typing.List[str]:
+        """
+        Extract lines that might be part of a "list".
+
+        TODO: make this page-based as well
+        """
+        # search for lines that are part of lists
+        # play around with this expression here: https://regex101.com/r/xrnKlm/1
+        degree_search = r"^[\-\*∙•](?![\d\-]+\s?(?:(?:[°˚][CKF]?)|[℃℉]))"
+        has_list_char = self.df_le.rawtext.str.strip().str.contains(degree_search, regex=True, flags=re.UNICODE)
+        list_lines = self.df_le[has_list_char].rawtext.str.strip().tolist()
+
+        return list_lines
 
 
 class TableExtractionError(Exception):

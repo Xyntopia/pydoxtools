@@ -13,10 +13,10 @@ Created on Mon Dec 16 12:07:52 2019
 import functools
 import logging
 import operator
-import re
 import tempfile
 import typing
 from pathlib import Path
+from typing import IO
 
 import pandas as pd
 # TODO: evaluate tabula as an additional table-read mechanism
@@ -31,10 +31,10 @@ from pdfminer.layout import LTChar, LTTextLineVertical, LTCurve, LTFigure, LTTex
 from pdfminer.layout import LTTextContainer
 from pdfminer.pdfinterp import resolve1
 from pdfminer.pdfparser import PDFParser
-from pydoxtools import document, list_utils
-from pydoxtools.document import memory
 from sklearn.ensemble import IsolationForest
 
+from pydoxtools import document, list_utils
+from pydoxtools.document import memory
 from pydoxtools.extract_textstructure import _generate_text_boxes
 
 logger = logging.getLogger(__name__)
@@ -168,7 +168,15 @@ get_meta_infos_safe = repair_pdf_if_damaged(_get_meta_infos)
 get_meta_infos_safe_cached = memory.cache(get_meta_infos_safe)
 
 
-class PDFFileLoader_old(document.FileLoader):
+def meta_infos(fobj):
+    # TODO: generalize the "safe" calling of functions for pdfs somehow...
+    #       maybe by using a cached "safe" pdf file? or of something goes wrong, simply replacing the fobj
+    #       with a repaired pdf?
+    meta = [list_utils.deep_str_convert(get_meta_infos_safe(fobj))]
+    return meta
+
+
+class PDFFileLoader_old(document.Extractor):
     """
     This class collects functions that are valid for pages, as well as entire documents...
     """
@@ -272,7 +280,7 @@ class PDFFileLoader_old(document.FileLoader):
         return main_content
 
 
-class PDFFileLoader(document.FileLoader):
+class PDFFileLoader(document.Extractor):
     """
     Loads a pdf file and can extract all kinds of information from it.
 
@@ -306,57 +314,58 @@ class PDFFileLoader(document.FileLoader):
            all_texts=False
         )
         """
-        super().__init__(kwargs.pop('fobj'), kwargs.pop('source'),**kwargs)
-        self.laparams = laparams
-        if table_extraction_params:
-            # override default parameters with those from function call:
-            self.tbe = table_extraction_params
-        else:
-            # set default table extraction parameters
-            self.tbe = TableExtractionParameters.reduced_params()
 
-    def load(self, page_numbers=None, maxpages=0):
-        return repair_pdf_if_damaged(cls.pre_initialized)(fobj, **kwargs)
+        self._laparams = laparams
 
+    def __call__(self, fobj: Path | IO, page_numbers=None, max_pages=0):
+        print(fobj, page_numbers, max_pages)
+        # docelements, extracted_page_numbers, pages_bbox = repair_pdf_if_damaged(
+        #    self.extract_pdf_elements)(fobj, page_numbers, max_pages
+        # )
+        docelements, extracted_page_numbers, pages_bbox = self.extract_pdf_elements(
+            fobj, page_numbers, max_pages)
+        meta = meta_infos(fobj)
 
+        return dict(
+            meta=meta,
+            elements=docelements,
+            pages=extracted_page_numbers,
+            pages_bbox=pages_bbox
+        )
 
-    @functools.lru_cache()
-    def extract_pdf_elements(self) -> typing.Tuple[
-        typing.List, typing.List, typing.Set, typing.Dict]:
+    def extract_pdf_elements(self, fobj, page_numbers, max_pages):
         """
         extracts all text lines from a pdf and annotates them with various features.
-
-        TODO: move this class into the "PDFPageOld" class in order to save resources...
-
         TODO: make use of other pdf-pobjects as well (images, figures, drawings  etc...)
-
         TODO: check for already extracted pages and only extract missing ones...
-
         TODO: implement our own algorithm in order to identify textboxes...  the pdfminer.six
               one has problems with boxes when there is a line with a right- and a left justified
               text in the same line..  in most cases they should be split into two boxes...
         """
-        lines = []
-        graphic_elements = []
+        docelements = [document.DocumentElement]
         # TODO: automatically classify text pieces already at this point here for example
         #       to find addresses, hint to tables etc... the rest of the algorithm would get a lot
         #       more precise this way...
         extracted_page_numbers = set()
         pages_bbox = {}
         # TODO: perform this lazily for each page
-        if isinstance(self.fobj, tempfile.SpooledTemporaryFile):
-            fobj = self.fobj._file
+        if isinstance(fobj, tempfile.SpooledTemporaryFile):
+            fobj = fobj._file
         else:
-            fobj = self.fobj
+            fobj = fobj
+        # iterate through pages
         for page_layout in extract_pages(fobj,
-                                         laparams=self.laparams,
-                                         page_numbers=self.page_numbers,
-                                         maxpages=self.maxpages):
+                                         laparams=self._laparams,
+                                         page_numbers=page_numbers,
+                                         maxpages=max_pages):
             extracted_page_numbers.add(page_layout.pageid)
             pages_bbox[page_layout.pageid] = page_layout.bbox
+            # iterate through all page elements and translate them
+            # TODO: make sure we adhere to a common schema for all file types here...
             for boxnum, element in enumerate(page_layout):
                 if isinstance(element, LTCurve):  # LTCurve are rectangles AND lines
-                    graphic_elements.append(dict(
+                    docelements.append(document.DocumentElement(
+                        type=document.ElementType.Graphic,
                         gobj=element,
                         linewidth=element.linewidth,
                         non_stroking_color=element.non_stroking_color,
@@ -364,7 +373,7 @@ class PDFFileLoader(document.FileLoader):
                         stroke=element.stroke,
                         fill=element.fill,
                         evenodd=element.evenodd,
-                        p_id=page_layout.pageid,
+                        p_num=page_layout.pageid,
                         boxnum=boxnum,
                         x0=element.x0,
                         y0=element.y0,
@@ -376,10 +385,10 @@ class PDFFileLoader(document.FileLoader):
                         element = [element]
                     for linenum, text_line in enumerate(element):
                         fontset = set()
-                        # TODO: this could be moved somehwere else and probably be made more efficient
+                        # TODO: this could be moved somewhere else and probably be made more efficient
                         for character in text_line:
                             if isinstance(character, LTChar):
-                                charfont = (
+                                charfont = document.Font(
                                     character.fontname, character.size,
                                     str(character.graphicstate.ncolor))
                                 fontset.add(charfont)
@@ -387,7 +396,8 @@ class PDFFileLoader(document.FileLoader):
                         # extract metadata
                         # TODO: move most of these function to a "feature-generation-function"
                         # which extracts the information directly from the LTTextLine object
-                        lines.append(dict(
+                        docelements.append(dict(
+                            type=document.ElementType.Line,
                             lineobj=text_line,
                             rawtext=linetext,
                             font_infos=fontset,
@@ -411,7 +421,7 @@ class PDFFileLoader(document.FileLoader):
 
         # do some more calculations
 
-        return lines, graphic_elements, extracted_page_numbers, pages_bbox
+        return docelements, extracted_page_numbers, pages_bbox
 
     @cached_property
     def mime_type(self) -> str:
@@ -443,56 +453,8 @@ class PDFFileLoader(document.FileLoader):
         return pages_bbox
 
     @cached_property
-    def list_lines(self) -> typing.List[str]:
-        """
-        Extract lines that might be part of a "list".
-
-        TODO: make this page-based as well
-        """
-        # search for lines that are part of lists
-        # play around with this expression here: https://regex101.com/r/xrnKlm/1
-        degree_search = r"^[\-\*∙•](?![\d\-]+\s?(?:(?:[°˚][CKF]?)|[℃℉]))"
-        has_list_char = self.df_le.rawtext.str.strip().str.contains(degree_search, regex=True, flags=re.UNICODE)
-        list_lines = self.df_le[has_list_char].rawtext.str.strip().tolist()
-
-        return list_lines
-
-    @cached_property
     def pages(self) -> typing.List["PDFPageOld"]:
         # TODO: get number of pages from "meta_infos"
         # TODO: make sure resulting class is compatible with pdf pages...
         #       that probably requires quiet a bit of "reworking" ;).
         return [PDFPageOld(p, self) for p in self.extracted_pages]
-
-    @cached_property
-    def table_objs(self):
-        return [t for p in self.pages for t in p.tables]
-
-    @cached_property
-    def tables(self):
-        tables = [df.to_dict('index') for df in self.tables_df]
-        # append lists as a 1-D table as well...
-        tables.append({i: {0: line} for i, line in enumerate(self.list_lines)})
-        return tables
-
-    @cached_property
-    def tables_df(self):
-        return [t.df for p in self.pages for t in p.tables]
-
-    @cached_property
-    def table_metrics(self):
-        return [t.metrics for p in self.pages for t in p.tables]
-
-    @cached_property
-    def table_metrics_X(self) -> pd.DataFrame:
-        return pd.DataFrame([t.metrics_X for p in self.pages for t in p.tables])
-
-    @cached_property
-    def meta_infos(self):
-        # TODO: generalize the "safe" calling of functions for pdfs somehow...
-        #       maybe by using a cached "safe" pdf file? or of something goes wrong, simply replacing the fobj
-        #       with a repaired pdf?
-        meta = [list_utils.deep_str_convert(get_meta_infos_safe(self.fobj))]
-        return meta
-
-

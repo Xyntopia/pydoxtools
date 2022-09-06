@@ -1,6 +1,9 @@
+import abc
 import logging
 import typing
 from abc import ABC
+from dataclasses import dataclass
+from enum import Enum
 from functools import cached_property
 from pathlib import Path
 from typing import List, Dict, Union, BinaryIO
@@ -17,6 +20,42 @@ from pydoxtools.settings import settings
 logger = logging.getLogger(__name__)
 
 memory = settings.get_memory_cache()
+
+
+@dataclass(eq=True, frozen=True, slots=True)
+class Font:
+    name: str
+    size: float
+    color: str
+
+
+class ElementType(Enum):
+    Graphic = 1
+    Line = 2
+    Image = 3
+
+
+@dataclass(slots=True)
+class DocumentElement:
+    type: ElementType
+    p_num: int
+    x0: float
+    y0: float
+    x1: float
+    y1: float
+    rawtext = str | None,
+    font_infos = set[Font] | None,
+    linenum = int | None,
+    linewidth: float | None
+    boxnum: int | None
+    lineobj = object | None,
+    gobj: object | None
+    non_stroking_color: str | None
+    stroking_color: str | None
+    stroke: bool | None
+    fill: bool | None
+    evenodd: int | None
+
 
 class TokenCollection:
     def __init__(self, tokens: List[spacy.tokens.Token]):
@@ -43,57 +82,98 @@ class TokenCollection:
         return "|".join(t.text for t in self._tokens)
 
 
-class FileLoader(ABC):
-    """Base class for loading documents from different kinds of files"""
+class Extractor(ABC):
+    """Base class to build extraction logic for information extraction from
+    unstructured documents and loading files"""
 
-    @classmethod
-    def pre_initialized(cls, fobj, **kwargs) -> "PDFDocumentOld":
-        return cls(fobj, **kwargs).pre_cache()
+    # TODO:  how can we anhance the type checking for outputs?
+    #        maybe turn this into a dataclass?
 
-    @classmethod
-    @memory.cache
-    def from_disk_cache(cls, fobj, **kwargs) -> "PDFDocumentOld":
-        """return a pre -initialized document from disk_cache"""
-        return repair_pdf_if_damaged(cls.pre_initialized)(fobj, **kwargs)
-        # without repair:
-        # return cls(fobj, table_extraction_params, page_numbers, maxpages).pre_cache()
+    def __init__(self):
+        self._in_mapping: dict[str, str] = {}
+        self._out_mapping: dict[str, str] = {}
 
-    @classmethod
-    @memory.cache
-    def with_cached_elements(cls, fobj, **kwargs) -> "PDFDocumentOld":
-        def extract(f):
-            new = cls(f, **kwargs)
-            cache = new.df_le, new.df_ge
-            return new
+    @abc.abstractmethod
+    def __call__(self, *args, **kwargs) -> dict[str, typing.Any]:
+        pass
 
-        return repair_pdf_if_damaged(extract)(fobj)
+    def _mapped_call(self, parent_document: "DocumentBase") -> dict[str, typing.Any]:
+        # map objects from document properties to
+        # processing function
+        kwargs = {k: getattr(parent_document, v) for k, v in self._in_mapping.items()}
+        output = self(**kwargs)
+        return {self._out_mapping[k]: v for k, v in output.items()}
 
-    def pre_cache(self):
-        """in some situations, for example for caching purposes it would be nice
-        to pre-cache all calculations this is done here by simply calling all functions..."""
-        # TODO: for some reason we can only use table_metrics right now for caching...
-        #       try other things as well? at least this already gives us quiet a bit of
-        #       time savings...
-        res = (self.table_metrics, self.titles)
-        # res = (
-        #    self.pages, self.tables, self.table_metrics, self.side_content,
-        #    self.textboxes, self.full_text, self.list_lines, self.main_content,
-        #    self.titles, self.meta_infos, self.side_titles, self.pages_bbox
-        # )
-        # also cache all pages...
-        # for p in self.pages:
-        #    p.pre_cache()
+    def pipe(self, *args, **kwargs):
+        """
+        configure input parameter mappings to this function
 
+        keys: are the actual function parameters of the extractor function
+        values: are the outside function names
+
+        """
+        self._in_mapping = kwargs
+        self._in_mapping.update({k: k for k in args})
+        return self
+
+    def map(self, *args, **kwargs):
+        """
+        configure output parameter mappings to this function
+
+        keys: are the
+        """
+        self._out_mapping = kwargs
+        self._out_mapping.update({k: k for k in args})
         return self
 
 
-class Extractor(ABC):
-    """Base class to build extraction logic for information extraction from
-    unstructured documents"""
+class ConfigurationError(Exception):
     pass
 
 
-class Document:
+class DocumentTypeError(Exception):
+    pass
+
+
+class MetaDocumentClassConfiguration(type):
+    """
+    configures derived document classes on construction.
+
+    ALso checks Extractors etc...  for consistency
+    """
+
+    # in theory we could add additional arguments to this function which we could
+    # pass in our documentbase class
+    def __new__(cls, clsname, bases, attrs):
+        # construct our class
+        new_class = super(MetaDocumentClassConfiguration, cls).__new__(
+            cls, clsname, bases, attrs)
+
+        if hasattr(new_class, "_extractors"):
+            if new_class._extractors:
+                # TODO: add checks to make sure we don't have any name-collisions
+                # configure class
+                print(f"configure {new_class} class...")
+                new_class._x_input_map = {}
+                new_class._x_funcs = {}
+                extractor: Extractor
+                for k, ex_list in new_class._extractors.items():
+                    for ex in ex_list:
+                        for ex_key, ex_key_target in ex._out_mapping.items():
+                            # input<->output mapping is already done i the extractor itself
+                            # check out Extractor.pipe and Extractor.map member functions
+                            new_class._x_funcs[ex_key_target] = ex
+
+                    # get all functions with their correct output and input
+                    # func_map =
+                    # new_class._extractor_map[k]
+        else:
+            raise ConfigurationError(f"no extractors defined in class {newclass}")
+
+        return new_class
+
+
+class DocumentBase(metaclass=MetaDocumentClassConfiguration):
     """
     This class is the base for all document classes in pydoxtools and
     defines a common interface for all.
@@ -102,23 +182,26 @@ class Document:
     classes can override
     """
 
+    # TODO: use pandera (https://github.com/unionai-oss/pandera)
+    #       in order to validate dataframes exchanged between extractors & loaders
+    #       https://pandera.readthedocs.io/en/stable/pydantic_integration.html
+
     # TODO: how do we change extraction configuration "on-the-fly" if we have
     #       for example a structured dcument vs unstructered (PDF: unstructure,
     #       Markdown: structured)
     #       in this case table extraction algorithms for example would have to
     #       behave differently. We would like to use
     #       a different extractor configuration in that case...
-    #
+    #       in other words: each extractor needs to be "conditional"
 
-
-    __loaders: list[FileLoader] = []
-    __extractors: list[Extractor] = []
+    _extractors: dict[Extractor] = {}
 
     def __init__(
             self,
-            fobj: Union[str, Path, BinaryIO],
-            source: Union[str, Path] = None,
-            pages=None,
+            fobj: str | Path | BinaryIO,
+            source: str | Path = None,
+            page_numbers: list[int] = None,
+            max_pages: int = None
     ):
         """
         ner model:
@@ -133,9 +216,19 @@ class Document:
         """
         self._fobj = fobj
         self._source = source
+        self._page_numbers = page_numbers
+        self._max_pages = max_pages
+
+    @cached_property
+    def document_type(self):
+        """
+        detect doc type based on file-ending
+        TODO add a doc-type extractor using for example python-magic
+        """
+        return Path(self._fobj.name).suffix
 
     def __repr__(self):
-        return f"{self.__module__}.({self._fobj},{self.source})>"
+        return f"{self.__module__}.{self.__class__.__name__}({self._fobj},{self.source})>"
 
     @property
     def type(self):
@@ -242,9 +335,49 @@ class Document:
         """
         return []
 
+    @classmethod
+    def pre_initialized(cls, fobj, **kwargs) -> "PDFDocumentOld":
+        return cls(fobj, **kwargs).pre_cache()
+
+    @classmethod
+    @memory.cache
+    def from_disk_cache(cls, fobj, **kwargs) -> "PDFDocumentOld":
+        """return a pre -initialized document from disk_cache"""
+        return repair_pdf_if_damaged(cls.pre_initialized)(fobj, **kwargs)
+        # without repair:
+        # return cls(fobj, table_extraction_params, page_numbers, max_pages).pre_cache()
+
+    @classmethod
+    @memory.cache
+    def with_cached_elements(cls, fobj, **kwargs) -> "PDFDocumentOld":
+        def extract(f):
+            new = cls(f, **kwargs)
+            cache = new.df_le, new.df_ge
+            return new
+
+        return repair_pdf_if_damaged(extract)(fobj)
+
+    def pre_cache(self):
+        """in some situations, for example for caching purposes it would be nice
+        to pre-cache all calculations this is done here by simply calling all functions..."""
+        # TODO: for some reason we can only use table_metrics right now for caching...
+        #       try other things as well? at least this already gives us quiet a bit of
+        #       time savings...
+        res = (self.table_metrics, self.titles)
+        # res = (
+        #    self.pages, self.tables, self.table_metrics, self.side_content,
+        #    self.textboxes, self.full_text, self.list_lines, self.main_content,
+        #    self.titles, self.meta_infos, self.side_titles, self.pages_bbox
+        # )
+        # also cache all pages...
+        # for p in self.pages:
+        #    p.pre_cache()
+
+        return self
+
 
 class Page:
-    def __init__(self, pagenum: int, doc: Document):
+    def __init__(self, pagenum: int, doc: DocumentBase):
         self.pagenum = pagenum
         self.parent_document = doc
 
@@ -446,3 +579,17 @@ class Page:
     @property
     def table_candidate_boxes_df(self) -> pd.DataFrame:
         return pd.DataFrame([t.bbox for t in self.table_candidates])
+
+
+def DocumentClassFactory():
+    """
+    TODO: we could provide "fast" configurations or also simply custom configurations etc...
+    """
+    extractors = {
+        "pdf": "test"
+    }
+
+    class NewDocument():
+        __extractors = extractors
+
+    return NewDocument

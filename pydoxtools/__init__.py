@@ -11,6 +11,32 @@ import pydoxtools.ocr_language_mappings
 from pydoxtools import pdf_utils, document
 
 
+class txtExtractor(document.Extractor):
+    def __call__(self, fobj, page_numbers=None, max_pages=0):
+        with open(fobj) as file:
+            txt = file.read()
+        return dict(txt=txt)
+
+
+class Document(document.DocumentBase):
+    _extractors = {
+        ".pdf": [
+            pdf_utils.PDFFileLoader()
+            .pipe(fobj="_fobj", page_numbers="_page_numbers", max_pages="_max_pages")
+            .map("pages_bbox", "elements", "meta", "pages")],
+        ".html": [
+            txtExtractor()
+            .pipe(fobj="_fobj", page_numbers="_page_numbers", max_pages="_max_pages")
+            .map(txt="raw_txt")]
+    }
+
+    # @functools.lru_cache
+    def x(self, extract_name: str):
+        """call an extractor from our definition"""
+        extractor_logic: document.Extractor = self._x_funcs[extract_name]
+
+        # TODO: add some caching logic to this call here!!
+        return extractor_logic._mapped_call(self)
 
 
 class LoadDocumentError(Exception):
@@ -22,7 +48,7 @@ logger = logging.getLogger(__name__)
 
 def load_document(fobj: Union[str, Path, IO], source: str = "",
                   page_numbers: List[int] = None, maxpages: int = 0,
-                  ocr: bool = False, ocr_lang="eng", model_size="") -> document.FileLoader:
+                  ocr: bool = False, ocr_lang="eng", model_size="") -> document.DocumentBase:
     """takes a file-like object/string/path and returns a document corresponding to the
     filetype which can be used to extract data in a lazy fashion."""
     f_name = fobj.name
