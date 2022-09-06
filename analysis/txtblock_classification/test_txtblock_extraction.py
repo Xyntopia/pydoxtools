@@ -89,7 +89,7 @@ file = settings.TRAINING_DATA_DIR / "pdfs/datasheet/MKPU-XCAM-MS-00042.4d.pdf"
 file
 
 # %%
-pdf = pdf_utils.PDFDocument(file)
+pdf = pdf_utils.PDFDocumentOld(file)
 
 # %%
 page = pdf.pages[1]

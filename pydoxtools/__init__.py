@@ -11,6 +11,8 @@ import pydoxtools.ocr_language_mappings
 from pydoxtools import pdf_utils, document
 
 
+
+
 class LoadDocumentError(Exception):
     pass
 
@@ -20,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 def load_document(fobj: Union[str, Path, IO], source: str = "",
                   page_numbers: List[int] = None, maxpages: int = 0,
-                  ocr: bool = False, ocr_lang="eng", model_size="") -> document.DocumentLoader:
+                  ocr: bool = False, ocr_lang="eng", model_size="") -> document.FileLoader:
     """takes a file-like object/string/path and returns a document corresponding to the
     filetype which can be used to extract data in a lazy fashion."""
     f_name = fobj.name
@@ -34,7 +36,7 @@ def load_document(fobj: Union[str, Path, IO], source: str = "",
             import pytesseract
             if ocr_lang == "auto":
                 pdf = pytesseract.image_to_pdf_or_hocr(Image.open(fobj), extension='pdf', lang=None)
-                doc = pdf_utils.PDFDocument(io.BytesIO(pdf), source, page_numbers=page_numbers, maxpages=maxpages)
+                doc = pdf_utils.PDFDocumentOld(io.BytesIO(pdf), source, page_numbers=page_numbers, maxpages=maxpages)
                 # TODO: if doc.lang is in ocr_langauge (for example when using: "eng+auto") then don't
                 #       do anything.. as we already have the right document
                 lang = doc.lang
@@ -45,7 +47,7 @@ def load_document(fobj: Union[str, Path, IO], source: str = "",
             pdf = pytesseract.image_to_pdf_or_hocr(Image.open(fobj), extension='pdf', lang=lang)
             fobj = io.BytesIO(pdf)
 
-        doc = pdf_utils.PDFDocument(
+        doc = pdf_utils.PDFDocumentOld(
             fobj=fobj, source=source, page_numbers=page_numbers, maxpages=maxpages,
             model_size=model_size
         )

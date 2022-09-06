@@ -20,6 +20,8 @@
 # %% tags=[]
 import sys
 
+import pydoxtools.extract_tables
+
 sys.path.append("..")
 # %load_ext autoreload
 # %autoreload 2
@@ -102,12 +104,12 @@ adp = [{
     "va": [hp['gs2'], hp['es2'], hp['es2'] / 2, hp['es2']],
     "ha": [hp['gs2'], hp['es2'], hp['es2'] / 2, hp['es2']]
 }]
-pdfi = pdf_utils.PDFDocument(pdf_file,
-    table_extraction_params=pdf_utils.TableExtractionParameters(
+pdfi = pdf_utils.PDFDocumentOld(pdf_file,
+                                table_extraction_params=pydoxtools.extract_tables.TableExtractionParameters(
         area_detection_distance_func_params =adp,
         area_detection_threshold = 10.0
     )
-)
+                                )
 p = pdfi.pages[1]
 
 boxes, box_levels = p.detect_table_area_candidates()

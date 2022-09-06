@@ -78,7 +78,7 @@ pdf_file = settings.TRAINING_DATA_DIR / "pdfs/datasheet/2239470.28.pdf"
 print(pdf_file)
 
 # %%
-pdfi = pdf_utils.PDFDocument(pdf_file)
+pdfi = pdf_utils.PDFDocumentOld(pdf_file)
 # pdfi.tables
 # p.tables
 # pdfi.table_metrics_X()

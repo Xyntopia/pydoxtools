@@ -20,6 +20,8 @@
 # %% tags=[]
 import sys
 
+import pydoxtools.extract_tables
+
 sys.path.append("..")
 # %load_ext autoreload
 # %autoreload 2
@@ -73,9 +75,9 @@ pdf_file = settings.TRAINING_DATA_DIR / "pdfs/datasheet/T2000BrochureAUS_WEB.fa.
 print(pdf_file)
 
 # %%
-params = pdf_utils.TableExtractionParameters.reduced_params()
+params = pydoxtools.extract_tables.TableExtractionParameters.reduced_params()
 #params.text_extraction_margin=20.0
-pdfi = pdf_utils.PDFDocument(pdf_file, table_extraction_params=params)
+pdfi = pdf_utils.PDFDocumentOld(pdf_file, table_extraction_params=params)
 # pdfi.tables
 # p.tables
 # pdfi.table_metrics_X()

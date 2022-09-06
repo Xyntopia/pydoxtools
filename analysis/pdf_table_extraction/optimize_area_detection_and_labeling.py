@@ -39,6 +39,7 @@ from tqdm import tqdm
 import random
 from IPython.display import display, HTML
 
+import pydoxtools.extract_tables
 import pydoxtools.visual_document_analysis as vda
 from pydoxtools import cluster_utils as gu
 from pydoxtools import nlp_utils
@@ -94,7 +95,7 @@ pathdb = {f.name: f for f in files}
 len(files)
 
 # %%
-# pdf_utils.PDFDocument.from_disk_cache.clear()
+# pdf_utils.PDFDocumentOld.from_disk_cache.clear()
 
 # %%
 import warnings
@@ -105,13 +106,13 @@ warnings.filterwarnings('ignore')
 def extract_tables(pdf_file, table_extraction_params):
     # pdfi = pdf_utils.repair_pdf_if_damaged(pdf_utils.extract_all_infos)(
     # TODO: for actual optimization we need to replace below with a non-cached version
-    # pdfi = pdf_utils.PDFDocument.from_disk_cache(pdf_file,
-    # pdfi = pdf_utils.PDFDocument.pre_initialized(pdf_file,
+    # pdfi = pdf_utils.PDFDocumentOld.from_disk_cache(pdf_file,
+    # pdfi = pdf_utils.PDFDocumentOld.pre_initialized(pdf_file,
     try:
-        pdf = pdf_utils.PDFDocument.with_cached_elements(pdf_file,
-                                                          page_numbers=None,
-                                                          table_extraction_params=table_extraction_params
-                                                          )
+        pdf = pdf_utils.PDFDocumentOld.with_cached_elements(pdf_file,
+                                                            page_numbers=None,
+                                                            table_extraction_params=table_extraction_params
+                                                            )
     except:
         logger.exception(f"something went wrong with file {pdf_file}")
         raise Exception(f"something went wrong with file {pdf_file}")
@@ -192,7 +193,7 @@ adp = [{
     "va": [hp['gs2'], hp['es2'], hp['es2'] / 2, hp['es2']],
     "ha": [hp['gs2'], hp['es2'], hp['es2'] / 2, hp['es2']]
 }]
-ex_params = pdf_utils.TableExtractionParameters(
+ex_params = pydoxtools.extract_tables.TableExtractionParameters(
     area_detection_distance_func_params=adp,
     text_extraction_margin=20.0
 )
@@ -320,7 +321,7 @@ def objective(trial: optuna.trial.Trial):
         "va": [hp['gs2'], hp['es2'], hp['es2'] / 2, hp['es2']],
         "ha": [hp['gs2'], hp['es2'], hp['es2'] / 2, hp['es2']]
     }]
-    ex_params = pdf_utils.TableExtractionParameters(
+    ex_params = pydoxtools.extract_tables.TableExtractionParameters(
         area_detection_distance_func_params=adp,
         text_extraction_margin=10.0  # trial.suggest_float("text_extraction_margin", 0, 30)
     )

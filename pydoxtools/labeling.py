@@ -55,11 +55,11 @@ def find_closest_match_idx(table, table_list, k=1):
 def extract_tables(pdf_file, table_extraction_params, cached=False):
     # pdfi = pdf_utils.repair_pdf_if_damaged(pdf_utils.extract_all_infos)(
     # TODO: for actual optimization we need to replace below with a non-cached version
-    # pdfi = pdf_utils.PDFDocument.from_disk_cache(pdf_file,
-    # pdfi = pdf_utils.PDFDocument.pre_initialized(pdf_file,
-    initfunc = pdf_utils.PDFDocument.with_cached_elements
+    # pdfi = pdf_utils.PDFDocumentOld.from_disk_cache(pdf_file,
+    # pdfi = pdf_utils.PDFDocumentOld.pre_initialized(pdf_file,
+    initfunc = pdf_utils.PDFDocumentOld.with_cached_elements
     if cached:
-        initfunc = pdf_utils.PDFDocument.from_disk_cache
+        initfunc = pdf_utils.PDFDocumentOld.from_disk_cache
     try:
         pdf = initfunc(pdf_file,
                        page_numbers=None,

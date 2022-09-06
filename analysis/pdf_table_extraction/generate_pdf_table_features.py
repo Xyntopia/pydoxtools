@@ -41,6 +41,7 @@ import torch
 from IPython.display import display, HTML
 from tqdm import tqdm
 
+import pydoxtools.extract_tables
 from pydoxtools import nlp_utils, labeling, func_generator as fg
 from pydoxtools import pdf_utils, file_utils
 from pydoxtools.settings import settings
@@ -117,7 +118,7 @@ warnings.filterwarnings('ignore')
 
 if isnotebook() or getattr(sys, 'gettrace', None):
     tables = labeling.detect_tables(
-        files, table_extraction_params=pdf_utils.TableExtractionParameters.reduced_params(),
+        files, table_extraction_params=pydoxtools.extract_tables.TableExtractionParameters.reduced_params(),
         max_filenum=-1, cached=True
     )
 
