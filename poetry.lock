@@ -2037,18 +2037,6 @@ optional = false
 python-versions = ">=3.7"
 
 [[package]]
-name = "pytesseract"
-version = "0.3.10"
-description = "Python-tesseract is a python wrapper for Google's Tesseract-OCR"
-category = "main"
-optional = true
-python-versions = ">=3.7"
-
-[package.dependencies]
-packaging = ">=21.3"
-Pillow = ">=8.0.0"
-
-[[package]]
 name = "pytest"
 version = "7.1.2"
 description = "pytest: simple powerful testing with Python"
@@ -2085,7 +2073,7 @@ name = "python-magic"
 version = "0.4.27"
 description = "File type identification using libmagic"
 category = "main"
-optional = false
+optional = true
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
@@ -3059,7 +3047,7 @@ testing = ["pytest-mypy (>=0.9.1)", "pytest-black (>=0.3.7)", "func-timeout", "j
 docs = ["jaraco.tidelift (>=1.4)", "rst.linker (>=1.9)", "jaraco.packaging (>=9)", "sphinx"]
 
 [extras]
-etl = ["goose3", "langdetect", "tldextract", "spacy", "pdfminer.six", "extruct", "urlextract", "quantulum3", "stemming", "quantities", "readability-lxml", "pandas", "beautifulsoup4", "pytesseract", "hnswlib", "networkx"]
+etl = ["goose3", "langdetect", "tldextract", "spacy", "pdfminer.six", "extruct", "urlextract", "quantulum3", "stemming", "quantities", "readability-lxml", "pandas", "beautifulsoup4", "hnswlib", "networkx"]
 inference = ["transformers", "scikit-learn", "tqdm", "torch", "pytorch-lightning", "spacy", "beautifulsoup4", "pandas", "urlextract", "hnswlib"]
 pytorch-docker = ["fastparquet", "pdfminer.six", "pandas", "spacy", "scikit-learn", "tqdm"]
 training = ["fastparquet", "pdfminer.six", "pandas", "spacy", "scikit-learn", "tqdm", "torch", "pytorch-lightning", "transformers", "torch", "hnswlib"]
@@ -3067,7 +3055,7 @@ training = ["fastparquet", "pdfminer.six", "pandas", "spacy", "scikit-learn", "t
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.12" # python version constraints are caused by scipy
-content-hash = "aee1a6ba791f62717c18fd222736ea73cd8cf784fbceac900651ed20e07808a9"
+content-hash = "01b4f875253387fe08cb6538f9e8ac104497a04af0d96ff4a4a1f34a5e0b1975"
 
 [metadata.files]
 absl-py = [
@@ -4711,10 +4699,6 @@ pyrsistent = [
     {file = "pyrsistent-0.18.1-cp39-cp39-win32.whl", hash = "sha256:1b34eedd6812bf4d33814fca1b66005805d3640ce53140ab8bbb1e2651b0d9bc"},
     {file = "pyrsistent-0.18.1-cp39-cp39-win_amd64.whl", hash = "sha256:e24a828f57e0c337c8d8bb9f6b12f09dfdf0273da25fda9e314f0b684b415a07"},
     {file = "pyrsistent-0.18.1.tar.gz", hash = "sha256:d4d61f8b993a7255ba714df3aca52700f8125289f84f704cf80916517c46eb96"},
-]
-pytesseract = [
-    {file = "pytesseract-0.3.10-py3-none-any.whl", hash = "sha256:8f22cc98f765bf13517ead0c70effedb46c153540d25783e04014f28b55a5fc6"},
-    {file = "pytesseract-0.3.10.tar.gz", hash = "sha256:f1c3a8b0f07fd01a1085d451f5b8315be6eec1d5577a6796d46dc7a62bd4120f"},
 ]
 pytest = [
     {file = "pytest-7.1.2-py3-none-any.whl", hash = "sha256:13d0e3ccfc2b6e26be000cb6568c832ba67ba32e719443bfe725814d3c42433c"},

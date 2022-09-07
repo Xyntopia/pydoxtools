@@ -337,7 +337,7 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
     #       check if a document already exists...
 
     @property
-    def get_extract(self) -> models.DocumentExtract:
+    def extract(self) -> models.DocumentExtract:
         # TODO: return a datastructure which
         #       includes all the different extraction objects
         #       this datastructure should be serializable into
