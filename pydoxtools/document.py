@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
 from pathlib import Path
-from typing import List, Union, Any
+from typing import List, Any
 
 import numpy as np
 import spacy.tokens
@@ -155,7 +155,7 @@ class MetaDocumentClassConfiguration(type):
     ALso checks Extractors etc...  for consistency
     """
 
-    # in theory we could add additional arguments to this function which we could
+    # in theory, we could add additional arguments to this function which we could
     # pass in our documentbase class
     def __new__(cls, clsname, bases, attrs):
         # construct our class
@@ -167,20 +167,44 @@ class MetaDocumentClassConfiguration(type):
                 # TODO: add checks to make sure we don't have any name-collisions
                 # configure class
                 logger.info(f"configure {new_class} class...")
-                new_class._x_funcs = {}
-                extractor: Extractor
+                uncombined_extractors: dict[str:dict[str:Extractor]] = {}
+                extractor_combinations: dict[str:list[str]] = {}
+                ex: Extractor | str
                 for k, ex_list in new_class._extractors.items():
                     doc_type_x_funcs = {}
                     for ex in ex_list:
-                        for ex_key, ex_key_target in ex._out_mapping.items():
-                            # input<->output mapping is already done i the extractor itself
-                            # check out Extractor.pipe and Extractor.map member functions
-                            doc_type_x_funcs[ex_key_target] = ex
-                    new_class._x_funcs[k] = doc_type_x_funcs
+                        # strings indicate that we would like to
+                        # add all the functions from that document type as well but with
+                        # lower priority
+                        if isinstance(ex, str):
+                            extractor_combinations[k] = ex
+                        else:
+                            # go through all outputs of an extractor and
+                            # map them o extraction variables inside document
+                            # TODO: we could explicitly add the variables as property functions
+                            #       which refer to the "x"-function in document?
+                            for ex_key, ex_key_target in ex._out_mapping.items():
+                                # input<->output mapping is already done i the extractor itself
+                                # check out Extractor.pipe and Extractor.map member functions
+                                doc_type_x_funcs[ex_key_target] = ex
 
-                    # get all functions with their correct output and input
-                    # func_map =
-                    # new_class._extractor_map[k]
+                    uncombined_extractors[k] = doc_type_x_funcs
+
+                # add all extrators by combining the different document types
+                new_class._x_funcs = {}
+                for k, v in uncombined_extractors.items():
+                    # first take our other document type and then add the current document type
+                    # itself on top of it because of its higher priority overwriting
+                    # extractors of the lower priority extractors
+                    # TODO: how do we make sure that we adhere to the tree structure?
+                    #       we need to make sure that we generate the "lowest" priority (= top of tree)
+                    #       document types first, and then subsequently until we are at the bottom
+                    #       of the tree.
+
+                    new_class._x_funcs[k] = {}
+                    if base_type := extractor_combinations.get(k):
+                        new_class._x_funcs[k].update(uncombined_extractors[base_type])
+                    new_class._x_funcs[k].update(v)
         else:
             raise ConfigurationError(f"no extractors defined in class {new_class}")
 
@@ -358,18 +382,18 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         return self._source
 
     @property
-    def fobj(self) -> Union[str, io.IOBase]:
+    def fobj(self) -> str | io.IOBase:
         return self._fobj
 
     @property
-    def final_url(self) -> List[str]:
+    def final_url(self) -> list[str]:
         """sometimes, a document points to a url itself (for example a product webpage) and provides
         a link where this document can be found. And this url does not necessarily have to be the same as the source
         of the document."""
         return []
 
     @property
-    def parent(self) -> List[str]:
+    def parent(self) -> list[str]:
         """sources that embed this document in some way (for example as a link)
         (for example a product page which embeds
         a link to this document (e.g. a datasheet)

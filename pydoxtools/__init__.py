@@ -1,13 +1,13 @@
-__version__ = '0.1.0'
+__version__ = '0.5.0'
 
 import logging
 
-import pydoxtools.ocr_language_mappings
-from pydoxtools import extract_textstructure
-from pydoxtools import pdf_utils, document
-from pydoxtools.extract_files import FileLoader
-from pydoxtools.extract_html import HtmlExtractor
-from pydoxtools.extract_logic import LambdaExtractor
+from . import document
+from . import extract_textstructure
+from . import pdf_utils
+from .extract_files import FileLoader
+from .extract_html import HtmlExtractor
+from .extract_logic import LambdaExtractor
 
 logger = logging.getLogger(__name__)
 
