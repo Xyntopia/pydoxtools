@@ -341,7 +341,7 @@ class PDFFileLoader(document.Extractor):
               one has problems with boxes when there is a line with a right- and a left justified
               text in the same line..  in most cases they should be split into two boxes...
         """
-        docelements = [document.DocumentElement]
+        docelements = []  # should be of type list[dict]
         # TODO: automatically classify text pieces already at this point here for example
         #       to find addresses, hint to tables etc... the rest of the algorithm would get a lot
         #       more precise this way...
@@ -363,7 +363,8 @@ class PDFFileLoader(document.Extractor):
             # TODO: make sure we adhere to a common schema for all file types here...
             for boxnum, element in enumerate(page_layout):
                 if isinstance(element, LTCurve):  # LTCurve are rectangles AND lines
-                    docelements.append(document.DocumentElement(
+                    # docelements should be compatible with document.DocumentElement
+                    docelements.append(dict(
                         type=document.ElementType.Graphic,
                         gobj=element,
                         linewidth=element.linewidth,
@@ -400,7 +401,7 @@ class PDFFileLoader(document.Extractor):
                             lineobj=text_line,
                             rawtext=linetext,
                             font_infos=fontset,
-                            p_id=page_layout.pageid,
+                            p_num=page_layout.pageid,
                             linenum=linenum,
                             boxnum=boxnum,
                             x0=text_line.x0,
@@ -418,9 +419,10 @@ class PDFFileLoader(document.Extractor):
                     # import pdfminer.converter
                     pass
 
-        # do some more calculations
+        # TODO: validate pandas dataframe using document.DocumentElement
+        docelementsframe = pd.DataFrame.from_records(docelements)
 
-        return docelements, extracted_page_numbers, pages_bbox
+        return docelementsframe, extracted_page_numbers, pages_bbox
 
     @cached_property
     def mime_type(self) -> str:

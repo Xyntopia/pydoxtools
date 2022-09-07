@@ -1,6 +1,9 @@
 import logging
 from io import BytesIO
 
+import pandas as pd
+import pdfminer.jbig2
+
 from pydoxtools import Document
 
 logging.basicConfig(level=logging.INFO)
@@ -16,7 +19,9 @@ if True:
         pdfstr = pdf_file.read()
 
     pdfdoc = Document(fobj=BytesIO(pdfstr), document_type=".pdf")
+    pdfdoc.document_type
     pdfdoc.x('elements')
+    #pd.DataFrame([o.__dict__ for o in pdfdoc.x('elements')])
 
     pdfdoc = Document(fobj=pdf_file_name)
     pdfdoc.x('elements')
@@ -34,6 +39,7 @@ if True:
 if True:
     pdfdoc = Document(fobj=pdf_file_name)
     pdfdoc.x('elements')
+    pdfdoc.document_type
     #print(pdfdoc.elements)
     for x in pdfdoc.x_funcs:
         pdfdoc.x(x)

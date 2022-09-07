@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
 from pathlib import Path
-from typing import List, Dict, Union, BinaryIO
+from typing import List, Dict, Union, BinaryIO, Any
 
 import numpy as np
 import pandas as pd
@@ -43,13 +43,13 @@ class DocumentElement:
     y0: float
     x1: float
     y1: float
-    rawtext = str | None,
-    font_infos = set[Font] | None,
-    linenum = int | None,
+    rawtext: str | None
+    font_infos: set[Font] | None
+    linenum: int | None
     linewidth: float | None
     boxnum: int | None
-    lineobj = object | None,
-    gobj: object | None
+    lineobj: Any | None
+    gobj: Any | None
     non_stroking_color: str | None
     stroking_color: str | None
     stroke: bool | None
@@ -203,7 +203,7 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
             self,
             fobj: str | Path | BinaryIO,
             source: str | Path = None,
-            document_type: str = None, # TODO: add "auto" for automatic recognition of the type using python-magic
+            document_type: str = None,  # TODO: add "auto" for automatic recognition of the type using python-magic
             page_numbers: list[int] = None,
             max_pages: int = None
     ):
@@ -245,7 +245,6 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
             except:
                 raise DocumentTypeError(f"Could not detect document type for {self._fobj[-100:]} ...")
 
-
     @cached_property
     def x_funcs(self):
         return self._x_funcs[self.document_type]
@@ -276,10 +275,6 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
     def __repr__(self):
         return f"{self.__module__}.{self.__class__.__name__}({self._fobj},{self.source})>"
 
-    @property
-    def type(self):
-        return 'unknown'
-
     # TODO: save document structure as a graph...
     # nx.write_graphml_lxml(G,'test.graphml')
     # nx.write_graphml(G,'test.graphml')
@@ -302,17 +297,6 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
     #       use __eq__ with that hash...
     #       we need this for caching purposes but also in order
     #       check if a document already exists...
-
-    # TODO: test this for path, string, fobj and string path for different
-    #       documents
-    @property
-    def filename(self) -> str:
-        if isinstance(self._fobj, str):
-            return str(self._fobj)
-        elif isinstance(self._fobj, Path):
-            return self._fobj.name
-        else:
-            return self._fobj.name
 
     @property
     def source(self) -> str:
