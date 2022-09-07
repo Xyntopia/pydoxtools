@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import base64
-import functools
 import html
 import logging
 import re
@@ -14,10 +13,12 @@ import langdetect.lang_detect_exception
 import lxml
 import numpy as np
 import pandas as pd
-import pydoxtools.list_utils
 import readability
 from bs4 import BeautifulSoup, NavigableString
 from goose3 import Goose
+
+import pydoxtools.list_utils
+from pydoxtools import document
 from pydoxtools import models, html_utils
 from pydoxtools.html_utils import logger
 
@@ -36,7 +37,6 @@ logger = logging.getLogger(__name__)
 _regex_whitespace = re.compile(r"\s+")
 
 
-@functools.lru_cache()
 def find_language(html):
     txt = html_utils.get_pure_html_text(html)
     try:
@@ -45,7 +45,6 @@ def find_language(html):
         return "None"
 
 
-@functools.lru_cache()
 def extract_tables(html):
     """
     tries to extract all tables from an html.
@@ -66,8 +65,7 @@ def extract_tables(html):
     return new_tables
 
 
-@functools.lru_cache()
-def goose_extract(raw_html):
+def goose_extract(raw_html: str):
     goose = Goose()
     article = goose.extract(raw_html=raw_html)
     main_content = str(article.cleaned_text)
@@ -84,7 +82,6 @@ def goose_extract(raw_html):
     return main_content_raw, main_content, keywords, summary, language, article
 
 
-@functools.lru_cache()
 def extract_title_and_content(raw_html):
     """this function takes the html
     and extracts the important parts of it"""
@@ -92,7 +89,6 @@ def extract_title_and_content(raw_html):
     return pd.Series((doc.summary(), doc.title(), doc.short_title()))
 
 
-@functools.lru_cache()
 def clean_html(html):
     soup = BeautifulSoup(html, "lxml")  # , features="html.parser")
     for tag in soup():
@@ -202,12 +198,31 @@ def extract_schema(raw_html, url):
     return data
 
 
+class HtmlExtractor(document.Extractor):
+    def __init__(self, engine="goose"):
+        super().__init__()
+        self._engine = engine
+
+    def __call__(self, raw_html: str):
+        if self._engine == "goose":
+            (main_content_html, main_content,
+             keywords, summary, language, article) = goose_extract(raw_html)
+        else:
+            raise NotImplementedError()
+
+        return dict(
+            main_content_html=main_content_html,
+            main_content=main_content,
+            keywords=keywords,
+            summary=summary,
+            language=language,
+            goose_article=article
+        )
+
+
 def extract_html_data(raw_html, url):
     raw_html = html.unescape(raw_html)
     main_content_html2, title, short_title = extract_title_and_content(raw_html)
-
-    (main_content_html, main_content,
-     keywords, summary, language, article) = goose_extract(raw_html)
 
     # if we didn't find a given language, try to detect on our own...
     if language.lower() == 'none':

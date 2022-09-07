@@ -88,6 +88,7 @@ class Extractor(ABC):
     #        maybe turn this into a dataclass?
 
     def __init__(self):
+        # try to keep __init__ with no arguments for Extractor..
         self._in_mapping: dict[str, str] = {}
         self._out_mapping: dict[str, str] = {}
         self._cache = False

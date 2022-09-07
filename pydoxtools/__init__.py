@@ -10,7 +10,8 @@ from PIL import Image
 import pydoxtools.ocr_language_mappings
 from pydoxtools import extract_textstructure
 from pydoxtools import pdf_utils, document
-from pydoxtools.extract_files import txtExtractor
+from pydoxtools.extract_files import TxtExtractor
+from pydoxtools.extract_html import HtmlExtractor
 
 
 class Document(document.DocumentBase):
@@ -26,11 +27,19 @@ class Document(document.DocumentBase):
             .pipe("line_elements").map("text_box_elements").cache()
         ],
         ".html": [
-            txtExtractor()
+            TxtExtractor()
             .pipe(fobj="_fobj", document_type="document_type", page_numbers="_page_numbers", max_pages="_max_pages")
-            .map(txt="raw_txt")
-            .cache()
+            .map(txt="raw_txt").cache(),
+            HtmlExtractor()
+            .pipe(raw_html="raw_txt")
+            .map("main_content_html", "keywords", "summary", "language", "goose_article",
+                 "main_content")
         ],
+        "*": [ #TODO!!
+            TxtExtractor()
+            .pipe(fobj="_fobj", document_type="document_type", page_numbers="_page_numbers", max_pages="_max_pages")
+            .map(txt="raw_txt").cache(),
+        ]
     }
 
 

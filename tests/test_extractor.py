@@ -52,7 +52,7 @@ if True:
     for f in test_files:
         doc = run_single_document_test(f)
 
-    doc = Document(fobj=pathlib.Path(test_files[0]))
+    doc = Document(fobj=pathlib.Path(test_files[1]))
 
 if __name__ == "__main__":
     # test_file_loading()

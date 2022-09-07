@@ -5,7 +5,7 @@ from pathlib import Path
 from pydoxtools import document
 
 
-class txtExtractor(document.Extractor):
+class TxtExtractor(document.Extractor):
     def __call__(self, fobj: bytes | str | Path | io.IOBase, document_type, page_numbers=None, max_pages=None):
         if isinstance(fobj, str | bytes):
             txt = fobj
