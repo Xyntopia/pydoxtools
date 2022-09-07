@@ -32,6 +32,28 @@ def _line2txt(LTOBJ: typing.Iterable):
     return txt
 
 
+def docinfo(self) -> list[dict[str, str]]:
+    """list of document metadata such as author, creation date, organization"""
+    return []
+
+def num_pages(self) -> int:
+    return len(self.pages)
+
+def pages(self) -> list[str]:
+    """automatically divide text into approx. pages"""
+    page_word_size = 500
+    words = self.full_text.split()
+    # for i in range(len(words)):
+    pages = list(words[i:i + page_word_size] for i in range(0, len(words), page_word_size))
+    return pages
+
+def mime_type(self) -> str:
+    """
+    type such as "pdf", "html" etc...  can also be the mimetype!
+    TODO: maybe we can do something generic here?
+    """
+    return "unknown"
+
 class DocumentElementFilter(document.Extractor):
     """Filter document elements for various criteria"""
 

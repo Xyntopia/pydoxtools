@@ -354,45 +354,6 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         return self._fobj
 
     @property
-    def mime_type(self) -> str:
-        """
-        type such as "pdf", "html" etc...  can also be the mimetype!
-        TODO: maybe we can do something generic here?
-        """
-        return "unknown"
-
-    @property
-    def textboxes(self) -> List[str]:
-        return []
-
-    @cached_property
-    def full_text(self) -> str:
-        return ""
-
-    @cached_property
-    def pages(self) -> list[str]:
-        """automatically divide text into approx. pages"""
-        page_word_size = 500
-        words = self.full_text.split()
-        # for i in range(len(words)):
-        pages = list(words[i:i + page_word_size] for i in range(0, len(words), page_word_size))
-        return pages
-
-    @cached_property
-    def num_pages(self) -> int:
-        return len(self.pages)
-
-    @property
-    def docinfo(self) -> List[Dict[str, str]]:
-        """list of document metadata such as author, creation date, organization"""
-        return []
-
-    @property
-    def raw_content(self) -> List[str]:
-        """for example the raw html string in the case of an html document or the raw text for markdown"""
-        return []
-
-    @property
     def final_url(self) -> List[str]:
         """sometimes, a document points to a url itself (for example a product webpage) and provides
         a link where this document can be found. And this url does not necessarily have to be the same as the source

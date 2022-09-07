@@ -14,7 +14,6 @@ import functools
 import io
 import logging
 import operator
-import tempfile
 import typing
 from pathlib import Path
 
@@ -280,23 +279,8 @@ class PDFFileLoader(document.Extractor):
         super().__init__()
         self._laparams = laparams
 
-    def __call__(self, fobj: bytes | str | Path | io.IOBase, page_numbers=None, max_pages=0):
-        # docelements, extracted_page_numbers, pages_bbox = repair_pdf_if_damaged(
-        #    self.extract_pdf_elements)(fobj, page_numbers, max_pages
-        # )
-
-        if isinstance(fobj, Path):
-            with open(fobj, "rb") as f:
-                doc_obj = io.BytesIO(f.read())
-        elif isinstance(fobj, tempfile.SpooledTemporaryFile):
-            doc_obj = fobj._file
-        elif isinstance(fobj, bytes):
-            doc_obj = io.BytesIO(fobj)
-        elif hasattr(fobj, "name"):
-            doc_obj = io.BytesIO(fobj.read())
-        else:
-            doc_obj = fobj
-
+    def __call__(self, fobj: bytes, page_numbers=None, max_pages=0):
+        doc_obj = io.BytesIO(fobj)
         docelements, extracted_page_numbers, pages_bbox = self.extract_pdf_elements(
             doc_obj, page_numbers, max_pages)
         meta = meta_infos(doc_obj)

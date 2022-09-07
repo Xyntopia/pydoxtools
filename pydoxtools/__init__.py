@@ -11,7 +11,7 @@ from PIL import Image
 import pydoxtools.ocr_language_mappings
 from pydoxtools import extract_textstructure
 from pydoxtools import pdf_utils, document
-from pydoxtools.extract_files import TxtExtractor
+from pydoxtools.extract_files import FileLoader
 from pydoxtools.extract_html import HtmlExtractor
 from pydoxtools.extract_logic import LambdaExtractor
 
@@ -23,8 +23,10 @@ class Document(document.DocumentBase):
     """
     _extractors = {
         ".pdf": [
+            FileLoader(mode="rb") # pdfs are usually in binary format...
+            .pipe(fobj="_fobj").map("raw_content").cache(),
             pdf_utils.PDFFileLoader()
-            .pipe(fobj="_fobj", page_numbers="_page_numbers", max_pages="_max_pages")
+            .pipe(fobj="raw_content", page_numbers="_page_numbers", max_pages="_max_pages")
             .map("pages_bbox", "elements", "meta", "pages")
             .cache(),
             extract_textstructure.DocumentElementFilter(element_type=document.ElementType.Line)
@@ -37,18 +39,15 @@ class Document(document.DocumentBase):
             .pipe(tb="text_box_list").map("full_text").cache()
         ],
         ".html": [
-            TxtExtractor()
-            .pipe(fobj="_fobj", document_type="document_type", page_numbers="_page_numbers", max_pages="_max_pages")
-            .map(txt="raw_txt").cache(),
             HtmlExtractor()
-            .pipe(raw_html="raw_txt")
+            .pipe(raw_html="raw_content")
             .map("main_content_html", "keywords", "summary", "language", "goose_article",
                  "main_content")
         ],
         "*": [
-            TxtExtractor()
+            FileLoader(mode="auto")
             .pipe(fobj="_fobj", document_type="document_type", page_numbers="_page_numbers", max_pages="_max_pages")
-            .map(txt="raw_txt").cache(),
+            .map("raw_content").cache(),
         ]
     }
 
