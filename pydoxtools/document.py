@@ -92,6 +92,7 @@ class Extractor(ABC):
     def __init__(self):
         self._in_mapping: dict[str, str] = {}
         self._out_mapping: dict[str, str] = {}
+        self._cache = False
 
     @abc.abstractmethod
     def __call__(self, *args, **kwargs) -> dict[str, typing.Any]:
@@ -124,6 +125,10 @@ class Extractor(ABC):
         """
         self._out_mapping = kwargs
         self._out_mapping.update({k: k for k in args})
+        return self
+
+    def cache(self):
+        self._cache = True
         return self
 
 
@@ -223,6 +228,8 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         self._document_type = document_type
         self._page_numbers = page_numbers
         self._max_pages = max_pages
+        self._cache_hits = 0
+        self._x_func_cache: dict[Extractor, dict[str, Any]] = {}
 
     @cached_property
     def document_type(self):
@@ -254,15 +261,23 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         """call an extractor from our definition"""
         extractor_func: Extractor = self.x_funcs[extract_name]
 
-        # TODO: add some caching logic to this call here!!
-        #       is it better to do this here or inside our Extractor itself?
-        #       maybe inside the extractor... gives consistent variable names..
-        #       we should also be able to specify it in the Extractor definition together
-        #       with "pipe" and "map" maybe something lke "cache"
-        #       what speaks against this is that we might want to have our caching
-        #       document-related. So thats cached properties get deleted when the document
-        #       itself is deleted...
-        res = extractor_func._mapped_call(self)
+        # lru_cache currently has a memory leak so we 're not going to use it here
+        # also as the function arguments to extractors won't change that much
+        # we can use it in a similar way as "cached property"
+        # TODO: what about "dynamic" extractors: for example a question/answering machine.
+        #       we would also have to cache those variables...
+
+        # we need to check for "is not None" as we also pandas dataframes in this
+        # which cannot be checked for simple "is there"
+        # check if we executed this function at some point...
+        if not extractor_func._cache:
+            res = extractor_func._mapped_call(self)
+        elif (res := self._x_func_cache.get(extractor_func, None)) is not None:
+            self._cache_hits += 1
+        else:
+            res = extractor_func._mapped_call(self)
+            self._x_func_cache[extractor_func] = res
+
         return res[extract_name]
 
     def __getattr__(self, extract_name):

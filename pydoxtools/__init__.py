@@ -17,12 +17,17 @@ class Document(document.DocumentBase):
         ".pdf": [
             pdf_utils.PDFFileLoader()
             .pipe(fobj="_fobj", page_numbers="_page_numbers", max_pages="_max_pages")
-            .map("pages_bbox", "elements", "meta", "pages")],
+            .map("pages_bbox", "elements", "meta", "pages")
+            .cache()
+        ],
         ".html": [
             txtExtractor()
             .pipe(fobj="_fobj", page_numbers="_page_numbers", max_pages="_max_pages")
-            .map(txt="raw_txt")]
+            .map(txt="raw_txt")
+            .cache()
+        ],
     }
+
 
 class LoadDocumentError(Exception):
     pass

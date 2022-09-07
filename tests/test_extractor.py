@@ -43,6 +43,9 @@ if True:
     #print(pdfdoc.elements)
     for x in pdfdoc.x_funcs:
         pdfdoc.x(x)
+    assert pdfdoc._cache_hits>0
+    logger.info("finished")
+
 
 if __name__=="__main__":
     #test_file_loading()
