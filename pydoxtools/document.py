@@ -200,7 +200,7 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
 
     _extractors: dict[str, list[Extractor]] = {}
     # sorts for all extractor variables..
-    _x_funcs: dict[str:dict[str, Extractor]] = {}
+    _x_funcs: dict[str, dict[str, Extractor]] = {}
 
     def __init__(
             self,
@@ -256,7 +256,7 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
                 raise DocumentTypeError(f"Could not detect document type for {self._fobj[-100:]} ...")
 
     @cached_property
-    def x_funcs(self):
+    def x_funcs(self) -> dict[str, Extractor]:
         return self._x_funcs[self.document_type]
 
     # @functools.lru_cache
@@ -296,24 +296,25 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         for x in self.x_funcs:
             self.x(x)
 
-    def __repr__(self):
-        if isinstance(self._fobj, str | bytes):
-            return f"{self.__module__}.{self.__class__.__name__}({self._fobj[-10:]},{self.source})>"
-        else:
-            return f"{self.__module__}.{self.__class__.__name__}({self._fobj},{self.source})>"
+    def pre_cache(self):
+        """in some situations, for example for caching purposes it would be nice
+        to pre-cache all calculations this is done here by simply calling all functions..."""
+
+        for x, ex in self.x_funcs.items():
+            if ex._cache:
+                self.x(x)
+
+        return self
 
     # TODO: save document structure as a graph...
     # nx.write_graphml_lxml(G,'test.graphml')
     # nx.write_graphml(G,'test.graphml')
 
-    @property
-    def get_extract(self) -> models.DocumentExtract:
-        # TODO: return a datastructure which
-        #       includes all the different extraction objects
-        #       this datastructure should be serializable into
-        #       json/yaml/xml etc...
-        data = models.DocumentExtract.from_orm(self)
-        return data
+    def __repr__(self):
+        if isinstance(self._fobj, str | bytes):
+            return f"{self.__module__}.{self.__class__.__name__}({self._fobj[-10:]},{self.source})>"
+        else:
+            return f"{self.__module__}.{self.__class__.__name__}({self._fobj},{self.source})>"
 
     # TODO: more configuration options:
     #       - which nlp models (spacy/transformers) to use
@@ -324,6 +325,15 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
     #       use __eq__ with that hash...
     #       we need this for caching purposes but also in order
     #       check if a document already exists...
+
+    @property
+    def get_extract(self) -> models.DocumentExtract:
+        # TODO: return a datastructure which
+        #       includes all the different extraction objects
+        #       this datastructure should be serializable into
+        #       json/yaml/xml etc...
+        data = models.DocumentExtract.from_orm(self)
+        return data
 
     @property
     def source(self) -> str:
@@ -367,10 +377,6 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         """list of document metadata such as author, creation date, organization"""
         return []
 
-    @property
-    def meta_infos(self) -> Dict:
-        # specify metainfos in a better way
-        return {}
 
     @property
     def raw_content(self) -> List[str]:
@@ -391,57 +397,3 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         a link to this document (e.g. a datasheet)
         """
         return []
-
-    @classmethod
-    def pre_initialized(cls, fobj, **kwargs) -> "PDFDocumentOld":
-        return cls(fobj, **kwargs).pre_cache()
-
-    @classmethod
-    @memory.cache
-    def from_disk_cache(cls, fobj, **kwargs) -> "PDFDocumentOld":
-        """return a pre -initialized document from disk_cache"""
-        return repair_pdf_if_damaged(cls.pre_initialized)(fobj, **kwargs)
-        # without repair:
-        # return cls(fobj, table_extraction_params, page_numbers, max_pages).pre_cache()
-
-    @classmethod
-    @memory.cache
-    def with_cached_elements(cls, fobj, **kwargs) -> "PDFDocumentOld":
-        def extract(f):
-            new = cls(f, **kwargs)
-            cache = new.df_le, new.df_ge
-            return new
-
-        return repair_pdf_if_damaged(extract)(fobj)
-
-    def pre_cache(self):
-        """in some situations, for example for caching purposes it would be nice
-        to pre-cache all calculations this is done here by simply calling all functions..."""
-        # TODO: for some reason we can only use table_metrics right now for caching...
-        #       try other things as well? at least this already gives us quiet a bit of
-        #       time savings...
-        res = (self.table_metrics, self.titles)
-        # res = (
-        #    self.pages, self.tables, self.table_metrics, self.side_content,
-        #    self.textboxes, self.full_text, self.list_lines, self.main_content,
-        #    self.titles, self.meta_infos, self.side_titles, self.pages_bbox
-        # )
-        # also cache all pages...
-        # for p in self.pages:
-        #    p.pre_cache()
-
-        return self
-
-
-def DocumentClassFactory():
-    """
-    TODO: we could provide "fast" configurations or also simply custom configurations etc...
-    """
-    extractors = {
-        "pdf": "test"
-    }
-
-    class NewDocument():
-        __extractors = extractors
-
-    return NewDocument
