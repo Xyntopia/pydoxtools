@@ -146,7 +146,7 @@ class MetaDocumentClassConfiguration(type):
     # pass in our documentbase class
     def __new__(cls, clsname, bases, attrs):
         # construct our class
-        new_class = super(MetaDocumentClassConfiguration, cls).__new__(
+        new_class: DocumentBase.__class__ = super(MetaDocumentClassConfiguration, cls).__new__(
             cls, clsname, bases, attrs)
 
         if hasattr(new_class, "_extractors"):
@@ -154,15 +154,16 @@ class MetaDocumentClassConfiguration(type):
                 # TODO: add checks to make sure we don't have any name-collisions
                 # configure class
                 print(f"configure {new_class} class...")
-                new_class._x_input_map = {}
                 new_class._x_funcs = {}
                 extractor: Extractor
                 for k, ex_list in new_class._extractors.items():
+                    doc_type_x_funcs = {}
                     for ex in ex_list:
                         for ex_key, ex_key_target in ex._out_mapping.items():
                             # input<->output mapping is already done i the extractor itself
                             # check out Extractor.pipe and Extractor.map member functions
-                            new_class._x_funcs[ex_key_target] = ex
+                            doc_type_x_funcs[ex_key_target] = ex
+                    new_class._x_funcs[k] = doc_type_x_funcs
 
                     # get all functions with their correct output and input
                     # func_map =
@@ -194,12 +195,15 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
     #       a different extractor configuration in that case...
     #       in other words: each extractor needs to be "conditional"
 
-    _extractors: dict[Extractor] = {}
+    _extractors: dict[str, list[Extractor]] = {}
+    # sorts for all extractor variables..
+    _x_funcs: dict[str:dict[str, Extractor]] = {}
 
     def __init__(
             self,
             fobj: str | Path | BinaryIO,
             source: str | Path = None,
+            document_type: str = None, # TODO: add "auto" for automatic recognition of the type using python-magic
             page_numbers: list[int] = None,
             max_pages: int = None
     ):
@@ -216,6 +220,7 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         """
         self._fobj = fobj
         self._source = source
+        self._document_type = document_type
         self._page_numbers = page_numbers
         self._max_pages = max_pages
 
@@ -225,7 +230,48 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         detect doc type based on file-ending
         TODO add a doc-type extractor using for example python-magic
         """
-        return Path(self._fobj.name).suffix
+        try:
+            if self._document_type:
+                return self._document_type
+            elif hasattr(self._fobj, "name"):
+                return Path(self._fobj.name).suffix
+            elif Path(self._fobj).exists() and not self._document_type:
+                return Path(self._fobj).suffix
+            else:
+                raise DocumentTypeError(f"Could not find the document type for {self._fobj[-100:]} ...")
+        except:
+            try:
+                raise DocumentTypeError(f"Could not detect document type for {self._fobj} ...")
+            except:
+                raise DocumentTypeError(f"Could not detect document type for {self._fobj[-100:]} ...")
+
+
+    @cached_property
+    def x_funcs(self):
+        return self._x_funcs[self.document_type]
+
+    # @functools.lru_cache
+    def x(self, extract_name: str):
+        """call an extractor from our definition"""
+        extractor_func: Extractor = self.x_funcs[extract_name]
+
+        # TODO: add some caching logic to this call here!!
+        #       is it better to do this here or inside our Extractor itself?
+        #       maybe inside the extractor... gives consistent variable names..
+        #       we should also be able to specify it in the Extractor definition together
+        #       with "pipe" and "map" maybe something lke "cache"
+        #       what speaks against this is that we might want to have our caching
+        #       document-related. So thats cached properties get deleted when the document
+        #       itself is deleted...
+        res = extractor_func._mapped_call(self)
+        return res[extract_name]
+
+    def __getattr__(self, extract_name):
+        """
+        __getattr__ only gets called for non-existing variable names.
+        So we can automatically avoid name collisions  here.
+        """
+        return self.x(extract_name)
 
     def __repr__(self):
         return f"{self.__module__}.{self.__class__.__name__}({self._fobj},{self.source})>"

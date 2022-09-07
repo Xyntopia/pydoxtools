@@ -318,7 +318,6 @@ class PDFFileLoader(document.Extractor):
         self._laparams = laparams
 
     def __call__(self, fobj: Path | IO, page_numbers=None, max_pages=0):
-        print(fobj, page_numbers, max_pages)
         # docelements, extracted_page_numbers, pages_bbox = repair_pdf_if_damaged(
         #    self.extract_pdf_elements)(fobj, page_numbers, max_pages
         # )
@@ -441,16 +440,6 @@ class PDFFileLoader(document.Extractor):
         """line elements of page"""
         _, graphic_elements, _, _ = self.extract_pdf_elements()
         return pd.DataFrame(graphic_elements)
-
-    @cached_property
-    def extracted_pages(self) -> typing.Set:
-        _, _, extracted_page_numbers, _ = self.extract_pdf_elements()
-        return extracted_page_numbers
-
-    @cached_property
-    def pages_bbox(self) -> typing.Dict:
-        _, _, _, pages_bbox = self.extract_pdf_elements()
-        return pages_bbox
 
     @cached_property
     def pages(self) -> typing.List["PDFPageOld"]:

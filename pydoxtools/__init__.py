@@ -24,15 +24,6 @@ class Document(document.DocumentBase):
             .map(txt="raw_txt")]
     }
 
-    # @functools.lru_cache
-    def x(self, extract_name: str):
-        """call an extractor from our definition"""
-        extractor_logic: document.Extractor = self._x_funcs[extract_name]
-
-        # TODO: add some caching logic to this call here!!
-        return extractor_logic._mapped_call(self)
-
-
 class LoadDocumentError(Exception):
     pass
 
