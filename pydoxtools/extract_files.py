@@ -1,5 +1,5 @@
-import pathlib
 import io
+import pathlib
 from pathlib import Path
 
 from pydoxtools import document
@@ -10,8 +10,12 @@ class TxtExtractor(document.Extractor):
         if isinstance(fobj, str | bytes):
             txt = fobj
         elif isinstance(fobj, pathlib.Path):
-            with open(fobj) as file:
-                txt = file.read()
+            try:
+                with open(fobj) as file:
+                    txt = file.read()
+            except:
+                with open(fobj, "rb") as file:
+                    txt = file.read()
         else:
             txt = fobj.read()
         # else:

@@ -165,22 +165,6 @@ class PDFFileLoader_old(document.Extractor):
         """this method should provide a dataframe of the extracted line elements of a pdf"""
         return pd.DataFrame()
 
-    @cached_property
-    def txt_box_df(self) -> pd.DataFrame:
-        if self.df_le.empty:
-            return pd.DataFrame()
-        boxes = _generate_text_boxes(self.df_le)
-        return boxes
-
-    @cached_property
-    def textboxes(self) -> typing.List:
-        boxes = self.txt_box_df
-        return boxes.get("text", pd.Series()).to_list()
-
-    @cached_property
-    def full_text(self) -> str:
-        return "\n".join(self.textboxes)
-
     @functools.lru_cache()
     def __detect_titles(self) -> pd.DataFrame:
         """

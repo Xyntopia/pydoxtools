@@ -13,7 +13,7 @@ from sklearn.neighbors import KernelDensity
 from pydoxtools import cluster_utils as gu
 from pydoxtools.cluster_utils import pairwise_txtbox_dist, box_cols, y1, x0, x1
 from pydoxtools.document import Extractor, DocumentBase
-from pydoxtools.extract_textstructure import _line2txt, _filter_boxes
+from pydoxtools.extract_textstructure import _line2txt
 
 
 class TableExtractionParameters(pydantic.BaseModel):
@@ -973,3 +973,39 @@ class Page:
     @property
     def table_candidate_boxes_df(self) -> pd.DataFrame:
         return pd.DataFrame([t.bbox for t in self.table_candidates])
+
+
+def _filter_boxes(
+        boxes: pd.DataFrame,
+        min_aspect_ratio=None,
+        max_aspect_ratio=None,
+        min_num=None,
+        min_area=None,
+):
+    """filter boxes for various criteria
+
+    TODO: optionally include more filter criteria...
+        - min size
+        - min margin
+        - min size
+        - max size
+        - min_width
+        - min_height
+    """
+    if not boxes.empty:
+        if min_num:
+            boxes = boxes[boxes["num"] >= min_num].copy()
+        boxes['w'] = boxes.x1 - boxes.x0
+        boxes['h'] = boxes.y1 - boxes.y0
+        boxes['aspect_ratio'] = boxes.h / boxes.w
+        boxes['area'] = boxes.w * boxes.h
+        if min_area:
+            boxes = boxes.loc[boxes.area > min_area]
+        if min_aspect_ratio:
+            boxes = boxes.loc[boxes.aspect_ratio > min_aspect_ratio]
+        if max_aspect_ratio:
+            boxes = boxes.loc[boxes.aspect_ratio < max_aspect_ratio]
+    else:
+        boxes = pd.DataFrame()
+
+    return boxes

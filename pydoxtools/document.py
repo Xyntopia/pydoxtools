@@ -102,7 +102,12 @@ class Extractor(ABC):
         # processing function
         kwargs = {k: getattr(parent_document, v) for k, v in self._in_mapping.items()}
         output = self(**kwargs)
-        return {self._out_mapping[k]: v for k, v in output.items()}
+        if isinstance(output, dict):
+            return {self._out_mapping[k]: v for k, v in output.items()}
+        else:
+            # use first key of out_mapping for output if
+            # we only have a single return value
+            return {next(iter(self._out_mapping)): output}
 
     def pipe(self, *args, **kwargs):
         """
@@ -173,7 +178,7 @@ class MetaDocumentClassConfiguration(type):
                     # func_map =
                     # new_class._extractor_map[k]
         else:
-            raise ConfigurationError(f"no extractors defined in class {newclass}")
+            raise ConfigurationError(f"no extractors defined in class {new_class}")
 
         return new_class
 
@@ -258,7 +263,11 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
 
     @cached_property
     def x_funcs(self) -> dict[str, Extractor]:
-        return self._x_funcs[self.document_type]
+        """
+        TODO: we can calculate this in our metaclass as we have th pre-defined document
+              types anyways.
+        """
+        return {**self._x_funcs.get("*", {}), **self._x_funcs.get(self.document_type, {})}
 
     # @functools.lru_cache
     def x(self, extract_name: str):
@@ -377,7 +386,6 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
     def docinfo(self) -> List[Dict[str, str]]:
         """list of document metadata such as author, creation date, organization"""
         return []
-
 
     @property
     def raw_content(self) -> List[str]:

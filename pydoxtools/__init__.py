@@ -4,6 +4,7 @@ import io
 import logging
 from pathlib import Path
 from typing import Union, IO, List
+import pandas as pd
 
 from PIL import Image
 
@@ -12,9 +13,14 @@ from pydoxtools import extract_textstructure
 from pydoxtools import pdf_utils, document
 from pydoxtools.extract_files import TxtExtractor
 from pydoxtools.extract_html import HtmlExtractor
+from pydoxtools.extract_logic import LambdaExtractor
 
 
 class Document(document.DocumentBase):
+    """
+    A standard document logic configuration which should work
+    on most documents
+    """
     _extractors = {
         ".pdf": [
             pdf_utils.PDFFileLoader()
@@ -24,7 +30,11 @@ class Document(document.DocumentBase):
             extract_textstructure.DocumentElementFilter(element_type=document.ElementType.Line)
             .pipe("elements").map("line_elements").cache(),
             extract_textstructure.TextBoxElementExtractor()
-            .pipe("line_elements").map("text_box_elements").cache()
+            .pipe("line_elements").map("text_box_elements").cache(),
+            LambdaExtractor(lambda df: df.get("text", None).to_list())
+            .pipe(df="text_box_elements").map("text_box_list").cache(),
+            LambdaExtractor(lambda tb: "\n\n".join(tb))
+            .pipe(tb="text_box_list").map("full_text").cache()
         ],
         ".html": [
             TxtExtractor()
@@ -35,7 +45,7 @@ class Document(document.DocumentBase):
             .map("main_content_html", "keywords", "summary", "language", "goose_article",
                  "main_content")
         ],
-        "*": [ #TODO!!
+        "*": [
             TxtExtractor()
             .pipe(fobj="_fobj", document_type="document_type", page_numbers="_page_numbers", max_pages="_max_pages")
             .map(txt="raw_txt").cache(),
