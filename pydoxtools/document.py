@@ -297,7 +297,10 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
             self.x(x)
 
     def __repr__(self):
-        return f"{self.__module__}.{self.__class__.__name__}({self._fobj},{self.source})>"
+        if isinstance(self._fobj, str | bytes):
+            return f"{self.__module__}.{self.__class__.__name__}({self._fobj[-10:]},{self.source})>"
+        else:
+            return f"{self.__module__}.{self.__class__.__name__}({self._fobj},{self.source})>"
 
     # TODO: save document structure as a graph...
     # nx.write_graphml_lxml(G,'test.graphml')

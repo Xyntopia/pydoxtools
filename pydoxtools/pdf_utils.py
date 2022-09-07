@@ -34,7 +34,6 @@ from pdfminer.pdfparser import PDFParser
 from sklearn.ensemble import IsolationForest
 
 from pydoxtools import document, list_utils
-from pydoxtools.extract_textstructure import _generate_text_boxes
 
 logger = logging.getLogger(__name__)
 
@@ -294,7 +293,7 @@ class PDFFileLoader(document.Extractor):
            all_texts=False
         )
         """
-
+        super().__init__()
         self._laparams = laparams
 
     def __call__(self, fobj: bytes | str | Path | io.IOBase, page_numbers=None, max_pages=0):

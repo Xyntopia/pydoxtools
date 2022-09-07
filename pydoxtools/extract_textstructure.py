@@ -3,6 +3,8 @@ import typing
 import pandas as pd
 import pdfminer
 
+from pydoxtools import document
+
 
 def _filter_boxes(
         boxes: pd.DataFrame,
@@ -40,38 +42,96 @@ def _filter_boxes(
     return boxes
 
 
-def _generate_text_boxes(df: pd.DataFrame) -> pd.DataFrame:
+class DocumentElementFilter(document.Extractor):
+    """Filter document elements for various criteria"""
+
+    def __init__(self, element_type: document.ElementType):
+        super().__init__()
+        self.element_type = element_type
+
+    def __call__(self, elements: pd.DataFrame):
+        df = elements.loc[elements["type"] == self.element_type]
+        return dict(line_elements=df)
+
+
+class TextBoxElementExtractor(document.Extractor):
     """
     create textboxes and create bounding boxes and aggregated text from
     a pandas dataframe with textlines.
     returns a list of textboxes together wth some coordinate data and
     the contained text.
 
-    TODO: integrate this function with the classes above..
+    TODO: make it possible to use alternative distance metrics to generate
+          the text boxes...
+
+    TODO: detect textboxes if they weren't loaded from another framewok
+          already (for example pdfminer.six automatically detects textboxes ad
+          we save them in the elements array)
+
+    TODO: do some schema validation on the pandas dataframes...
+    """
+
+    def __call__(self, elements: pd.DataFrame):
+        if "boxnum" in elements:
+            group = elements.groupby(['p_num', 'boxnum'])
+            # aggregate object from the same box and calculate new
+            # bounding boxes, also join the formatted text
+            bg = group.agg(
+                x0=("x0", "min"), y0=("y0", "min"),
+                x1=("x1", "max"), y1=("y1", "max"),
+                text=("lineobj",
+                      lambda x: "".join(_line2txt(obj) for obj in x.values))
+            )
+            # remove empty box_groups
+            bg = bg[bg.text.str.strip().str.len() > 1].copy()
+            # do some calculations
+            bg['y_mean'] = bg[['y0', 'y1']].mean(axis=1)
+            bg['x_mean'] = bg[['x0', 'x1']].mean(axis=1)
+            bg['w'] = bg.x1 - bg.x0
+            bg['h'] = bg.y1 - bg.y0
+            return dict(text_box_elements=bg)
+        else:
+            return dict(text_box_elements=None)
+
+
+class TextBoxElementExtractor(document.Extractor):
+    """
+    create textboxes and create bounding boxes and aggregated text from
+    a pandas dataframe with textlines.
+    returns a list of textboxes together wth some coordinate data and
+    the contained text.
 
     TODO: make it possible to use alternative distance metrics to generate
           the text boxes...
+
+    TODO: detect textboxes if they weren't loaded from another framewok
+          already (for example pdfminer.six automatically detects textboxes ad
+          we save them in the elements array)
+
+    TODO: do some schema validation on the pandas dataframes...
     """
-    if "boxnum" in df:
-        group = df.groupby(['p_id', 'boxnum'])
-        # aggregate object from the same box and calculate new
-        # bounding boxes, also join the formatted text
-        bg = group.agg(
-            x0=("x0", "min"), y0=("y0", "min"),
-            x1=("x1", "max"), y1=("y1", "max"),
-            text=("lineobj",
-                  lambda x: "".join(_line2txt(obj) for obj in x.values))
-        )
-        # remove empty box_groups
-        bg = bg[bg.text.str.strip().str.len() > 1].copy()
-        # do some calculations
-        bg['y_mean'] = bg[['y0', 'y1']].mean(axis=1)
-        bg['x_mean'] = bg[['x0', 'x1']].mean(axis=1)
-        bg['w'] = bg.x1 - bg.x0
-        bg['h'] = bg.y1 - bg.y0
-        return bg
-    else:
-        return pd.DataFrame(columns=['text'])
+
+    def __call__(self, line_elements: pd.DataFrame):
+        if "boxnum" in line_elements:
+            group = line_elements.groupby(['p_num', 'boxnum'])
+            # aggregate object from the same box and calculate new
+            # bounding boxes, also join the formatted text
+            bg = group.agg(
+                x0=("x0", "min"), y0=("y0", "min"),
+                x1=("x1", "max"), y1=("y1", "max"),
+                text=("lineobj",
+                      lambda x: "".join(_line2txt(obj) for obj in x.values))
+            )
+            # remove empty box_groups
+            bg = bg[bg.text.str.strip().str.len() > 1].copy()
+            # do some calculations
+            bg['y_mean'] = bg[['y0', 'y1']].mean(axis=1)
+            bg['x_mean'] = bg[['x0', 'x1']].mean(axis=1)
+            bg['w'] = bg.x1 - bg.x0
+            bg['h'] = bg.y1 - bg.y0
+            return dict(text_box_elements=bg)
+        else:
+            return dict(text_box_elements=None)
 
 
 def _line2txt(LTOBJ: typing.Iterable):

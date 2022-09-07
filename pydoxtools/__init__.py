@@ -8,6 +8,7 @@ from typing import Union, IO, List
 from PIL import Image
 
 import pydoxtools.ocr_language_mappings
+from pydoxtools import extract_textstructure
 from pydoxtools import pdf_utils, document
 from pydoxtools.extract_files import txtExtractor
 
@@ -18,7 +19,11 @@ class Document(document.DocumentBase):
             pdf_utils.PDFFileLoader()
             .pipe(fobj="_fobj", page_numbers="_page_numbers", max_pages="_max_pages")
             .map("pages_bbox", "elements", "meta", "pages")
-            .cache()
+            .cache(),
+            extract_textstructure.DocumentElementFilter(element_type=document.ElementType.Line)
+            .pipe("elements").map("line_elements").cache(),
+            extract_textstructure.TextBoxElementExtractor()
+            .pipe("line_elements").map("text_box_elements").cache()
         ],
         ".html": [
             txtExtractor()
