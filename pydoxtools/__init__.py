@@ -1,12 +1,6 @@
 __version__ = '0.1.0'
 
-import io
 import logging
-from pathlib import Path
-from typing import Union, IO, List
-import pandas as pd
-
-from PIL import Image
 
 import pydoxtools.ocr_language_mappings
 from pydoxtools import extract_textstructure
@@ -15,15 +9,25 @@ from pydoxtools.extract_files import FileLoader
 from pydoxtools.extract_html import HtmlExtractor
 from pydoxtools.extract_logic import LambdaExtractor
 
+logger = logging.getLogger(__name__)
+
 
 class Document(document.DocumentBase):
     """
     A standard document logic configuration which should work
-    on most documents
+    on most documents.
+
+    In order to declare a different logic it is best to take this logic here as a
+    starting point.
+
+    It is possible to exchange individual modules such as HTML extractors etc..
+
+    One can also change the configuration of individual extractors. For example
+    of the Table Extractor or Space models...
     """
     _extractors = {
         ".pdf": [
-            FileLoader(mode="rb") # pdfs are usually in binary format...
+            FileLoader(mode="rb")  # pdfs are usually in binary format...
             .pipe(fobj="_fobj").out("raw_content").cache(),
             pdf_utils.PDFFileLoader()
             .pipe(fobj="raw_content", page_numbers="_page_numbers", max_pages="_max_pages")
@@ -50,18 +54,3 @@ class Document(document.DocumentBase):
             .out("raw_content").cache(),
         ]
     }
-
-
-class LoadDocumentError(Exception):
-    pass
-
-
-logger = logging.getLogger(__name__)
-
-
-def load_document(fobj: Union[str, Path, IO], source: str = "",
-                  page_numbers: List[int] = None, maxpages: int = 0,
-                  ocr: bool = False, ocr_lang="eng", model_size="") -> document.DocumentBase:
-    """takes a file-like object/string/path and returns a document corresponding to the
-    filetype which can be used to extract data in a lazy fashion."""
-    pass

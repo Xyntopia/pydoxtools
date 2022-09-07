@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
 from pathlib import Path
-from typing import List, Dict, Union, Any
+from typing import List, Union, Any
 
 import numpy as np
 import spacy.tokens
@@ -78,6 +78,10 @@ class TokenCollection:
 
     def __repr__(self):
         return "|".join(t.text for t in self._tokens)
+
+
+class ExtractorException(Exception):
+    pass
 
 
 class Extractor(ABC):
@@ -283,13 +287,17 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         # we need to check for "is not None" as we also pandas dataframes in this
         # which cannot be checked for simple "is there"
         # check if we executed this function at some point...
-        if not extractor_func._cache:
-            res = extractor_func._mapped_call(self)
-        elif (res := self._x_func_cache.get(extractor_func, None)) is not None:
-            self._cache_hits += 1
-        else:
-            res = extractor_func._mapped_call(self)
-            self._x_func_cache[extractor_func] = res
+        try:
+            if not extractor_func._cache:
+                res = extractor_func._mapped_call(self)
+            elif (res := self._x_func_cache.get(extractor_func, None)) is not None:
+                self._cache_hits += 1
+            else:
+                res = extractor_func._mapped_call(self)
+                self._x_func_cache[extractor_func] = res
+        except:
+            logger.exception(f"problem with extractor {extract_name}")
+            raise ExtractorException(f"could not extract {extract_name} from {self} using {extractor_func}!")
 
         return res[extract_name]
 
