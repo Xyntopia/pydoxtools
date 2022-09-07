@@ -24,30 +24,30 @@ class Document(document.DocumentBase):
     _extractors = {
         ".pdf": [
             FileLoader(mode="rb") # pdfs are usually in binary format...
-            .pipe(fobj="_fobj").map("raw_content").cache(),
+            .pipe(fobj="_fobj").out("raw_content").cache(),
             pdf_utils.PDFFileLoader()
             .pipe(fobj="raw_content", page_numbers="_page_numbers", max_pages="_max_pages")
-            .map("pages_bbox", "elements", "meta", "pages")
+            .out("pages_bbox", "elements", "meta", "pages")
             .cache(),
             extract_textstructure.DocumentElementFilter(element_type=document.ElementType.Line)
-            .pipe("elements").map("line_elements").cache(),
+            .pipe("elements").out("line_elements").cache(),
             extract_textstructure.TextBoxElementExtractor()
-            .pipe("line_elements").map("text_box_elements").cache(),
+            .pipe("line_elements").out("text_box_elements").cache(),
             LambdaExtractor(lambda df: df.get("text", None).to_list())
-            .pipe(df="text_box_elements").map("text_box_list").cache(),
+            .pipe(df="text_box_elements").out("text_box_list").cache(),
             LambdaExtractor(lambda tb: "\n\n".join(tb))
-            .pipe(tb="text_box_list").map("full_text").cache()
+            .pipe(tb="text_box_list").out("full_text").cache()
         ],
         ".html": [
             HtmlExtractor()
             .pipe(raw_html="raw_content")
-            .map("main_content_html", "keywords", "summary", "language", "goose_article",
+            .out("main_content_html", "keywords", "summary", "language", "goose_article",
                  "main_content")
         ],
         "*": [
             FileLoader(mode="auto")
             .pipe(fobj="_fobj", document_type="document_type", page_numbers="_page_numbers", max_pages="_max_pages")
-            .map("raw_content").cache(),
+            .out("raw_content").cache(),
         ]
     }
 

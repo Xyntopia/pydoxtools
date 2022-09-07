@@ -121,7 +121,7 @@ class Extractor(ABC):
         self._in_mapping.update({k: k for k in args})
         return self
 
-    def map(self, *args, **kwargs):
+    def out(self, *args, **kwargs):
         """
         configure output parameter mappings to this function
 
