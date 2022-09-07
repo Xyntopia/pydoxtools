@@ -167,17 +167,18 @@ class MetaDocumentClassConfiguration(type):
                 # TODO: add checks to make sure we don't have any name-collisions
                 # configure class
                 logger.info(f"configure {new_class} class...")
-                uncombined_extractors: dict[str:dict[str:Extractor]] = {}
-                extractor_combinations: dict[str:list[str]] = {}
+                uncombined_extractors: dict[str, dict[str, Extractor]] = {}
+                extractor_combinations: dict[str, list[str]] = {}
                 ex: Extractor | str
                 for k, ex_list in new_class._extractors.items():
                     doc_type_x_funcs = {}
+                    extractor_combinations[k] = []
                     for ex in ex_list:
                         # strings indicate that we would like to
                         # add all the functions from that document type as well but with
                         # lower priority
                         if isinstance(ex, str):
-                            extractor_combinations[k] = ex
+                            extractor_combinations[k].append(ex)
                         else:
                             # go through all outputs of an extractor and
                             # map them o extraction variables inside document
@@ -192,7 +193,8 @@ class MetaDocumentClassConfiguration(type):
 
                 # add all extrators by combining the different document types
                 new_class._x_funcs = {}
-                for k, v in uncombined_extractors.items():
+                k: str
+                for k in uncombined_extractors:
                     # first take our other document type and then add the current document type
                     # itself on top of it because of its higher priority overwriting
                     # extractors of the lower priority extractors
@@ -201,10 +203,18 @@ class MetaDocumentClassConfiguration(type):
                     #       document types first, and then subsequently until we are at the bottom
                     #       of the tree.
 
+                    # TODO: add classes recursivly
                     new_class._x_funcs[k] = {}
-                    if base_type := extractor_combinations.get(k):
-                        new_class._x_funcs[k].update(uncombined_extractors[base_type])
-                    new_class._x_funcs[k].update(v)
+
+                    # build class combination in correct order:
+                    # the first one is the least important
+                    doc_type_order = ["*"] + list(
+                        reversed(extractor_combinations[k])) + [k]
+
+                    for doc_type in doc_type_order:
+                        # add extractors from a potential base document
+                        new_class._x_funcs[k].update(uncombined_extractors[doc_type])
+
         else:
             raise ConfigurationError(f"no extractors defined in class {new_class}")
 
@@ -292,10 +302,9 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
     @cached_property
     def x_funcs(self) -> dict[str, Extractor]:
         """
-        TODO: we can calculate this in our metaclass as we have th pre-defined document
-              types anyways.
+        get all extractors and their proprety names
         """
-        return {**self._x_funcs.get("*", {}), **self._x_funcs.get(self.document_type, {})}
+        return self._x_funcs.get(self.document_type, {})
 
     # @functools.lru_cache
     def x(self, extract_name: str):
@@ -382,8 +391,17 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         return self._source
 
     @property
-    def fobj(self) -> str | io.IOBase:
+    def fobj(self):
         return self._fobj
+
+    @cached_property
+    def filename(self) -> str | None:
+        if hasattr(self._fobj, "name"):
+            return self._fobj.name
+        elif isinstance(self._fobj, Path):
+            return self._fobj.name
+        else:
+            return None
 
     @property
     def final_url(self) -> list[str]:
