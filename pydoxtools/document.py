@@ -1,4 +1,5 @@
 import abc
+import io
 import logging
 import typing
 from abc import ABC
@@ -6,7 +7,7 @@ from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
 from pathlib import Path
-from typing import List, Dict, Union, BinaryIO, Any
+from typing import List, Dict, Union, Any
 
 import numpy as np
 import pandas as pd
@@ -158,7 +159,7 @@ class MetaDocumentClassConfiguration(type):
             if new_class._extractors:
                 # TODO: add checks to make sure we don't have any name-collisions
                 # configure class
-                print(f"configure {new_class} class...")
+                logger.info(f"configure {new_class} class...")
                 new_class._x_funcs = {}
                 extractor: Extractor
                 for k, ex_list in new_class._extractors.items():
@@ -206,7 +207,7 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
 
     def __init__(
             self,
-            fobj: str | Path | BinaryIO,
+            fobj: str | bytes | Path | io.IOBase,
             source: str | Path = None,
             document_type: str = None,  # TODO: add "auto" for automatic recognition of the type using python-magic
             page_numbers: list[int] = None,
@@ -220,7 +221,10 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         else  use generic, multilingual ner model "xx_ent_wiki_sm"
 
         source: Where does the extracted data come from? (Examples: URL, 'pdfupload', parent-URL, or a path)"
-        fobj: a file object which should be loaded. Can also be a string or a file path
+        fobj: a file object which should be loaded.
+            - if it is a string or bytes object:   the string itself is the document!
+            - if it is a pathlib.Path: load the document from the path
+            - if it is a file object: load document from file object (or bytestream  etc...)
 
         """
         self._fobj = fobj
@@ -242,9 +246,11 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
                 return self._document_type
             elif hasattr(self._fobj, "name"):
                 return Path(self._fobj.name).suffix
-            elif Path(self._fobj).exists() and not self._document_type:
-                return Path(self._fobj).suffix
-            else:
+            # get type from path suffix
+            elif self._fobj.exists() and not self._document_type:
+                return self._fobj.suffix
+            else:  # for example if it is a string without a type
+                # TODO: detect type with python-magic here...
                 raise DocumentTypeError(f"Could not find the document type for {self._fobj[-100:]} ...")
         except:
             try:
@@ -287,6 +293,12 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         """
         return self.x(extract_name)
 
+    def run_all_extractors(self):
+        """can be used for testing purposes"""
+        # print(pdfdoc.elements)
+        for x in self.x_funcs:
+            self.x(x)
+
     def __repr__(self):
         return f"{self.__module__}.{self.__class__.__name__}({self._fobj},{self.source})>"
 
@@ -318,7 +330,7 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         return self._source
 
     @property
-    def fobj(self) -> Union[str, BinaryIO]:
+    def fobj(self) -> Union[str, io.IOBase]:
         return self._fobj
 
     @property

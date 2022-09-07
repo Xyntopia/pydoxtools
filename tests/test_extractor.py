@@ -1,8 +1,6 @@
+import io
 import logging
-from io import BytesIO
-
-import pandas as pd
-import pdfminer.jbig2
+import pathlib
 
 from pydoxtools import Document
 
@@ -12,41 +10,47 @@ logging.getLogger("pydoxtools.document").setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-#def test_file_loading():
+def run_single_document_test(file_name):
+    logger.info(f"testing: {file_name}")
+    # load object from path
+    doc = Document(fobj=pathlib.Path(file_name))
+    doc.run_all_extractors()
+    assert doc._cache_hits >= 0
+    doc_type = doc.document_type
+
+    with open(file_name, "rb") as file:
+        doc_str = file.read()
+
+    # from bytestream
+    doc = Document(fobj=io.BytesIO(doc_str), document_type=doc_type)
+    doc.document_type
+    doc.run_all_extractors()
+    assert doc._cache_hits >= 0
+
+    # from bytes
+    doc = Document(fobj=doc_str, document_type=doc_type)
+    doc.document_type
+    doc.run_all_extractors()
+    assert doc._cache_hits >= 0
+    # pd.DataFrame([o.__dict__ for o in pdfdoc.x('elements')])
+
+    # TODO: from string
+
+    logger.info(f"testing {file_name}")
+
+    return doc
+
+
+# def test_file_loading():
 if True:
-    pdf_file_name = "../training_data/pdfs/datasheet/BUSI-XCAM-SY-00011.22.pdf"
-    with open(pdf_file_name, "rb") as pdf_file:
-        pdfstr = pdf_file.read()
+    test_files = [
+        "../training_data/pdfs/product_page/berrybase_raspberrypi4.html",
+        "../training_data/pdfs/datasheet/BUSI-XCAM-SY-00011.22.pdf"
+    ]
 
-    pdfdoc = Document(fobj=BytesIO(pdfstr), document_type=".pdf")
-    pdfdoc.document_type
-    pdfdoc.x('elements')
-    #pd.DataFrame([o.__dict__ for o in pdfdoc.x('elements')])
+    for f in test_files:
+        doc = run_single_document_test(f)
 
-    pdfdoc = Document(fobj=pdf_file_name)
-    pdfdoc.x('elements')
-
-    with open("../training_data/pdfs/product_page/berrybase_raspberrypi4.html") as html_file:
-        html_str = html_file.read()
-    htmldoc = Document(fobj=html_str, document_type='.html')
-
-    htmldoc.x('raw_txt')
-    htmldoc.document_type
-
-    logger.info("finished!")
-
-#def check access to all standard extractors
-if True:
-    pdfdoc = Document(fobj=pdf_file_name)
-    pdfdoc.x('elements')
-    pdfdoc.document_type
-    #print(pdfdoc.elements)
-    for x in pdfdoc.x_funcs:
-        pdfdoc.x(x)
-    assert pdfdoc._cache_hits>0
-    logger.info("finished")
-
-
-if __name__=="__main__":
-    #test_file_loading()
+if __name__ == "__main__":
+    # test_file_loading()
     pass

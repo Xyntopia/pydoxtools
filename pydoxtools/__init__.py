@@ -22,7 +22,7 @@ class Document(document.DocumentBase):
         ],
         ".html": [
             txtExtractor()
-            .pipe(fobj="_fobj", page_numbers="_page_numbers", max_pages="_max_pages")
+            .pipe(fobj="_fobj", document_type="document_type", page_numbers="_page_numbers", max_pages="_max_pages")
             .map(txt="raw_txt")
             .cache()
         ],

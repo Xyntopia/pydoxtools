@@ -11,12 +11,12 @@ Created on Mon Dec 16 12:07:52 2019
 
 
 import functools
+import io
 import logging
 import operator
 import tempfile
 import typing
 from pathlib import Path
-from typing import IO
 
 import pandas as pd
 # TODO: evaluate tabula as an additional table-read mechanism
@@ -34,7 +34,6 @@ from pdfminer.pdfparser import PDFParser
 from sklearn.ensemble import IsolationForest
 
 from pydoxtools import document, list_utils
-from pydoxtools.document import memory
 from pydoxtools.extract_textstructure import _generate_text_boxes
 
 logger = logging.getLogger(__name__)
@@ -139,13 +138,8 @@ def repair_pdf_if_damaged(function):
     return wrapper
 
 
-def _get_meta_infos(f):
-    try:
-        fp = open(f, 'rb')
-        parser = PDFParser(fp)
-    except TypeError:  # probably have a filepath and not a file-like-obj
-        fp = None
-        parser = PDFParser(f)
+def meta_infos(f: io.IOBase):
+    parser = PDFParser(f)
 
     doc = pdfminer.pdfdocument.PDFDocument(parser)
 
@@ -155,25 +149,11 @@ def _get_meta_infos(f):
         logger.warning(f"could not read pagenumber of {f}, trying the 'slow' method")
         pagenum = sum(1 for p in extract_pages(f))
 
-    res = {
+    res = list_utils.deep_str_convert({
         **(doc.info[0]),
         "pagenum": pagenum
-    }
-    if fp:
-        fp.close()
+    })
     return res
-
-
-get_meta_infos_safe = repair_pdf_if_damaged(_get_meta_infos)
-get_meta_infos_safe_cached = memory.cache(get_meta_infos_safe)
-
-
-def meta_infos(fobj):
-    # TODO: generalize the "safe" calling of functions for pdfs somehow...
-    #       maybe by using a cached "safe" pdf file? or of something goes wrong, simply replacing the fobj
-    #       with a repaired pdf?
-    meta = [list_utils.deep_str_convert(get_meta_infos_safe(fobj))]
-    return meta
 
 
 class PDFFileLoader_old(document.Extractor):
@@ -317,13 +297,26 @@ class PDFFileLoader(document.Extractor):
 
         self._laparams = laparams
 
-    def __call__(self, fobj: Path | IO, page_numbers=None, max_pages=0):
+    def __call__(self, fobj: bytes | str | Path | io.IOBase, page_numbers=None, max_pages=0):
         # docelements, extracted_page_numbers, pages_bbox = repair_pdf_if_damaged(
         #    self.extract_pdf_elements)(fobj, page_numbers, max_pages
         # )
+
+        if isinstance(fobj, Path):
+            with open(fobj, "rb") as f:
+                doc_obj = io.BytesIO(f.read())
+        elif isinstance(fobj, tempfile.SpooledTemporaryFile):
+            doc_obj = fobj._file
+        elif isinstance(fobj, bytes):
+            doc_obj = io.BytesIO(fobj)
+        elif hasattr(fobj, "name"):
+            doc_obj = io.BytesIO(fobj.read())
+        else:
+            doc_obj = fobj
+
         docelements, extracted_page_numbers, pages_bbox = self.extract_pdf_elements(
-            fobj, page_numbers, max_pages)
-        meta = meta_infos(fobj)
+            doc_obj, page_numbers, max_pages)
+        meta = meta_infos(doc_obj)
 
         return dict(
             meta=meta,
@@ -347,11 +340,7 @@ class PDFFileLoader(document.Extractor):
         #       more precise this way...
         extracted_page_numbers = set()
         pages_bbox = {}
-        # TODO: perform this lazily for each page
-        if isinstance(fobj, tempfile.SpooledTemporaryFile):
-            fobj = fobj._file
-        else:
-            fobj = fobj
+
         # iterate through pages
         for page_layout in extract_pages(fobj,
                                          laparams=self._laparams,
