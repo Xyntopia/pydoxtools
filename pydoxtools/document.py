@@ -119,16 +119,27 @@ class Extractor(ABC):
         self._in_mapping: dict[str, str] = {}
         self._out_mapping: dict[str, str] = {}
         self._cache = False
-        self._dynamic_config: dict[str, Any] = {}
+        self._dynamic_config: dict[str, str] = {}
 
     @abc.abstractmethod
     def __call__(self, *args, **kwargs) -> dict[str, typing.Any]:
         pass
 
-    def _mapped_call(self, parent_document: "DocumentBase") -> dict[str, typing.Any]:
+    def _mapped_call(self, parent_document: "DocumentBase", config: dict[str, Any] = None) -> dict[str, typing.Any]:
         # map objects from document properties to
         # processing function
-        kwargs = {k: getattr(parent_document, v) for k, v in self._in_mapping.items()}
+        kwargs = {}
+        for k, v in self._in_mapping.items():
+            # first check if parameter is available as an extractor
+            if v in parent_document.x_funcs:
+                kwargs[k] = parent_document.x(v)
+            else:  # get "native" member-variables if not found an extractor with that name
+                kwargs[k] = getattr(parent_document, v)
+        # get potential configuration parameters to override function call
+        if config:
+            override_parameters = {self._dynamic_config[k]: v for k, v in config.items()}
+            kwargs.update(override_parameters)
+
         output = self(**kwargs)
         if isinstance(output, dict):
             return {self._out_mapping[k]: v for k, v in output.items()}
@@ -144,7 +155,7 @@ class Extractor(ABC):
         This function will be passed through to doc.x.config() in a document
         instance in order to make some extractor arguments dynamic and changeable.
         """
-        self._dynamic_config = kwargs
+        self._dynamic_config = {v: k for k, v in kwargs.items()}
         self._dynamic_config.update({k: k for k in args})
 
         return self
@@ -192,6 +203,9 @@ class MetaDocumentClassConfiguration(type):
     ALso checks Extractors etc...  for consistency
     """
 
+    # TODO: we can probably refactor this function to make it easir to understand
+    #       decouple etc...
+
     # in theory, we could add additional arguments to this function which we could
     # pass in our documentbase class
     def __new__(cls, clsname, bases, attrs):
@@ -206,7 +220,7 @@ class MetaDocumentClassConfiguration(type):
                 logger.info(f"configure {new_class} class...")
                 uncombined_extractors: dict[str, dict[str, Extractor]] = {}
                 extractor_combinations: dict[str, list[str]] = {}
-                _x_config: dict[str, dict[str, Any]] = {}
+                uncombined_x_configs: dict[str, dict[str, list[str]]] = {}
                 ex: Extractor | str
                 for doc_type, ex_list in new_class._extractors.items():
                     doc_type_x_funcs = {}  # save function mappings for single doc_type
@@ -232,14 +246,14 @@ class MetaDocumentClassConfiguration(type):
                                 # parameter. This means when a parameter gets called we know automatically
                                 # how to configure the corresponding Extractor
                                 if ex._dynamic_config:
-                                    doc_type_x_config[doc_key] = ex._dynamic_config
+                                    doc_type_x_config[doc_key] = list(ex._dynamic_config.keys())
 
                     uncombined_extractors[doc_type] = doc_type_x_funcs
-                    _x_config[doc_type] = doc_type_x_config
+                    uncombined_x_configs[doc_type] = doc_type_x_config
 
                 # add all extrators by combining the different document types
                 new_class._x_funcs = {}
-                new_class._x_config = _x_config
+                new_class._x_config = {}
                 doc_type: str
                 for doc_type in uncombined_extractors:
                     # first take our other document type and then add the current document type
@@ -252,6 +266,7 @@ class MetaDocumentClassConfiguration(type):
 
                     # TODO: add classes recursivly
                     new_class._x_funcs[doc_type] = {}
+                    new_class._x_config[doc_type] = {}
 
                     # build class combination in correct order:
                     # the first one is the least important
@@ -261,6 +276,7 @@ class MetaDocumentClassConfiguration(type):
                     for ordered_doc_type in doc_type_order:
                         # add extractors from a potential base document
                         new_class._x_funcs[doc_type].update(uncombined_extractors[ordered_doc_type])
+                        new_class._x_config[doc_type].update(uncombined_x_configs[ordered_doc_type])
 
         else:
             raise ConfigurationError(f"no extractors defined in class {new_class}")
@@ -357,27 +373,29 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         """
         return self._x_funcs.get(self.document_type, {})
 
+    def x_config_params(self, extract_name: str):
+        # TODO: can we cache this somehow? Or re-calculate it when calling "config"?
+        config = self._x_config[self.document_type].get(extract_name, {})
+        config_params = {k: self._config[k] for k in config}
+        return config_params
+
     # @functools.lru_cache
     def x(self, extract_name: str):
         """call an extractor from our definition"""
         extractor_func: Extractor = self.x_funcs[extract_name]
-
-        # lru_cache currently has a memory leak so we 're not going to use it here
-        # also as the function arguments to extractors won't change that much
-        # we can use it in a similar way as "cached property"
-        # TODO: what about "dynamic" extractors: for example a question/answering machine.
-        #       we would also have to cache those variables...
 
         # we need to check for "is not None" as we also pandas dataframes in this
         # which cannot be checked for simple "is there"
         # check if we executed this function at some point...
         try:
             if not extractor_func._cache:
-                res = extractor_func._mapped_call(self)
+                config_params = self.x_config_params(extract_name)
+                res = extractor_func._mapped_call(self, config_params)
             elif (res := self._x_func_cache.get(extractor_func, None)) is not None:
                 self._cache_hits += 1
             else:
-                res = extractor_func._mapped_call(self)
+                config_params = self.x_config_params(extract_name)
+                res = extractor_func._mapped_call(self, config_params)
                 self._x_func_cache[extractor_func] = res
         except:
             logger.exception(f"problem with extractor {extract_name}")
@@ -385,12 +403,13 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
 
         return res[extract_name]
 
-    def __getattr__(self, extract_name):
+        # def __getattr__(self, extract_name):
         """
         __getattr__ only gets called for non-existing variable names.
         So we can automatically avoid name collisions  here.
         """
-        return self.x(extract_name)
+
+    #    return self.x(extract_name)
 
     def run_all_extractors(self):
         """can be used for testing purposes"""
