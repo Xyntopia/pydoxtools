@@ -381,25 +381,6 @@ class PDFFileLoader(document.Extractor):
         return docelementsframe, extracted_page_numbers, pages_bbox
 
     @cached_property
-    def mime_type(self) -> str:
-        return "application/pdf"
-
-    @cached_property
-    def df_le(self) -> pd.DataFrame:
-        """line elements of page"""
-        lines, _, _, _ = self.extract_pdf_elements()
-        # TODO: make this more generic mayb by declaring a line object and using those properties?
-        return pd.DataFrame(lines, columns=[
-            "lineobj", "rawtext", "font_infos", "p_id",
-            "linenum", "boxnum", "x0", "y0", "x1", "y1"])
-
-    @cached_property
-    def df_ge(self) -> pd.DataFrame:
-        """line elements of page"""
-        _, graphic_elements, _, _ = self.extract_pdf_elements()
-        return pd.DataFrame(graphic_elements)
-
-    @cached_property
     def pages(self) -> typing.List["PDFPageOld"]:
         # TODO: get number of pages from "meta_infos"
         # TODO: make sure resulting class is compatible with pdf pages...
