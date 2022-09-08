@@ -12,7 +12,6 @@ from typing import List, Any
 import numpy as np
 import spacy.tokens
 
-from pydoxtools import models
 from pydoxtools.settings import settings
 
 logger = logging.getLogger(__name__)
@@ -85,8 +84,32 @@ class ExtractorException(Exception):
 
 
 class Extractor(ABC):
-    """Base class to build extraction logic for information extraction from
-    unstructured documents and loading files"""
+    """
+    Base class to build extraction logic for information extraction from
+    unstructured documents and loading files
+
+    Extractors should always be stateless! This means one should not save
+    any variables in them that persist over the lifecycle over a single extraction
+    operation.
+
+    - Extractors can be "hooked" into the document pipeline by using:
+        pipe, out and cache calls.
+    - all parameters given in "out" can be accessed through the "x" property
+      (e.g. doc.x("extraction_parameter"))
+
+    dynamic configuration of an extractor parameters can be configured through
+    "config" function which will indicate to the parent document class
+    to set some input parameters to this function manually.
+    If the same parameters are also set in doc.pipe the parameters are
+    optional and will only be taken if explicitly set through doc.config(...).
+
+        doc.dynamic()
+
+    This function can be accessed through:
+
+        doc.config(my_dynamic_parameter="some_new_value")
+
+    """
 
     # TODO:  how can we anhance the type checking for outputs?
     #        maybe turn this into a dataclass?
@@ -96,6 +119,7 @@ class Extractor(ABC):
         self._in_mapping: dict[str, str] = {}
         self._out_mapping: dict[str, str] = {}
         self._cache = False
+        self._dynamic_config: dict[str, Any] = {}
 
     @abc.abstractmethod
     def __call__(self, *args, **kwargs) -> dict[str, typing.Any]:
@@ -112,6 +136,18 @@ class Extractor(ABC):
             # use first key of out_mapping for output if
             # we only have a single return value
             return {next(iter(self._out_mapping)): output}
+
+    def config(self, *args, **kwargs):
+        """
+        dynamically configure the extractor.
+
+        This function will be passed through to doc.x.config() in a document
+        instance in order to make some extractor arguments dynamic and changeable.
+        """
+        self._dynamic_config = kwargs
+        self._dynamic_config.update({k: k for k in args})
+
+        return self
 
     def pipe(self, *args, **kwargs):
         """
@@ -136,6 +172,7 @@ class Extractor(ABC):
         return self
 
     def cache(self):
+        """indicate to document that we want this extractor to be cached"""
         self._cache = True
         return self
 
@@ -169,32 +206,42 @@ class MetaDocumentClassConfiguration(type):
                 logger.info(f"configure {new_class} class...")
                 uncombined_extractors: dict[str, dict[str, Extractor]] = {}
                 extractor_combinations: dict[str, list[str]] = {}
+                _x_config: dict[str, dict[str, Any]] = {}
                 ex: Extractor | str
-                for k, ex_list in new_class._extractors.items():
-                    doc_type_x_funcs = {}
-                    extractor_combinations[k] = []
+                for doc_type, ex_list in new_class._extractors.items():
+                    doc_type_x_funcs = {}  # save function mappings for single doc_type
+                    extractor_combinations[doc_type] = []  # save combination list for single doctype
+                    doc_type_x_config = {}  # save configuration mappings for single doc_type
                     for ex in ex_list:
                         # strings indicate that we would like to
                         # add all the functions from that document type as well but with
                         # lower priority
                         if isinstance(ex, str):
-                            extractor_combinations[k].append(ex)
+                            extractor_combinations[doc_type].append(ex)
                         else:
                             # go through all outputs of an extractor and
                             # map them o extraction variables inside document
                             # TODO: we could explicitly add the variables as property functions
                             #       which refer to the "x"-function in document?
-                            for ex_key, ex_key_target in ex._out_mapping.items():
+                            for ex_key, doc_key in ex._out_mapping.items():
                                 # input<->output mapping is already done i the extractor itself
                                 # check out Extractor.pipe and Extractor.map member functions
-                                doc_type_x_funcs[ex_key_target] = ex
+                                doc_type_x_funcs[doc_key] = ex
 
-                    uncombined_extractors[k] = doc_type_x_funcs
+                                # build a map of configuration values for each
+                                # parameter. This means when a parameter gets called we know automatically
+                                # how to configure the corresponding Extractor
+                                if ex._dynamic_config:
+                                    doc_type_x_config[doc_key] = ex._dynamic_config
+
+                    uncombined_extractors[doc_type] = doc_type_x_funcs
+                    _x_config[doc_type] = doc_type_x_config
 
                 # add all extrators by combining the different document types
                 new_class._x_funcs = {}
-                k: str
-                for k in uncombined_extractors:
+                new_class._x_config = _x_config
+                doc_type: str
+                for doc_type in uncombined_extractors:
                     # first take our other document type and then add the current document type
                     # itself on top of it because of its higher priority overwriting
                     # extractors of the lower priority extractors
@@ -204,16 +251,16 @@ class MetaDocumentClassConfiguration(type):
                     #       of the tree.
 
                     # TODO: add classes recursivly
-                    new_class._x_funcs[k] = {}
+                    new_class._x_funcs[doc_type] = {}
 
                     # build class combination in correct order:
                     # the first one is the least important
                     doc_type_order = ["*"] + list(
-                        reversed(extractor_combinations[k])) + [k]
+                        reversed(extractor_combinations[doc_type])) + [doc_type]
 
-                    for doc_type in doc_type_order:
+                    for ordered_doc_type in doc_type_order:
                         # add extractors from a potential base document
-                        new_class._x_funcs[k].update(uncombined_extractors[doc_type])
+                        new_class._x_funcs[doc_type].update(uncombined_extractors[ordered_doc_type])
 
         else:
             raise ConfigurationError(f"no extractors defined in class {new_class}")
@@ -245,14 +292,17 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
     _extractors: dict[str, list[Extractor]] = {}
     # sorts for all extractor variables..
     _x_funcs: dict[str, dict[str, Extractor]] = {}
+    # doctype-dict of x-out var dict of function configuration parameter dicts:
+    _x_config: dict[str, dict[str, dict[str, Any]]] = {}
 
     def __init__(
             self,
             fobj: str | bytes | Path | io.IOBase,
-            source: str | Path = None,
-            document_type: str = None,  # TODO: add "auto" for automatic recognition of the type using python-magic
-            page_numbers: list[int] = None,
-            max_pages: int = None
+            source: str | Path,
+            document_type: str,  # TODO: add "auto" for automatic recognition of the type using python-magic
+            page_numbers: list[int],
+            max_pages: int,
+            config: dict[str, Any]
     ):
         """
         ner model:
@@ -275,6 +325,7 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         self._max_pages = max_pages
         self._cache_hits = 0
         self._x_func_cache: dict[Extractor, dict[str, Any]] = {}
+        self._config = config
 
     @cached_property
     def document_type(self):
@@ -378,15 +429,6 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
     #       check if a document already exists...
 
     @property
-    def extract(self) -> models.DocumentExtract:
-        # TODO: return a datastructure which
-        #       includes all the different extraction objects
-        #       this datastructure should be serializable into
-        #       json/yaml/xml etc...
-        data = models.DocumentExtract.from_orm(self)
-        return data
-
-    @property
     def source(self) -> str:
         return self._source
 
@@ -403,17 +445,28 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         else:
             return None
 
+    """
+    @property
+    def extract(self) -> models.DocumentExtract:
+        # TODO: return a datastructure which
+        #       includes all the different extraction objects
+        #       this datastructure should be serializable into
+        #       json/yaml/xml etc...
+        data = models.DocumentExtract.from_orm(self)
+        return data
+
     @property
     def final_url(self) -> list[str]:
-        """sometimes, a document points to a url itself (for example a product webpage) and provides
+        ""sometimes, a document points to a url itself (for example a product webpage) and provides
         a link where this document can be found. And this url does not necessarily have to be the same as the source
-        of the document."""
+        of the document.""
         return []
 
     @property
     def parent(self) -> list[str]:
-        """sources that embed this document in some way (for example as a link)
+        ""sources that embed this document in some way (for example as a link)
         (for example a product page which embeds
         a link to this document (e.g. a datasheet)
-        """
+        ""
         return []
+    """
