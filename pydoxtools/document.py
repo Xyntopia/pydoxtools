@@ -403,13 +403,18 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
 
         return res[extract_name]
 
-        # def __getattr__(self, extract_name):
+    def __getattr__(self, extract_name):
         """
         __getattr__ only gets called for non-existing variable names.
         So we can automatically avoid name collisions  here.
         """
+        return self.x(extract_name)
 
-    #    return self.x(extract_name)
+    def x_all(self):
+        return {property: self.x(property) for property in self.x_funcs}
+
+    def x_all_cached(self):
+        return {self.x(property) for property in self.x_funcs}
 
     def run_all_extractors(self):
         """can be used for testing purposes"""
@@ -465,15 +470,6 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
             return None
 
     """
-    @property
-    def extract(self) -> models.DocumentExtract:
-        # TODO: return a datastructure which
-        #       includes all the different extraction objects
-        #       this datastructure should be serializable into
-        #       json/yaml/xml etc...
-        data = models.DocumentExtract.from_orm(self)
-        return data
-
     @property
     def final_url(self) -> list[str]:
         ""sometimes, a document points to a url itself (for example a product webpage) and provides
