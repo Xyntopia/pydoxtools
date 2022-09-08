@@ -62,8 +62,8 @@ class DocumentElementFilter(document.Extractor):
         self.element_type = element_type
 
     def __call__(self, elements: pd.DataFrame):
-        df = elements.loc[elements["type"] == self.element_type]
-        return dict(line_elements=df)
+        df = elements.loc[elements["type"] == self.element_type].copy()
+        return df
 
 
 class TextBoxElementExtractor(document.Extractor):

@@ -1,5 +1,6 @@
 import functools
 import hashlib
+import logging
 import typing
 from functools import cached_property
 from typing import Any
@@ -12,8 +13,10 @@ from sklearn.neighbors import KernelDensity
 
 from pydoxtools import cluster_utils as gu
 from pydoxtools.cluster_utils import pairwise_txtbox_dist, box_cols, y1, x0, x1
-from pydoxtools.document import Extractor, DocumentBase
+from pydoxtools.document import Extractor
 from pydoxtools.extract_textstructure import _line2txt
+
+logger = logging.getLogger(__name__)
 
 
 class TableExtractionParameters(pydantic.BaseModel):
@@ -92,7 +95,7 @@ class TableExtractor(Extractor):
         return []
 
     @property
-    def tables_df(self) -> List["pd.DataFrame"]:
+    def tables_df(self) -> list["pd.DataFrame"]:
         return []
 
 
@@ -204,7 +207,8 @@ def _close_open_cells(open_cells, h_lines, df_le, elem_scan_tol,
 
 
 class TableExtractor(Extractor):
-    def __init__(self, parent_page: PDFPageOld, initial_area: np.ndarray):
+    def __init__(self, parent_page, initial_area: np.ndarray):
+        super().__init__()
         self.parent_page: PDFPageOld = parent_page
         self.initial_area: np.ndarray = initial_area
 
@@ -770,209 +774,233 @@ class TableExtractionError(Exception):
     pass
 
 
-class Page:
-    def __init__(self, pagenum: int, doc: DocumentBase):
-        self.pagenum = pagenum
-        self.parent_document = doc
+def filter_out_small_graphics_elements(
+        ge: pd.DataFrame,
+        max_area_page_ratio, page_area, margin,
+        page_bbox, min_elem_x, min_elem_y
+) -> pd.DataFrame:
+    """get filtered graph elements by throwing out a lot of unnecessary graphics
+    elements which are probably not part of a table
 
-    @property
-    def tbe(self):
-        return self.parent_document.tbe
+    # TODO: parameterize this functions for hyperparameter tuning...
 
-    def pre_cache(self):
-        """in some situations, for example for caching purposes it would be nice
-        to pre-cache all calculations this is done here by simply calling all functions..."""
-        res = (
-            self.tables, self.side_content,
-            self.textboxes, self.full_text, self.main_content,
-            self.titles, self.side_titles
-        )
-        return self
+    we want to filter out a lot of graphics element which are not relevant. Those include:
+    - very small elements
+    - elements far away from text
+    - elements which are are not a box or a vertical/horizontal line
+    # TODO: check out of we can filter out even more than this ;)
 
-    @cached_property
-    def page_bbox(self):
-        # pikepdf:  p.mediabox
-        return self.parent_document.pages_bbox[self.pagenum]
+    check out if we a lot of elements with "similar" x- or y coordinates in
+    order to filter out "non-ordered" elements which
+    we assume to be non-table graphical elments
 
-    @cached_property
-    def area(self) -> float:
-        return self.page_bbox[2] * self.page_bbox[3]
+    TODO: some of the following operations might be more efficient in the table-graph-search
+    """
 
-    @cached_property
-    def df_ge_f(self) -> pd.DataFrame:
-        """get filtered graph elements by throwing out a lot of unnecessary graphics
-        elements which are probably not part of a table
+    # TODO: filter specifically for each coordinate
+    # TODO: filter for "unique-coordinate-density"
+    #       as tables are ordered, we can assume that if we
+    #       seach for "unique" coordinates, the density of
+    #       tables should be even lower than that for figures.
+    #       because of this we can theoretically improve the
+    #       accuracy of this filter.
 
-        # TODO: parameterize this functions for hyperparameter tuning...
+    # check if the following calculations are duplicated anywhere...
+    ge['w'] = ge.x1 - ge.x0
+    ge['h'] = ge.y1 - ge.y0
+    ge['area'] = ge.w * ge.h
+    ge['area_ratio'] = (ge.area / page_area)
+    # df_ge['w+h'].hist(bins=100)
+    # filter out all elements that occupy more than max_area_page_ratio of page space
+    ge_v = ge[ge.area_ratio < max_area_page_ratio]
+    # filter out all elements that are thinner than min_elem_x- and y
+    # under certain conditions
+    ge_v = ge_v.query('((w>h) and (w>@min_elem_x)) or ((h>w) and (h>@min_elem_y))').copy()
+    # elements that are "outside the page area/margin should be discarded
+    # "standard" margin
+    ge_v = ge_v[((ge_v[box_cols[2:]] + margin) < (page_bbox[2:])).all(1)
+                & ((ge_v[box_cols[:2]] - margin) > (page_bbox[:2])).all(1)]
+    # use the smallest rectangle which encloses textboxes plus a small margin
+    # min_x = self.box_groups.x0.min()
+    # max_x = self.box_groups.x1.max()
+    # min_y = self.box_groups.y0.min()
+    # max_y = self.box_groups.y1.max()
+    # ge_v = ge_v[((ge_v.x0 + margin) > min_x) & ((ge_v.x1 - margin) < max_x)
+    #             & ((ge_v.y0 + margin) > min_y) & ((ge_v.y1 - margin) < max_y)]
 
-        we want to filter out a lot of graphics element which are not relevant. Those include:
-        - very small elements
-        - elements far away from text
-        - elements which are are not a box or a vertical/horizontal line
+    # elements
 
-        check out of we a lot of elements with "similar" x- or y coordinates in
-        order to filter out "non-ordered" elements which
-        we assume to be non-table graphical elments
+    return ge_v
 
-        TODO: some of the following operations might be more efficient in the table-graph-search
-        """
 
-        if self.df_ge.empty:
-            return pd.DataFrame()
+class TableCandidateAreasExtractor(Extractor):
+    def __init__(self, table_extraction_params: TableExtractionParameters = None):
+        super().__init__()
+        self._tbe = table_extraction_params or TableExtractionParameters.reduced_params()
 
-        # TODO: filter specifically for each coordinate
-        # TODO: filter for "unique-coordinate-density"
-        #       as tables are ordered, we can assume that if we
-        #       seach for "unique" coordinates, the density of
-        #       tables should be even lower than that for figures.
-        #       because of this we can theoretically improve the
-        #       accuracy of this filter.
-
-        # TODO: use these as hyperparameters
-        min_size = 5.0  # minimum size of a graphics element
-        margin = 20  # margin of the page
-        max_area_page_ratio = 0.4  # maximum area on a page to occupy by a graphics element
-
+    def __call__(
+            self,
+            graphic_elements: pd.DataFrame,
+            line_elements: pd.DataFrame,
+            pages_bbox,
+            text_box_elements
+    ) -> dict[str, dict[int, pd.DataFrame]]:
         # get minimum length for lines by searching for
         # the minimum height/width of a text box
         # we do this, because we assume that graphical elements should be at least this
         # big in order to be part of a table
-        min_elem_x = max(self.txt_box_df.w.min(), min_size)
-        min_elem_y = max(self.txt_box_df.h.min(), min_size)
+        # TODO: make all of these parameters configurable
+        #       so that we can train them as hyperparameters
+        min_size = 5.0  # minimum size of a graphics element
+        margin = 20  # margin of the page
+        max_area_page_ratio = 0.4  # maximum area on a page to occupy by a graphics element
+        pages = graphic_elements.p_num.unique()
+        ge = graphic_elements
 
-        # check if the following calculations are duplicated anywhere...
-        ge = self.df_ge
-        ge['w'] = ge.x1 - ge.x0
-        ge['h'] = ge.y1 - ge.y0
-        ge['area'] = ge.w * ge.h
-        ge['area_ratio'] = (ge.area / self.area)
-        # df_ge['w+h'].hist(bins=100)
-        # filter out all elements that occupy more than max_area_page_ratio of page space
-        ge_v = ge[ge.area_ratio < max_area_page_ratio]
-        # filter out all elements that are thinner than min_elem_x- and y
-        # under certain conditions
-        ge_v = ge_v.query('((w>h) and (w>@min_elem_x)) or ((h>w) and (h>@min_elem_y))').copy()
-        # elements that are "outside the page area/margin should be discarded
-        # "standard" margin
-        ge_v = ge_v[((ge_v[box_cols[2:]] + margin) < (self.page_bbox[2:])).all(1)
-                    & ((ge_v[box_cols[:2]] - margin) > (self.page_bbox[:2])).all(1)]
-        # use the smallest rectangle which encloses textboxes plus a small margin
-        # min_x = self.box_groups.x0.min()
-        # max_x = self.box_groups.x1.max()
-        # min_y = self.box_groups.y0.min()
-        # max_y = self.box_groups.y1.max()
-        # ge_v = ge_v[((ge_v.x0 + margin) > min_x) & ((ge_v.x1 - margin) < max_x)
-        #             & ((ge_v.y0 + margin) > min_y) & ((ge_v.y1 - margin) < max_y)]
+        fge = {}
+        for p in pages:
+            tbe = text_box_elements.loc[p]
+            min_elem_x = max(tbe.w.min(), min_size)
+            min_elem_y = max(tbe.h.min(), min_size)
+            page_bbox = b = pages_bbox[p]
+            page_area = (b[2] - b[0]) * (b[3] - b[0])
+            fge[p] = filter_out_small_graphics_elements(
+                ge=ge[ge["p_num"] == p].copy(), max_area_page_ratio=max_area_page_ratio,
+                page_area=page_area, margin=margin,
+                min_elem_x=min_elem_x, min_elem_y=min_elem_y,
+                page_bbox=page_bbox
+            )
 
-        # elements
+        return dict(table_areas=fge)
 
-        return ge_v
 
-    @cached_property
-    def df_le(self) -> pd.DataFrame:
-        """line elements of page"""
-        if not self.parent_document.df_le.empty:
-            return self.parent_document.df_le.loc[self.parent_document.df_le.p_id == self.pagenum].copy()
-        else:
-            return pd.DataFrame()  # empty dataframe
+# self.detect_table_area_candidates()
 
-    @cached_property
-    def df_ge(self) -> pd.DataFrame:
-        """graphic elements of page"""
-        if not self.parent_document.df_ge.empty:
-            return self.parent_document.df_ge[
-                self.parent_document.df_ge.p_id == self.pagenum].copy()
-        else:
-            return pd.DataFrame()  # empty dataframe
+@property
+def page_bbox(self):
+    # pikepdf:  p.mediabox
+    return self.parent_document.pages_bbox[self.pagenum]
 
-    @property
-    def tables(self) -> typing.List["PDFTable"]:
-        if self.df_le.empty:
-            return []
-        return [t for t in self.table_candidates if t.is_valid]
 
-    @property
-    def table_areas(self) -> pd.DataFrame:
-        return pd.DataFrame([t.bbox for t in self.tables])
+@property
+def area(self) -> float:
+    return self.page_bbox[2] * self.page_bbox[3]
 
-    @property
-    def distance_threshold(self) -> float:
-        # we keep this number constant as the same effect can be gained
-        # through tbe.area_detection_params but a lot more fine grained as
-        # it directly controls the sensitivity of the distance function
-        return 10.0  # merge everything with a distance of less than 10..
 
-    def detect_table_area_candidates(self):
-        """
-        Detect tables from elements sucha s textboxes & graphical elements.
-        the function expects a range of parameters which need to be tuned.
+@cached_property
+def df_le(self) -> pd.DataFrame:
+    """line elements of page"""
+    if not self.parent_document.df_le.empty:
+        return self.parent_document.df_le.loc[self.parent_document.df_le.p_id == self.pagenum].copy()
+    else:
+        return pd.DataFrame()  # empty dataframe
 
-        TODO: sort out non-table area regions after every iteration and speed up subsequent
-              table search iterations this way.. But optimize this on a recall-basis
-              in order to make sure we don't sort out any valid tables...
-        """
-        boxes = pd.concat([
-            self.df_le[box_cols] if ("t" in self.tbe.extraction_method and (not self.df_le.empty)) else pd.DataFrame(),
-            self.df_ge_f[box_cols] if (
-                    "g" in self.tbe.extraction_method and (not self.df_ge_f.empty)) else pd.DataFrame(),
-        ])
-        if len(boxes) == 0:
-            return pd.DataFrame(), []
 
-        box_levels = []
+@property
+def df_ge(self) -> pd.DataFrame:
+    """graphic elements of page"""
+    if not self.parent_document.df_ge.empty:
+        return self.parent_document.df_ge[
+            self.parent_document.df_ge.p_id == self.pagenum].copy()
+    else:
+        return pd.DataFrame()  # empty dataframe
 
-        # TODO: if (graphic) boxes are empty, revert to text-based...
-        # TODO: do this in several (configurable) iterations
-        if not self.tbe.area_detection_distance_func_params:
-            raise ValueError("no area_detection_distance_func_params defined!")
-        if len(boxes) > 1:  # merge boxes to table areas..
-            for level, param_level in enumerate(self.tbe.area_detection_distance_func_params):
-                x = gu.calc_pairwise_matrix(
-                    gu.pairwise_weighted_distance_combination, boxes.values, diag=0,
-                    parameter_list=param_level
-                )
 
-                boxes["groups"], dist_m = gu.distance_cluster(
-                    distance_matrix=x, distance_threshold=self.distance_threshold
-                )
-                # create new column with the type of group (hb,hm,ht,vb,vm,vt) and their labels
-                boxes = gu.merge_bbox_groups(boxes, "groups")
-                box_levels.append(boxes)
-                if len(boxes) < 2:
-                    break
+@property
+def tables(self) -> typing.List["PDFTable"]:
+    if self.df_le.empty:
+        return []
+    return [t for t in self.table_candidates if t.is_valid]
 
-        # TODO: check variance to sort out "bad" columns as an additional parameter?
-        #       but maybe it would also be a good idea to simply do that during the distance calculation
-        # line_groups.groupby('vh_left_top_group').x0.apply(lambda x: x.var())
 
-        # filter our empty groups
-        # TODO: right now, we don't really know what would be a good filter...
-        #       maybe do this by using an optimization approach
-        table_groups = _filter_boxes(
-            boxes,
-            min_area=self.tbe.min_table_area,
-            min_aspect_ratio=self.tbe.min_aspect_ratio,
-            max_aspect_ratio=self.tbe.max_aspect_ratio
-        )
+@property
+def table_areas(self) -> pd.DataFrame:
+    return pd.DataFrame([t.bbox for t in self.tables])
 
-        # sort table candidates according to y-coordinates top-to-bottom
-        table_groups = table_groups.sort_values(
-            by=["y1", "x0", "y0", "x1"], ascending=[False, True, False, True])
 
-        return table_groups, box_levels
+@property
+def distance_threshold(self) -> float:
+    # we keep this number constant as the same effect can be gained
+    # through tbe.area_detection_params but a lot more fine-grained as
+    # it directly controls the sensitivity of the distance function
+    # TODO: use this as a parameter in table_extraction_parameters?
+    return 10.0  # merge everything with a distance of less than 10..
 
-    @property
-    def table_candidates(self) -> typing.List["PDFTable"]:
-        tables = [PDFTable(parent_page=self, initial_area=row[box_cols]) for _, row in
-                  self.detect_table_area_candidates()[0].iterrows()]
-        # we only have a valid table if there is actualy text to be processed...
-        # TODO:  also handly tables with figures only at some point in the future?
-        # TODO: should we sort out "bad" areas here already? may speed up table extraction...
-        return [t for t in tables if not t.df_le.empty]
 
-    @property
-    def table_candidate_boxes_df(self) -> pd.DataFrame:
-        return pd.DataFrame([t.bbox for t in self.table_candidates])
+def detect_table_area_candidates(self):
+    """
+    Detect tables from elements sucha s textboxes & graphical elements.
+    the function expects a range of parameters which need to be tuned.
+
+    TODO: sort out non-table area regions after every iteration and speed up subsequent
+          table search iterations this way.. But optimize this on a recall-basis
+          in order to make sure we don't sort out any valid tables...
+    """
+    boxes = pd.concat([
+        self.df_le[box_cols] if (
+                "t" in self.tbe.extraction_method and (not self.df_le.empty)) else pd.DataFrame(),
+        self.df_ge_f[box_cols] if (
+                "g" in self.tbe.extraction_method and (not self.df_ge_f.empty)) else pd.DataFrame(),
+    ])
+    if len(boxes) == 0:
+        return pd.DataFrame(), []
+
+    box_levels = []
+
+    # TODO: if (graphic) boxes are empty, revert to text-based...
+    # TODO: do this in several (configurable) iterations
+    if not self.tbe.area_detection_distance_func_params:
+        raise ValueError("no area_detection_distance_func_params defined!")
+    if len(boxes) > 1:  # merge boxes to table areas..
+        for level, param_level in enumerate(self.tbe.area_detection_distance_func_params):
+            x = gu.calc_pairwise_matrix(
+                gu.pairwise_weighted_distance_combination, boxes.values, diag=0,
+                parameter_list=param_level
+            )
+
+            boxes["groups"], dist_m = gu.distance_cluster(
+                distance_matrix=x, distance_threshold=self.distance_threshold
+            )
+            # create new column with the type of group (hb,hm,ht,vb,vm,vt) and their labels
+            boxes = gu.merge_bbox_groups(boxes, "groups")
+            box_levels.append(boxes)
+            if len(boxes) < 2:
+                break
+
+    # TODO: check variance to sort out "bad" columns as an additional parameter?
+    #       but maybe it would also be a good idea to simply do that during the distance calculation
+    # line_groups.groupby('vh_left_top_group').x0.apply(lambda x: x.var())
+
+    # filter our empty groups
+    # TODO: right now, we don't really know what would be a good filter...
+    #       maybe do this by using an optimization approach
+    table_groups = _filter_boxes(
+        boxes,
+        min_area=self.tbe.min_table_area,
+        min_aspect_ratio=self.tbe.min_aspect_ratio,
+        max_aspect_ratio=self.tbe.max_aspect_ratio
+    )
+
+    # sort table candidates according to y-coordinates top-to-bottom
+    table_groups = table_groups.sort_values(
+        by=["y1", "x0", "y0", "x1"], ascending=[False, True, False, True])
+
+    return table_groups, box_levels
+
+
+@property
+def table_candidates(self) -> typing.List["PDFTable"]:
+    tables = [PDFTable(parent_page=self, initial_area=row[box_cols]) for _, row in
+              self.detect_table_area_candidates()[0].iterrows()]
+    # we only have a valid table if there is actualy text to be processed...
+    # TODO:  also handly tables with figures only at some point in the future?
+    # TODO: should we sort out "bad" areas here already? may speed up table extraction...
+    return [t for t in tables if not t.df_le.empty]
+
+
+@property
+def table_candidate_boxes_df(self) -> pd.DataFrame:
+    return pd.DataFrame([t.bbox for t in self.table_candidates])
 
 
 def _filter_boxes(

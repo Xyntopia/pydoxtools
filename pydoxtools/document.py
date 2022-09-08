@@ -122,7 +122,7 @@ class Extractor(ABC):
         self._dynamic_config: dict[str, str] = {}
 
     @abc.abstractmethod
-    def __call__(self, *args, **kwargs) -> dict[str, typing.Any]:
+    def __call__(self, *args, **kwargs) -> dict[str, typing.Any] | Any:
         pass
 
     def _mapped_call(self, parent_document: "DocumentBase", config: dict[str, Any] = None) -> dict[str, typing.Any]:
@@ -178,6 +178,8 @@ class Extractor(ABC):
 
         keys: are the
         """
+        # TODO: rename to "name" because this actually represents the
+        #       variable names of the extractor?
         self._out_mapping = kwargs
         self._out_mapping.update({k: k for k in args})
         return self
@@ -341,7 +343,7 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         self._max_pages = max_pages
         self._cache_hits = 0
         self._x_func_cache: dict[Extractor, dict[str, Any]] = {}
-        self._config = config
+        self._config = config or {}
 
     @cached_property
     def document_type(self):
@@ -376,12 +378,18 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
     def x_config_params(self, extract_name: str):
         # TODO: can we cache this somehow? Or re-calculate it when calling "config"?
         config = self._x_config[self.document_type].get(extract_name, {})
-        config_params = {k: self._config[k] for k in config}
+        config_params = {}
+        for config_key in config:
+            if v := self._config.get(config_key):
+                config_params[config_key] = v
         return config_params
 
     # @functools.lru_cache
     def x(self, extract_name: str):
-        """call an extractor from our definition"""
+        """
+        call an extractor from our definition
+        TODO: using *args and **kwargs the extractors parameters can be overriden
+        """
         extractor_func: Extractor = self.x_funcs[extract_name]
 
         # we need to check for "is not None" as we also pandas dataframes in this
@@ -398,7 +406,7 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
                 res = extractor_func._mapped_call(self, config_params)
                 self._x_func_cache[extractor_func] = res
         except:
-            logger.exception(f"problem with extractor {extract_name}")
+            #logger.exception(f"problem with extractor {extract_name}")
             raise ExtractorException(f"could not extract {extract_name} from {self} using {extractor_func}!")
 
         return res[extract_name]
