@@ -13,7 +13,6 @@ Created on Mon Dec 16 12:07:52 2019
 import functools
 import io
 import logging
-import operator
 import typing
 from pathlib import Path
 
@@ -26,11 +25,10 @@ import pdfminer.psparser
 import pikepdf
 from pdfminer.high_level import extract_pages
 from pdfminer.layout import LAParams
-from pdfminer.layout import LTChar, LTTextLineVertical, LTCurve, LTFigure, LTTextLine
+from pdfminer.layout import LTChar, LTCurve, LTFigure, LTTextLine
 from pdfminer.layout import LTTextContainer
 from pdfminer.pdfinterp import resolve1
 from pdfminer.pdfparser import PDFParser
-from sklearn.ensemble import IsolationForest
 
 from pydoxtools import document, list_utils
 

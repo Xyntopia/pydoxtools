@@ -1,4 +1,5 @@
 import abc
+import functools
 import io
 import logging
 import typing
@@ -125,22 +126,28 @@ class Extractor(ABC):
     def __call__(self, *args, **kwargs) -> dict[str, typing.Any] | Any:
         pass
 
-    def _mapped_call(self, parent_document: "DocumentBase", config: dict[str, Any] = None) -> dict[str, typing.Any]:
+    def _mapped_call(
+            self, parent_document: "DocumentBase",
+            config_params: dict[str, Any] = None,
+            *args, **kwargs
+    ) -> dict[
+        str, typing.Any]:
         # map objects from document properties to
         # processing function
-        kwargs = {}
+        mapped_kwargs = {}
         for k, v in self._in_mapping.items():
             # first check if parameter is available as an extractor
             if v in parent_document.x_funcs:
-                kwargs[k] = parent_document.x(v)
+                mapped_kwargs[k] = parent_document.x(v)
             else:  # get "native" member-variables if not found an extractor with that name
-                kwargs[k] = getattr(parent_document, v)
-        # get potential configuration parameters to override function call
-        if config:
-            override_parameters = {self._dynamic_config[k]: v for k, v in config.items()}
-            kwargs.update(override_parameters)
+                mapped_kwargs[k] = getattr(parent_document, v)
+        # get potential overriding parameters to override function call
+        if config_params:
+            override_parameters = {self._dynamic_config[k]: v for k, v in config_params.items()}
+            mapped_kwargs.update(override_parameters)
 
-        output = self(**kwargs)
+        mapped_kwargs.update(kwargs)
+        output = self(*args, **mapped_kwargs)
         if isinstance(output, dict):
             return {self._out_mapping[k]: v for k, v in output.items() if k in self._out_mapping}
         else:
@@ -150,7 +157,7 @@ class Extractor(ABC):
 
     def config(self, *args, **kwargs):
         """
-        dynamically configure the extractor.
+        Send configuration dictionary to the extractor on every call.
 
         This function will be passed through to doc.x.config() in a document
         instance in order to make some extractor arguments dynamic and changeable.
@@ -385,7 +392,7 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         return config_params
 
     # @functools.lru_cache
-    def x(self, extract_name: str):
+    def x(self, extract_name: str, *args, **kwargs):
         """
         call an extractor from our definition
         TODO: using *args and **kwargs the extractors parameters can be overriden
@@ -399,15 +406,19 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         # TODO: try/except is commented out at the moment until we find a better solution
         #       as it gives recursive error messages
         #       which can be quiet long and hard to understand...
-        if not extractor_func._cache:
-            config_params = self.x_config_params(extract_name)
-            res = extractor_func._mapped_call(self, config_params)
-        elif (res := self._x_func_cache.get(extractor_func, None)) is not None:
-            self._cache_hits += 1
+        if extractor_func._cache:
+            key = functools._make_key((extractor_func,) + args, kwargs, typed=False)
+            if (res := self._x_func_cache.get(key, None)) is not None:
+                self._cache_hits += 1
+            else:
+                params = self.x_config_params(extract_name)
+                res = extractor_func._mapped_call(self, config_params=params, *args, **kwargs)
+
+                self._x_func_cache[key] = res
         else:
-            config_params = self.x_config_params(extract_name)
-            res = extractor_func._mapped_call(self, config_params)
-            self._x_func_cache[extractor_func] = res
+            params = self.x_config_params(extract_name)
+            res = extractor_func._mapped_call(self, config_params=params, *args, **kwargs)
+
         # except:
         # logger.exception(f"problem with extractor {extract_name}")
         #    raise ExtractorException(f"could not extract {extract_name} from {self} using {extractor_func}!")

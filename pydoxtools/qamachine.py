@@ -2,34 +2,31 @@
 # -*- coding: utf-8 -*-
 import functools
 import logging
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Any
 
 import torch
+from pydantic import BaseModel
 from transformers import AutoTokenizer, AutoModelForQuestionAnswering
+
+from pydoxtools.document import Extractor
 from pydoxtools.nlp_utils import tokenize_windows
 
 logger = logging.getLogger(__name__)
 
 
-class NLPContext:
-    def __init__(self, model_type='fast'):
-        self.model_type = model_type
-        logger.info("loading Q & A models...")
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        logger.info(f"using {device}-device for nlp_operations!")
+class NLPContext(BaseModel):
+    # doesn't work with trasformers yet because AutoTokenizer/Model
+    # are converted into the respective model classes which don't inherit from Autotokenizer...
+    # TODO: find a potential base class?
+    tokenizer: Any  # transformers.AutoTokenizer
+    model: Any  # transformers.AutoModel
 
-    @property
-    def tokenizer(self):
-        return QandAmodels(self.model_type)[0]
+    class Config:
+        # we need this as pydantic doesn't have validators for transformers models
+        arbitrary_types_allowed = True
 
-    @property
-    def model(self):
-        return QandAmodels(self.model_type)[1]
 
-    def __call__(self):
-        return self.tokenizer, self.model
-
-def answer_questions_on_long_text(questions, text, nlp_context) -> Dict[str,List[Tuple[str,float]]]:
+def answer_questions_on_long_text(questions, text, nlp_context) -> Dict[str, List[Tuple[str, float]]]:
     all_answers = {}
     for q in questions:
         answers = long_text_question(
@@ -39,8 +36,11 @@ def answer_questions_on_long_text(questions, text, nlp_context) -> Dict[str,List
     return all_answers
 
 
+# we have functools.lru_cache outside of NLPContext because we would like to
+# cache this function and there is memory leak when using lru_cache on a member function
+# https://stackoverflow.com/questions/33672412/python-functools-lru-cache-with-instance-methods-release-object
 @functools.lru_cache()
-def QandAmodels(model_type):
+def QandAmodels(model_type="fast"):
     # TODO: only load model "id" and use that id
     #        with transformers AutoModel etc...
     logger.info("loading Q & A model and tokenizer")
@@ -72,7 +72,7 @@ def QandAmodels(model_type):
     model = AutoModelForQuestionAnswering.from_pretrained(model_name)
 
     logger.info("finished loading Q & A models...")
-    return tokenizer, model
+    return NLPContext(tokenizer=tokenizer, model=model)
 
 
 def convert_id_range_to_text(input_ids, answer_start, answer_end, tokenizer):
@@ -153,7 +153,27 @@ def question_text_segment(text, question, tokenizer, model, ans_num=1):
     return answers
 
 
+class QamExtractor(Extractor):
+    """
+    Question Asnwering Machine Extractor
+
+    The Extractor takes questions and gives back answers on a text.
+"""
+
+    def __init__(self, model_type="medium"):
+        super().__init__()
+        self._model_type = model_type
+
+    def __call__(self, text: str, questions: list[str]):
+        nlpc = QandAmodels(self._model_type)
+        allanswers = answer_questions_on_long_text(questions, text, nlpc)
+        answers = list(allanswers.values())
+        return answers
+
+
 if __name__ == "__main__":
+    # short test if NLP functions are working the way the're supposed to...
+
     short_test_text = """
     The Eli-2020 is a highly enjoyable therapy gadget. It features four limbs and 
     can occasionally smile at you causing the desired relaxing effect.
@@ -175,12 +195,14 @@ if __name__ == "__main__":
     text = short_test_text
     # text = f"\n\n{'-'*10}\n\n".join(pdf_text['textboxes'])
 
-    nlpc = NLPContext()
+    nlpc = QandAmodels()
     allanswers = answer_questions_on_long_text(questions, text, nlpc)
 
     logger.info(allanswers)
     # text_tokens = tokenizer.convert_ids_to_tokens(input_ids)
 
+    # these are possible alternativ methods to extract answers:
+    """
     if False:
         from transformers import DistilBertTokenizer, DistilBertForTokenClassification, AutoTokenizer, \
             AutoModelForQuestionAnswering
@@ -204,3 +226,4 @@ if __name__ == "__main__":
          scores, match) = search(toktxt, vs, searchstring, model, tokenizer, 10)
         colhtml = html_utils.color_text(toktxt[:], match)
         oib(colhtml)
+    """
