@@ -858,7 +858,8 @@ class TableCandidateAreasExtractor(Extractor):
             graphic_elements: pd.DataFrame,
             line_elements: pd.DataFrame,
             pages_bbox,
-            text_box_elements
+            text_box_elements,
+            filename=None
     ):
         # get minimum length for lines by searching for
         # the minimum height/width of a text box
@@ -903,7 +904,11 @@ class TableCandidateAreasExtractor(Extractor):
                 distance_threshold
             )
             _table = (
-                Table(df_le, df_ge, initial_area=row[box_cols]) for _, row in table_areas.iterrows()
+                Table(
+                    df_le, df_ge,
+                    initial_area=row[box_cols],
+                    page_bbox=page_bbox, page=p, file_name=filename
+                ) for _, row in table_areas.iterrows()
             )
             table_candidates.extend(t for t in _table if not t.df_le.empty)
 
