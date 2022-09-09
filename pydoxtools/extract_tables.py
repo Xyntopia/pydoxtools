@@ -109,6 +109,8 @@ def _calculate_ge_points_density_metrics(points):
 
     a,b = _calculate_ge_points_density_metrics(points[["y0","y1"]].values.flatten())
     pd.DataFrame([a,b]).T.plot(x=0,y=1)
+
+    # TODO: use point density for caculations (for example which tables are valid?)
     """
     # get unique point with their count and store it in an array
     ps = np.array(np.unique(points, return_counts=True))
@@ -245,10 +247,6 @@ class TableExtractor(Extractor):
         list_lines = self.df_le[has_list_char].rawtext.str.strip().tolist()
 
         return list_lines
-
-
-class TableExtractionError(Exception):
-    pass
 
 
 class Table:

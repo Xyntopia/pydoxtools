@@ -142,7 +142,7 @@ class Extractor(ABC):
 
         output = self(**kwargs)
         if isinstance(output, dict):
-            return {self._out_mapping[k]: v for k, v in output.items()}
+            return {self._out_mapping[k]: v for k, v in output.items() if k in self._out_mapping}
         else:
             # use first key of out_mapping for output if
             # we only have a single return value
