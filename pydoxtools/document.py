@@ -121,6 +121,7 @@ class Extractor(ABC):
         self._out_mapping: dict[str, str] = {}
         self._cache = False
         self._dynamic_config: dict[str, str] = {}
+        self._interactive = False
 
     @abc.abstractmethod
     def __call__(self, *args, **kwargs) -> dict[str, typing.Any] | Any:
@@ -194,6 +195,12 @@ class Extractor(ABC):
     def cache(self):
         """indicate to document that we want this extractor to be cached"""
         self._cache = True
+        return self
+
+    def interactive(self):
+        # signals the function to be interactive (important in order
+        # to describe an API for the document)
+        self._interactive = True
         return self
 
 
@@ -382,6 +389,10 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         """
         return self._x_funcs.get(self.document_type, {})
 
+    def non_interactive_x_funcs(self) -> dict[str, Extractor]:
+        """return all non-interactive extractors"""
+        return {k: v for k, v in self.x_funcs.items() if (not v._interactive)}
+
     def x_config_params(self, extract_name: str):
         # TODO: can we cache this somehow? Or re-calculate it when calling "config"?
         config = self._x_config[self.document_type].get(extract_name, {})
@@ -441,7 +452,7 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
     def run_all_extractors(self):
         """can be used for testing purposes"""
         # print(pdfdoc.elements)
-        for x in self.x_funcs:
+        for x in self.non_interactive_x_funcs():
             self.x(x)
 
     def pre_cache(self):

@@ -213,7 +213,7 @@ class HtmlExtractor(document.Extractor):
         return dict(
             main_content_html=main_content_html,
             main_content=main_content,
-            keywords=keywords,
+            html_keywords=keywords,
             summary=summary,
             language=language,
             goose_article=article
