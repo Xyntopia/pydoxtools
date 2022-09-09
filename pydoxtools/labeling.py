@@ -99,6 +99,7 @@ md5_cols = ["md5", "page", "file"]
 
 @functools.lru_cache()
 def load_tables_from_csv():
+    """TODO: move this into an extractor!!"""
     table_data = settings.TRAINING_DATA_DIR / "pdfs/tabledata.csv"
 
     # match labeled tables with calculated data

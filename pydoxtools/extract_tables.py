@@ -1,6 +1,7 @@
 import functools
 import hashlib
 import logging
+import re
 import typing
 from functools import cached_property
 from typing import Any
@@ -17,6 +18,8 @@ from pydoxtools.document import Extractor
 from pydoxtools.extract_textstructure import _line2txt
 
 logger = logging.getLogger(__name__)
+
+idx = pd.IndexSlice
 
 
 class TableExtractionParameters(pydantic.BaseModel):
@@ -80,6 +83,7 @@ class TableExtractionParameters(pydantic.BaseModel):
 
 class TableExtractor(Extractor):
     def __init__(self, table_extraction_params: typing.Optional[TableExtractionParameters] = None):
+        super().__init__()
         self._table_extraction_params = table_extraction_params
 
     @property
@@ -208,32 +212,91 @@ def _close_open_cells(open_cells, h_lines, df_le, elem_scan_tol,
 
 
 class TableExtractor(Extractor):
-    def __init__(self, parent_page, initial_area: np.ndarray):
-        super().__init__()
-        self.parent_page: PDFPageOld = parent_page
-        self.initial_area: np.ndarray = initial_area
+    @cached_property
+    def tables(self):
+        tables = [df.to_dict('index') for df in self.tables_df]
+        # append lists as a 1-D table as well...
+        tables.append({i: {0: line} for i, line in enumerate(self.list_lines)})
+        return tables
 
+    @cached_property
+    def tables_df(self):
+        return [t.df for p in self.pages for t in p.tables]
+
+    @cached_property
+    def table_metrics(self):
+        return [t.metrics for p in self.pages for t in p.tables]
+
+    @cached_property
+    def table_metrics_X(self) -> pd.DataFrame:
+        return pd.DataFrame([t.metrics_X for p in self.pages for t in p.tables])
+
+    @cached_property
+    def list_lines(self) -> typing.List[str]:
+        """
+        Extract lines that might be part of a "list".
+
+        TODO: make this page-based as well
+        """
+        # search for lines that are part of lists
+        # play around with this expression here: https://regex101.com/r/xrnKlm/1
+        degree_search = r"^[\-\*∙•](?![\d\-]+\s?(?:(?:[°˚][CKF]?)|[℃℉]))"
+        has_list_char = self.df_le.rawtext.str.strip().str.contains(degree_search, regex=True, flags=re.UNICODE)
+        list_lines = self.df_le[has_list_char].rawtext.str.strip().tolist()
+
+        return list_lines
+
+
+class TableExtractionError(Exception):
+    pass
+
+
+class Table:
+    def __init__(
+            self, df_le, df_ge, initial_area: np.ndarray,
+            tbe: TableExtractionParameters = None,
+            page: int = None, page_bbox=None, file_name=None
+    ):
+        """
+        Convert an area list of graphic and line elements into a table.
+
+        page, page_bbox, filename are all used for debug-purposes
+        """
+        self._filename = file_name
+        self._page_bbox = page_bbox
+        self._df_le = df_le
+        self._page = page
+        self._df_ge = df_ge
+        self._tbe = tbe or TableExtractionParameters.reduced_params()
+        self._initial_area = initial_area
+
+        # TODO: put into table extraction parameters
         self.max_lines = 1000
 
         self._debug = {}
 
-        self.laparams = laparams
-        if table_extraction_params:
-            # override default parameters with those from function call:
-            self.tbe = table_extraction_params
-        else:
-            # set default table extraction parameters
-            self.tbe = TableExtractionParameters.reduced_params()
-
     @property
     def tbe(self) -> TableExtractionParameters:
-        return self.parent_page.tbe
+        return self._tbe
 
     @cached_property
     def df_le(self) -> pd.DataFrame:
         """line elements of table"""
         return gu.boundarybox_query(
-            self.parent_page.df_le, self.initial_area,
+            self._df_le, self._initial_area,
+            tol=self.tbe.text_extraction_margin
+        ).copy()
+
+    @property
+    def page(self):
+        return self._page
+
+    @cached_property
+    def df_ge(self) -> pd.DataFrame:
+        """graphic elements of table"""
+        # TODO: maybe we should not use filtered, but unfiltered graphic elements here?
+        return gu.boundarybox_query(
+            self._df_ge, self._initial_area,
             tol=self.tbe.text_extraction_margin
         ).copy()
 
@@ -247,7 +310,8 @@ class TableExtractor(Extractor):
 
     @cached_property
     def df_words(self):
-        """Calculate word boxes instead of line boxes for tables
+        """
+        Calculate word boxes instead of line boxes for tables
         this is important here, as we would like textboxes to be split according to detected
         cells. the standard algorithms of pdfminer.six don't do this
         as well...
@@ -281,15 +345,6 @@ class TableExtractor(Extractor):
         word_boxes["text"] = word_boxes.chars.apply(lambda x: _line2txt(x).strip())
 
         return word_boxes
-
-    @cached_property
-    def df_ge(self) -> pd.DataFrame:
-        """graphic elements of table"""
-        # TODO: maybe we should not use filtered, but unfiltered graphic elements here?
-        return gu.boundarybox_query(
-            self.parent_page.df_ge_f, self.initial_area,
-            tol=self.tbe.text_extraction_margin
-        ).copy()
 
     @cached_property
     def bbox(self):
@@ -469,8 +524,8 @@ class TableExtractor(Extractor):
         TODO: enhance function by also taking textboxes into account. (for large table cells)
         """
         """TODO: is the "loop"-approahc faster?
-        
-        
+
+
         #table = np.empty((len(hlines)-1,len(vlines)-1), dtype=object)
         #x_cells = (cell.x0<vlines[1:]) & (cell.x1>vlines[:-1])
         #y_cells = (cell.y0<hlines[1:]) & (cell.y1>hlines[:-1])[::-1] # reversed because we want table coordinates to be from top to bottom
@@ -542,18 +597,18 @@ class TableExtractor(Extractor):
             y0=self.bbox[1],
             x1=self.bbox[2],
             y1=self.bbox[3],
-            page=self.parent_page.pagenum,
-            page_bbox=self.parent_page.page_bbox,
+            page=self.page,
+            page_bbox=self._page_bbox,
             table=table,
-            file=self.parent_page.parent_document.filename
+            file=self._filename
         )
 
         return metrics
 
     def identify_table(self):
-        return (f"Table {self.bbox} on page {self.parent_page.pagenum}, "
-                f"{self.parent_page.parent_document.filename} with "
-                f"index: {self.parent_page.pagenum - 1} can not be extracted.")
+        return (f"Table {self.bbox} on page {self.page}, "
+                f"{self._filename} with "
+                f"index: {self.page - 1} can not be extracted.")
 
     @cached_property
     def is_valid(self):
@@ -643,7 +698,6 @@ class TableExtractor(Extractor):
                 word_count = 0
 
             metrics.update(dict(
-                pageobj=self.parent_page,
                 tableobj=self,
                 words_area_sum=words_area_sum,
                 word_line_num=words.size,
@@ -731,48 +785,6 @@ class TableExtractor(Extractor):
             return pd.concat([tm, m1, m2])
         except:  # something didn't work maybe there are no graphics elements?
             return pd.concat([tm, m1])
-
-    @cached_property
-    def table_objs(self):
-        return [t for p in self.pages for t in p.tables]
-
-    @cached_property
-    def tables(self):
-        tables = [df.to_dict('index') for df in self.tables_df]
-        # append lists as a 1-D table as well...
-        tables.append({i: {0: line} for i, line in enumerate(self.list_lines)})
-        return tables
-
-    @cached_property
-    def tables_df(self):
-        return [t.df for p in self.pages for t in p.tables]
-
-    @cached_property
-    def table_metrics(self):
-        return [t.metrics for p in self.pages for t in p.tables]
-
-    @cached_property
-    def table_metrics_X(self) -> pd.DataFrame:
-        return pd.DataFrame([t.metrics_X for p in self.pages for t in p.tables])
-
-    @cached_property
-    def list_lines(self) -> typing.List[str]:
-        """
-        Extract lines that might be part of a "list".
-
-        TODO: make this page-based as well
-        """
-        # search for lines that are part of lists
-        # play around with this expression here: https://regex101.com/r/xrnKlm/1
-        degree_search = r"^[\-\*∙•](?![\d\-]+\s?(?:(?:[°˚][CKF]?)|[℃℉]))"
-        has_list_char = self.df_le.rawtext.str.strip().str.contains(degree_search, regex=True, flags=re.UNICODE)
-        list_lines = self.df_le[has_list_char].rawtext.str.strip().tolist()
-
-        return list_lines
-
-
-class TableExtractionError(Exception):
-    pass
 
 
 def filter_out_small_graphics_elements(
@@ -869,8 +881,8 @@ class TableCandidateAreasExtractor(Extractor):
 
         fge = {}
         # detect table areas page-wise
-        table_areas = {}  # table areas
-        box_levels = {}
+        box_levels: dict[int, list[pd.DataFrame]] = {}
+        table_candidates: list[Table] = []
         for p in pages:
             tbe = text_box_elements.loc[p]
             min_elem_x = max(tbe.w.min(), min_size)
@@ -885,28 +897,20 @@ class TableCandidateAreasExtractor(Extractor):
             )
             df_le = line_elements[line_elements["p_num"] == p]
             # TODO: make TableExtractionParameters configurable in document
-            table_areas[p], box_levels[p] = detect_table_area_candidates(
+            table_areas, box_levels[p] = detect_table_area_candidates(
                 self._tbe,
                 df_le, df_ge,
                 distance_threshold
             )
+            _table = (
+                Table(df_le, df_ge, initial_area=row[box_cols]) for _, row in table_areas.iterrows()
+            )
+            table_candidates.extend(t for t in _table if not t.df_le.empty)
 
         return dict(
-            table_areas=table_areas,
+            table_candidates=table_candidates,
             box_levels=box_levels
         )
-
-
-@property
-def tables(self) -> typing.List["PDFTable"]:
-    if self.df_le.empty:
-        return []
-    return [t for t in self.table_candidates if t.is_valid]
-
-
-def table_areas(self) -> pd.DataFrame:
-    """actual areas of tables"""
-    return pd.DataFrame([t.bbox for t in self.tables])
 
 
 def detect_table_area_candidates(
@@ -962,18 +966,12 @@ def detect_table_area_candidates(
     # TODO:  also handly tables with figures only at some point in the future?
     # TODO: should we sort out more "bad" areas here already? may speed up table extraction...
     # boundarybox_intersection_query(bbs=df_le, bbox=box)
-    text_cell_num = boxes[box_cols].apply(lambda x: len(boundarybox_intersection_query(bbs=df_le, bbox=x)), axis=1)
-    boxes = boxes[text_cell_num > 0].copy()
-    # [b for b in boxes.iterrows()]
-    # distance_query_manhattan(q_elem=box, data=df_le[box_cols])
-    # boundarybox_intersection_query(bbs=df_le, bbox=box)
-    # for b in boxes:
-    # cluster_
-
     # filter our empty groups
     # TODO: right now, we don't really know what would be a good filter...
     #       maybe do this by using an optimization approach
-    table_groups = _filter_boxes(
+    text_cell_num = boxes[box_cols].apply(lambda x: len(boundarybox_intersection_query(bbs=df_le, bbox=x)), axis=1)
+    boxes[text_cell_num > 0].copy()
+    table_groups: pd.DataFrame = _filter_boxes(
         boxes,
         min_area=tbe.min_table_area,
         min_aspect_ratio=tbe.min_aspect_ratio,
@@ -985,18 +983,6 @@ def detect_table_area_candidates(
         by=["y1", "x0", "y0", "x1"], ascending=[False, True, False, True])
 
     return table_groups, box_levels
-
-
-@property
-def table_candidates(self) -> typing.List["PDFTable"]:
-    tables = [PDFTable(parent_page=self, initial_area=row[box_cols]) for _, row in
-              self.detect_table_area_candidates()[0].iterrows()]
-    return [t for t in tables if not t.df_le.empty]
-
-
-@property
-def table_candidate_boxes_df(self) -> pd.DataFrame:
-    return pd.DataFrame([t.bbox for t in self.table_candidates])
 
 
 def _filter_boxes(
