@@ -504,11 +504,15 @@ def distance_query(
         k=None,
         dist_func=pairwise_euclidean_distance
 ):
-    """This function leverages the above defined distance functions
+    """
+    This function leverages the above defined distance functions
     in order to execute small brute-force distance queries. If the number of elements
     being queried is small (<1000), this method is
     probably faster than using kd-trees or ann algorithms for
-    (approximate) nearest neighbours."""
+    (approximate) nearest neighbours.
+
+    q_elem is
+    """
     tmp_data = np.vstack((q_elem, data))
     pair_idx = linear_pairwise_indices(len(tmp_data))
     d = dist_func(tmp_data, pair_idx)
@@ -526,8 +530,14 @@ def distance_query(
         return res
 
 
-def distance_query_manhattan(*args, **kwargs):
-    return distance_query(*args, **kwargs, dist_func=pairwise_manhatten_distance)
+def distance_query_manhattan(
+        q_elem: np.ndarray,
+        data: np.ndarray,
+        max_dist=None,
+        k=None
+):
+    """Same as distance_query but with pre-defined manhattan distance function"""
+    return distance_query(q_elem, data, max_dist, k, dist_func=pairwise_manhatten_distance)
 
 
 distance_query_euclidean = distance_query
@@ -625,7 +635,7 @@ def pairwise_weighted_distance_combination(
 def boundarybox_query(bbs, bbox, tol=10.0):
     """
     This function filters a pandas list of boundingboxes for
-    boxes that are contained in a specific region
+    boxes that are fully contained in a specific region
 
     TODO: also do this using an rtree/bvh function
 
@@ -639,6 +649,23 @@ def boundarybox_query(bbs, bbox, tol=10.0):
     return bbs.loc[bbs.y0 > (bbox[1] - tol)].loc[bbs.y1 < (bbox[3] + tol)] \
         .loc[bbs.x0 > (bbox[0] - tol)].loc[bbs.x1 < (bbox[2] + tol)]
 
+
+def boundarybox_intersection_query(bbs, bbox, tol=1.0):
+    """
+    This function filters a pandas list of boundingboxes for
+    boxes that intersect with each other
+
+    :param bbs: list of boundary boxes to search
+    :param bbox: search in this area
+    :param tol: search tolerance (with respect to a single dimension)
+    :return: list of boundary boxes extracted from bbs which are in the search area *bbox*
+    """
+    # valid_areas.loc[valid_areas.x0>bbox[0]].loc[valid_areas.x1<bbox[2]]
+    # in order to increase the speed we filter with several .loc operations
+    indices =  bbs.loc[bbs.y1 > (bbox[1] - tol)].loc[bbs.y0 < (bbox[3] + tol)] \
+        .loc[bbs.x1 > (bbox[0] - tol)].loc[bbs.x0 < (bbox[2] + tol)].index
+
+    return indices
 
 # TODO: check in different location whether it makes sense that
 #       we use a custom distance function in order to improve clustering

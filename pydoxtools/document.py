@@ -395,19 +395,22 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         # we need to check for "is not None" as we also pandas dataframes in this
         # which cannot be checked for simple "is there"
         # check if we executed this function at some point...
-        try:
-            if not extractor_func._cache:
-                config_params = self.x_config_params(extract_name)
-                res = extractor_func._mapped_call(self, config_params)
-            elif (res := self._x_func_cache.get(extractor_func, None)) is not None:
-                self._cache_hits += 1
-            else:
-                config_params = self.x_config_params(extract_name)
-                res = extractor_func._mapped_call(self, config_params)
-                self._x_func_cache[extractor_func] = res
-        except:
-            #logger.exception(f"problem with extractor {extract_name}")
-            raise ExtractorException(f"could not extract {extract_name} from {self} using {extractor_func}!")
+        # try:
+        # TODO: try/except is commented out at the moment until we find a better solution
+        #       as it gives recursive error messages
+        #       which can be quiet long and hard to understand...
+        if not extractor_func._cache:
+            config_params = self.x_config_params(extract_name)
+            res = extractor_func._mapped_call(self, config_params)
+        elif (res := self._x_func_cache.get(extractor_func, None)) is not None:
+            self._cache_hits += 1
+        else:
+            config_params = self.x_config_params(extract_name)
+            res = extractor_func._mapped_call(self, config_params)
+            self._x_func_cache[extractor_func] = res
+        # except:
+        # logger.exception(f"problem with extractor {extract_name}")
+        #    raise ExtractorException(f"could not extract {extract_name} from {self} using {extractor_func}!")
 
         return res[extract_name]
 
