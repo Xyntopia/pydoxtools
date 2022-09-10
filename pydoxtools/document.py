@@ -1,6 +1,5 @@
 import abc
 import functools
-import io
 import logging
 import typing
 from abc import ABC
@@ -8,7 +7,7 @@ from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
 from pathlib import Path
-from typing import List, Any
+from typing import List, Any, IO
 
 import numpy as np
 import spacy.tokens
@@ -329,7 +328,7 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
 
     def __init__(
             self,
-            fobj: str | bytes | Path | io.IOBase,
+            fobj: str | bytes | Path | IO,
             source: str | Path,
             document_type: str,  # TODO: add "auto" for automatic recognition of the type using python-magic
             page_numbers: list[int],

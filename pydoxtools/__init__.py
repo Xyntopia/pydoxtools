@@ -1,9 +1,8 @@
 __version__ = '0.5.0'
 
-import io
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, IO
 
 from . import document
 from . import extract_textstructure
@@ -60,7 +59,7 @@ class Document(document.DocumentBase):
 
     def __init__(
             self,
-            fobj: str | bytes | Path | io.IOBase,
+            fobj: str | bytes | Path | IO,
             source: str | Path = None,
             document_type: str = None,  # TODO: add "auto" for automatic recognition of the type using python-magic
             page_numbers: list[int] = None,

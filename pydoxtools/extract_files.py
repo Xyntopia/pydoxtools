@@ -1,5 +1,5 @@
-import io
 import pathlib
+import typing
 from pathlib import Path
 
 from pydoxtools import document
@@ -11,7 +11,7 @@ class FileLoader(document.Extractor):
         self._mode = mode
 
     def __call__(
-            self, fobj: bytes | str | Path | io.IOBase, document_type=None, page_numbers=None, max_pages=None
+            self, fobj: bytes | str | Path | typing.IO, document_type=None, page_numbers=None, max_pages=None
     ) -> bytes | str:
         if isinstance(fobj, str | bytes):
             txt = fobj

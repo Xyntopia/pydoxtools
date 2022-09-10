@@ -636,3 +636,7 @@ gen_meta_info_cached = memory.cache(gen_meta_info)
 _asciichars = ''.join(sorted(set(chr(i) for i in range(32, 128)).union(string.printable)))
 
 
+class CLassificationExtractor():
+    """Extractor which ca classify """
+    # TODO: make this class a lot more configurable ;)
+    pass

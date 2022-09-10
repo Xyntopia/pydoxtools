@@ -13,7 +13,6 @@ Created on Mon Dec 16 12:07:52 2019
 import functools
 import io
 import logging
-import typing
 from pathlib import Path
 
 import pandas as pd
@@ -289,10 +288,3 @@ class PDFFileLoader(document.Extractor):
         docelementsframe = pd.DataFrame.from_records(docelements)
 
         return docelementsframe, extracted_page_numbers, pages_bbox
-
-    @cached_property
-    def pages(self) -> typing.List["PDFPageOld"]:
-        # TODO: get number of pages from "meta_infos"
-        # TODO: make sure resulting class is compatible with pdf pages...
-        #       that probably requires quiet a bit of "reworking" ;).
-        return [PDFPageOld(p, self) for p in self.extracted_pages]
