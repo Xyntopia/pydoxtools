@@ -1,6 +1,7 @@
 import langdetect
 import pandas as pd
 
+from pydoxtools import classifier
 from pydoxtools.document import Extractor
 
 
@@ -15,13 +16,13 @@ class LanguageExtractor(Extractor):
 
 
 class TextBlockClassifier(Extractor):
-    def text_block_classes(self) -> pd.DataFrame:
-        model: classifier.txt_block_classifier = classifier.load_classifier('text_block')
-        blocks = self.textboxes
-        classes = model.predict_proba(blocks).numpy()
-        txtblocks = pd.DataFrame(self.textboxes, columns=["txt"])
-        txtblocks[["add_prob", "ukn_prob"]] = classes.round(3)
-        return txtblocks
+    def __init__(self, min_prob=0.5):
+        super().__init__()
+        self._min_prob = min_prob
 
-    def addresses(self) -> list[str]:
-        return self.text_block_classes[self.text_block_classes['add_prob'] > 0.5].txt.tolist()
+    def __call__(self, text_box_elements: pd.DataFrame):
+        model: classifier.txt_block_classifier = classifier.load_classifier('text_block')
+        classes = model.predict_proba(text_box_elements.text).numpy()
+        txtblocks = text_box_elements[["text"]].copy()
+        txtblocks[["add_prob", "ukn_prob"]] = classes.round(3)
+        return txtblocks[txtblocks['add_prob'] > self._min_prob].text.tolist()

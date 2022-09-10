@@ -59,6 +59,8 @@ def QandAmodels(model_type="fast"):
         model_name = 'deepset/bert-base-cased-squad2'
     elif model_type == 'large':
         model_name = "ktrapeznikov/albert-xlarge-v2-squad-v2"
+    elif model_type == 't5':
+        model_name = "mrm8488/t5-base-finetuned-question-generation-ap"
     elif model_type == "fast":
         # not very good at this task, but fast
         # distilbert-base-cased-distilled-squad

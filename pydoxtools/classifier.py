@@ -168,7 +168,7 @@ class lightning_training_procedures(pytorch_lightning.LightningModule):
         threshold = 0.5
         self.metrics = torch.nn.ModuleDict({
             'accuracy': torchmetrics.Accuracy(threshold, num_classes),
-            'f1': torchmetrics.F1(num_classes, threshold=threshold),
+            'f1': torchmetrics.F1Score(num_classes, threshold=threshold),
             'recall': torchmetrics.Recall(num_classes, threshold=threshold),
             'precision': torchmetrics.Precision(num_classes, threshold=threshold)
         })
