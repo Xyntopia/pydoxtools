@@ -4,7 +4,6 @@ import logging
 import re
 import typing
 from functools import cached_property
-from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -13,10 +12,10 @@ from pdfminer.layout import LTChar
 from sklearn.neighbors import KernelDensity
 
 import pydoxtools
-from pydoxtools.extract_html import extract_lists, extract_tables
 from pydoxtools import cluster_utils as gu
 from pydoxtools.cluster_utils import pairwise_txtbox_dist, box_cols, y1, x0, x1, boundarybox_intersection_query
 from pydoxtools.document import Extractor
+from pydoxtools.extract_html import extract_lists, extract_tables
 from pydoxtools.extract_textstructure import _line2txt
 
 logger = logging.getLogger(__name__)
@@ -81,6 +80,7 @@ class TableExtractionParameters(pydantic.BaseModel):
         return cls(
             area_detection_distance_func_params=adp,
         )
+
 
 def _calculate_ge_points_density_metrics(points):
     """calculate vertical point density (edge density would be without vertical lines)
@@ -191,22 +191,19 @@ def _close_open_cells(open_cells, h_lines, df_le, elem_scan_tol,
     return new_cells, still_open
 
 
-class TableExtractor_old2(Extractor):
-    @cached_property
-    def list_lines(self) -> typing.List[str]:
-        """
-        Extract lines that might be part of a "list".
+class ListExtractor(Extractor):
+    """
+    Extract lines that might be part of a "list".
+    """
 
-        TODO: make this page-based as well
-        """
+    def __call__(self, line_elements: pd.DataFrame):
         # search for lines that are part of lists
         # play around with this expression here: https://regex101.com/r/xrnKlm/1
         degree_search = r"^[\-\*∙•](?![\d\-]+\s?(?:(?:[°˚][CKF]?)|[℃℉]))"
-        has_list_char = self.df_le.rawtext.str.strip().str.contains(degree_search, regex=True, flags=re.UNICODE)
-        list_lines = self.df_le[has_list_char].rawtext.str.strip().tolist()
+        has_list_char = line_elements.rawtext.str.strip().str.contains(degree_search, regex=True, flags=re.UNICODE)
+        list_lines = line_elements[has_list_char].rawtext.str.strip().to_frame()
 
         return list_lines
-
 
 
 class HTMLTableExtractor():
