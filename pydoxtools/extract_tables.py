@@ -12,6 +12,8 @@ import pydantic
 from pdfminer.layout import LTChar
 from sklearn.neighbors import KernelDensity
 
+import pydoxtools
+from pydoxtools.extract_html import extract_lists, extract_tables
 from pydoxtools import cluster_utils as gu
 from pydoxtools.cluster_utils import pairwise_txtbox_dist, box_cols, y1, x0, x1, boundarybox_intersection_query
 from pydoxtools.document import Extractor
@@ -79,30 +81,6 @@ class TableExtractionParameters(pydantic.BaseModel):
         return cls(
             area_detection_distance_func_params=adp,
         )
-
-
-class TableExtractor(Extractor):
-    def __init__(self, table_extraction_params: typing.Optional[TableExtractionParameters] = None):
-        super().__init__()
-        self._table_extraction_params = table_extraction_params
-
-    @property
-    def list_lines(self):
-        return []
-
-    @property
-    def tables(self) -> list[dict[str, dict[str, Any]]]:
-        """
-        table in the following (row - wise) format:
-
-        [{index -> {column -> value } }]
-        """
-        return []
-
-    @property
-    def tables_df(self) -> list["pd.DataFrame"]:
-        return []
-
 
 def _calculate_ge_points_density_metrics(points):
     """calculate vertical point density (edge density would be without vertical lines)
@@ -213,26 +191,7 @@ def _close_open_cells(open_cells, h_lines, df_le, elem_scan_tol,
     return new_cells, still_open
 
 
-class TableExtractor(Extractor):
-    @cached_property
-    def tables(self):
-        tables = [df.to_dict('index') for df in self.tables_df]
-        # append lists as a 1-D table as well...
-        tables.append({i: {0: line} for i, line in enumerate(self.list_lines)})
-        return tables
-
-    @cached_property
-    def tables_df(self):
-        return [t.df for p in self.pages for t in p.tables]
-
-    @cached_property
-    def table_metrics(self):
-        return [t.metrics for p in self.pages for t in p.tables]
-
-    @cached_property
-    def table_metrics_X(self) -> pd.DataFrame:
-        return pd.DataFrame([t.metrics_X for p in self.pages for t in p.tables])
-
+class TableExtractor_old2(Extractor):
     @cached_property
     def list_lines(self) -> typing.List[str]:
         """
@@ -247,6 +206,22 @@ class TableExtractor(Extractor):
         list_lines = self.df_le[has_list_char].rawtext.str.strip().tolist()
 
         return list_lines
+
+
+
+class HTMLTableExtractor():
+    def __call__(self):
+        # TODO: put this into
+
+        lists = extract_lists(raw_html)
+        html_tables = []
+        for html_con in [main_content_html, main_content_html2]:
+            html_tables.extend(extract_tables(html_con))
+
+        # add lists to tables
+        tables = lists + html_tables
+        # convert tables into json readable format
+        tables = pydoxtools.list_utils.deep_str_convert(tables)
 
 
 class Table:

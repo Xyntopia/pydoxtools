@@ -128,8 +128,9 @@ class Extractor(ABC):
 
     def _mapped_call(
             self, parent_document: "DocumentBase",
+            *args,
             config_params: dict[str, Any] = None,
-            *args, **kwargs
+            **kwargs
     ) -> dict[
         str, typing.Any]:
         # map objects from document properties to
@@ -412,26 +413,22 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         # we need to check for "is not None" as we also pandas dataframes in this
         # which cannot be checked for simple "is there"
         # check if we executed this function at some point...
-        # try:
-        # TODO: try/except is commented out at the moment until we find a better solution
-        #       as it gives recursive error messages
-        #       which can be quiet long and hard to understand...
-        if extractor_func._cache:
-            key = functools._make_key((extractor_func,) + args, kwargs, typed=False)
-            if (res := self._x_func_cache.get(key, None)) is not None:
-                self._cache_hits += 1
+        try:
+            if extractor_func._cache:
+                key = functools._make_key((extractor_func,) + args, kwargs, typed=False)
+                if (res := self._x_func_cache.get(key, None)) is not None:
+                    self._cache_hits += 1
+                else:
+                    params = self.x_config_params(extract_name)
+                    res = extractor_func._mapped_call(self, *args, config_params=params, **kwargs)
+                    self._x_func_cache[key] = res
             else:
                 params = self.x_config_params(extract_name)
                 res = extractor_func._mapped_call(self, config_params=params, *args, **kwargs)
 
-                self._x_func_cache[key] = res
-        else:
-            params = self.x_config_params(extract_name)
-            res = extractor_func._mapped_call(self, config_params=params, *args, **kwargs)
-
-        # except:
-        # logger.exception(f"problem with extractor {extract_name}")
-        #    raise ExtractorException(f"could not extract {extract_name} from {self} using {extractor_func}!")
+        except:
+            #logger.exception(f"problem with extractor {extract_name}")
+            raise ExtractorException(f"could not extract {extract_name} from {self} using {extractor_func}!")
 
         return res[extract_name]
 

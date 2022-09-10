@@ -164,7 +164,7 @@ class QamExtractor(Extractor):
         super().__init__()
         self._model_type = model_type
 
-    def __call__(self, text: str, questions: list[str]):
+    def __call__(self, questions: list[str], text: str):
         nlpc = QandAmodels(self._model_type)
         allanswers = answer_questions_on_long_text(questions, text, nlpc)
         answers = list(allanswers.values())

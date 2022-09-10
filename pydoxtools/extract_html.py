@@ -19,7 +19,7 @@ from goose3 import Goose
 
 import pydoxtools.list_utils
 from pydoxtools import document
-from pydoxtools import models, html_utils
+from pydoxtools import html_utils
 from pydoxtools.html_utils import logger
 
 try:
@@ -199,76 +199,67 @@ def extract_schema(raw_html, url):
 
 
 class HtmlExtractor(document.Extractor):
-    def __init__(self, engine="goose"):
+    def __init__(self, engine="combined"):
         super().__init__()
         self._engine = engine
 
-    def __call__(self, raw_html: str):
-        if self._engine == "goose":
+    def __call__(self, raw_html: str, url: str = ""):
+        if self._engine == "combined":
+            try: # try to unescape html its ok if it doesn't work
+                raw_html = html.unescape(raw_html)
+            except TypeError:
+                pass
+            main_content_html2, title, short_title = extract_title_and_content(raw_html)
+
             (main_content_html, main_content,
              keywords, summary, language, article) = goose_extract(raw_html)
+
+            # if we didn't find a given language, try to detect on our own...
+            if language.lower() == 'none':
+                language = find_language(main_content)
+
+            lists = extract_lists(raw_html)
+            lists = [pd.DataFrame(l) for l in lists]
+            html_tables = []
+            for html_con in [main_content_html, main_content_html2]:
+                html_tables.extend(extract_tables(html_con))
+
+            # add lists to tables
+            tables = lists + html_tables
+            # convert tables into json readable format
+            schemadata = extract_schema(raw_html, url or "")
+
+            L = [article.final_url, article.canonical_link]
+            final_urls = [x for x in L if x is not None]
+            # TODO: sort & order schemadata into the relevant fields in a better way
+            # TODO: extract titles from html (searching for headings, etc...)
+
+            pdf_links = html_utils.get_pdf_links(raw_html)
+
+            # TODO: gather a list of thing sthrough regular expressions
+            # product_ids = []
+            # prices
+            # regex_ex = {}
+
         else:
             raise NotImplementedError()
 
+        # TODO: decide which main content is the "correct one"
+        # TODO: deduplicate tables
+        # TODO: move table detection into its own class
+        # TODO: move moe functions into their own Extractors
         return dict(
             main_content_html=main_content_html,
             main_content=main_content,
             html_keywords=keywords,
             summary=summary,
             language=language,
-            goose_article=article
+            goose_article=article,
+            tables=tables,
+            schemadata=schemadata,
+            final_urls=final_urls,
+            pdf_links=pdf_links
         )
-
-
-def extract_html_data(raw_html, url):
-    raw_html = html.unescape(raw_html)
-    main_content_html2, title, short_title = extract_title_and_content(raw_html)
-
-    # if we didn't find a given language, try to detect on our own...
-    if language.lower() == 'none':
-        language = find_language(main_content)
-
-    lists = extract_lists(raw_html)
-    html_tables = []
-    for html_con in [main_content_html, main_content_html2]:
-        html_tables.extend(extract_tables(html_con))
-
-    # add lists to tables
-    tables = lists + html_tables
-    # convert tables into json readable format
-    tables = pydoxtools.list_utils.deep_str_convert(tables)
-    schemadata = extract_schema(raw_html, url)
-
-    L = [article.final_url, article.canonical_link]
-    final_urls = [x for x in L if x is not None]
-    # TODO: sort & order schemadata into the relevant fields in a better way
-    # TODO: extract titles from html (searching for headings, etc...)
-
-    pdf_links = html_utils.get_pdf_links(raw_html)
-
-    # TODO: gather a list of thing sthrough regular expressions
-    # product_ids = []
-    # prices
-    regex_ex = {}
-
-    # TODO: add meta_infos
-    data = models.DocumentExtract(
-        raw_content=[main_content_html, main_content_html2],
-        keywords=keywords.split(),
-        textboxes=[summary, main_content],
-        images=[article.top_image],
-        lang=language,
-        titles=[title, short_title],
-        url=url,
-        urls=article.links,
-        final_url=final_urls,
-        schemadata=schemadata,
-        tables=tables,
-        regex_ex=regex_ex,
-        pdf_links=pdf_links
-    )
-
-    return data
 
 
 class SeleniumDriver:
