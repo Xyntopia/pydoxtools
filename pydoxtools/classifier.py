@@ -332,13 +332,13 @@ class txt_block_classifier(
             "cv1.weight", "cv1.bias"
         ])
 
-    def forward(self, strlist):
+    def forward(self, str_list: typing.Iterable):
         # TODO: we might be able to us "diskcache" here in order to cache some layers!!!
         #       for example the tokenized ids
-        lengths = torch.tensor([len(s) for s in strlist]).unsqueeze(1).to(device=self.device)
+        lengths = torch.tensor([len(s) for s in str_list]).unsqueeze(1).to(device=self.device)
         # TODO: add optional str.strip here... (deactivated during training to improve speed)
         ids = self.tokenizer(
-            list(strlist),  # convert trlist into an actual list (e.g. if it is a pandas dataframe)
+            list(str_list),  # convert trlist into an actual list (e.g. if it is a pandas dataframe)
             padding='max_length', truncation=True,
             max_length=500,  # approx. half an A4 page of text
             return_tensors='pt',

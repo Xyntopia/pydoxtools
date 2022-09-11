@@ -6,7 +6,6 @@ Created on Mon Apr  6 21:57:32 2020
 # TODO split up file in "cleaning" and "extraction" functions
 """
 
-import functools
 import logging
 import os
 import re
@@ -16,17 +15,19 @@ import webbrowser
 from typing import List
 from urllib.parse import urlparse
 
-import bs4
 import pandas as pd
 from bs4 import BeautifulSoup
 from lxml.html.clean import Cleaner
+
 from pydoxtools.settings import settings
 
 logger = logging.getLogger(__name__)
 
 memory = settings.get_memory_cache()
 
-_regex_whitespace = re.compile(r"\s+")
+
+def bs(html):
+    return BeautifulSoup(html, 'lxml')
 
 
 # extract tables
@@ -54,23 +55,10 @@ def open_in_browser2(data_object):
 
 
 def markdownify(html):
+    NotImplementedError()
     from markdownify import markdownify
     h2 = strip_html(html)
     return markdownify(h2)
-
-
-def clean_html3(html):
-    soup = BeautifulSoup(html, 'lxml')
-    # remove all tags with no content
-    # [x.decompose() for x in soup.findAll(lambda tag: not tag.contents and not tag.name == 'br' )]
-    removelist = ['a', 'li']
-    [x.decompose() for x in soup.findAll() if (len(x.get_text(strip=True)) == 0 and x.name in removelist)]
-    return str(soup)
-
-
-def get_text(html):
-    soup = BeautifulSoup(html, 'lxml')
-    return soup.get_text(" ")
 
 
 def strip_html(html):
@@ -79,6 +67,8 @@ def strip_html(html):
     samepage. This should roughly retain the structure of the content.
 
     https://lxml.de/api/lxml.html.clean.Cleaner-class.html
+
+    # TODO: use this in extract_html for main content?
     """
     cleaner = Cleaner(page_structure=False,
                       meta=True,
@@ -102,10 +92,15 @@ def strip_html(html):
     return cleaner.clean_html(html)
 
 
-@functools.lru_cache(maxsize=16)
+def get_text_only_blocks(html) -> list[str]:
+    """
+    extrac html text, remove most whitespace and split into textblock lists
+    """
+    return re.split(r"\s*\n\s*\n\s*", bs(html).get_text("\n\n").strip())
+
+
 def get_pure_html_text(html):
-    x = get_text(html)
-    txt = _regex_whitespace.sub(' ', x)
+    " ".join(get_text_only_blocks(html))
     return txt.strip()
 
 
@@ -138,18 +133,14 @@ def absolute_url_path(url: str, path: str) -> str:
         return urlparse(url)._replace(path=path).geturl()
 
 
-def clean_all(html):
-    soup = BeautifulSoup(html, "lxml")
-    for s in soup(['script', 'style']):
-        s.decompose()
-    return ' '.join(soup.stripped_strings)
-
-
-def clean_scripts(html):
-    soup = BeautifulSoup(html, "lxml")
-    for s in soup(['script']):
-        s.decompose()
-    return ' '.join(soup.stripped_strings)
+def clean_html(html):
+    # TODO do this in a better way ;)
+    # it gets rid of several tags  in an html
+    soup = BeautifulSoup(html, "lxml")  # , features="html.parser")
+    for tag in soup():
+        for attribute in ["class", "id", "name", "style"]:
+            del tag[attribute]
+    return str(soup)
 
 
 def prettyprint(html):
@@ -199,27 +190,13 @@ def update_listdict(items, newitems):
     return items
 
 
-def tag_visible(element):
-    if element.parent.name in ['style', 'script', 'head', 'title', 'meta', '[document]']:
-        return False
-    if isinstance(element, bs4.element.Comment):
-        return False
-    return True
-
-
-def text_from_html(body):
-    soup = BeautifulSoup(body, 'lxml')
-    texts = soup.findAll(text=True)
-    visible_texts = filter(tag_visible, texts)
-    return u" ".join(t.strip() for t in visible_texts)
-
-
 if __name__ == "__main__":
     import sys
 
     sys.path.append("..")
 
     import pydoxtools.training
+
     ldata = pydoxtools.training.load_labeled_webpages()
 
     ldata['len'] = ldata.raw_html.str.len()
@@ -231,13 +208,11 @@ if __name__ == "__main__":
     html
 
     len(html)
-    html2 = clean_scripts(html)
-    len(html2)
     html3 = ' '.join(get_pure_html_text(html).split())
     html3p = prettyprint(html3)
     len(html3)
 
-    html4 = clean_all(html)
+    html4 = bs(html).get_text(strip=True)
     len(html4)
 
     if False:

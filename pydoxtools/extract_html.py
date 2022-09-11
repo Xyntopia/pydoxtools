@@ -17,10 +17,9 @@ import readability
 from bs4 import BeautifulSoup, NavigableString
 from goose3 import Goose
 
-import pydoxtools.list_utils
 from pydoxtools import document
 from pydoxtools import html_utils
-from pydoxtools.html_utils import logger
+from pydoxtools.html_utils import logger, clean_html
 
 try:
     # import a couple libraries that are only
@@ -34,7 +33,6 @@ except ImportError:
     selenium = None
 
 logger = logging.getLogger(__name__)
-_regex_whitespace = re.compile(r"\s+")
 
 
 def find_language(html):
@@ -47,12 +45,14 @@ def find_language(html):
 
 def extract_tables(html):
     """
-    tries to extract all tables from an html.
+    tries to extract all tables from an html using pandas dataframe
 
     TODO: similar to extract_lists try to only extract
         tables which seem to contain "valid" information. for example
         which only have a maximum depth of the DOM tree
         or which have not "only links".
+
+    TODO: extract div-lists & tables
     """
     try:
         new_tables = pd.read_html(html, header=None)
@@ -70,16 +70,17 @@ def goose_extract(raw_html: str):
     article = goose.extract(raw_html=raw_html)
     main_content = str(article.cleaned_text)
     if main_content != '':
+        # TODO: maybe we should use html_utils.strip_html for this task?
         html_raw = str(lxml.etree.tostring(article.top_node, pretty_print=True))
-        main_content_raw = clean_html(html_raw)
+        main_content_clean_html = clean_html(html_raw)
     else:
-        main_content_raw = ''
+        main_content_clean_html = ''
     keywords = article.meta_keywords
     summary = str(article.meta_description)
     language = str(article.meta_lang)
     # more data:
     # article.infos
-    return main_content_raw, main_content, keywords, summary, language, article
+    return main_content_clean_html, main_content, keywords, summary, language, article
 
 
 def extract_title_and_content(raw_html):
@@ -87,14 +88,6 @@ def extract_title_and_content(raw_html):
     and extracts the important parts of it"""
     doc = readability.Document(raw_html)
     return pd.Series((doc.summary(), doc.title(), doc.short_title()))
-
-
-def clean_html(html):
-    soup = BeautifulSoup(html, "lxml")  # , features="html.parser")
-    for tag in soup():
-        for attribute in ["class", "id", "name", "style"]:
-            del tag[attribute]
-    return str(soup)
 
 
 # the folowing dfines a couple "forbidden" tags which are not accepted
@@ -211,7 +204,7 @@ class HtmlExtractor(document.Extractor):
                 pass
             main_content_html2, title, short_title = extract_title_and_content(raw_html)
 
-            (main_content_html, main_content,
+            (main_content_clean_html, main_content,
              keywords, summary, language, article) = goose_extract(raw_html)
 
             # if we didn't find a given language, try to detect on our own...
@@ -249,7 +242,7 @@ class HtmlExtractor(document.Extractor):
         # TODO: move table detection into its own class
         # TODO: move moe functions into their own Extractors
         return dict(
-            main_content_html=main_content_html,
+            main_content_clean_html=main_content_clean_html,
             main_content=main_content,
             html_keywords=keywords,
             summary=summary,
@@ -390,4 +383,5 @@ class SeleniumDriver:
 
 
 def get_main_content(html):
+    """TODO: try to merge this function somehow :P"""
     return readability.Document(html).summary()
