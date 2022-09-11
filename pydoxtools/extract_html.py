@@ -3,7 +3,6 @@
 import base64
 import html
 import logging
-import re
 from io import BytesIO
 from typing import List
 from urllib.parse import urlsplit
@@ -198,7 +197,7 @@ class HtmlExtractor(document.Extractor):
 
     def __call__(self, raw_html: str, url: str = ""):
         if self._engine == "combined":
-            try: # try to unescape html its ok if it doesn't work
+            try:  # try to unescape html its ok if it doesn't work
                 raw_html = html.unescape(raw_html)
             except TypeError:
                 pass
@@ -214,7 +213,7 @@ class HtmlExtractor(document.Extractor):
             lists = extract_lists(raw_html)
             lists = [pd.DataFrame(l) for l in lists]
             html_tables = []
-            for html_con in [main_content_html, main_content_html2]:
+            for html_con in [main_content_clean_html, main_content_html2]:
                 html_tables.extend(extract_tables(html_con))
 
             # add lists to tables
