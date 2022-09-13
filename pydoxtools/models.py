@@ -27,7 +27,6 @@ properties (calculated & stored) are indicated by lower letters
 import datetime
 import gzip
 import logging
-import uuid
 from typing import List, Any
 
 from pydantic import BaseModel, Field, AnyHttpUrl
@@ -60,7 +59,7 @@ class Webpage(BaseModel):
 
 
 class DocumentExtract(BaseModel):
-    uid: str | uuid.UUID | None
+    uid: str | None
     source: str = Field(
         ..., description="Where does the extracted data come from? (Examples: URL, 'pdfupload', parent-URL, or a path)"
     )

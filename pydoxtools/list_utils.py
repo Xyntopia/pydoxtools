@@ -40,7 +40,7 @@ def flatten(
     """
     for el in list_like:
         if (el is not None) and (not isnan(el)):
-            if isinstance(el, collections.Iterable) and not isinstance(el, (dict, str, bytes)):
+            if isinstance(el, collections.abc.Iterable) and not isinstance(el, (dict, str, bytes)):
                 if level < max_level or max_level == -1:
                     yield from flatten(el, drop_none=drop_none, level=level + 1)
                 else:
