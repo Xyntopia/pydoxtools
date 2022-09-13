@@ -77,7 +77,6 @@ class DocumentExtract(BaseModel):
     # tables are row-wise!!  [{index -> {column -> value } }]
     # for a pandas dataframe we can export it like this:  df.to_dict('index')
     tables: list[dict[str, dict[str, Any]]] = []
-    raw_content: list[str] = []
     keywords: list[str] = []
     url: str = None
     final_url: list[str] = []  # url extracted from the document itself where it points to "itself"

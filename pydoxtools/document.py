@@ -2,6 +2,7 @@ import abc
 import functools
 import logging
 import typing
+import uuid
 from abc import ABC
 from dataclasses import dataclass
 from enum import Enum
@@ -351,7 +352,7 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
 
         """
         self._fobj = fobj
-        self._source = source
+        self._source = source or "unknown"
         self._document_type = document_type
         self._page_numbers = page_numbers
         self._max_pages = max_pages
@@ -427,7 +428,7 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
                 res = extractor_func._mapped_call(self, config_params=params, *args, **kwargs)
 
         except:
-            #logger.exception(f"problem with extractor {extract_name}")
+            # logger.exception(f"problem with extractor {extract_name}")
             raise ExtractorException(f"could not extract {extract_name} from {self} using {extractor_func}!")
 
         return res[extract_name]
@@ -514,3 +515,7 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         ""
         return []
     """
+
+    @cached_property
+    def uuid(self):
+        return uuid.uuid4()
