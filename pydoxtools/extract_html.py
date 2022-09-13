@@ -250,7 +250,10 @@ class HtmlExtractor(document.Extractor):
             tables=tables,
             schemadata=schemadata,
             final_urls=final_urls,
-            pdf_links=pdf_links
+            pdf_links=pdf_links,
+            title=title,
+            short_title=short_title,
+            url=url
         )
 
 
