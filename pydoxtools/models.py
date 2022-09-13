@@ -27,7 +27,8 @@ properties (calculated & stored) are indicated by lower letters
 import datetime
 import gzip
 import logging
-from typing import List, Optional, Dict, Any
+import uuid
+from typing import List, Any
 
 from pydantic import BaseModel, Field, AnyHttpUrl
 
@@ -59,31 +60,31 @@ class Webpage(BaseModel):
 
 
 class DocumentExtract(BaseModel):
-    uid: Optional[str]
+    uid: str | uuid.UUID | None
     source: str = Field(
         ..., description="Where does the extracted data come from? (Examples: URL, 'pdfupload', parent-URL, or a path)"
     )
     type: str = Field(..., description="filetype of the data such as 'html' or 'pdf' or 'doc'")
-    filename: Optional[str]
+    filename: str | None
 
     lang: str = None
-    textboxes: List[str] = []
-    list_lines: List[str] = []
-    urls: List[str] = []
-    images: List = []
-    titles: List[str] = []
-    meta_infos: List[Dict[str, str]] = []
+    textboxes: list[str] = []
+    list_lines: list[str] = []
+    urls: list[str] = []
+    images: list = []
+    titles: list[str] = []
+    meta_infos: list[dict[str, str]] = []
     # tables are row-wise!!  [{index -> {column -> value } }]
     # for a pandas dataframe we can export it like this:  df.to_dict('index')
-    tables: List[Dict[str, Dict[str, Any]]] = []
-    raw_content: List[str] = []
-    keywords: List[str] = []
+    tables: list[dict[str, dict[str, Any]]] = []
+    raw_content: list[str] = []
+    keywords: list[str] = []
     url: str = None
-    final_url: List[str] = []  # url extracted from the document itself where it points to "itself"
-    schemadata: Dict = {}  # schema.org data extracted from html meta tags
-    product_ids: Dict[str, str] = {}
-    pdf_links: List[str] = []
-    price: List[str] = []
+    final_url: list[str] = []  # url extracted from the document itself where it points to "itself"
+    schemadata: dict = {}  # schema.org data extracted from html meta tags
+    product_ids: dict[str, str] = {}
+    pdf_links: list[str] = []
+    price: list[str] = []
 
     class Config:
         orm_mode = True
