@@ -27,15 +27,15 @@ import sklearn.linear_model
 import spacy
 import torch
 import transformers
-from transformers import AutoModel, AutoTokenizer
-from pydoxtools import html_utils
-from pydoxtools.settings import settings
 from scipy.spatial.distance import pdist, squareform
 from spacy.language import Language
 from spacy.tokens import Doc, Span, Token
 from tqdm import tqdm
 from transformers import AutoModel
 from urlextract import URLExtract
+
+from pydoxtools import html_utils
+from pydoxtools.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -77,6 +77,7 @@ def self_similarity_matrix(strlist):
 
 
 def get_urls_from_text(text):
+    # TODO:  add this to
     urls = urlextractor.find_urls(text, only_unique=False, check_dns=True)
     return urls
 
@@ -330,17 +331,16 @@ def load_models(model_name: str = 'distilbert-base-multilingual-cased'):
 
 def get_spacy_model_id(model_type, size="sm") -> Optional[str]:
     """size can be: sm, md, lg or trf where "trf" is transformer """
-    logger.info(f"load spacy model: {model_type}")
     if model_type == 'en':
         return f'en_core_web_{size}'
     elif model_type == 'de':
         return f'de_core_news_{size}'
     else:
-        return None
+        None
 
 
 @functools.lru_cache()
-def load_cached_spacy_model(model_id: str):
+def load_cached_spacy_model(model_id: str) -> Language:
     """load spacy nlp model and in case of a transformer model add custom vector pipeline..."""
     nlp = spacy.load(model_id)
     if model_id[-3:] == "trf":
