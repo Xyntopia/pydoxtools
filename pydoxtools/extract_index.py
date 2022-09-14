@@ -1,6 +1,7 @@
 from typing import Callable
 
 import hnswlib
+import networkx as nx
 import numpy as np
 
 from pydoxtools.document import Extractor, TokenCollection
@@ -66,43 +67,57 @@ class KnnQuery(Extractor):
             index: hnswlib.Index,
             idx_values: list,
             vectorizer: Callable,  # e.g. lambda spacy_nlp, txt: spacy_nlp spacy_nlp(txt).vector
-            txt: str | np.ndarray | TokenCollection,
-            k: int = 5, indices=False
-    ) -> list[tuple]:
-        if isinstance(txt, str):
-            search_vec = vectorizer(txt)
-        elif isinstance(txt, np.ndarray):
-            search_vec = txt
-        else:
-            search_vec = txt.vector
-        similar = index.knn_query([search_vec], k=k)
+    ) -> Callable:
+        def knn_query(txt: str | np.ndarray | TokenCollection, k: int = 5, indices=False) -> list[tuple]:
+            if isinstance(txt, str):
+                search_vec = vectorizer(txt)
+            elif isinstance(txt, np.ndarray):
+                search_vec = txt
+            else:
+                search_vec = txt.vector
+            similar = index.knn_query([search_vec], k=k)
 
-        if indices:
-            return [(i, idx_values[i], dist) for i, dist in zip(similar[0][0], similar[1][0])]
-        else:
-            return [(idx_values[i], dist) for i, dist in zip(similar[0][0], similar[1][0])]
+            if indices:
+                return [(i, idx_values[i], dist) for i, dist in zip(similar[0][0], similar[1][0])]
+            else:
+                return [(idx_values[i], dist) for i, dist in zip(similar[0][0], similar[1][0])]
 
-    def similarity_graph(self, k=4, max_distance=0.2, method="noun_chunks"):
-        """
-        this function buils a "directed similarity graph" by taking the similarity of words in a document
-        and connecting tokens which are similar. This can then be used for further analysis
-        such as textrank (wordranks, sentence ranks, paragraph ranking) etc...
-        """
+        return knn_query
+
+
+class SimilarityGraph(Extractor):
+    """
+     this function buils a "directed similarity graph" by taking the similarity of words in a document
+     and connecting tokens which are similar. This can then be used for further analysis
+     such as textrank (wordranks, sentence ranks, paragraph ranking) etc...
+     """
+
+    def __init__(self, max_connectivity=4, max_distance=0.2):
+        super().__init__()
+        self.k = max_connectivity
+        self.max_distance = max_distance
+
+    def __call__(self, index_query_func: Callable, source: list[TokenCollection]):
         G = nx.DiGraph()
-        if method == "noun_chunks":
-            source = self.noun_chunks
-        elif method == "sents":
-            source = self.sents
-        else:
-            raise NotImplementedError(f"can not have method: '{method}'")
-
-        for i, span in enumerate(source):
-            G.add_node(i, label=span.text)
+        for i, token_span in enumerate(source):
+            G.add_node(i, label=token_span.text)
             # we take k+1 here, as the first element will always be the query token itself...
-            similar = self.knn_query(span, k=k + 1, filter=method, indices=True)
+            similar = index_query_func(token_span, k=self.k + 1, indices=True)
             # links = links[links<0.3]
-            doc_sim = nlp_utils.cos_similarity(self.spacy_doc.vector[None, :], span.vector[None, :])[0]
+            # doc_sim = nlp_utils.cos_similarity(self.spacy_doc.vector[None, :], span.vector[None, :])[0]
             for j, _, d in similar:
-                if (not i == j) and (d <= max_distance):
+                if (not i == j) and (d <= self.max_distance):
                     G.add_edge(i, j, weight=(1 - d))
         return G
+
+
+class ExtractKeywords(Extractor):
+    def __init__(self, top_k: int):
+        super().__init__()
+        self.k = top_k
+
+    def __call__(self, G: nx.Graph):
+        """extract keywords by textrank from a similarity graph of a spacy document"""
+        keywords = ((G.nodes[i]["label"], score) for i, score in nx.pagerank(G, weight='weight').items())
+        top_kw = sorted(keywords, key=lambda x: x[1], reverse=True)[:self.k]
+        return [kw[0] for kw in top_kw]

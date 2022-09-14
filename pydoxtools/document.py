@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
 from pathlib import Path
+from time import time
 from typing import List, Any, IO
 
 import numpy as np
@@ -226,6 +227,7 @@ class MetaDocumentClassConfiguration(type):
     # in theory, we could add additional arguments to this function which we could
     # pass in our documentbase class
     def __new__(cls, clsname, bases, attrs):
+        start_time = time()
         # construct our class
         new_class: DocumentBase.__class__ = super(MetaDocumentClassConfiguration, cls).__new__(
             cls, clsname, bases, attrs)
@@ -297,6 +299,9 @@ class MetaDocumentClassConfiguration(type):
 
         else:
             raise ConfigurationError(f"no extractors defined in class {new_class}")
+
+        elapsed = round((time() - start_time) * 1000, 4)
+        logger.info(f"setting up Document class {new_class} took: {elapsed}ms")
 
         return new_class
 
