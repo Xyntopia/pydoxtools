@@ -60,7 +60,6 @@ class IndexExtractor(Extractor):
 class KnnQuery(Extractor):
     def __init__(self):
         super().__init__()
-        self.interactive()
 
     def __call__(
             self,

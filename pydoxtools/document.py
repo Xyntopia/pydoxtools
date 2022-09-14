@@ -199,12 +199,6 @@ class Extractor(ABC):
         self._cache = True
         return self
 
-    def interactive(self):
-        # signals the function to be interactive (important in order
-        # to describe an API for the document)
-        self._interactive = True
-        return self
-
 
 class ConfigurationError(Exception):
     pass
