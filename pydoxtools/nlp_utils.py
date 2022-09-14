@@ -329,11 +329,11 @@ def load_models(model_name: str = 'distilbert-base-multilingual-cased'):
     return model, tokenizer
 
 
-def get_spacy_model_id(model_type, size="sm") -> Optional[str]:
+def get_spacy_model_id(model_language, size="sm") -> Optional[str]:
     """size can be: sm, md, lg or trf where "trf" is transformer """
-    if model_type == 'en':
+    if model_language == 'en':
         return f'en_core_web_{size}'
-    elif model_type == 'de':
+    elif model_language == 'de':
         return f'de_core_news_{size}'
     else:
         None
@@ -349,22 +349,7 @@ def load_cached_spacy_model(model_id: str) -> Language:
     return nlp
 
 
-def download_nlp_models(options: List[str] = None):
-    """download models and other necessary stuff
-    if we need more models, we can find them here:
-
-    https://spacy.io/usage/models#download-manual
-
-    we can use this function to pre-download & initialize
-    our models in a dockerfile like this:
-
-        python -c 'from pydoxtools import nlp_utils; nlp_utils.download_nlp_models()'
-
-    """
-    # get huggingface/transformer models
-    load_models()
-    load_tokenizer()
-
+def generate_spacy_model_id_list(options: List[str] = None):
     model_names = [
         'xx_ent_wiki_sm', 'en_core_web_md', 'de_core_news_md',
         'en_core_web_sm', 'de_core_news_sm'
@@ -375,23 +360,54 @@ def download_nlp_models(options: List[str] = None):
         if 'trf' in options:
             model_names += ['en_core_web_trf', 'de_dep_news_trf']
 
-    for n in model_names:
+    return model_names
+
+
+def download_nlp_models(options: List[str], dl_path=None):
+    """download models and other necessary stuff
+    if we need more models, we can find them here:
+
+    https://spacy.io/usage/models#download-manual
+
+    we can use this function to pre-download & initialize
+    our models in a dockerfile like this:
+
+        python -c 'from pydoxtools import nlp_utils; nlp_utils.download_nlp_models(["trf","md"])'
+
+    """
+    # get huggingface/transformer models
+    # load_models()  # currently not in use
+    # load_tokenizer()
+
+    model_names = generate_spacy_model_id_list(options)
+
+    # https://github.com/explosion/spacy-models/releases/download/xx_ent_wiki_sm-3.4.0/xx_ent_wiki_sm-3.4.0-py3-none-any.whl
+    for model_id in model_names:
+        version = "3.4.0"
+        # spacy.about.__version__  doesn't work ..  probably because models re only availabe with major versions
+        # meaning 3.4.0 instead of 3.4.1
+        model_version = f"{model_id}-{version}"
+        url = f"{spacy.about.__download_url__}/{model_version}/{model_version}-py3-none-any.whl"
+        """
         try:
-            spacy.load(n)
-            logger.info(f"model {n} is already installed!")
+            nlp=spacy.load(model_id)
+            logger.info(f"model {model_id} is already installed!")
         except IOError:
-            spacy.cli.download(n)
+            spacy.cli.download(model_id)
+            nlp = spacy.load(model_id)
+        #(settings.MODELDIR/"spacy").mkdir(parents=True, exist_ok=True)
+        #nlp.to_disk(settings.MODELDIR/"spacy"/model_id)
+        """
+        import subprocess
+        # pip download -d # would lso be an option...
+        # print(subprocess.check_output(['pip', 'install', url]))
+        print(f"dowloading to: {dl_path}")
+        if dl_path:
+            subprocess.call(['pip', 'download', '--no-deps', '-d', dl_path, url])
+        else:
+            subprocess.call(['pip', 'install','--no-deps', url])
 
-
-def preload_models():
-    """load spacy models into cache"""
-    # TODO: generalize this function:
-    #       - specify a model list
-    #       - model list should be changeable through user
-    #       - combine spacy & transformers model load functions
-    load_tokenizer()
-    load_models()
-    load_cached_spacy_model("en", "sm")
+        # pip download --no-deps https://github.com/explosion/spacy-models/releases/download/xx_ent_wiki_sm-3.4.0/xx_ent_wiki_sm-3.4.0-py3-none-any.whl
 
 
 def reset_models():
