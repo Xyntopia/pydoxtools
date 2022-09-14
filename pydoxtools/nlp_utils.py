@@ -18,7 +18,7 @@ TODO: move the inference parts into the "document" class in order to make them d
 import functools
 import logging
 from difflib import SequenceMatcher
-from typing import Optional, List
+from typing import Optional, List, Any
 
 import numpy as np
 import pandas as pd
@@ -27,11 +27,12 @@ import sklearn.linear_model
 import spacy
 import torch
 import transformers
+from pydantic import BaseModel
 from scipy.spatial.distance import pdist, squareform
 from spacy.language import Language
 from spacy.tokens import Doc, Span, Token
 from tqdm import tqdm
-from transformers import AutoModel
+from transformers import AutoTokenizer, AutoModel
 from urlextract import URLExtract
 
 from pydoxtools import html_utils
@@ -310,20 +311,18 @@ def get_bert_vocabulary():
 
 
 @functools.lru_cache(maxsize=32)
-def load_tokenizer():
+def load_tokenizer(model_name='distilbert-base-multilingual-cased'):
     logger.info("load_tokenizer")
-    tokenizer = transformers.DistilBertTokenizer.from_pretrained('distilbert-base-multilingual-cased')
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
     return tokenizer, get_vocabulary()
 
 
 @functools.lru_cache()
 def load_models(model_name: str = 'distilbert-base-multilingual-cased'):
     logger.info(f"load model on device: {device}")
-
     tokenizer = transformers.AutoTokenizer.from_pretrained(model_name)
     # model = AutoModelForQuestionAnswering.from_pretrained(model_name, output_hidden_states=True)
     model = AutoModel.from_pretrained(model_name, output_hidden_states=True)
-
     model.to(device)
     model.eval()
     return model, tokenizer
@@ -363,7 +362,18 @@ def generate_spacy_model_id_list(options: List[str] = None):
     return model_names
 
 
-def download_nlp_models(options: List[str], dl_path=None):
+def download_transformers_models_and_tokenizer():
+    # get huggingface/transformer models
+    model_names = ['bert-large-uncased-whole-word-masking-finetuned-squad']
+    # tokenizers for above models autmatically get downloaded in load_models
+    token_names = ['distilbert-base-multilingual-cased']+model_names
+    for t in token_names:
+        tokenizer = AutoTokenizer.from_pretrained(t)
+    for m in model_names:
+        model = AutoModel.from_pretrained(m, output_hidden_states=True)
+
+
+def download_spacy_nlp_models(options: List[str], dl_path=None):
     """download models and other necessary stuff
     if we need more models, we can find them here:
 
@@ -375,10 +385,6 @@ def download_nlp_models(options: List[str], dl_path=None):
         python -c 'from pydoxtools import nlp_utils; nlp_utils.download_nlp_models(["trf","md"])'
 
     """
-    # get huggingface/transformer models
-    # load_models()  # currently not in use
-    # load_tokenizer()
-
     model_names = generate_spacy_model_id_list(options)
 
     # https://github.com/explosion/spacy-models/releases/download/xx_ent_wiki_sm-3.4.0/xx_ent_wiki_sm-3.4.0-py3-none-any.whl
@@ -405,7 +411,7 @@ def download_nlp_models(options: List[str], dl_path=None):
         if dl_path:
             subprocess.call(['pip', 'download', '--no-deps', '-d', dl_path, url])
         else:
-            subprocess.call(['pip', 'install','--no-deps', url])
+            subprocess.call(['pip', 'install', '--no-deps', url])
 
         # pip download --no-deps https://github.com/explosion/spacy-models/releases/download/xx_ent_wiki_sm-3.4.0/xx_ent_wiki_sm-3.4.0-py3-none-any.whl
 
@@ -736,8 +742,21 @@ class TrfContextualVectors:
     def has_vector(self, token):
         return True
 
+
 # we are creating a factory here as our tranformers vector calculation is stateful
 # and we need a specific class for this..
 # @Language.factory("my_component", default_config={"some_setting": True})
 # def my_component(nlp, name, some_setting: bool):
 #    return MyComponent(some_setting=some_setting)
+class NLPContext(BaseModel):
+    # doesn't work with trasformers yet because AutoTokenizer/Model
+    # are converted into the respective model classes which don't inherit from Autotokenizer...
+    # TODO: find a potential base class?
+    # TODO: generalize this class with nlp_utils loading models...
+    tokenizer: Any  # transformers.AutoTokenizer
+    model: Any  # transformers.AutoModel
+    capabilities: set[str] = []  # model capabilities e.g. "qam"  or "ner"
+
+    class Config:
+        # we need this as pydantic doesn't have validators for transformers models
+        arbitrary_types_allowed = True

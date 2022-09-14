@@ -2,30 +2,15 @@
 # -*- coding: utf-8 -*-
 import functools
 import logging
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Tuple
 
 import torch
-from pydantic import BaseModel
 from transformers import AutoTokenizer, AutoModelForQuestionAnswering
 
 from pydoxtools.document import Extractor
-from pydoxtools.nlp_utils import tokenize_windows
+from pydoxtools.nlp_utils import tokenize_windows, NLPContext
 
 logger = logging.getLogger(__name__)
-
-
-class NLPContext(BaseModel):
-    # doesn't work with trasformers yet because AutoTokenizer/Model
-    # are converted into the respective model classes which don't inherit from Autotokenizer...
-    # TODO: find a potential base class?
-    # TODO: generalize this class with nlp_utils loading models...
-    tokenizer: Any  # transformers.AutoTokenizer
-    model: Any  # transformers.AutoModel
-    capabilities: set[str] = []  # model capabilities e.g. "qam"  or "ner"
-
-    class Config:
-        # we need this as pydantic doesn't have validators for transformers models
-        arbitrary_types_allowed = True
 
 
 def answer_questions_on_long_text(questions, text, nlp_context) -> Dict[str, List[Tuple[str, float]]]:
