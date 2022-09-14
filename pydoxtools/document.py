@@ -3,6 +3,7 @@ import functools
 import logging
 import typing
 import uuid
+import mimetypes
 from abc import ABC
 from dataclasses import dataclass
 from enum import Enum
@@ -330,11 +331,14 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
     def __init__(
             self,
             fobj: str | bytes | Path | IO,
-            source: str | Path,
-            document_type: str,  # TODO: add "auto" for automatic recognition of the type using python-magic
-            page_numbers: list[int],
-            max_pages: int,
-            config: dict[str, Any]
+            source: str | Path = None,
+            page_numbers: list[int] = None,
+            max_pages: int = None,
+            config: dict[str, Any] = None,
+            mime_type: str = None,
+            filename: str = None,
+            document_type: str = None
+            # TODO: add "auto" for automatic recognition of the type using python-magic
     ):
         """
         ner model:
@@ -353,11 +357,24 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         self._fobj = fobj
         self._source = source or "unknown"
         self._document_type = document_type
+        self._mime_type = mime_type
+        self._filename = filename
         self._page_numbers = page_numbers
         self._max_pages = max_pages
         self._cache_hits = 0
         self._x_func_cache: dict[Extractor, dict[str, Any]] = {}
         self._config = config or {}
+
+    @cached_property
+    def filename(self) -> str | None:
+        if hasattr(self._fobj, "name"):
+            return self._fobj.name
+        elif isinstance(self._fobj, Path):
+            return self._fobj.name
+        elif self._filename:
+            return self._filename
+        else:
+            return None
 
     @cached_property
     def document_type(self):
@@ -368,10 +385,12 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         try:
             if self._document_type:
                 return self._document_type
+            elif self._mime_type:
+                return mimetypes.guess_extension(self._mime_type)
             elif hasattr(self._fobj, "name"):
                 return Path(self._fobj.name).suffix
             # get type from path suffix
-            elif self._fobj.exists() and not self._document_type:
+            elif self._fobj.exists():
                 return self._fobj.suffix
             else:  # for example if it is a string without a type
                 # TODO: detect type with python-magic here...
@@ -427,7 +446,7 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
                 res = extractor_func._mapped_call(self, config_params=params, *args, **kwargs)
 
         except:
-            # logger.exception(f"problem with extractor {extract_name}")
+            logger.exception(f"problem with extractor {extract_name}")
             raise ExtractorException(f"could not extract {extract_name} from {self} using {extractor_func}!")
 
         return res[extract_name]
@@ -488,15 +507,6 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
     @property
     def fobj(self):
         return self._fobj
-
-    @cached_property
-    def filename(self) -> str | None:
-        if hasattr(self._fobj, "name"):
-            return self._fobj.name
-        elif isinstance(self._fobj, Path):
-            return self._fobj.name
-        else:
-            return None
 
     """
     @property

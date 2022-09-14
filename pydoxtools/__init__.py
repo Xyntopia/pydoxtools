@@ -56,14 +56,3 @@ class Document(document.DocumentBase):
             .out("raw_content").cache(),
         ]
     }
-
-    def __init__(
-            self,
-            fobj: str | bytes | Path | IO,
-            source: str | Path = None,
-            document_type: str = None,  # TODO: add "auto" for automatic recognition of the type using python-magic
-            page_numbers: list[int] = None,
-            max_pages: int = None,
-            config: dict[str, Any] = None):
-        """Standard Document class adds some default variables..."""
-        super().__init__(fobj, source, document_type, page_numbers, max_pages, config)
