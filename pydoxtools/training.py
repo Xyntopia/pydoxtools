@@ -573,9 +573,9 @@ def train_url_classifier():
     trainer = pytorch_lightning.Trainer(log_every_n_steps=100, max_epochs=300)
 
     trainer.fit(net, train_loader)
-    trainer.save_checkpoint(settings.CLASSIFIER_STORE("url"))
+    trainer.save_checkpoint(settings.MODEL_STORE("url"))
 
-    return trainer.test(net, test_dataloaders=test_loader, ckpt_path=settings.CLASSIFIER_STORE('url'))
+    return trainer.test(net, test_dataloaders=test_loader, ckpt_path=settings.MODEL_STORE('url'))
 
 
 def train_page_classifier(max_epochs=100, old_model=None):
@@ -590,12 +590,12 @@ def train_page_classifier(max_epochs=100, old_model=None):
         #       but we don't have enough test data yet.
         val_dataloader = test_loader
         trainer.fit(model, train_loader, val_dataloader)
-        trainer.save_checkpoint(settings.CLASSIFIER_STORE("page"))
+        trainer.save_checkpoint(settings.MODEL_STORE("page"))
         curtime = datetime.datetime.now()
         curtimestr = curtime.strftime("%Y%m%d%H%M")
-        trainer.save_checkpoint(settings.CLASSIFIER_STORE("page").parent / f"pageClassifier{curtimestr}.ckpt")
+        trainer.save_checkpoint(settings.MODEL_STORE("page").parent / f"pageClassifier{curtimestr}.ckpt")
 
-    return trainer.test(model, test_dataloaders=test_loader, ckpt_path=settings.CLASSIFIER_STORE('page')), model
+    return trainer.test(model, test_dataloaders=test_loader, ckpt_path=settings.MODEL_STORE('page')), model
 
 
 def train_text_block_classifier(old_model=None, num_workers=4, **kwargs):
@@ -605,7 +605,7 @@ def train_text_block_classifier(old_model=None, num_workers=4, **kwargs):
     checkpoint_callback = pytorch_lightning.callbacks.ModelCheckpoint(
         monitor='train_loss',  # or 'accuracy' or 'f1'
         mode='min', save_top_k=5,
-        dirpath=settings.CLASSIFIER_STORE("text_block").parent,
+        dirpath=settings.MODEL_STORE("text_block").parent,
         filename='text_block-{epoch:02d}-{train_loss:.2f}.ckpt'
     )
     trainer = pytorch_lightning.Trainer(
@@ -620,7 +620,7 @@ def train_text_block_classifier(old_model=None, num_workers=4, **kwargs):
         max_steps=-1,
         # auto_scale_batch_size=True,
         callbacks=[checkpoint_callback] + kwargs.get('callbacks', []),
-        default_root_dir=settings.CLASSIFIER_STORE("text_block").parent
+        default_root_dir=settings.MODEL_STORE("text_block").parent
     )
     if True:
         # TODO: normally this should be discouraged to do this...
@@ -628,13 +628,13 @@ def train_text_block_classifier(old_model=None, num_workers=4, **kwargs):
         #       but we don't have enough test data yet.
         val_dataloader = test_loader
         trainer.fit(model, train_loader, val_dataloader)
-        trainer.save_checkpoint(settings.CLASSIFIER_STORE("text_block"))
+        trainer.save_checkpoint(settings.MODEL_STORE("text_block"))
         curtime = datetime.datetime.now()
         curtimestr = curtime.strftime("%Y%m%d%H%M")
         trainer.save_checkpoint(
-            settings.CLASSIFIER_STORE("text_block").parent / f"text_blockclassifier{curtimestr}.ckpt")
+            settings.MODEL_STORE("text_block").parent / f"text_blockclassifier{curtimestr}.ckpt")
 
-    return trainer.test(model, test_dataloaders=test_loader, ckpt_path=settings.CLASSIFIER_STORE('text_block')), model
+    return trainer.test(model, test_dataloaders=test_loader, ckpt_path=settings.MODEL_STORE('text_block')), model
 
 
 def train_pdf_classifier(max_epochs=100, old_model=None):
@@ -649,12 +649,12 @@ def train_pdf_classifier(max_epochs=100, old_model=None):
         #       but we don't have enough test data yet.
         val_dataloader = test_loader
         trainer.fit(model, train_loader, val_dataloader)
-        trainer.save_checkpoint(settings.CLASSIFIER_STORE("pdf"))
+        trainer.save_checkpoint(settings.MODEL_STORE("pdf"))
         curtime = datetime.datetime.now()
         curtimestr = curtime.strftime("%Y%m%d%H%M")
-        trainer.save_checkpoint(settings.CLASSIFIER_STORE("pdf").parent / f"pdfClassifier{curtimestr}.ckpt")
+        trainer.save_checkpoint(settings.MODEL_STORE("pdf").parent / f"pdfClassifier{curtimestr}.ckpt")
 
-    return trainer.test(model, test_dataloaders=test_loader, ckpt_path=settings.CLASSIFIER_STORE('pdf')), model
+    return trainer.test(model, test_dataloaders=test_loader, ckpt_path=settings.MODEL_STORE('pdf')), model
 
 
 def train_fqdn_componentsearch_classifier(samplenum=1000):

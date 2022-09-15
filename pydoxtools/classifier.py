@@ -103,7 +103,7 @@ def html_clean(raw_html, cut_len=50000):
         return "ERROR"
 
 
-@memory.cache(ignore=["model"])
+# TODO: cache this with diskcache
 def cached_str_vectorize(model, raw_string):
     return model(raw_string)
 
@@ -250,6 +250,7 @@ class lightning_training_procedures(pytorch_lightning.LightningModule):
         )
         return optimizer
 
+
 class txt_block_classifier(
     nlp_functions,
     lightning_training_procedures,
@@ -360,6 +361,7 @@ class txt_block_classifier(
         x = self.linear(x.flatten(1))
         return x
 
+
 # TODO: merge with txtblockclassifier
 class urlClassifier(
     lightning_training_procedures,
@@ -397,6 +399,7 @@ class urlClassifier(
         x = self.dropout(x)
         x = self.out(x)
         return x
+
 
 # TODO: merge with pdfClassifier into a "documentClassifier"
 class pageClassifier(
@@ -580,13 +583,13 @@ class pdfClassifier(
 def load_classifier(name):
     logger.info(f"loading classifier: {name}")
     if name == "text_block":
-        net = txt_block_classifier.load_from_checkpoint(settings.CLASSIFIER_STORE(name))
+        net = txt_block_classifier.load_from_checkpoint(settings.MODEL_STORE(name))
     elif name == "url":
-        net = urlClassifier.load_from_checkpoint(settings.CLASSIFIER_STORE(name))
+        net = urlClassifier.load_from_checkpoint(settings.MODEL_STORE(name))
     elif name == "page":
-        net = pageClassifier.load_from_checkpoint(settings.CLASSIFIER_STORE(name))
+        net = pageClassifier.load_from_checkpoint(settings.MODEL_STORE(name))
     elif name == "pdf":
-        net = pdfClassifier.load_from_checkpoint(settings.CLASSIFIER_STORE(name))
+        net = pdfClassifier.load_from_checkpoint(settings.MODEL_STORE(name))
 
     net.freeze()
     return net

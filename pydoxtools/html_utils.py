@@ -19,11 +19,7 @@ import pandas as pd
 from bs4 import BeautifulSoup
 from lxml.html.clean import Cleaner
 
-from pydoxtools.settings import settings
-
 logger = logging.getLogger(__name__)
-
-memory = settings.get_memory_cache()
 
 
 def bs(html):
@@ -121,9 +117,6 @@ def get_pdf_links(html) -> List[str]:
         if link['href'].lower().endswith(".pdf"):
             linklist.append(link['href'])
     return linklist
-
-
-get_pdf_links_cached = memory.cache(get_pdf_links)
 
 
 def absolute_url_path(url: str, path: str) -> str:

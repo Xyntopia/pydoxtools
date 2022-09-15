@@ -57,7 +57,10 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 logger.info(f"using {device}-device for nlp_operations!")
 
 memory = settings.get_memory_cache()
-urlextractor = URLExtract(extract_email=True, cache_dns=True, extract_localhost=True)
+dns_cache_dir = settings.CACHE_DIR_BASE / "urlextract"
+dns_cache_dir.mkdir(parents=True, exist_ok=True)
+urlextractor = URLExtract(extract_email=True, cache_dns=True, extract_localhost=True,
+                          cache_dir=dns_cache_dir)
 urlextractor.update_when_older(7)  # updates when list is older that 7 days
 
 
@@ -366,7 +369,7 @@ def download_transformers_models_and_tokenizer():
     # get huggingface/transformer models
     model_names = ['bert-large-uncased-whole-word-masking-finetuned-squad']
     # tokenizers for above models autmatically get downloaded in load_models
-    token_names = ['distilbert-base-multilingual-cased']+model_names
+    token_names = ['distilbert-base-multilingual-cased'] + model_names
     for t in token_names:
         tokenizer = AutoTokenizer.from_pretrained(t)
     for m in model_names:
@@ -401,8 +404,8 @@ def download_spacy_nlp_models(options: List[str], dl_path=None):
         except IOError:
             spacy.cli.download(model_id)
             nlp = spacy.load(model_id)
-        #(settings.MODELDIR/"spacy").mkdir(parents=True, exist_ok=True)
-        #nlp.to_disk(settings.MODELDIR/"spacy"/model_id)
+        #(settings.MODEL_DIR/"spacy").mkdir(parents=True, exist_ok=True)
+        #nlp.to_disk(settings.MODEL_DIR/"spacy"/model_id)
         """
         import subprocess
         # pip download -d # would lso be an option...

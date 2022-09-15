@@ -19,9 +19,6 @@ from pydoxtools.settings import settings
 
 logger = logging.getLogger(__name__)
 
-memory = settings.get_memory_cache()
-
-
 @dataclass(eq=True, frozen=True, slots=True)
 class Font:
     name: str

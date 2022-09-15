@@ -134,7 +134,7 @@ df['class'].value_counts()
 # %env TOKENIZERS_PARALLELISM=true
 hostname = 'https://www.rosemesh.net'
 token = "ckzRbLYQRsBnSPr"
-syncpath = str(settings.MODELDIR)
+syncpath = str(settings.MODEL_DIR)
 upload = True
 
 class WebdavSyncCallback(pytorch_lightning.Callback):
