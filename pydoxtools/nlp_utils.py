@@ -32,7 +32,7 @@ from scipy.spatial.distance import pdist, squareform
 from spacy.language import Language
 from spacy.tokens import Doc, Span, Token
 from tqdm import tqdm
-from transformers import AutoTokenizer, AutoModel
+from transformers import AutoTokenizer, AutoModel, AutoModelForQuestionAnswering
 from urlextract import URLExtract
 
 from pydoxtools import html_utils
@@ -313,24 +313,6 @@ def get_bert_vocabulary():
     return model.embeddings.word_embeddings.weight.detach().numpy()
 
 
-@functools.lru_cache(maxsize=32)
-def load_tokenizer(model_name='distilbert-base-multilingual-cased'):
-    logger.info("load_tokenizer")
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    return tokenizer, get_vocabulary()
-
-
-@functools.lru_cache()
-def load_models(model_name: str = 'distilbert-base-multilingual-cased'):
-    logger.info(f"load model on device: {device}")
-    tokenizer = transformers.AutoTokenizer.from_pretrained(model_name)
-    # model = AutoModelForQuestionAnswering.from_pretrained(model_name, output_hidden_states=True)
-    model = AutoModel.from_pretrained(model_name, output_hidden_states=True)
-    model.to(device)
-    model.eval()
-    return model, tokenizer
-
-
 def get_spacy_model_id(model_language, size="sm") -> Optional[str]:
     """size can be: sm, md, lg or trf where "trf" is transformer """
     if model_language == 'en':
@@ -363,17 +345,6 @@ def generate_spacy_model_id_list(options: List[str] = None):
             model_names += ['en_core_web_trf', 'de_dep_news_trf']
 
     return model_names
-
-
-def download_transformers_models_and_tokenizer():
-    # get huggingface/transformer models
-    model_names = ['bert-large-uncased-whole-word-masking-finetuned-squad']
-    # tokenizers for above models autmatically get downloaded in load_models
-    token_names = ['distilbert-base-multilingual-cased'] + model_names
-    for t in token_names:
-        tokenizer = AutoTokenizer.from_pretrained(t)
-    for m in model_names:
-        model = AutoModel.from_pretrained(m, output_hidden_states=True)
 
 
 def download_spacy_nlp_models(options: List[str], dl_path=None):
@@ -763,3 +734,34 @@ class NLPContext(BaseModel):
     class Config:
         # we need this as pydantic doesn't have validators for transformers models
         arbitrary_types_allowed = True
+
+
+@functools.lru_cache(maxsize=32)
+def load_tokenizer(model_name='distilbert-base-multilingual-cased'):
+    logger.info("load_tokenizer")
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    return tokenizer, get_vocabulary()
+
+
+# TODO: merge this function with
+@functools.lru_cache()
+def load_models(model_name: str = 'distilbert-base-multilingual-cased'):
+    logger.info(f"load model on device: {device}")
+    tokenizer = transformers.AutoTokenizer.from_pretrained(model_name)
+    # model = AutoModelForQuestionAnswering.from_pretrained(model_name, output_hidden_states=True)
+    model = AutoModel.from_pretrained(model_name, output_hidden_states=True)
+    model.to(device)
+    model.eval()
+    return model, tokenizer
+
+
+@functools.lru_cache()
+def QandAmodels(model_id: str):
+    # TODO: only load model "id" and use that id
+    #        with transformers AutoModel etc...
+    logger.info(f"loading Q & A model and tokenizer {model_id}")
+    # model, tokenizer = load_models(model_id)
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    model = AutoModelForQuestionAnswering.from_pretrained(model_id)
+    logger.info(f"finished loading Q & A models... {model_id}")
+    return NLPContext(tokenizer=tokenizer, model=model)

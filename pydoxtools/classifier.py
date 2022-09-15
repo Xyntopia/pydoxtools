@@ -62,7 +62,7 @@ class string_vectorizer(torch.nn.Module):
 
     def __init__(self):
         super(string_vectorizer, self).__init__()
-        self.model_name = 'distilbert-base-multilingual-cased'  # name of model used for initialization
+        self.model_name = settings.PDXT_STANDARD_TOKENIZER  # name of model used for initialization
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         embedding_num, embedding_dim = 119547, 768  # size of multilingual BERT vocabulary
         self.embedding = torch.nn.Embedding(embedding_num, embedding_dim)
@@ -272,7 +272,7 @@ class txt_block_classifier(
         super(txt_block_classifier, self).__init__()
 
         # TODO: get rid of model dependency... only use the vocabulary for the tokenizer...
-        self.model_name = 'distilbert-base-multilingual-cased'  # name of model used for initialization
+        self.model_name = settings.PDXT_STANDARD_TOKENIZER  # name of model used for initialization
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         embedding_num = 119547  # size of multilingual BERT vocabulary
         embedding_dim = 768  # size of bert token embeddings

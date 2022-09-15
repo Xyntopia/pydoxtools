@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import functools
 import logging
 from typing import Dict, List, Tuple
 
 import torch
-from transformers import AutoTokenizer, AutoModelForQuestionAnswering
 
 from pydoxtools.document import Extractor
-from pydoxtools.nlp_utils import tokenize_windows, NLPContext
+from pydoxtools.nlp_utils import tokenize_windows, QandAmodels
 
 logger = logging.getLogger(__name__)
 
@@ -26,42 +24,6 @@ def answer_questions_on_long_text(questions, text, nlp_context) -> Dict[str, Lis
 # we have functools.lru_cache outside of NLPContext because we would like to
 # cache this function and there is memory leak when using lru_cache on a member function
 # https://stackoverflow.com/questions/33672412/python-functools-lru-cache-with-instance-methods-release-object
-@functools.lru_cache()
-def QandAmodels(model_type="fast"):
-    # TODO: only load model "id" and use that id
-    #        with transformers AutoModel etc...
-    logger.info("loading Q & A model and tokenizer")
-
-    if model_type == "slow":
-        # also very good, but slow:
-        model_name = 'replydotai/albert-xxlarge-v1-finetuned-squad2'
-    elif model_type == "medium":
-        # very good and fast:
-        model_name = 'bert-large-uncased-whole-word-masking-finetuned-squad'
-        # model_name = 'deepset/bert-large-uncased-whole-word-masking-squad2'
-    elif model_type == "multi":
-        # 'mrm8488/distilbert-multi-finedtuned-squad-pt'
-        model_name = 'mrm8488/bert-multi-uncased-finetuned-xquadv1'
-    elif model_type == 'base':
-        model_name = 'deepset/bert-base-cased-squad2'
-    elif model_type == 'large':
-        model_name = "ktrapeznikov/albert-xlarge-v2-squad-v2"
-    elif model_type == 't5':
-        model_name = "mrm8488/t5-base-finetuned-question-generation-ap"
-    elif model_type == "fast":
-        # not very good at this task, but fast
-        # distilbert-base-cased-distilled-squad
-        # model_name = 'mrm8488/bert-small-finetuned-squadv2'
-        model_name = 'distilbert-base-cased-distilled-squad'
-        # model_name = "sshleifer/tiny-distilbert-base-cased-distilled-squad"
-    else:
-        model_name = model_type
-
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForQuestionAnswering.from_pretrained(model_name)
-
-    logger.info("finished loading Q & A models...")
-    return NLPContext(tokenizer=tokenizer, model=model)
 
 
 def convert_id_range_to_text(input_ids, answer_start, answer_end, tokenizer):
@@ -146,23 +108,24 @@ class QamExtractor(Extractor):
     """
     Question Asnwering Machine Extractor
 
-    The Extractor takes questions and gives back answers on a text.
+    The Extractor generates a function takes questions and gives back
+    answers on the given text.
 """
 
-    def __init__(self, model_type="medium"):
+    def __init__(self, model_id: str):
         super().__init__()
-        self._model_type = model_type
+        self._model_id = model_id
 
-    def __call__(self, text: str):
-        nlpc = QandAmodels(self._model_type)
+    def __call__(self, text: str, trf_model_id: str = None):
+        nlpc = QandAmodels(trf_model_id or self._model_id)
 
         def qa_machine(questions) -> list[list[tuple[str, float]]]:
+            if isinstance(questions, str):
+                questions = [str]
             allanswers = answer_questions_on_long_text(questions, text, nlpc)
             answers = list(allanswers.values())
             return answers
 
-        # TODO: if "questions" and "text" are specified
-        #       return the answers directly!
         return qa_machine
 
 
