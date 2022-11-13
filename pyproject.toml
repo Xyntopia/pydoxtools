@@ -3,6 +3,7 @@ name = "pydoxtools"
 version = "0.3.0"
 description = "This library contains a set of tools in order to extract structured information from documents"
 authors = ["thomas meschede <yeusblender@gmail.com>"]
+license = "MIT"
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12" # python version constraints are caused by scipy
