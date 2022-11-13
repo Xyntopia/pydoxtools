@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.13.7
+#       jupytext_version: 1.14.1
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -17,9 +17,11 @@
 # %% tags=[]
 # %load_ext autoreload
 # %autoreload 2
+from pathlib import Path
+
 # from pydoxtools import nlp_utils
 import pydoxtools
-from pydoxtools import pdf_utils, classifier, nlp_utils
+from pydoxtools import pdf_utils, classifier, nlp_utils, cluster_utils
 from pydoxtools import webdav_utils as wu
 from pydoxtools.settings import settings
 import torch
@@ -45,7 +47,7 @@ def pretty_print(df):
 
 logger = logging.getLogger(__name__)
 
-box_cols = pdf_utils.box_cols
+box_cols = cluster_utils.box_cols
 
 tqdm.pandas()
 
@@ -79,8 +81,11 @@ nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.c
 # training...
 
 # %%
-file = settings.TRAINING_DATA_DIR / "pdfs/datasheet/Datenblatt_PSL-Family.37.pdf"
-file = settings.TRAINING_DATA_DIR / "pdfs/datasheet/remo-m_fixed-wing.2f.pdf"
+TRAINING_DATA_DIR = Path("../../../componardolib/training_data").resolve() #settings.TRAINING_DATA_DIR
+
+# %%
+file = TRAINING_DATA_DIR / "pdfs/datasheet/Datenblatt_PSL-Family.37.pdf"
+file = TRAINING_DATA_DIR / "pdfs/datasheet/remo-m_fixed-wing.2f.pdf"
 
 # %%
 file
@@ -89,8 +94,14 @@ file
 model = classifier.load_classifier("text_block")
 
 # %%
-txtblocks = pd.DataFrame(pydoxtools.load_document(file).textboxes, columns=["txt"])
-pred = txtblocks.txt.apply(lambda x: model.predict_proba([x])[0])
+doc = pydoxtools.Document(file)
+
+# %%
+txtblocks = pydoxtools.Document(file).text_box_elements[['text']].copy()
+txtblocks
+
+# %%
+pred = txtblocks.text.apply(lambda x: model.predict_proba([x])[0])
 txtblocks[["add_prob", "ukn_prob"]] = pred.apply(pd.Series).round(2)
 pretty_print(txtblocks)
 
