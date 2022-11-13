@@ -76,7 +76,6 @@ pigeonXT-jupyter = "^0.6.1" # for labeling purposes...
 odfpy = "^1.4.1"
 openpyxl = "^3.0.9"
 optuna = "^2.10.0"
-hnswlib = "^0.6.0"
 # TODO: until webdavclient removes a bug in push:
 #       https://github.com/ezhov-evgeny/webdav-client-python-3/issues/89
 #       we need to use our own fork. check regularly if we can revert to the master
