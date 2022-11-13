@@ -1,16 +1,39 @@
-import io
 import logging
-import pathlib
-
-from pydoxtools import Document
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("pydoxtools.document").setLevel(logging.INFO)
 
+import io
+import pathlib
+from pathlib import Path
+
+from pydoxtools import Document
+
 logger = logging.getLogger(__name__)
 
+test_files = [
+    "./data/PFR-PR23_BAT-110__V1.00_.pdf",
+    "./data/Datasheet-Centaur-Charger-DE.6f.pdf",
+    "./data/north_american_countries.png",
+    "./data/north_american_countries.tif", "./data/north_american_countries.jpg",
+    "./data/List of North American countries by population - Wikipedia.pdf",
+    "./data/berrybase_raspberrypi4.html",
+    "./data/test.html",
+    "./data/remo-m_fixed-wing.2f.pdf"
+]
 
-def run_single_document_test(file_name):
+test_dir_path = pathlib.Path(__file__).parent.absolute()
+
+
+def make_path_absolute(f: Path | str):
+    return test_dir_path / Path(f)
+
+
+# make directories work in pytest
+test_files = [make_path_absolute(f) for f in test_files]
+
+
+def run_single_non_interactive_document_test(file_name):
     logger.info(f"testing: {file_name}")
     # load object from path
     doc = Document(fobj=pathlib.Path(file_name))
@@ -36,20 +59,61 @@ def run_single_document_test(file_name):
     return doc
 
 
-# def test_file_loading():
-if True:
-    test_files = [
-        "../training_data/pdfs/datasheet/BUSI-XCAM-SY-00011.22.pdf",
-        "../training_data/pdfs/product_page/berrybase_raspberrypi4.html",
-        "../training_data/pdfs/tabledata.csv"
-        #"../training_data/pdfs/datasheet/BUSI-XCAM-SY-00011.22.pdf"
-    ]
+def test_installation():
+    from pydoxtools import nlp_utils
+    nlp_utils.download_spacy_nlp_models(["md"])  # "also ["lg","trf"] etc.."
 
+
+def test_all_documents():
     for f in test_files:
-        doc = run_single_document_test(f)
+        logger.info(f"testing with {f}")
+        doc = run_single_non_interactive_document_test(f)
 
-    doc = Document(fobj=pathlib.Path(test_files[0]))
+
+def test_table_extraction():
+    doc = Document(fobj=make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"))
+    metrics = [t.metrics_X for t in doc.x("table_candidates") if t.is_valid]
+    assert len(metrics) == 2
+    assert doc.x("tables_df")[0].shape == (10, 2)
+    assert doc.x("tables_df")[1].shape == (14, 2)
+
+
+def test_qam_machine():
+    doc = Document(
+        fobj=make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"),
+        config=dict(trf_model_id='distilbert-base-cased-distilled-squad')
+    )
+    answers = doc.x('answers')(questions=('what is this the product name?', 'who build the product?'))
+    assert answers[0][0][0] == 'BST BAT - 110'
+    assert answers[1][0][0] == 'The BST BAT - 110'
+
+
+def test_multiple_product_extraction():
+    pass
+
 
 if __name__ == "__main__":
-    # test_file_loading()
+    # test if we can actually open the pdf...
+    # with open("ocrpdf", "wb") as f:
+    #    f.write(doc.ocr_pdf_file)
+    # doc = DocumentX(fobj=make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"))
+    # doc = DocumentX(fobj=make_path_absolute("./data/Datasheet-Centaur-Charger-DE.6f.pdf"))
+    # doc = DocumentX(fobj=make_path_absolute("./data/north_american_countries.png"))
+    doc = Document(fobj=make_path_absolute("./data/berrybase_raspberrypi4.html"))
+    # doc = DocumentX(fobj=make_path_absolute("./data/remo-m_fixed-wing.2f.pdf"))
+    # doc = DocumentX(fobj=make_path_absolute("./data/north_american_countries.tif"))
+    doc.run_all_extractors()
+
+    # doc
+    # doc.run_all_extractors()
+    # index = doc.noun_index
+    # keywords = doc.keywords
+
+    # test_single_product_extraction()
+    # test_qam_machine()
+
+    # doc.run_all_extractors()
+    # run_single_non_interactive_document_test("./data/berrybase_raspberrypi4.html")
+    # test_table_extraction()
+    # doc.x('answers', questions=('what is this the product name?', 'who build the product?'))
     pass
