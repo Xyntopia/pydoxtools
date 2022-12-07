@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.13.5
+#       jupytext_version: 1.14.1
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -16,12 +16,17 @@
 
 # %% [markdown] tags=[]
 # # Search for addresses in all kinds of documents
+#
+# - generate addresses & non-address textblocks
+# - measure quality of algorithm
+# - identify mis-identified addresses
 
 # %% tags=[]
 # %load_ext autoreload
 # %autoreload 2
 # from pydoxtools import nlp_utils
-from pydoxtools import pdf_utils, classifier, nlp_utils
+from pathlib import Path
+from pydoxtools import pdf_utils, classifier, nlp_utils, cluster_utils, training
 from pydoxtools import webdav_utils as wu
 from pydoxtools.settings import settings
 import torch
@@ -48,7 +53,7 @@ def pretty_print(df):
 
 logger = logging.getLogger(__name__)
 
-box_cols = pdf_utils.box_cols
+box_cols = cluster_utils.box_cols
 
 tqdm.pandas()
 
@@ -90,18 +95,19 @@ nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.c
 # and test the model
 
 # %%
-label_file = settings.TRAINING_DATA_DIR / "labeled_txt_boxes.odf"
+TRAINING_DATA_DIR = Path("../../../componardolib/training_data").resolve() #settings.TRAINING_DATA_DIR
+label_file = TRAINING_DATA_DIR / "labeled_txt_boxes.xlsx"
 
 # %%
-df_labeled = pd.read_excel(label_file, engine="odf")
+df_labeled = pd.read_excel(label_file)
 
 # %%
-df_labeled
+df_labeled.label.unique()
 
 # %%
 import warnings
 warnings.filterwarnings('ignore')
-df = classifier.get_pdf_text_boxes()
+df = training.get_pdf_text_boxes()
 
 # %%
 model = classifier.load_classifier("text_block")

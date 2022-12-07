@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.13.6
+#       jupytext_version: 1.14.1
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -21,7 +21,7 @@
 # %load_ext autoreload
 # %autoreload 2
 # from pydoxtools import nlp_utils
-from pydoxtools import pdf_utils, classifier, nlp_utils
+from pydoxtools import pdf_utils, classifier, nlp_utils, cluster_utils, training
 from pydoxtools import webdav_utils as wu
 from pydoxtools.settings import settings
 import torch
@@ -47,7 +47,7 @@ def pretty_print(df):
 
 logger = logging.getLogger(__name__)
 
-box_cols = pdf_utils.box_cols
+box_cols = cluster_utils.box_cols
 
 tqdm.pandas()
 
@@ -103,7 +103,7 @@ if True:
 # %% tags=[]
 import warnings
 warnings.filterwarnings('ignore')
-df = classifier.load_labeled_text_blocks(cached=True)
+df = training.load_labeled_text_blocks(cached=True)
 
 # %%
 df

@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.13.6
+#       jupytext_version: 1.14.1
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
@@ -25,8 +25,10 @@
 # %% tags=[]
 # %load_ext autoreload
 # %autoreload 2
+from pathlib import Path
+
 # from pydoxtools import nlp_utils
-from pydoxtools import pdf_utils, classifier, nlp_utils, list_utils
+from pydoxtools import pdf_utils, classifier, nlp_utils, list_utils, cluster_utils, training
 from pydoxtools import webdav_utils as wu
 from pydoxtools.settings import settings
 import torch
@@ -56,7 +58,8 @@ def pretty_print(df):
 
 logger = logging.getLogger(__name__)
 
-box_cols = pdf_utils.box_cols
+
+box_cols = cluster_utils.box_cols
 
 tqdm.pandas()
 
@@ -103,10 +106,11 @@ def task(rh):
 
 max_files = -1
 parquet_dir = "html/page_solar"  # "pages.parquet"
+TRAINING_DATA_DIR = Path("../../../componardolib/training_data").resolve() #settings.TRAINING_DATA_DIR
 
 # %%
 html_text = list()
-filename = settings.TRAINING_DATA_DIR / "html_text.parquet"
+filename = TRAINING_DATA_DIR / "html_text.parquet"
 
 # %%
 if False:
@@ -131,20 +135,103 @@ if False:
 txt = classifier.generate_random_textblocks(filename)
 
 # %%
-if False:
+if True:
     df = pd.read_csv(
-        settings.DATADIR / "trainingdata/formatted_addresses_tagged.random.tsv",
+        "/home/tom/comcharax/data/trainingdata/formatted_addresses_tagged.random.tsv",
         sep="\t",
-        # nrows=100,
+        nrows=100,
         names=["country", "lang", "address"],
-        skiprows=lambda i: i > 0 and random.random() > 0.07
+        #skiprows=lambda i: i > 0 and random.random() > 0.5
     )
     #df.loc[address_len.index[:5]]
-    df = df.loc[df.address.str.len()<275]
-    df.to_parquet(settings.DATADIR / "random_addresses.parquet")
+    #df = df.loc[df.address.str.len()<275]
+    df.to_parquet("/home/tom/comcharax/data/trainingdata/random_addresses.parquet")
+
+# %%
+# !pip install overpass
+
+# %%
+import overpass
+#api = overpass.API(endpoint="http://lz4.overpass-api.de/api/",timeout=100, debug=True)
+api = overpass.API(timeout=2000, debug=True)
 
 # %% tags=[]
-df = classifier.get_address_collection()
+result = api.get("""
+area[name="Deutschland"];
+relation(area)["boundary"="administrative"][admin_level=4];
+""", responseformat="csv(name)")
+len(result),",".join(i[0] for i in result)
+
+# %%
+result = api.get("""
+area[name="Deutschland"];
+way(area)[highway][name];
+for (t["name"])
+(
+  make x name=_.val;
+  out; 
+);
+""", responseformat="csv(name)")
+
+# %% [markdown]
+# filter out addresses from ismand dataset
+
+# %%
+# #!pip install dask[complete]
+
+# %%
+import geopandas as gp
+import pandas as pd
+import fiona
+import dask
+import dask.bag as db
+import dask.dataframe as dd
+from dask.delayed import delayed
+
+# %%
+from dask.distributed import Client
+client = Client()
+
+# %%
+client
+
+# %%
+fn = "/home/tom/comcharax/data/trainingdata/osm/address_EPSG4326.gpkg"
+
+
+# %% [markdown]
+# convert addresses from osmdata.xyz
+
+# %%
+@delayed
+def fionapaginator(start,end):
+    print(f"processing {start,end}")
+    with fiona.open(fn) as src:
+        df = []
+        for item in src[start:end]:
+            df.append(item['properties'])
+    return pd.DataFrame(df)
+
+
+# %%
+size = 100000
+with fiona.open(fn) as src:
+    count = len(src)
+    print(f'count: {count}')
+    pagination = [(i,i+size) for i in range(0,len(src),size)]
+    i=next(src)
+    columns = {p:str for p in i['properties'].keys()}
+
+# %%
+df = dd.from_delayed([fionapaginator(start,end) for start,end in pagination])
+df = df.drop(columns=['osm_id','osm_timestamp','other_tags'])
+df.repartition(50).to_parquet("/home/tom/comcharax/data/trainingdata/osm_addresses.parquet")
+
+# %% [markdown]
+# load generated address dataset!
+
+# %% tags=[]
+df = training.get_address_collection()
 
 # %%
 #df
@@ -167,8 +254,3 @@ pretty_print(x)
 file = "file:///home/tom/Dropbox/company/src/pydoxtools/training_data/promptcloud-amazon-product-details/data/marketing_sample_for_amazon_com_ecommerce_products_details_20190601_20190630_30k_data.csv"
 file = "file:///home/tom/Dropbox/company/src/pydoxtools/training_data/promptcloud-amazon-product-details/original/marketing_sample_for_amazon_com-ecommerce_products_details__20190601_20190630__30k_data.csv/home/sdf/marketing_sample_for_amazon_com-ecommerce_products_details__20190601_20190630__30k_data.csv"
 df = pd.read_csv(file)
-
-# %%
-settings.TRA / "pdfs/datasheet/Datenblatt_PSL-Family.37.pdf"
-
-# %%

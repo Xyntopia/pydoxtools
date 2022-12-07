@@ -1,14 +1,14 @@
 import concurrent.futures
 import datetime
 import functools
+import logging
 import multiprocessing as mp
 import pickle
 import random
 import re
 import typing
+from functools import cached_property
 from pathlib import Path
-from typing import List
-import logging
 
 import numpy as np
 import pandas as pd
@@ -16,11 +16,11 @@ import pytorch_lightning
 import sklearn
 import torch
 import tqdm
-from pydoxtools import file_utils, pdf_utils, list_utils
-from pydoxtools.settings import settings
 
+from pydoxtools import file_utils, list_utils
 from pydoxtools.classifier import pdfClassifier, gen_meta_info_cached, \
     pageClassifier, _asciichars, txt_block_classifier
+from pydoxtools.settings import settings
 
 logger = logging.getLogger(__name__)
 memory = settings.get_memory_cache()
@@ -94,16 +94,8 @@ def load_labeled_pdf_files(label_subset=None) -> pd.DataFrame:
     return df
 
 
-def get_pdf_txt_box(fo):
-    try:
-        return pdf_utils.get_pdf_text_safe_cached(fo, boxes=True)
-    except:
-        logger.exception(f"we have a problem with {fo}")
-        return []
-
-
-@memory.cache
 def get_pdf_text_boxes(max_filenum: int = None, extended=False) -> pd.DataFrame:
+    raise NotImplementedError("oudated function")
     # get all pdf files in subdirectories
     files = file_utils.get_all_files_in_nested_subdirs(settings.TRAINING_DATA_DIR / "pdfs", "*.pdf")
     if extended:  # add more txtblock datasets
@@ -177,20 +169,55 @@ def generate_random_textblocks(filename, iterations=3):
     return txtboxes
 
 
-@memory.cache
-def fake_company_address_collection(size: int, fake_langs: List[str]) -> List[str]:
-    from faker import Faker
-    fake = Faker(fake_langs)
-    rc = random.choice
-    r = random.random
+class BusinessAddressGenerator:
+    def __init__(self, fake_langs):
+        """fake_langs can be something like:
+        ['en_US', 'de_DE', 'en_GB']...
+        """
+        from faker import Faker
+        import international_address_formatter
+        self._fake_langs = fake_langs or ['en_US', 'de_DE', 'en_GB']
+        self._countrycodes = {i: i[-2:] for i in self._fake_langs}
+        self._Faker = Faker
+        self._IAF = international_address_formatter
+        self._faker = Faker(self._fake_langs)
+        self._rc = random.choice
+        self._r = random.random
 
-    def gen_company_address():
+    @cached_property
+    def url_replace_regex(self):
+        return re.compile(r'[^A-Za-z0-9-_]')
+
+    def generate_url(self, company_name: str, tld: str) -> str:
+        # generate a random url
+        domain_name = f"{self.url_replace_regex.sub(self._rc([r'-', '']), company_name)}.{tld}"
+        # replace double-dashes
+        domain_name = re.sub(r'-+', '-', domain_name)
+        url: str = self._rc(["https://", "http://", "", ""]) \
+                   + self._rc(["www.", ""]) \
+                   + domain_name
+
+        if self._r() < 0.8:
+            url = url.lower()
+        # TODO: optionally add a path like "welcome" or "index" etc...
+        # TODO:  add some variations like "de" as a language selection instead of "www."
+        # TODO: remove "legal" company names from domain such as "GmbH",
+        return url
+
+    def __getitem__(self, id: int):
         # TODO: international addresses
         # TODO: more variations
-        urlreplace = re.compile(r'[^a-zA-Z0-9]+')
+        self._Faker.seed(id)
+        random.seed(id)
+        rc, r = self._rc, self._r
+        locale = rc(self._fake_langs)
+        country_code = self._countrycodes[locale]
+        fake = self._faker[locale]
         company: str = fake.company()
         phone = rc(["", "Phone ", "Phone: "]) + fake.phone_number()
         fax = rc(["", "fax ", "fax: "]) + fake.phone_number()
+        formatter = self._IAF.AddressFormatter("DE")
+
         if r() < 0.3:
             fax = fax.upper()
             phone = phone.upper()
@@ -199,17 +226,12 @@ def fake_company_address_collection(size: int, fake_langs: List[str]) -> List[st
             address=fake.address(),
             phone=phone,
             fax=fax,
-            www=rc(["http://", ""]) + rc(
-                ["www.", ""]) + f"{urlreplace.sub(rc([r'-', '']), company)}.{fake.tld()}"
+            www=self.generate_url(company, fake.tld())
         )
         # leave out every 5th line by random chance
         sep = rc(["\n", "; ", ", "])
         address = sep.join(line for line in parts.values() if r() > 0.3)
         return address
-
-    addresses = [gen_company_address() for i in tqdm.tqdm(range(size))]
-
-    return addresses
 
 
 def get_address_collection():
@@ -465,9 +487,10 @@ def random_string_augmenter(data: str, prob: float) -> str:
     return "".join(c if random.random() > prob else random.choice(_asciichars) for c in data)
 
 
-class TextBlockDataset(torch.utils.data.Dataset):
-    def __init__(self, rows, augment_prob: int = 0.0):
+class TextBlockGenerator(torch.utils.data.Dataset):
+    def __init__(self, generators, rows, augment_prob: int = 0.0):
         """augmentation is mainly used if we are training..."""
+        self._generators = generators
         self.rows = rows.reset_index(drop=True)
         self.augment = augment_prob
 
@@ -508,8 +531,8 @@ def prepare_textblock_training(num_workers: int = 4):
     )
 
     # give training dataset some augmentation...
-    train_dataset = TextBlockDataset(df_train, augment_prob=1.0 / 50.0)
-    test_dataset = TextBlockDataset(df_test)
+    train_dataset = TextBlockGenerator(generators=[], rows=df_train, augment_prob=1.0 / 50.0)
+    test_dataset = TextBlockGenerator(generators=[], rows=df_test)
     train_loader = torch.utils.data.DataLoader(
         dataset=train_dataset,
         batch_size=2 ** 9,

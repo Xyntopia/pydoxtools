@@ -7,12 +7,20 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.13.5
+#       jupytext_version: 1.14.1
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
 #     name: python3
 # ---
+
+# %% [markdown]
+# test methods how to extract textblocks that make sense from unstructured files such as PDFs
+#
+# - for exampe textblocks that are separated from the actual text
+# - individual paragraphs
+# - address boxes
+# - other context boxes..
 
 # %% tags=[]
 # %load_ext autoreload

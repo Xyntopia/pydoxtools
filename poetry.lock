@@ -829,6 +829,18 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "international-address-formatter"
+version = "1.0.2"
+description = "International address formatter"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+pystache = ">=0.5"
+PyYAML = ">=5.0"
+
+[[package]]
 name = "ipykernel"
 version = "6.15.1"
 description = "IPython Kernel for Jupyter"
@@ -2038,6 +2050,18 @@ optional = false
 python-versions = ">=3.7"
 
 [[package]]
+name = "pystache"
+version = "0.6.0"
+description = "Mustache for Python"
+category = "dev"
+optional = false
+python-versions = ">=3.6"
+
+[package.extras]
+cov = ["coverage", "coverage_python_version"]
+test = ["nose"]
+
+[[package]]
 name = "pytest"
 version = "7.1.2"
 description = "pytest: simple powerful testing with Python"
@@ -3086,7 +3110,7 @@ training = ["fastparquet", "pdfminer.six", "pandas", "spacy", "scikit-learn", "t
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.12" # python version constraints are caused by scipy
-content-hash = "e573cbe5b8b1cf3b5175d45cd010a15ee5fcd50bc58ee834cafa9d7f6c633fa2"
+content-hash = "2467e5021bc9567c067e09cd9bde54c2f6a534e6194fb9075bf7d1489d64af4a"
 
 [metadata.files]
 absl-py = [
@@ -3824,6 +3848,10 @@ inflect = [
 iniconfig = [
     {file = "iniconfig-1.1.1-py2.py3-none-any.whl", hash = "sha256:011e24c64b7f47f6ebd835bb12a743f2fbe9a26d4cecaa7f53bc4f35ee9da8b3"},
     {file = "iniconfig-1.1.1.tar.gz", hash = "sha256:bc3af051d7d14b2ee5ef9969666def0cd1a000e121eaea580d4a313df4b37f32"},
+]
+international-address-formatter = [
+    {file = "international_address_formatter-1.0.2-py3-none-any.whl", hash = "sha256:93bce95766c951809a4cf2952d33f5d90e1c3812c4fa646f4606a2c7733ace6d"},
+    {file = "international_address_formatter-1.0.2.tar.gz", hash = "sha256:d875b9d191cfd0e5027b7eef71927c40416e7d6661d38e461f8176a32bdf6984"},
 ]
 ipykernel = [
     {file = "ipykernel-6.15.1-py3-none-any.whl", hash = "sha256:d8969c5b23b0e453a23166da5a669c954db399789293fcb03fec5cb25367e43c"},
@@ -4715,6 +4743,9 @@ pyrsistent = [
     {file = "pyrsistent-0.18.1-cp39-cp39-win32.whl", hash = "sha256:1b34eedd6812bf4d33814fca1b66005805d3640ce53140ab8bbb1e2651b0d9bc"},
     {file = "pyrsistent-0.18.1-cp39-cp39-win_amd64.whl", hash = "sha256:e24a828f57e0c337c8d8bb9f6b12f09dfdf0273da25fda9e314f0b684b415a07"},
     {file = "pyrsistent-0.18.1.tar.gz", hash = "sha256:d4d61f8b993a7255ba714df3aca52700f8125289f84f704cf80916517c46eb96"},
+]
+pystache = [
+    {file = "pystache-0.6.0.tar.gz", hash = "sha256:93bf92b2149a4c4b58d12142e2c4c6dd5c08d89e4c95afccd4b6efe2ee1d470d"},
 ]
 pytest = [
     {file = "pytest-7.1.2-py3-none-any.whl", hash = "sha256:13d0e3ccfc2b6e26be000cb6568c832ba67ba32e719443bfe725814d3c42433c"},
