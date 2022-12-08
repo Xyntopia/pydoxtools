@@ -141,35 +141,58 @@ def rand_chars(char_dict: dict) -> typing.Callable[[], str]:
     return rand_func
 
 
-@memory.cache
-def generate_random_textblocks(filename, iterations=3):
-    """load a list of random textpieces from a parquet file
-    and generate augmented textblocks from it..."""
+class GeneratorMixin:
+    def __getitem__(self, ids: list[int] | int):
+        return self(ids)
 
-    def weibull_ints():
-        k = 1.4  # scale
-        l = 8  # shape
+    def __call__(self, ids: list[int] | int) -> str | list[str]:
+        # TODO: international addresses
+        # TODO: more variations
+        if isinstance(ids, list):
+            return [self.single(id) for id in ids]
+        else:
+            return self.single(ids)
+
+
+def weibull_ints(k=1.4, l=8, rand=None):
+    # k = scale, l = shape
+    # this function helps us o generate a "realistic" distribution of textblock sizes
+    if rand:
+        return int(rand.weibullvariate(l, k))
+    else:
         return int(random.weibullvariate(l, k))
 
-    separators = {
-        " ": 10, ",": 2, "\n": 4, ";": 2, " |": 1,
-        ":": 1, "/": 1
-    }
-    rand_seps = rand_chars(separators)
 
-    txtboxes = set()
-    for n in range(iterations):
-        # as we are doing a random process we can run this in multiple iterations
-        # producing completly different textblocks
-        for txt in tqdm.tqdm(pd.read_parquet(filename).txt):
+class RandomTextBlockGenerator(GeneratorMixin):
+    def __init__(self):
+        self._f = f = open("/home/tom/comcharax/data/raw_text/all_text.txt", "rb")
+        self._max_size = f.seek(0, 2)
+        self._separators = {
+            " ": 10, ",": 2, "\n": 4, ";": 2, " |": 1,
+            ":": 1, "/": 1
+        }
+
+    def single(self, id, mix_blocks=1):
+        rand = random.Random(id)
+        txt_len = weibull_ints(l=100, rand=rand)
+        r1 = rand.randrange(0, self._max_size - txt_len)
+        r2 = rand.randrange(0, self._max_size - txt_len)
+        s1 = self._f.seek(r1)
+        txt1 = self._f.read(txt_len).decode('utf-8', errors='ignore')
+        if mix_blocks > 1:  # TODO: imple,ent this
+            raise NotImplementedError
+            s2 = self._f.seek(r2)
+            txt2 = self._f.read(txt_len).decode('utf-8', errors='ignore')
             randtxt = [rand_seps().join(r) for r in
                        list_utils.random_chunks(txt.split(), weibull_ints)]
-            txtboxes.update(randtxt)
 
-    return txtboxes
+            rand_seps = rand_chars(separators)
+
+        # add random seperators:
+        return txt1
 
 
-class BusinessAddressGenerator:
+class BusinessAddressGenerator(GeneratorMixin):
     def __init__(self, fake_langs):
         """fake_langs can be something like:
         ['en_US', 'de_DE', 'en_GB']...
@@ -181,35 +204,42 @@ class BusinessAddressGenerator:
         self._Faker = Faker
         self._IAF = international_address_formatter
         self._faker = Faker(self._fake_langs)
-        self._rc = random.choice
-        self._r = random.random
 
     @cached_property
     def url_replace_regex(self):
         return re.compile(r'[^A-Za-z0-9-_]')
 
-    def generate_url(self, company_name: str, tld: str) -> str:
+    def generate_url(self, rand: random.Random, company_name: str, tld: str) -> str:
         # generate a random url
-        domain_name = f"{self.url_replace_regex.sub(self._rc([r'-', '']), company_name)}.{tld}"
+        # remove "gmbh etc..  from company name
+        company_name = company_name.lower()
+        if rand.random() < 0.8:
+            for i in ["gmbh", "& co. kg", "& co. ohg", "ohg", "inc", "ltd", "llc", "kgaa", "e.v.", "plc", "kg"]:
+                company_name = company_name.replace(i, " ")
+
+        safe_company_name = self.url_replace_regex.sub(rand.choice([r'-', '']), company_name).strip("-")
+        domain_name = f"{safe_company_name}.{tld}"
         # replace double-dashes
         domain_name = re.sub(r'-+', '-', domain_name)
-        url: str = self._rc(["https://", "http://", "", ""]) \
-                   + self._rc(["www.", ""]) \
+        url: str = rand.choice(["https://", "http://", "", ""]) \
+                   + rand.choice(["www.", ""]) \
                    + domain_name
 
-        if self._r() < 0.8:
+        r = rand.random()
+        if r < 0.7:
             url = url.lower()
+        elif r < 0.8:
+            url = url.upper()
+        # TODO: randomly write words with upper cases, trow in some upper case letters etc...
         # TODO: optionally add a path like "welcome" or "index" etc...
         # TODO:  add some variations like "de" as a language selection instead of "www."
         # TODO: remove "legal" company names from domain such as "GmbH",
         return url
 
-    def __getitem__(self, id: int):
-        # TODO: international addresses
-        # TODO: more variations
+    def single(self, id: int) -> str:
         self._Faker.seed(id)
-        random.seed(id)
-        rc, r = self._rc, self._r
+        rand = random.Random(id)
+        rc, r = rand.choice, rand.random
         locale = rc(self._fake_langs)
         country_code = self._countrycodes[locale]
         fake = self._faker[locale]
@@ -218,6 +248,7 @@ class BusinessAddressGenerator:
         fax = rc(["", "fax ", "fax: "]) + fake.phone_number()
         formatter = self._IAF.AddressFormatter("DE")
 
+        # TODO: use better address genereation, making use of osmand data
         if r() < 0.3:
             fax = fax.upper()
             phone = phone.upper()
@@ -226,11 +257,17 @@ class BusinessAddressGenerator:
             address=fake.address(),
             phone=phone,
             fax=fax,
-            www=self.generate_url(company, fake.tld())
+            www=self.generate_url(rand, company, fake.tld())
         )
-        # leave out every 5th line by random chance
+        # leave out every n_th line by random chance
         sep = rc(["\n", "; ", ", "])
-        address = sep.join(line for line in parts.values() if r() > 0.3)
+        # randomly switch certain address lines for ~10%
+        parts = list(parts.values())
+        if r() < 0.1:
+            a, b = random.randrange(0, len(parts)), random.randrange(0, len(parts))
+            parts[a], parts[b] = parts[b], parts[a]
+
+        address = sep.join(line for line in parts if r() > 0.3)
         return address
 
 
@@ -283,21 +320,6 @@ def load_labeled_text_blocks(cached=True):
         addresses, on=['txt'], how="outer", suffixes=(None, "lbld"), indicator=True
     ).query('_merge=="left_only"')[df1.columns]  # finally filter out addresses
     df1['class'] = "unknown"
-
-    # TODO: make sure to select only the languages that alsoappear in txtboxes in order
-    #       to have a balanced dataset...
-    df2 = get_address_collection()
-
-    # langs = ("de", "us", "en")
-    # df2 = df2[df2.lang.isin(langs)].copy()
-    # make sure num of addresses equals num of textblocks to get a balanced
-    # training set
-    # in order to have a large number of addresses we triple the number
-    multiplicator = 3
-    if len(df2) > len(df1) * multiplicator:
-        df2 = df2.sample(len(df1) * multiplicator)
-    else:
-        df1 = df1.sample(len(df2))
 
     logger.info("augment address database")
     # TODO: randomize FSEP and SEP fields for more training data

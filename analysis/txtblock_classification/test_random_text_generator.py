@@ -14,17 +14,16 @@
 #     name: python3
 # ---
 
-# %% [markdown] tags=[]
-# # Train the Textblock classifier
-
 # %% tags=[]
 # %load_ext autoreload
 # %autoreload 2
 # from pydoxtools import nlp_utils
-from pydoxtools import pdf_utils, classifier, nlp_utils, cluster_utils, training
+from pydoxtools import pdf_utils, classifier, nlp_utils, cluster_utils, training, file_utils
 from pydoxtools import webdav_utils as wu
 from pydoxtools.settings import settings
 import torch
+import gzip
+import bgzip
 from IPython.display import display
 import re
 import random
@@ -57,13 +56,27 @@ memory = settings.get_memory_cache()
 nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.cudnn.version()
 
 # %%
-gen = training.BusinessAddressGenerator(fake_langs=['en_US', 'de_DE', 'en_GB'])
+if False: #merge wet files from common crawl into a single string
+    dn ="/home/tom/comcharax/data/raw_text"
+    fs = file_utils.get_all_files_in_nested_subdirs(dn, '*.wet')
+    merged_txt = ""
+    for fn in fs:
+        with open(fn) as f:
+            txt = f.read()
+            merged_txt+=re.sub("WARC\/1\.0(\n(WARC|Content)[^\n]*)+","",txt)
 
 # %%
-gen[10002100]
+if False: #save as binary text file
+    with open("/home/tom/comcharax/data/raw_text/all_text.txt","wb") as f:
+        f.write(merged_txt.encode('utf-8'))
 
 # %%
-addr = gen[[random.random() for i in range(20)]]
-for a in addr: print(f"{a}\n")
+tg = training.RandomTextBlockGenerator()
+
+# %%
+#txt = tg([random.random() for i in range(10)])
+txt = tg(list(range(10)))
+for t in txt:
+    print(f"{t}\n")
 
 # %%

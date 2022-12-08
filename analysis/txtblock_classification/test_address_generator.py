@@ -63,7 +63,7 @@ gen = training.BusinessAddressGenerator(fake_langs=['en_US', 'de_DE', 'en_GB'])
 gen[10002100]
 
 # %%
-addr = gen[[random.random() for i in range(20)]]
+addr = [gen[random.random()] for i in range(20)]
 for a in addr: print(f"{a}\n")
 
 # %%
