@@ -1,11 +1,11 @@
-import concurrent.futures
+import datetime
 import datetime
 import functools
 import logging
-import multiprocessing as mp
 import pickle
 import random
 import re
+import time
 import typing
 from functools import cached_property
 from pathlib import Path
@@ -15,7 +15,6 @@ import pandas as pd
 import pytorch_lightning
 import sklearn
 import torch
-import tqdm
 
 from pydoxtools import file_utils, list_utils
 from pydoxtools.classifier import pdfClassifier, gen_meta_info_cached, \
@@ -92,32 +91,6 @@ def load_labeled_pdf_files(label_subset=None) -> pd.DataFrame:
 
     df['class'] = df['class'].astype("category")
     return df
-
-
-def get_pdf_text_boxes(max_filenum: int = None, extended=False) -> pd.DataFrame:
-    raise NotImplementedError("oudated function")
-    # get all pdf files in subdirectories
-    files = file_utils.get_all_files_in_nested_subdirs(settings.TRAINING_DATA_DIR / "pdfs", "*.pdf")
-    if extended:  # add more txtblock datasets
-        files += file_utils.get_all_files_in_nested_subdirs(settings.DATADIR / "pdfs", "*.pdf")
-
-    logger.info("now loading pdfs and generating text blocks...")
-
-    txtboxes = set()
-    with concurrent.futures.ProcessPoolExecutor(mp_context=mp.get_context('spawn')) as executor:
-        for fn, txtbox_list in zip(files, tqdm.tqdm(executor.map(
-                # pdf_utils.get_pdf_text_safe_cached, files[:max_filenum]
-                get_pdf_txt_box,
-                files[:max_filenum]
-        ))):
-            txtboxes.update((tb, fn) for tb in txtbox_list)
-
-    # no cuncurrency
-    # for pdf_file in tqdm.tqdm(files[:max_filenum]):
-    #    boxes = pdf_utils.get_pdf_text_safe_cached(pdf_file, boxes=True)
-    #    txtboxes.extend(boxes)
-    txtboxes = pd.DataFrame(txtboxes, columns=["txt", "filename"])
-    return txtboxes
 
 
 def rand_chars(char_dict: dict) -> typing.Callable[[], str]:
@@ -269,25 +242,6 @@ class BusinessAddressGenerator(GeneratorMixin):
 
         address = sep.join(line for line in parts if r() > 0.3)
         return address
-
-
-def get_address_collection():
-    """
-
-    this is how we are generating this collection:
-
-    df = pd.read_csv(
-        settings.trainingdir / "formatted_addresses_tagged.random.tsv",
-        sep="\t",
-        # nrows=100,
-        names=["country", "lang", "address"],
-        skiprows=lambda i: i > 0 and random.random() > 0.01
-    )
-    df.to_parquet(settings.trainingdir / "random_addresses.parquet")
-    """
-
-    df = pd.read_parquet(settings.DATADIR / "random_addresses.parquet")
-    return df
 
 
 def load_labeled_text_blocks(cached=True):
@@ -509,25 +463,47 @@ def random_string_augmenter(data: str, prob: float) -> str:
     return "".join(c if random.random() > prob else random.choice(_asciichars) for c in data)
 
 
-class TextBlockGenerator(torch.utils.data.Dataset):
-    def __init__(self, generators, rows, augment_prob: int = 0.0):
+class TextBlockGenerator(torch.utils.data.IterableDataset):
+    def __init__(self, generators: dict[str, typing.Any], augment_prob: int = 0.0):
         """augmentation is mainly used if we are training..."""
         self._generators = generators
-        self.rows = rows.reset_index(drop=True)
         self.augment = augment_prob
+        self.random = random.Random(time.time())  # get our own random number generator
 
-    def __getitem__(self, i):
-        # we use some augmentation for our dataset here to make the classifier more robust...
-        # maybe include epsilon into our hyperparametr list?
-        x, y = self.rows.loc[i][['txt', 'class_num']].to_list()
+    @cached_property
+    def class_gen(self):
+        return list(self._generators.values())
+
+    @cached_property
+    def num_generators(self):
+        return len(self._generators)
+
+    @cached_property
+    def classmap(self):
+        return dict(enumerate(self._generators.keys()))
+
+    def single(self, i):
+        # TODO: introduce some caching mechanisms..   provide already cached data over time and
+        #       introduce new samples at a 1% rate or smoething like that to improve speed...
         # we don't need to return x as a "list", as our textblock model accepts a list of strings directly
+        # randomly choose a generator for a certain class
+        y = self.random.randint(0, self.num_generators - 1)
+        # generate random input data for the class to be predicted
+        x = self.class_gen[y](i)
+
         if self.augment:
+            # we use some augmentation for our dataset here to make the classifier more robust...
             return random_string_augmenter(x, prob=self.augment), torch.tensor(y)
         else:
             return x, torch.tensor(y)
 
-    def __len__(self):
-        return len(self.rows)
+    def __iter__(self):
+        for i in range(100000000000000):
+            yield self.single(i)
+
+
+def __len__(self):
+    return len(self.rows)
 
 
 @functools.lru_cache()
@@ -540,7 +516,7 @@ def prepare_textblock_training(num_workers: int = 4):
     TODO: we also need to detect the pdf langauge in order
           to have a balances dataset with addresses from different countries
     """
-
+    # TODO: replace this "labeled" xt blocks iwth metadata from TextBlockGenerator initialization
     df = load_labeled_text_blocks()
     df['class_num'] = df['class'].astype("category").cat.codes.tolist()
     classes = df['class'].astype("category").cat.categories.tolist()
@@ -553,8 +529,8 @@ def prepare_textblock_training(num_workers: int = 4):
     )
 
     # give training dataset some augmentation...
-    train_dataset = TextBlockGenerator(generators=[], rows=df_train, augment_prob=1.0 / 50.0)
-    test_dataset = TextBlockGenerator(generators=[], rows=df_test)
+    train_dataset = TextBlockGenerator(generators={}, augment_prob=1.0 / 50.0)
+    test_dataset = TextBlockGenerator(generators={}, )
     train_loader = torch.utils.data.DataLoader(
         dataset=train_dataset,
         batch_size=2 ** 9,

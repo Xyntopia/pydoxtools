@@ -58,12 +58,23 @@ nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.c
 
 # %%
 gen = training.BusinessAddressGenerator(fake_langs=['en_US', 'de_DE', 'en_GB'])
+tg = training.RandomTextBlockGenerator()
+bg = training.TextBlockGenerator(generators=dict(
+    address=gen,
+    text=tg
+),augment_prob=0.0)
 
 # %%
-gen[10002100]
+bg.classmap, bg.num_generators
 
 # %%
-addr = gen[[random.random() for i in range(20)]]
-for a in addr: print(f"{a}\n")
+bgi=bg.__iter__()
 
 # %%
+# %%timeit
+addr = [next(bgi) for i in range(64)]
+#for a in addr: print(f"{a}\n")
+
+# %%
+#3.16s for 10k samples:
+tha would be ~3.16s for a 10k batch thats pretty good...
