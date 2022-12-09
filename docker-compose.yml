@@ -2,11 +2,12 @@ version: '3.6'
 
 services:
   trainer:
+    #BUILDKIT_PROGRESS=plain COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build trainer
     #image: registry.gitlab.com/componardo/pydoxtools/pydoxtoolstrainer:latest
     image: yeus/pydoxtools:latest
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: ./Dockerfile.nvidia
     # command: [ "jupyter", "lab", "--allow-root", "--ip", "0.0.0.0", "--no-browser"]
     ports:
       - 8888:8888 # jupyters
