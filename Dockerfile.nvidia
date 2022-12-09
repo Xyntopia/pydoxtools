@@ -10,7 +10,7 @@
 ARG PROJECT_DIR="/project"
 ARG PROJECT_NAME="pydoxtools"
 
-FROM nvidia/cuda:11.3.1-cudnn8-runtime-ubuntu20.04 as python-base
+FROM nvidia/cuda:11.7.1-cudnn8-runtime-ubuntu22.04 as python-base
 # compatible with pytorch1.10.1cu113
 
 ARG PROJECT_DIR
@@ -41,7 +41,7 @@ RUN apt-get update && \
     iputils-ping build-essential \
     curl g++ wget\
     git \
-    python3-minimal python3-pip\
+    python3-minimal python3-pip python3-dev\
     && pip install -U pip \
     && apt-get clean autoclean \
     && apt-get autoremove --yes \
@@ -113,7 +113,6 @@ COPY ./$PROJECT_NAME ${PROJECT_DIR}/$PROJECT_NAME
 # due to multiprocessing
 # RUN python -c 'from pydoxtools import classifier; classifier.load_labeled_text_blocks()'
 
-#RUN mkdir $HOME/comcharax
-WORKDIR "${PROJECT_DIR}/analysis"
-#CMD ["uvicorn", "comcharax_restfulapi:app", "--host", "0.0.0.0", "--port", "5000", "--log-level", "info"]
-
+WORKDIR "${PROJECT_DIR}"
+ENV TOKENIZERS_PARALLELISM=true
+ENTRYPOINT [ "jupyter", "lab", "--allow-root", "--ip", "0.0.0.0", "--no-browser" ]

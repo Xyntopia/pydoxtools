@@ -105,7 +105,7 @@ res
 # %% tags=[]
 import warnings
 warnings.filterwarnings('ignore')
-label_file = Path("../../../componardolib/training_data/labeled_txt_boxes.xlsx")
+label_file = Path("../../training_data/labeled_txt_boxes.xlsx")
 df = pd.read_excel(label_file)
 df['class']=df['label']
 df = df.fillna(" ")
@@ -125,9 +125,6 @@ weights
 
 # %%
 pretty_print(df[df["class"] == "address"].sample(10))
-
-# %%
-df['class'].value_counts()
 
 # %% [markdown]
 # start training

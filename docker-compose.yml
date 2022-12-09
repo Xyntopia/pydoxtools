@@ -2,6 +2,10 @@ version: '3.6'
 
 services:
   trainer:
+    # this trainer can be used on vast.ai
+    # use the following options:
+    #
+
     #BUILDKIT_PROGRESS=plain COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build trainer
     #image: registry.gitlab.com/componardo/pydoxtools/pydoxtoolstrainer:latest
     image: yeus/pydoxtools:latest

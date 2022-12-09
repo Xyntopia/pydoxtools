@@ -138,7 +138,7 @@ def weibull_ints(k=1.4, l=8, rand=None):
 
 class RandomTextBlockGenerator(GeneratorMixin):
     def __init__(self):
-        self._f = f = open("/home/tom/comcharax/data/raw_text/all_text.txt", "rb")
+        self._f = f = open(settings.TRAINING_DATA_DIR / "all_text.txt", "rb")
         self._max_size = f.seek(0, 2)
         self._separators = {
             " ": 10, ",": 2, "\n": 4, ";": 2, " |": 1,
