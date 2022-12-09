@@ -27,6 +27,7 @@ from pydoxtools.settings import settings
 import torch
 from IPython.display import display
 import re
+from pathlib import Path
 import random
 import pytorch_lightning
 import logging
@@ -77,8 +78,8 @@ nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.c
 
 # %%
 if True:
-    _,_,m = classifier.prepare_textblock_training()
-    m.predict_proba(["""ex king ltd
+    _,_,m = training.prepare_textblock_training()
+    res =m.predict_proba(["""ex king ltd
     Springfield Gardens
     Queens
     N. Y 11413
@@ -91,6 +92,7 @@ if True:
          www.something.com
          """
      ])
+res
 
 # %% [markdown]
 # TODO: its probabybl a ood idea to use some hyperparemeter optimization in order to find out what is the best method here...
@@ -103,10 +105,10 @@ if True:
 # %% tags=[]
 import warnings
 warnings.filterwarnings('ignore')
-df = training.load_labeled_text_blocks(cached=True)
-
-# %%
-df
+label_file = Path("../../../componardolib/training_data/labeled_txt_boxes.xlsx")
+df = pd.read_excel(label_file)
+df['class']=df['label']
+df = df.fillna(" ")
 
 # %%
 count = df["class"].value_counts()
@@ -130,12 +132,28 @@ df['class'].value_counts()
 # %% [markdown]
 # start training
 
+# %%
+# evaluate prediction
+train_loader, test_loader, model = training.prepare_textblock_training(4)
+dfl=df.txt.to_list()
+y_pred = model.predict(dfl)
+y_true = df["class"].replace(dict(
+    contact="unknown",
+    directions="unknown",
+    company="unknown",
+    country="unknown"
+))
+target_names = list(model.classmap_.values())
+
+from sklearn.metrics import classification_report
+print(classification_report(y_true, y_pred, target_names=target_names))
+
 # %% tags=[]
 # %env TOKENIZERS_PARALLELISM=true
 hostname = 'https://www.rosemesh.net'
 token = "ckzRbLYQRsBnSPr"
 syncpath = str(settings.MODEL_DIR)
-upload = True
+upload = False
 
 class WebdavSyncCallback(pytorch_lightning.Callback):
     def on_train_epoch_start(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
@@ -145,9 +163,7 @@ additional_callbacks = []
 if upload:
     additional_callbacks = [WebdavSyncCallback()]
 
-trainer, model = classifier.train_text_block_classifier(
+trainer, model = training.train_text_block_classifier(
     num_workers=4,
     max_epochs=100, gpus=1, callbacks=additional_callbacks
 )
-
-# %%

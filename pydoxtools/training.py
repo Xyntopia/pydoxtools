@@ -253,10 +253,7 @@ class BusinessAddressGenerator(GeneratorMixin):
         # leave out every n_th line by random chance
         # df2 = pd.concat([df2])
         # sep2_choices = {", ": 2, "; ": 1, " | ": 1}
-        # try:
-        #    sep2_choices.pop(sep1)  # make sure its different from first separator
-        # except:
-        #    pass
+        # sep2_choices.pop(sep1, 0)  # make sure its different from first separator
         # sep2 = rand_chars(sep2_choices)
 
         # randomly switch certain address lines for ~10%
@@ -462,22 +459,18 @@ def prepare_textblock_training(num_workers: int = 4):
     TODO: we also need to detect the pdf langauge in order
           to have a balances dataset with addresses from different countries
     """
-    label_file = settings.TRAINING_DATA_DIR / "labeled_txt_boxes.xlsx"
-    df_labeled = pd.read_excel(label_file)
-
-    df['class_num'] = df['class'].astype("category").cat.codes.tolist()
-    classes = df['class'].astype("category").cat.categories.tolist()
-    classmap = dict(enumerate(classes))
-    logger.info(f"extracted classes: {classmap}")
-    model = txt_block_classifier(classmap)
-
-    df_train, df_test = sklearn.model_selection.train_test_split(
-        df, test_size=0.2, random_state=69
-    )
+    # TODO: build a "validation" loader with df_labeled...
+    #label_file = settings.TRAINING_DATA_DIR / "labeled_txt_boxes.xlsx"
+    #df_labeled = pd.read_excel(label_file)
 
     # give training dataset some augmentation...
-    train_dataset = TextBlockGenerator(generators={}, augment_prob=1.0 / 50.0)
-    test_dataset = TextBlockGenerator(generators={}, )
+    generators = dict(
+        address=BusinessAddressGenerator(fake_langs=['en_US', 'de_DE', 'en_GB']),
+        unknown=RandomTextBlockGenerator()
+    )
+
+    train_dataset = TextBlockGenerator(generators=generators, augment_prob=1.0 / 50.0)
+    test_dataset = TextBlockGenerator(generators=generators, augment_prob=0.0)
     train_loader = torch.utils.data.DataLoader(
         dataset=train_dataset,
         batch_size=2 ** 9,
@@ -490,6 +483,11 @@ def prepare_textblock_training(num_workers: int = 4):
         num_workers=num_workers
         # sampler=weighted_sampler
     )
+
+    classmap = train_dataset.classmap
+    logger.info(f"extracted classes: {classmap}")
+    model = txt_block_classifier(classmap)
+
     return train_loader, test_loader, model
 
 

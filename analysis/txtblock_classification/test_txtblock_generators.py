@@ -57,14 +57,10 @@ memory = settings.get_memory_cache()
 nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.cudnn.version()
 
 # %%
-gen = training.BusinessAddressGenerator(fake_langs=['en_US', 'de_DE', 'en_GB'])
-tg = training.RandomTextBlockGenerator()
 bg = training.TextBlockGenerator(generators=dict(
-    address=gen,
-    unknown=tg
-),augment_prob=0.0)
-
-# %%
+    address=training.BusinessAddressGenerator(fake_langs=['en_US', 'de_DE', 'en_GB']),
+    unknown=training.RandomTextBlockGenerator()
+),augment_prob=0.05)
 bg.classmap, bg.num_generators
 
 # %%
