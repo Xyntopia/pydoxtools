@@ -1,4 +1,5 @@
-import datetime
+import collections
+import collections
 import datetime
 import functools
 import logging
@@ -145,14 +146,14 @@ class RandomTextBlockGenerator(GeneratorMixin):
             ":": 1, "/": 1
         }
 
-    def single(self, id, mix_blocks=1):
-        rand = random.Random(id)
+    def single(self, seed, mix_blocks=1):
+        rand = random.Random(seed)
         txt_len = weibull_ints(l=100, rand=rand)
         r1 = rand.randrange(0, self._max_size - txt_len)
         r2 = rand.randrange(0, self._max_size - txt_len)
         s1 = self._f.seek(r1)
         txt1 = self._f.read(txt_len).decode('utf-8', errors='ignore')
-        if mix_blocks > 1:  # TODO: imple,ent this
+        if mix_blocks > 1:  # TODO: implement this
             raise NotImplementedError
             s2 = self._f.seek(r2)
             txt2 = self._f.read(txt_len).decode('utf-8', errors='ignore')
@@ -213,9 +214,9 @@ class BusinessAddressGenerator(GeneratorMixin):
         # TODO: remove "legal" company names from domain such as "GmbH",
         return url
 
-    def single(self, id: int) -> str:
-        self._Faker.seed(id)
-        rand = random.Random(id)
+    def single(self, seed) -> str:
+        self._Faker.seed(seed)
+        rand = random.Random(seed)
         rc, r = rand.choice, rand.random
         locale = rc(self._fake_langs)
         country_code = self._countrycodes[locale]
@@ -407,11 +408,26 @@ def random_string_augmenter(data: str, prob: float) -> str:
 
 
 class TextBlockGenerator(torch.utils.data.IterableDataset):
-    def __init__(self, generators: dict[str, typing.Any], augment_prob: int = 0.0):
-        """augmentation is mainly used if we are training..."""
+    def __init__(
+            self,
+            generators: dict[str, typing.Any],
+            augment_prob: float = 0.0,
+            cache_size: int = 10000,
+            renew_num: int = 1000,
+    ):
+        """
+        augment_prop: augmentation is mainly used if we are training making the random samples more iverse with
+                        random letters etc....
+
+        cache_size: Maximum cache size. The cache is used to speed up the random generator
+                    by reusing old generated sample every loop
+        renew_num: number of elements of the cache to be replaces on every iteration
+        """
         self._generators = generators
         self.augment = augment_prob
         self.random = random.Random(time.time())  # get our own random number generator
+        self._cache_size = cache_size
+        self._renew_num = renew_num
 
     @cached_property
     def class_gen(self):
@@ -425,14 +441,14 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
     def classmap(self):
         return dict(enumerate(self._generators.keys()))
 
-    def single(self, i):
+    def single(self, seed):
         # TODO: introduce some caching mechanisms..   provide already cached data over time and
         #       introduce new samples at a 1% rate or smoething like that to improve speed...
         # we don't need to return x as a "list", as our textblock model accepts a list of strings directly
         # randomly choose a generator for a certain class
         y = self.random.randint(0, self.num_generators - 1)
         # generate random input data for the class to be predicted
-        x = self.class_gen[y](i)
+        x = self.class_gen[y](seed)
 
         if self.augment:
             # we use some augmentation for our dataset here to make the classifier more robust...
@@ -441,8 +457,17 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
             return x, torch.tensor(y)
 
     def __iter__(self):
-        for i in range(100000000000000):
-            yield self.single(i)
+        # initialize cache with random samples
+        cache = collections.deque(
+            (self.single(
+                seed=self.random.random()) for i in range(self._cache_size)),
+            maxlen=self._cache_size)
+        while True:
+            # serve all sample currently in cache
+            yield from cache
+            # add new samples to the cache collections deque automatically drops old samples
+            # that exceed _cache_size
+            cache.extend(self.single(seed=self.random.random()) for i in range(self._renew_num))
 
 
 def __len__(self):
@@ -460,8 +485,8 @@ def prepare_textblock_training(num_workers: int = 4):
           to have a balances dataset with addresses from different countries
     """
     # TODO: build a "validation" loader with df_labeled...
-    #label_file = settings.TRAINING_DATA_DIR / "labeled_txt_boxes.xlsx"
-    #df_labeled = pd.read_excel(label_file)
+    # label_file = settings.TRAINING_DATA_DIR / "labeled_txt_boxes.xlsx"
+    # df_labeled = pd.read_excel(label_file)
 
     # give training dataset some augmentation...
     generators = dict(

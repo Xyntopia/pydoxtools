@@ -60,22 +60,23 @@ nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.c
 bg = training.TextBlockGenerator(generators=dict(
     address=training.BusinessAddressGenerator(fake_langs=['en_US', 'de_DE', 'en_GB']),
     unknown=training.RandomTextBlockGenerator()
-),augment_prob=0.05)
+),augment_prob=0.05, cache_size=100,renew_num=10)
 bg.classmap, bg.num_generators
 
 # %%
 bgi=bg.__iter__()
 
 # %%
-# #%%timeit
-addr = [next(bgi) for i in range(64)]
+# %%timeit
+addr = [next(bgi) for i in range(1000)]
 #for a in addr: print(f"{a}\n")
 
-# %%
-addr
-
-# %%
-#3.16s for 10k samples:
-tha would be ~3.16s for a 10k batch thats pretty good...
+# %% [markdown]
+# progression:
+#
+# - 144ms/1k
+# - 140ms/1k with 100/100
+# - 79ms/1k with 100/50
+# - 14.1ms/1k with 100/10
 
 # %%

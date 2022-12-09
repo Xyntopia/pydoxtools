@@ -130,20 +130,21 @@ pretty_print(df[df["class"] == "address"].sample(10))
 # start training
 
 # %%
-# evaluate prediction
-train_loader, test_loader, model = training.prepare_textblock_training(4)
-dfl=df.txt.to_list()
-y_pred = model.predict(dfl)
-y_true = df["class"].replace(dict(
-    contact="unknown",
-    directions="unknown",
-    company="unknown",
-    country="unknown"
-))
-target_names = list(model.classmap_.values())
+if False:
+    # evaluate prediction
+    train_loader, test_loader, model = training.prepare_textblock_training(4)
+    dfl=df.txt.to_list()
+    y_pred = model.predict(dfl)
+    y_true = df["class"].replace(dict(
+        contact="unknown",
+        directions="unknown",
+        company="unknown",
+        country="unknown"
+    ))
+    target_names = list(model.classmap_.values())
 
-from sklearn.metrics import classification_report
-print(classification_report(y_true, y_pred, target_names=target_names))
+    from sklearn.metrics import classification_report
+    print(classification_report(y_true, y_pred, target_names=target_names))
 
 # %% tags=[]
 # %env TOKENIZERS_PARALLELISM=true
@@ -172,5 +173,7 @@ if upload:
 
 trainer, model = training.train_text_block_classifier(
     num_workers=4,
-    max_epochs=100, gpus=1, callbacks=additional_callbacks
+    max_epochs=1, gpus=1, callbacks=additional_callbacks
 )
+
+# %%
