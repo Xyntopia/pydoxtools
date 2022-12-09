@@ -58,10 +58,12 @@ etl = ["goose3", "langdetect", "tldextract", "spacy", "pdfminer.six",
 inference = ["transformers", "scikit-learn", "tqdm", "torch", "pytorch-lightning", "spacy",
     "beautifulsoup4", "pandas", "urlextract", "hnswlib"]
 training = ["Faker", "fastparquet", "matplotlib", "pdfminer.six", "pandas", "spacy",
-    "scikit-learn", "tqdm", "torch", "pytorch-lightning", "transformers", "torch", "hnswlib"]
+    "scikit-learn", "tqdm", "torch", "pytorch-lightning", "transformers", "hnswlib"]
 # the pytorch-docker option below should be used in combination with the pytorch/pytorch dockerimage
+# we are leaving out torch nd lightning here because we want the GPU support!  or use the
+# already installed version....
 pytorch-docker = ["Faker", "fastparquet", "matplotlib", "pdfminer.six", "pandas", "spacy",
-    "scikit-learn", "tqdm", "webdavclient3"]
+    "scikit-learn", "tqdm"]
 
 # our dev-dependencies here also include all the
 # libraries required for training and analyzing the training datasets

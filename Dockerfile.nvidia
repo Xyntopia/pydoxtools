@@ -69,9 +69,10 @@ ARG PROJECT_NAME
 RUN --mount=type=cache,target=/root/.cache/ \
     mkdir "${PROJECT_DIR}/${PROJECT_NAME}" &&\
     touch "${PROJECT_DIR}/${PROJECT_NAME}/__init__.py" &&\
-    #POETRY_VIRTUALENVS_IN_PROJECT=true poetry install -E pytorch-docker -E etl -vvv
-    #POETRY_VIRTUALENVS_IN_PROJECT=true poetry install --no-dev -vvv
-    POETRY_VIRTUALENVS_IN_PROJECT=true poetry install -E training -E etl -vvv
+    POETRY_VIRTUALENVS_IN_PROJECT=true poetry install -E pytorch-docker -E etl -vvv
+
+RUN --mount=type=cache,target=/root/.cache/\
+    poetry run pip install torch pytorch-lightning torchmetrics==0.9.3
 
 # this line needs to be run as:
 #  >> COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build doxcavator-serverless
