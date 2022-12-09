@@ -414,6 +414,7 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
             augment_prob: float = 0.0,
             cache_size: int = 10000,
             renew_num: int = 1000,
+            virtual_size: int = 100000
     ):
         """
         augment_prop: augmentation is mainly used if we are training making the random samples more iverse with
@@ -422,12 +423,14 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
         cache_size: Maximum cache size. The cache is used to speed up the random generator
                     by reusing old generated sample every loop
         renew_num: number of elements of the cache to be replaces on every iteration
+        virtual_size: defines what the "__len__" gives back
         """
         self._generators = generators
         self.augment = augment_prob
         self.random = random.Random(time.time())  # get our own random number generator
         self._cache_size = cache_size
         self._renew_num = renew_num
+        self._virtual_size = virtual_size
 
     @cached_property
     def class_gen(self):
@@ -469,13 +472,12 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
             # that exceed _cache_size
             cache.extend(self.single(seed=self.random.random()) for i in range(self._renew_num))
 
-
-def __len__(self):
-    return len(self.rows)
+    def __len__(self):
+        return self._virtual_size
 
 
 @functools.lru_cache()
-def prepare_textblock_training(num_workers: int = 4):
+def prepare_textblock_training(num_workers: int = 4, steps_per_epoch: int = 500, batch_size=2 ** 10):
     """
     loads text block data and puts into pytorch dataloaders
 
@@ -494,12 +496,14 @@ def prepare_textblock_training(num_workers: int = 4):
         unknown=RandomTextBlockGenerator()
     )
 
-    train_dataset = TextBlockGenerator(generators=generators, augment_prob=1.0 / 50.0)
-    test_dataset = TextBlockGenerator(generators=generators, augment_prob=0.0)
+    virtual_size = steps_per_epoch * batch_size
+    train_dataset = TextBlockGenerator(generators=generators, augment_prob=1.0 / 50.0, virtual_size=virtual_size)
+    test_dataset = TextBlockGenerator(generators=generators, augment_prob=0.0, virtual_size=virtual_size)
     train_loader = torch.utils.data.DataLoader(
         dataset=train_dataset,
-        batch_size=2 ** 9,
+        batch_size=batch_size,
         num_workers=num_workers,
+        persistent_workers=True
         # sampler=weighted_sampler
     )
     test_loader = torch.utils.data.DataLoader(
@@ -589,8 +593,8 @@ def train_page_classifier(max_epochs=100, old_model=None):
     return trainer.test(model, test_dataloaders=test_loader, ckpt_path=settings.MODEL_STORE('page')), model
 
 
-def train_text_block_classifier(old_model=None, num_workers=4, **kwargs):
-    train_loader, test_loader, model = prepare_textblock_training(num_workers)
+def train_text_block_classifier(old_model=None, num_workers=4, steps_per_epoch=200, **kwargs):
+    train_loader, test_loader, model = prepare_textblock_training(num_workers, steps_per_epoch=steps_per_epoch)
     if old_model:
         model = old_model
     checkpoint_callback = pytorch_lightning.callbacks.ModelCheckpoint(
@@ -605,7 +609,7 @@ def train_text_block_classifier(old_model=None, num_workers=4, **kwargs):
         # gpus=-1, auto_select_gpus=True,s
         log_every_n_steps=100,
         # limit_train_batches=100,
-        max_epochs=kwargs.get("max_epochs", 100),
+        max_epochs=kwargs.get("max_epochs", -1),
         # checkpoint_callback=False,
         enable_checkpointing=True,
         max_steps=-1,

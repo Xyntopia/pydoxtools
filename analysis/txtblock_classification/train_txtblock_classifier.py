@@ -77,7 +77,7 @@ nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.c
 # test the model once
 
 # %%
-if True:
+if False:
     _,_,m = training.prepare_textblock_training()
     res =m.predict_proba(["""ex king ltd
     Springfield Gardens
@@ -92,7 +92,7 @@ if True:
          www.something.com
          """
      ])
-res
+    print(res)
 
 # %% [markdown]
 # TODO: its probabybl a ood idea to use some hyperparemeter optimization in order to find out what is the best method here...
@@ -159,7 +159,7 @@ upload = False
 
 # %%
 # test webdav connection
-wu.push_dir_diff(hostname, token, syncpath)
+# wu.push_dir_diff(hostname, token, syncpath)
 
 
 # %% tags=[]
@@ -172,8 +172,9 @@ if upload:
     additional_callbacks = [WebdavSyncCallback()]
 
 trainer, model = training.train_text_block_classifier(
-    num_workers=4,
-    max_epochs=1, gpus=1, callbacks=additional_callbacks
+    num_workers=8,
+    max_epochs=-1, gpus=1, callbacks=additional_callbacks,
+    steps_per_epoch=50
 )
 
 # %%
