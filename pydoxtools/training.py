@@ -165,6 +165,10 @@ class RandomTextBlockGenerator(GeneratorMixin):
         return txt1
 
 
+# function which returns some random separation characters
+sep_chars = rand_chars({"\n": 4, ", ": 2, "; ": 1, " | ": 1})
+
+
 class BusinessAddressGenerator(GeneratorMixin):
     def __init__(self, fake_langs):
         """fake_langs can be something like:
@@ -217,112 +221,54 @@ class BusinessAddressGenerator(GeneratorMixin):
         country_code = self._countrycodes[locale]
         fake = self._faker[locale]
         company: str = fake.company()
-        phone = rc(["", "Phone ", "Phone: "]) + fake.phone_number()
-        fax = rc(["", "fax ", "fax: "]) + fake.phone_number()
         formatter = self._IAF.AddressFormatter("DE")
 
-        # TODO: use better address genereation, making use of osmand data
-        if r() < 0.3:
-            fax = fax.upper()
-            phone = phone.upper()
-        parts = dict(
-            name=company if r() > 0.4 else company.upper(),
-            address=fake.address(),
-            phone=phone,
-            fax=fax,
-            www=self.generate_url(rand, company, fake.tld())
+        # TODO: adapt address generation to be as similar as possible to osmand
+        #       we can do this using some optimization algorithm tuning
+        #       the probabilities of this function as hyperparameters
+        all_parts = dict(
+            name=lambda: company if r() > 0.4 else company.upper(),
+            # TODO: use a separate address gneration algorithm so that we can split it
+            address=lambda: fake.address(),
+            phone=lambda: rc(["", "Phone ", "Phone: "]) + fake.phone_number(),
+            fax=lambda: rc(["", "fax ", "fax: "]) + fake.phone_number(),
+            www=lambda: self.generate_url(rand, company, fake.tld())
         )
+
+        parts = {}
+        while len(parts) < 2:  # make sure addresses consist of a min-length
+            # TODO: augment address with "labels" such as "addess:"  and "city" and
+            #       "Postleitzahl", "country" etc...
+            #       we can use a callable like this:
+            #       def rand_func(match_obj):  and return a string based on match_obj
+
+            # render the actual address
+            for k, v in all_parts.items():
+                if r() < 0.4:  # probability to leave out a part
+                    v = v()
+                    if r() < 0.3:  # probability to have a part in upper case
+                        v = v.upper()
+                    parts[k] = v
+
         # leave out every n_th line by random chance
-        sep = rc(["\n", "; ", ", "])
+        # df2 = pd.concat([df2])
+        # sep2_choices = {", ": 2, "; ": 1, " | ": 1}
+        # try:
+        #    sep2_choices.pop(sep1)  # make sure its different from first separator
+        # except:
+        #    pass
+        # sep2 = rand_chars(sep2_choices)
+
         # randomly switch certain address lines for ~10%
         parts = list(parts.values())
         if r() < 0.1:
             a, b = random.randrange(0, len(parts)), random.randrange(0, len(parts))
             parts[a], parts[b] = parts[b], parts[a]
 
-        address = sep.join(line for line in parts if r() > 0.3)
+        # TODO: make a variation of separators for phone numbers...
+        # TODO: discover other ways that addresses for use in our generators...
+        address = sep_chars().join(parts)
         return address
-
-
-def load_labeled_text_blocks(cached=True):
-    filename = settings.TRAINING_DATA_DIR / "txtblocks.parquet"
-    filename_html = settings.TRAINING_DATA_DIR / "html_text.parquet"
-    label_file = settings.TRAINING_DATA_DIR / "labeled_txt_boxes.xlsx"
-    if cached:
-        try:
-            df = pd.read_parquet(filename)
-            return df
-        except:
-            logger.info("training data not available, recalculate")
-
-    def regex_rand(choices):
-        def rand_func(match_obj):
-            return random.choice(choices)
-
-        return rand_func
-
-    df1 = pd.concat([
-        get_pdf_text_boxes(extended=True),
-        # TODO: label some addresess from our html blocks...
-        pd.DataFrame(generate_random_textblocks(filename_html, iterations=10), columns=["txt"])
-    ])
-    # clean dataset from already labeled textboxes! we only want "unknown" text here
-    df_labeled = pd.read_excel(label_file)
-    addresses = df_labeled[df_labeled.label == "address"]
-    df1.txt = df1.txt.str.strip()  # strip for (is this true?) better training results...
-    df1 = df1.merge(
-        addresses, on=['txt'], how="outer", suffixes=(None, "lbld"), indicator=True
-    ).query('_merge=="left_only"')[df1.columns]  # finally filter out addresses
-    df1['class'] = "unknown"
-
-    logger.info("augment address database")
-    # TODO: randomize FSEP and SEP fields for more training data
-    # TODO: augment address with "labels" such as "addess:"  and "city" and
-    #       "Postleitzahl", "country" etc...
-    #       we can use a callable like this:
-    #       def rand_func(match_obj):  and return a string based on match_obj
-    # df2 = pd.concat([df2])
-    fsep_repl = rand_chars({"\n": 4, ", ": 2, "; ": 1, " | ": 1})
-    sep_repl = rand_chars({"\n": 4, ", ": 2, " ": 1})
-
-    # df2 = df2.sample(20) # only for testing purposes
-    def build_address(li):
-        address = ""
-        for add in li:
-            parts = add.split("/")
-            if parts[1] == "FSEP":
-                address = address[:-1] + fsep_repl()
-            elif parts[1] == "SEP":
-                address = address[:-1] + sep_repl()
-            else:
-                address += parts[0] + " "
-        return address[:-1]
-
-    df2["txt"] = df2.address.str.split().progress_apply(build_address)
-
-    logger.info("create fake addresses")
-    training_addresses = fake_company_address_collection(
-        fake_langs=['en_US', 'de_DE', 'en_GB'],
-        size=len(df2) // 20
-    )
-    df2 = df2.append(pd.DataFrame(training_addresses, columns=["txt"]))
-    df2['class'] = "address"
-
-    # make sure short blocks are not recognized as addresses
-    # 2 or fewer words
-    shortaddr = df2.loc[df2['txt'].str.split().str.len() < 3]
-    df2.loc[shortaddr.index, "class"] = "unknown"
-    # less than 15 characters
-    df2.loc[df2["txt"].str.len() <= 15, "class"] = "unknown"
-
-    logger.info("putting together the final dataset")
-    df = pd.concat([df1, df2])
-    df = df.drop_duplicates(subset=["txt"])
-    df = df.reset_index(drop=True)  # sample(frac=1) # mix the entire dataset
-    df = df[["txt", "class"]]
-
-    df.to_parquet(filename)
-    return df
 
 
 class PdfVectorDataSet(torch.utils.data.Dataset):
@@ -516,8 +462,9 @@ def prepare_textblock_training(num_workers: int = 4):
     TODO: we also need to detect the pdf langauge in order
           to have a balances dataset with addresses from different countries
     """
-    # TODO: replace this "labeled" xt blocks iwth metadata from TextBlockGenerator initialization
-    df = load_labeled_text_blocks()
+    label_file = settings.TRAINING_DATA_DIR / "labeled_txt_boxes.xlsx"
+    df_labeled = pd.read_excel(label_file)
+
     df['class_num'] = df['class'].astype("category").cat.codes.tolist()
     classes = df['class'].astype("category").cat.categories.tolist()
     classmap = dict(enumerate(classes))

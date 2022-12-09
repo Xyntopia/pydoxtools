@@ -61,7 +61,7 @@ gen = training.BusinessAddressGenerator(fake_langs=['en_US', 'de_DE', 'en_GB'])
 tg = training.RandomTextBlockGenerator()
 bg = training.TextBlockGenerator(generators=dict(
     address=gen,
-    text=tg
+    unknown=tg
 ),augment_prob=0.0)
 
 # %%
@@ -71,10 +71,15 @@ bg.classmap, bg.num_generators
 bgi=bg.__iter__()
 
 # %%
-# %%timeit
+# #%%timeit
 addr = [next(bgi) for i in range(64)]
 #for a in addr: print(f"{a}\n")
 
 # %%
+addr
+
+# %%
 #3.16s for 10k samples:
 tha would be ~3.16s for a 10k batch thats pretty good...
+
+# %%
