@@ -910,22 +910,21 @@ python-versions = "*"
 
 [[package]]
 name = "ipywidgets"
-version = "7.7.1"
-description = "IPython HTML widgets for Jupyter"
+version = "8.0.3"
+description = "Jupyter interactive widgets"
 category = "dev"
 optional = false
-python-versions = "*"
+python-versions = ">=3.7"
 
 [package.dependencies]
 ipykernel = ">=4.5.1"
-ipython = {version = ">=4.0.0", markers = "python_version >= \"3.3\""}
-ipython-genutils = ">=0.2.0,<0.3.0"
-jupyterlab-widgets = {version = ">=1.0.0", markers = "python_version >= \"3.6\""}
+ipython = ">=6.1.0"
+jupyterlab-widgets = ">=3.0,<4.0"
 traitlets = ">=4.3.1"
-widgetsnbextension = ">=3.6.0,<3.7.0"
+widgetsnbextension = ">=4.0,<5.0"
 
 [package.extras]
-test = ["mock", "pytest (>=3.6.0)", "pytest-cov"]
+test = ["jsonschema", "pytest (>=3.6.0)", "pytest-cov", "pytz"]
 
 [[package]]
 name = "isodate"
@@ -3060,14 +3059,11 @@ test = ["pytest (>=3.0.0)"]
 
 [[package]]
 name = "widgetsnbextension"
-version = "3.6.1"
-description = "IPython HTML widgets for Jupyter"
+version = "4.0.4"
+description = "Jupyter interactive widgets for Jupyter Notebook"
 category = "dev"
 optional = false
-python-versions = "*"
-
-[package.dependencies]
-notebook = ">=4.4.1"
+python-versions = ">=3.7"
 
 [[package]]
 name = "yarl"
@@ -3110,7 +3106,7 @@ training = ["fastparquet", "pdfminer.six", "pandas", "spacy", "scikit-learn", "t
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.12" # python version constraints are caused by scipy
-content-hash = "2467e5021bc9567c067e09cd9bde54c2f6a534e6194fb9075bf7d1489d64af4a"
+content-hash = "763256ef0e8d60e174529e408e2099b5f4cf4f62b30e52f6481f394aca7b7a06"
 
 [metadata.files]
 absl-py = [
@@ -3866,8 +3862,8 @@ ipython-genutils = [
     {file = "ipython_genutils-0.2.0.tar.gz", hash = "sha256:eb2e116e75ecef9d4d228fdc66af54269afa26ab4463042e33785b887c628ba8"},
 ]
 ipywidgets = [
-    {file = "ipywidgets-7.7.1-py2.py3-none-any.whl", hash = "sha256:aa1076ab7102b2486ae2607c43c243200a07c17d6093676c419d4b6762489a50"},
-    {file = "ipywidgets-7.7.1.tar.gz", hash = "sha256:5f2fa1b7afae1af32c88088c9828ad978de93ddda393d7ed414e553fee93dcab"},
+    {file = "ipywidgets-8.0.3-py3-none-any.whl", hash = "sha256:db7dd35fb1217636cbdbe0ba0bd2216d91a7695cb28b5c1dca17e62cd51378de"},
+    {file = "ipywidgets-8.0.3.tar.gz", hash = "sha256:2ec50df8538a1d4ddd5d454830d010922ad1015e81ac23efb27c0908bbc1eece"},
 ]
 isodate = [
     {file = "isodate-0.6.1-py2.py3-none-any.whl", hash = "sha256:0751eece944162659049d35f4f549ed815792b38793f07cf73381c1c87cbed96"},
@@ -5421,8 +5417,8 @@ wheel = [
     {file = "wheel-0.38.4.tar.gz", hash = "sha256:965f5259b566725405b05e7cf774052044b1ed30119b5d586b2703aafe8719ac"},
 ]
 widgetsnbextension = [
-    {file = "widgetsnbextension-3.6.1-py2.py3-none-any.whl", hash = "sha256:954e0faefdd414e4e013f17dbc7fd86f24cf1d243a3ac85d5f0fc2c2d2b50c66"},
-    {file = "widgetsnbextension-3.6.1.tar.gz", hash = "sha256:9c84ae64c2893c7cbe2eaafc7505221a795c27d68938454034ac487319a75b10"},
+    {file = "widgetsnbextension-4.0.4-py3-none-any.whl", hash = "sha256:fa0e840719ec95dd2ec85c3a48913f1a0c29d323eacbcdb0b29bfed0cc6da678"},
+    {file = "widgetsnbextension-4.0.4.tar.gz", hash = "sha256:44c69f18237af0f610557d6c1c7ef76853f5856a0e604c0a517f2320566bb775"},
 ]
 yarl = [
     {file = "yarl-1.8.1-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:abc06b97407868ef38f3d172762f4069323de52f2b70d133d096a48d72215d28"},

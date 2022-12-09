@@ -66,12 +66,13 @@ pytorch-docker = ["Faker", "fastparquet", "matplotlib", "pdfminer.six", "pandas"
 # our dev-dependencies here also include all the
 # libraries required for training and analyzing the training datasets
 # thats why there are so many ;).
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
+international-address-formatter = "^1.0.2"
+ipywidgets = "^8.0.3"
 matplotlib = "^3.5.1"
 pytest = ">=6.0.1"
 yattag = ">=1.13.2" #for html text coloring
 jupyterlab = "^3.2.5"
-ipywidgets = "^7.6.5"
 tensorboard = "^2.7.0"
 pigeonXT-jupyter = "^0.6.1" # for labeling purposes...
 odfpy = "^1.4.1"
@@ -84,9 +85,6 @@ optuna = "^2.10.0"
 webdavclient3 = { git = "https://github.com/yeus/webdav-client-python-3.git", branch = "master" }
 Faker = { version = "^10.0.0" }
 jupytext = "^1.13.7"
-
-[tool.poetry.group.dev.dependencies]
-international-address-formatter = "^1.0.2"
 
 [build-system]
 requires = ["poetry>==1.1.1"]
