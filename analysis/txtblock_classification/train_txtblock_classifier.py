@@ -150,11 +150,21 @@ print(classification_report(y_true, y_pred, target_names=target_names))
 
 # %% tags=[]
 # %env TOKENIZERS_PARALLELISM=true
-hostname = 'https://www.rosemesh.net'
-token = "ckzRbLYQRsBnSPr"
+# url of nextcloud instance to point to
+hostname = 'https://sync.rosemesh.net'
+# the token is the last part of a sharing link:
+# https://sync.rosemesh.net/index.php/s/KwkyKj8LgFZy8mo   the  "KwkyKj8LgFZy8mo"  webdav
+# takes this as a token with an empty password in order to share the folder
+token = "KwkyKj8LgFZy8mo"
 syncpath = str(settings.MODEL_DIR)
 upload = False
 
+# %%
+# test webdav connection
+wu.push_dir_diff(hostname, token, syncpath)
+
+
+# %% tags=[]
 class WebdavSyncCallback(pytorch_lightning.Callback):
     def on_train_epoch_start(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
         wu.push_dir_diff(hostname, token, syncpath)
