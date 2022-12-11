@@ -74,6 +74,8 @@ RUN --mount=type=cache,target=/root/.cache/ \
 RUN --mount=type=cache,target=/root/.cache/\
     poetry run pip install torch pytorch-lightning torchmetrics==0.9.3
 
+RUN poetry run pip install transformers
+
 # this line needs to be run as:
 #  >> COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose build doxcavator-serverless
 # as we are caching the pip downloads with the --mount option which is only supported by docker with the
