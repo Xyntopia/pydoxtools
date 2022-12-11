@@ -14,12 +14,14 @@ logger = logging.getLogger(__name__)
 test_files = [
     "./data/PFR-PR23_BAT-110__V1.00_.pdf",
     "./data/Datasheet-Centaur-Charger-DE.6f.pdf",
-    "./data/north_american_countries.png",
-    "./data/north_american_countries.tif", "./data/north_american_countries.jpg",
+    # TODO: integrate OCR
+    #"./data/north_american_countries.png",
+    #"./data/north_american_countries.tif", "./data/north_american_countries.jpg",
     "./data/List of North American countries by population - Wikipedia.pdf",
     "./data/berrybase_raspberrypi4.html",
     "./data/test.html",
-    "./data/remo-m_fixed-wing.2f.pdf"
+    "./data/remo-m_fixed-wing.2f.pdf",
+    # TODO: file:///home/tom/git/pydoxtools/tests/data/alan_turing.txt
 ]
 
 test_dir_path = pathlib.Path(__file__).parent.absolute()
@@ -59,6 +61,17 @@ def run_single_non_interactive_document_test(file_name):
     return doc
 
 
+def test_string_extraction():
+    with open(make_path_absolute("./data/alan_turing.txt"), "r") as f:
+        some_string = f.read()
+
+    doc = Document(fobj=some_string)
+    doc.document_type
+    doc.run_all_extractors()
+    assert doc._cache_hits >= 0
+    assert doc.keywords == {"Turing"}
+
+
 def test_installation():
     from pydoxtools import nlp_utils
     nlp_utils.download_spacy_nlp_models(["md"])  # "also ["lg","trf"] etc.."
@@ -96,13 +109,20 @@ if __name__ == "__main__":
     # test if we can actually open the pdf...
     # with open("ocrpdf", "wb") as f:
     #    f.write(doc.ocr_pdf_file)
-    # doc = DocumentX(fobj=make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"))
-    # doc = DocumentX(fobj=make_path_absolute("./data/Datasheet-Centaur-Charger-DE.6f.pdf"))
-    # doc = DocumentX(fobj=make_path_absolute("./data/north_american_countries.png"))
-    doc = Document(fobj=make_path_absolute("./data/berrybase_raspberrypi4.html"))
-    # doc = DocumentX(fobj=make_path_absolute("./data/remo-m_fixed-wing.2f.pdf"))
-    # doc = DocumentX(fobj=make_path_absolute("./data/north_american_countries.tif"))
+    # doc = Document(fobj=make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"))
+    doc = Document(fobj=make_path_absolute("./data/Datasheet-Centaur-Charger-DE.6f.pdf"))
+    # doc = Document(fobj=make_path_absolute("./data/north_american_countries.png"))
+    # doc = Document(fobj=make_path_absolute("./data/berrybase_raspberrypi4.html"))
+    # doc = Document(fobj=make_path_absolute("./data/remo-m_fixed-wing.2f.pdf"))
+    # doc = Document(fobj=make_path_absolute("./data/north_american_countries.tif"))
+    with open(make_path_absolute("./data/alan_turing.txt"), "r") as f:
+        some_string = f.read()
+
+    doc = Document(fobj=some_string)
+    doc.document_type
     doc.run_all_extractors()
+
+    # doc.run_all_extractors()
 
     # doc
     # doc.run_all_extractors()

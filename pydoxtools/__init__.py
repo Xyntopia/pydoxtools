@@ -2,6 +2,7 @@ __version__ = '0.5.0'
 
 import logging
 
+import langdetect
 import numpy as np
 import pandas as pd
 
@@ -97,6 +98,9 @@ class Document(document.DocumentBase):
             FileLoader(mode="auto")
             .pipe(fobj="_fobj", document_type="document_type", page_numbers="_page_numbers", max_pages="_max_pages")
             .out("raw_content").cache(),
+            Alias(full_text="raw_content"),
+            LambdaExtractor(lambda x: pd.DataFrame(x.split("\n"), columns=["text"]))
+            .pipe(x="full_text").out("text_box_elements").cache(),
             LambdaExtractor(lambda df: df.get("text", None).to_list())
             .pipe(df="text_box_elements").out("text_box_list").cache(),
             # TODO: make sure we can set the model that we want to use dynamically!
@@ -109,6 +113,8 @@ class Document(document.DocumentBase):
             .pipe("text_box_elements").out("addresses").cache(),
             LambdaExtractor(lambda full_text: 1 + (len(full_text) // 1000))
             .pipe("full_text").out("num_pages").cache(),
+            LambdaExtractor(lambda full_text: langdetect.detect(full_text))
+            .pipe("full_text").out("language").cache(),
 
             #########  SPACY WRAPPERS  #############
             SpacyExtractor(model_size="md")
@@ -127,7 +133,7 @@ class Document(document.DocumentBase):
             .pipe("spacy_doc").out("entities"),
             # TODO: try to implement as much as possible from the constants below for all documentypes
             Constant(summary="", urls=[], main_image=None, html_keywords=[],
-                     final_urls=[], pdf_links=[], schemadata={}),
+                     final_urls=[], pdf_links=[], schemadata={}, tables_df=[]),
             Alias(url="source"),
 
             ########### NOUN_INDEX #############

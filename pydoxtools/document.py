@@ -1,9 +1,9 @@
 import abc
 import functools
 import logging
+import mimetypes
 import typing
 import uuid
-import mimetypes
 from abc import ABC
 from dataclasses import dataclass
 from enum import Enum
@@ -15,9 +15,8 @@ from typing import List, Any, IO
 import numpy as np
 import spacy.tokens
 
-from pydoxtools.settings import settings
-
 logger = logging.getLogger(__name__)
+
 
 @dataclass(eq=True, frozen=True, slots=True)
 class Font:
@@ -319,10 +318,15 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
     #       a different extractor configuration in that case...
     #       in other words: each extractor needs to be "conditional"
 
+    # stores the extraction graph, a collection of connected functions
+    # which extract data from a document
     _extractors: dict[str, list[Extractor]] = {}
-    # sorts for all extractor variables..
+
+    # a dict which provides access for all extractor functions by their "out-key"
+    # which was defined in _extractors
     _x_funcs: dict[str, dict[str, Extractor]] = {}
-    # doctype-dict of x-out var dict of function configuration parameter dicts:
+
+    # dict which stores function configurations
     _x_config: dict[str, dict[str, dict[str, Any]]] = {}
 
     def __init__(
@@ -384,14 +388,18 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
                 return self._document_type
             elif self._mime_type:
                 return mimetypes.guess_extension(self._mime_type)
-            elif hasattr(self._fobj, "name"):
-                return Path(self._fobj.name).suffix
             # get type from path suffix
-            elif self._fobj.exists():
-                return self._fobj.suffix
-            else:  # for example if it is a string without a type
-                # TODO: detect type with python-magic here...
-                raise DocumentTypeError(f"Could not find the document type for {self._fobj[-100:]} ...")
+            elif isinstance(self._fobj, Path):
+                if self._fobj.exists():
+                    return self._fobj.suffix
+                elif hasattr(self._fobj, "name"):
+                    return Path(self._fobj.name).suffix
+            elif isinstance(self._fobj, str) and (self._document_type is None):
+                return "generic"
+
+            # for example if it is a string without a type
+            # TODO: detect type with python-magic here...
+            raise DocumentTypeError(f"Could not find the document type for {self._fobj[-100:]} ...")
         except:
             try:
                 raise DocumentTypeError(f"Could not detect document type for {self._fobj} ...")
@@ -399,11 +407,18 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
                 raise DocumentTypeError(f"Could not detect document type for {self._fobj[-100:]} ...")
 
     @cached_property
+    def document_graph(self):
+        if self.document_type in self._extractors:
+            return self.document_type
+        else:
+            return "*"
+
+    @cached_property
     def x_funcs(self) -> dict[str, Extractor]:
         """
         get all extractors and their proprety names
         """
-        return self._x_funcs.get(self.document_type, {})
+        return self._x_funcs.get(self.document_graph, self._x_funcs["*"])
 
     def non_interactive_x_funcs(self) -> dict[str, Extractor]:
         """return all non-interactive extractors"""
@@ -411,7 +426,7 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
 
     def x_config_params(self, extract_name: str):
         # TODO: can we cache this somehow? Or re-calculate it when calling "config"?
-        config = self._x_config[self.document_type].get(extract_name, {})
+        config = self._x_config.get(self.document_graph).get(extract_name, {})
         config_params = {}
         for config_key in config:
             if v := self._config.get(config_key):
