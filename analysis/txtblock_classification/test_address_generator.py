@@ -15,7 +15,7 @@
 # ---
 
 # %% [markdown] tags=[]
-# # Train the Textblock classifier
+# # Test business address generation
 
 # %% tags=[]
 # %load_ext autoreload
@@ -65,5 +65,32 @@ gen[100202100]
 # %%
 addr = [gen[random.random()] for i in range(20)]
 for a in addr: print(f"_____\n{a}\n")
+
+# %%
+import addressformatting
+af = addressformatting.AddressFormatter()
+
+# %%
+country = "UK"
+address = dict(
+    attention="alright",
+    house="number 1",
+    road="32nd St",
+    house_number="2210",
+    postcode="35512",
+    city="Bonn",
+    town="Röttgen",
+#    village=,
+#    county=,
+    state="NRW",
+    country="Germany",
+#    suburb=,
+#    city_district=,
+#    state_district=,
+#    state_code=,
+#    neighbourhood=
+)
+
+af.format(address=address, country=country)
 
 # %%
