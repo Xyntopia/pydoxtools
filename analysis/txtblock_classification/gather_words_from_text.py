@@ -15,30 +15,23 @@
 # ---
 
 # %% [markdown] tags=[]
-# # Test business address generation
+# # extract language data from commoncrawl data
 
 # %% tags=[]
 # %load_ext autoreload
 # %autoreload 2
-# from pydoxtools import nlp_utils
-from pydoxtools import pdf_utils, classifier, nlp_utils, cluster_utils, training
-from pydoxtools import webdav_utils as wu
-from pydoxtools.settings import settings
-import torch
-from IPython.display import display
-import re
-import random
-import pytorch_lightning
+
+import collections
 import logging
 
+import torch
 from IPython.display import display, HTML
-import pandas as pd
 from tqdm import tqdm
-from faker import Faker
-import sklearn
-import numpy as np
-import os
-from os.path import join
+
+from pydoxtools import Document
+# from pydoxtools import nlp_utils
+from pydoxtools import pdf_utils, nlp_utils, cluster_utils
+from pydoxtools.settings import settings
 
 
 def pretty_print(df):
@@ -55,15 +48,3 @@ pdf_utils._set_log_levels()
 memory = settings.get_memory_cache()
 
 nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.cudnn.version()
-
-# %%
-gen = training.BusinessAddressGenerator()
-
-# %%
-addr = [gen[random.random()] for i in range(10000)]
-#for a in addr: print(f"_____\n{a}\n")
-
-# %%
-addr
-
-# %%

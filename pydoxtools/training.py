@@ -171,18 +171,6 @@ sep_chars = rand_chars({"\n": 4, ", ": 2, "; ": 1, " | ": 1})
 
 
 class BusinessAddressGenerator(GeneratorMixin):
-    def __init__(self, fake_langs):
-        """fake_langs can be something like:
-        ['en_US', 'de_DE', 'en_GB']...
-        """
-        from faker import Faker
-        import international_address_formatter
-        self._fake_langs = fake_langs or ['en_US', 'de_DE', 'en_GB']
-        self._countrycodes = {i: i[-2:] for i in self._fake_langs}
-        self._Faker = Faker
-        self._IAF = international_address_formatter
-        self._faker = Faker(self._fake_langs)
-
     @cached_property
     def url_replace_regex(self):
         return re.compile(r'[^A-Za-z0-9-_]')
@@ -212,44 +200,52 @@ class BusinessAddressGenerator(GeneratorMixin):
         # TODO: optionally add a path like "welcome" or "index" etc...
         # TODO:  add some variations like "de" as a language selection instead of "www."
         # TODO: remove "legal" company names from domain such as "GmbH",
+        # TODO: add words different from company name...
         return url
 
     def single(self, seed) -> str:
-        self._Faker.seed(seed)
+        import faker
+        faker.Faker.seed(seed)
         rand = random.Random(seed)
         rc, r = rand.choice, rand.random
-        locale = rc(self._fake_langs)
-        country_code = self._countrycodes[locale]
-        fake = self._faker[locale]
-        company: str = fake.company()
-        formatter = self._IAF.AddressFormatter("DE")
+        f = faker.Faker(rc(faker.config.AVAILABLE_LOCALES))
 
-        # TODO: adapt address generation to be as similar as possible to osmand
-        #       we can do this using some optimization algorithm tuning
-        #       the probabilities of this function as hyperparameters
+        company: str = f.company()
+
         all_parts = dict(
-            name=lambda: company if r() > 0.4 else company.upper(),
-            # TODO: use a separate address gneration algorithm so that we can split it
-            address=lambda: fake.address(),
-            phone=lambda: rc(["", "Phone ", "Phone: "]) + fake.phone_number(),
-            fax=lambda: rc(["", "fax ", "fax: "]) + fake.phone_number(),
-            www=lambda: self.generate_url(rand, company, fake.tld())
+            line1=(0.05, lambda: f.catch_phrase()),
+            name=(0.1, lambda: f.name()),
+            company_name=(0.5, lambda: company),
+            addrline=(0.7, lambda: f.address()),
+            country=(0.1, lambda: rc([f.current_country(), f.current_country_code()])),
+            phone=(0.2, lambda: rc(["", "phone ", "phone: "]) + f.phone_number()),
+            fax=(0.1, lambda: rc(["", "fax ", "fax: "]) + f.phone_number()),
+            www=(0.2, lambda: self.generate_url(rand, company, f.tld())),
+            email=(0.1, lambda: rc(["", "email ", "email: "]) + f.email())
         )
 
-        parts = {}
-        while len(parts) < 2:  # make sure addresses consist of a min-length
-            # TODO: augment address with "labels" such as "addess:"  and "city" and
+        parts = []
+        while len(parts) < 3:  # make sure addresses consist of a min-length
+            # TODO: augment address with "labels" such as "address:"  and "city" and
             #       "Postleitzahl", "country" etc...
             #       we can use a callable like this:
             #       def rand_func(match_obj):  and return a string based on match_obj
 
             # render the actual address
-            for k, v in all_parts.items():
-                if r() < 0.4:  # probability to leave out a part
-                    v = v()
+            for k, (p, v) in all_parts.items():
+                if r() < p:  # probability to leave out a part
+                    try:
+                        v = v()
+                    except:
+                        continue
                     if r() < 0.3:  # probability to have a part in upper case
                         v = v.upper()
-                    parts[k] = v
+                    elif r() < 0.5:
+                        v = v[0].upper() + v[1:]
+                    else:
+                        v = v.lower()
+
+                    parts.append(v)
 
         # leave out every n_th line by random chance
         # df2 = pd.concat([df2])
@@ -258,7 +254,6 @@ class BusinessAddressGenerator(GeneratorMixin):
         # sep2 = rand_chars(sep2_choices)
 
         # randomly switch certain address lines for ~10%
-        parts = list(parts.values())
         if r() < 0.1:
             a, b = random.randrange(0, len(parts)), random.randrange(0, len(parts))
             parts[a], parts[b] = parts[b], parts[a]
@@ -267,6 +262,58 @@ class BusinessAddressGenerator(GeneratorMixin):
         # TODO: discover other ways that addresses for use in our generators...
         address = sep_chars().join(parts)
         return address
+
+
+class RandomListGenerator(GeneratorMixin):
+    # faker.pylist
+    def __init__(self):
+        import faker
+        f = faker.Faker()
+        self._fake_methods = [m for m in [m for m in dir(f) if not m == "seed"]
+                              if callable(getattr(f, m)) and m[0] != "_"]
+
+    def single(self, seed):
+        import faker
+        f = faker.Faker()
+        faker.Faker.seed(seed)
+        rand = random.Random(seed)
+
+        # define list symbol
+        list_symbol = rand.choice("   ----**∙∙••+~")
+        # define symbols to choose from
+        a = '??????????###############--|.:?/\\'
+        strlen = min(int(random.weibullvariate(8, 1.4)) + 1, len(a))
+        frmtstr = list_symbol + random.choice(["", " "]) + "".join(rand.sample(a, strlen))
+
+        # TODO: add lists with values from "self._fake_methods"
+        # datalen=min(int(random.weibullvariate(8,1.4))+1,len(fake_methods))
+        # frmtstr="{{"+'}}{{'.join(random.sample(fake_methods, datalen))+"}}"
+        # f.pystr_format(string_format = frmtstr), frmtstr)
+
+        res = ""
+        for i in range(rand.randint(2, 15)):
+            res += f.pystr_format(string_format=frmtstr) + "\n"
+
+        return res
+
+
+class RandomTableGenerator(GeneratorMixin):
+    # faker.dsv
+    pass
+
+
+class RandomDataGenerator(GeneratorMixin):
+    # TODO: faker.pydict
+    #       then convert to json, yaml, xml etc...
+    pass
+
+
+class RandomCodeGenerator():
+    # TODO: build some random code genrator in some "iterative" way
+    #       maybe downloading some langauge grammar?
+    #       definitly using language keywords...
+    #       possibly making use of github datasets...
+    pass
 
 
 class PdfVectorDataSet(torch.utils.data.Dataset):
@@ -410,7 +457,8 @@ def random_string_augmenter(data: str, prob: float) -> str:
 class TextBlockGenerator(torch.utils.data.IterableDataset):
     def __init__(
             self,
-            generators: dict[str, typing.Any],
+            generators: list[tuple[str, typing.Any]],
+            weights: list[int],
             augment_prob: float = 0.0,
             cache_size: int = 10000,
             renew_num: int = 1000,
@@ -426,6 +474,7 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
         virtual_size: defines what the "__len__" gives back
         """
         self._generators = generators
+        self._weights = weights
         self.augment = augment_prob
         self.random = random.Random(time.time())  # get our own random number generator
         self._cache_size = cache_size
@@ -434,7 +483,7 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
 
     @cached_property
     def class_gen(self):
-        return list(self._generators.values())
+        return list(j for _, j in self._generators)
 
     @cached_property
     def num_generators(self):
@@ -442,16 +491,19 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
 
     @cached_property
     def classmap(self):
-        return dict(enumerate(self._generators.keys()))
+        classes = set(i for i, _ in self._generators)
+        return dict(enumerate(classes))
+
+    @cached_property
+    def classmap_inv(self):
+        return {j: i for i, j in self.classmap.items()}
 
     def single(self, seed):
-        # TODO: introduce some caching mechanisms..   provide already cached data over time and
-        #       introduce new samples at a 1% rate or smoething like that to improve speed...
-        # we don't need to return x as a "list", as our textblock model accepts a list of strings directly
         # randomly choose a generator for a certain class
-        y = self.random.randint(0, self.num_generators - 1)
+        cl, gen = self.random.choices(population=self._generators, weights=self._weights)[0]
         # generate random input data for the class to be predicted
-        x = self.class_gen[y](seed)
+        x = gen(seed)
+        y = self.classmap_inv[cl]
 
         if self.augment:
             # we use some augmentation for our dataset here to make the classifier more robust...

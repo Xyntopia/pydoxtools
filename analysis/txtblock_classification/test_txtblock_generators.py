@@ -57,14 +57,19 @@ memory = settings.get_memory_cache()
 nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.cudnn.version()
 
 # %%
-bg = training.TextBlockGenerator(generators=dict(
-    address=training.BusinessAddressGenerator(fake_langs=['en_US', 'de_DE', 'en_GB']),
-    unknown=training.RandomTextBlockGenerator()
-),augment_prob=0.05, cache_size=100,renew_num=10)
-bg.classmap, bg.num_generators
+bg = training.TextBlockGenerator(generators=(
+    ("address",training.BusinessAddressGenerator()),
+    ("unknown",training.RandomTextBlockGenerator()),
+    ("unknown",training.RandomListGenerator()),
+),weights=[10,8,2],
+augment_prob=0.05, cache_size=100,renew_num=10)
+bg.classmap,bg.classmap_inv, bg.num_generators, bg.class_gen
 
 # %%
 bgi=bg.__iter__()
+
+# %% [markdown]
+# check how fast the text generation is wwith different cache settings...
 
 # %%
 # %%timeit
@@ -78,5 +83,9 @@ addr = [next(bgi) for i in range(1000)]
 # - 140ms/1k with 100/100
 # - 79ms/1k with 100/50
 # - 14.1ms/1k with 100/10
+
+# %%
+for p in [next(bgi) for i in range(10)]:
+    print(p[0]+"\n\n")
 
 # %%

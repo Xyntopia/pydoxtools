@@ -27,6 +27,8 @@ from pydoxtools.settings import settings
 import torch
 from IPython.display import display
 import re
+import faker
+import random
 import random
 import pytorch_lightning
 import logging
@@ -57,13 +59,9 @@ memory = settings.get_memory_cache()
 nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.cudnn.version()
 
 # %%
-gen = training.BusinessAddressGenerator()
+gen =training.RandomListGenerator()
 
 # %%
-addr = [gen[random.random()] for i in range(10000)]
-#for a in addr: print(f"_____\n{a}\n")
-
-# %%
-addr
+print(gen(random.random()))
 
 # %%

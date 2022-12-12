@@ -20,48 +20,67 @@
 # #!pip install dask[complete]
 
 # %%
-import geopandas as gp
 import pandas as pd
-import fiona
-import dask
+#import dask
 import numpy as np
-import dask.bag as db
-import dask.dataframe as dd
-from dask.delayed import delayed
-from dask.distributed import Client
+#import dask.bag as db
+#import dask.dataframe as dd
+#from dask.delayed import delayed
+#from dask.distributed import Client
 from tqdm import tqdm
 
 # %%
 #convert addresses from osmdata.xyz
-fn = "/home/tom/comcharax/data/trainingdata/osm/address_EPSG4326.gpkg"
 if False:
-    size = 5000000
-    last_save = 0
-    with fiona.open(fn) as src:
-        count = len(src)
-        print(f'count: {count}')
-        df = []
-        for i,item in tqdm(enumerate(src)):
-            df.append(item['properties'])
-            if size<=(i-last_save):
-                print(f"saving {i}")
-                df = pd.DataFrame(df)
-                df = df.drop(columns=['osm_id','osm_timestamp','other_tags'])
-                df = df.to_parquet(f"/home/tom/comcharax/data/trainingdata/osm_addresses/addr_{i}.parquet")
-                df = []
-                last_save=i
+    fn = "/home/tom/comcharax/data/trainingdata/osm/address_EPSG4326.gpkg"
+    if False:
+        size = 5000000
+        last_save = 0
+        with fiona.open(fn) as src:
+            count = len(src)
+            print(f'count: {count}')
+            df = []
+            for i,item in tqdm(enumerate(src)):
+                df.append(item['properties'])
+                if size<=(i-last_save):
+                    print(f"saving {i}")
+                    df = pd.DataFrame(df)
+                    df = df.drop(columns=['osm_id','osm_timestamp','other_tags'])
+                    df = df.to_parquet(f"/home/tom/comcharax/data/trainingdata/osm_addresses/addr_{i}.parquet")
+                    df = []
+                    last_save=i
 
-    df = pd.DataFrame(df)
-    df = df.drop(columns=['osm_id','osm_timestamp','other_tags'])
-    df = df.to_parquet(f"/home/tom/comcharax/data/trainingdata/osm_addresses/addr_{i}.parquet")
-
-# %%
-df = pd.read_parquet("/home/tom/comcharax/data/trainingdata/osm_addresses", engine="fastparquet")
-
-# %%
-#df.describe()
-#df = df.astype(pd.SparseDtype("string", np.nan))
-#df.drop(columns=[""])
-df.to_parquet("/home/tom/comcharax/data/trainingdata/address_data.parquet")
+        df = pd.DataFrame(df)
+        df = df.drop(columns=['osm_id','osm_timestamp','other_tags'])
+        df = df.to_parquet(f"/home/tom/comcharax/data/trainingdata/osm_addresses/addr_{i}.parquet")
 
 # %%
+df = pd.read_parquet(
+    "/home/tom/comcharax/data/osm_address_data.parquet", 
+    engine="fastparquet"
+).sample(100000).copy()
+
+# %%
+df.columns
+
+# %% [markdown]
+# extract all countries
+
+# %% [markdown]
+# extract all street names with respective countries
+
+# %%
+if False:
+    street_groups = df.groupby("addr_street", dropna=False)
+    street_names = street_groups.apply(lambda x: 
+        pd.Series({
+            "count": len(x), 
+            "countries": list(x.addr_country.dropna().unique())
+        })
+    )
+
+# %% [markdown]
+# explore the othe values...
+
+# %%
+df.apply(lambda x: x.dropna().unique())
