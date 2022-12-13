@@ -145,6 +145,9 @@ from sklearn.metrics import classification_report
 print(classification_report(y_true, y_pred))
 
 # %%
+classification_report(y_true, y_pred, dic)
+
+# %%
 model.classmap_,model.predict_proba(dfl).detach().numpy()
 
 # %%

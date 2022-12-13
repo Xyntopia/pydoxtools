@@ -705,8 +705,8 @@ def train_text_block_classifier(old_model=None, num_workers=4, steps_per_epoch=2
     if old_model:
         model = old_model
     checkpoint_callback = pytorch_lightning.callbacks.ModelCheckpoint(
-        monitor='train_loss',  # or 'accuracy' or 'f1'
-        mode='min', save_top_k=5,
+        monitor='weighted avg.f1-score',  # or 'accuracy' or 'f1'
+        mode='max', save_top_k=5,
         dirpath=settings.MODEL_STORE("text_block").parent,
         filename='text_block-{epoch:02d}-{train_loss:.2f}.ckpt'
     )
