@@ -61,7 +61,7 @@ bg = training.TextBlockGenerator(generators=(
     ("address",training.BusinessAddressGenerator()),
     ("unknown",training.RandomTextBlockGenerator()),
     ("unknown",training.RandomListGenerator()),
-),weights=[10,8,2],
+),weights=[100,80,20],
 augment_prob=0.05, cache_size=100,renew_num=10)
 bg.classmap,bg.classmap_inv, bg.num_generators, bg.class_gen
 
@@ -79,10 +79,7 @@ addr = [next(bgi) for i in range(1000)]
 # %% [markdown]
 # progression:
 #
-# - 144ms/1k
-# - 140ms/1k with 100/100
-# - 79ms/1k with 100/50
-# - 14.1ms/1k with 100/10
+# - 185 ms 100/10
 
 # %%
 for p in [next(bgi) for i in range(10)]:

@@ -176,6 +176,8 @@ class BusinessAddressGenerator(GeneratorMixin):
     def __init__(self):
         import faker
         self._available_locales = faker.config.AVAILABLE_LOCALES
+        #pre-initialize fakers for all languages
+        self._faker = faker.Faker(self._available_locales)
         try:
             # this in order to avoid warning: "UserWarning: fr_QC locale is deprecated. Please use fr_CA."
             self._available_locales.remove("fr_QC")
@@ -219,7 +221,7 @@ class BusinessAddressGenerator(GeneratorMixin):
         faker.Faker.seed(seed)
         rand = random.Random(seed)
         rc, r = rand.choice, rand.random
-        f = faker.Faker(rc(self._available_locales))
+        f = self._faker[rc(self._available_locales)]
 
         company: str = f.company()
 
