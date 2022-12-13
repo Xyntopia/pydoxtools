@@ -297,7 +297,11 @@ class RandomListGenerator(GeneratorMixin):
         a = '??????????###############--|.:?/\\'
         strlen = min(int(random.weibullvariate(8, 1.4)) + 1, len(a))
         frmtstr = list_symbol + random.choice(["", " "]) + "".join(rand.sample(a, strlen))
-        list_word = f.pystr_format(string_format=frmtstr)
+        list_word = list(f.pystr_format(string_format=frmtstr))
+        # replace a random number of letters with numbers/letters
+        for i in range(rand.randint(0, len(list_word) // 2)):
+            list_word[rand.randint(0, len(list_word)) - 1] = "#" if rand.random() > 0.2 else "?"
+        list_word = "".join(list_word)
 
         # TODO: add more sophisticated lists..  with words
         #       - only with numbers
@@ -309,8 +313,8 @@ class RandomListGenerator(GeneratorMixin):
         # f.pystr_format(string_format = frmtstr), frmtstr)
 
         res = ""
-        for i in range(rand.randint(2, 15)):
-            res += f.pystr_format(string_format=frmtstr) + "\n"
+        for i in range(rand.randint(2, 30)):
+            res += f.pystr_format(string_format=list_word) + "\n"
 
         return res
 
