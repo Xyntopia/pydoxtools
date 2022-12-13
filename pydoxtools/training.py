@@ -176,7 +176,7 @@ class BusinessAddressGenerator(GeneratorMixin):
     def __init__(self):
         import faker
         self._available_locales = faker.config.AVAILABLE_LOCALES
-        #pre-initialize fakers for all languages
+        # pre-initialize fakers for all languages
         self._faker = faker.Faker(self._available_locales)
         try:
             # this in order to avoid warning: "UserWarning: fr_QC locale is deprecated. Please use fr_CA."
@@ -281,15 +281,15 @@ class RandomListGenerator(GeneratorMixin):
     # faker.pylist
     def __init__(self):
         import faker
-        f = faker.Faker()
+        self._faker = f = faker.Faker()
         self._fake_methods = [m for m in [m for m in dir(f) if not m == "seed"]
                               if callable(getattr(f, m)) and m[0] != "_"]
 
     def single(self, seed):
         import faker
-        f = faker.Faker()
         faker.Faker.seed(seed)
         rand = random.Random(seed)
+        f = self._faker
 
         # define list symbol
         list_symbol = rand.choice("   ----**∙∙••+~")
@@ -297,7 +297,12 @@ class RandomListGenerator(GeneratorMixin):
         a = '??????????###############--|.:?/\\'
         strlen = min(int(random.weibullvariate(8, 1.4)) + 1, len(a))
         frmtstr = list_symbol + random.choice(["", " "]) + "".join(rand.sample(a, strlen))
+        list_word = f.pystr_format(string_format=frmtstr)
 
+        # TODO: add more sophisticated lists..  with words
+        #       - only with numbers
+        #       - with the same word over & over
+        #       - with the same symbols over & over
         # TODO: add lists with values from "self._fake_methods"
         # datalen=min(int(random.weibullvariate(8,1.4))+1,len(fake_methods))
         # frmtstr="{{"+'}}{{'.join(random.sample(fake_methods, datalen))+"}}"

@@ -79,7 +79,7 @@ addr = [next(bgi) for i in range(1000)]
 # %% [markdown]
 # progression:
 #
-# - 185 ms 100/10
+# - 28.2 ms 100/10
 
 # %%
 for p in [next(bgi) for i in range(10)]:
