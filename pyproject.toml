@@ -73,7 +73,7 @@ ipywidgets = "^8.0.3"
 matplotlib = "^3.5.1"
 pytest = ">=6.0.1"
 yattag = ">=1.13.2" #for html text coloring
-jupyterlab = "^3.2.5"
+jupyterlab = "^3.5.1"
 tensorboard = "^2.7.0"
 pigeonXT-jupyter = "^0.6.1" # for labeling purposes...
 odfpy = "^1.4.1"

@@ -95,29 +95,149 @@ nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.c
 # and test the model
 
 # %%
-TRAINING_DATA_DIR = Path("../../../componardolib/training_data").resolve() #settings.TRAINING_DATA_DIR
-label_file = TRAINING_DATA_DIR / "labeled_txt_boxes.xlsx"
+TRAINING_DATA_DIR = Path("../../training_data").resolve() #settings.TRAINING_DATA_DIR
+label_file = settings.TRAINING_DATA_DIR / "labeled_txt_boxes.xlsx"
 
 # %%
 df_labeled = pd.read_excel(label_file)
 
 # %%
-df_labeled.label.unique()
+settings.TRAINING_DATA_DIR
 
 # %%
-import warnings
-warnings.filterwarnings('ignore')
-df = training.get_pdf_text_boxes()
+df_labeled.label.unique()
 
 # %%
 model = classifier.load_classifier("text_block")
 
-# %%
-df = df.drop_duplicates("txt")
-df.txt = df.txt.str.strip()
-df["pred"] = df.txt.progress_apply(lambda x: model.predict_proba([x])[0])
-df[["add_prob", "ukn_prob"]] = df.pred.progress_apply(pd.Series)
+# %% tags=[]
+import warnings
+warnings.filterwarnings('ignore')
+label_file = settings.TRAINING_DATA_DIR / "labeled_txt_boxes.xlsx"
+df = pd.read_excel(label_file)
+df['class']=df['label']
+df = df.fillna(" ")
 
 # %%
-min_prob = 0.1
-(df.add_prob>min_prob).sum(),df[df.add_prob>min_prob].add_prob.hist(bins=50)
+count = df["class"].value_counts()
+count
+
+# %%
+classes = count.index.to_list()
+classes
+
+# %%
+# evaluate prediction
+dfl=df.txt.to_list()
+y_pred = model.predict(dfl)
+y_true = df["class"].replace(dict(
+    contact="unknown",
+    directions="unknown",
+    company="unknown",
+    country="unknown",
+    url="unknown",
+    list="unknown"
+))
+target_names = list(model.classmap_.values())
+
+from sklearn.metrics import classification_report
+print(classification_report(y_true, y_pred, target_names=target_names))
+
+# %%
+set(y_pred), y_true.unique()
+
+# %%
+model.classmap_,model.predict_proba(dfl).detach().numpy()
+
+# %%
+df['proba'] = model.predict_proba(dfl).detach().numpy()[:,0]
+
+# %%
+df['proba'].hist()
+
+# %%
+df[df.label=="address"].proba.hist()
+
+# %% [markdown]
+# false positives?
+
+# %% tags=[]
+pretty_print(df[(df.label!="address") & (df.proba > 0.5)][["txt","proba","label"]])
+
+# %% [markdown]
+# which addresses were not recognized?
+
+# %%
+model.predict_proba(["""
+MEAN WELL USA, INC.
+44030 Fremont Blvd., Fremont,
+CA 94538,
+Tel: +1-510-683-8886
+Web: www.meanwellusa.com""",
+"""
+Available Exclusively From 
+Less EMF Inc
+www.lessemf.com
++1-518-432-1550""",
+"""
+XCAM Limited, </s>2 Stone Circle Road, Round Spinney, Northampton, NN3 8RF
+""",
+"""
+Ⓒ 2018 LG Chem ESS Battery Division
+LG Guanghwamun Building, 58, Saemunan-ro, Jongro-gu, Seoul, 03184, Korea
+http://www.lgesspartner.com http://www.lgchem.com
+"""
+"""
+XCAM Limited
+2 Stone Circle Road
+Northampton
+NN3 8RF
+Tel: 44 (0)1604 673700
+Fax: 44 (0)1604 671584
+www.xcam.co.uk
+Email: info@xcam.co.uk
+"""
+])
+
+# %% tags=[]
+pretty_print(df[(df.label=="address") & (df.proba < 0.5)][["txt","proba","label"]])
+
+# %% [markdown]
+# ## testing the generator..
+#
+# which addresses were problematic in the generator?
+
+# %%
+bg = training.TextBlockGenerator(generators=dict(
+    address=training.BusinessAddressGenerator(fake_langs=['en_US', 'de_DE', 'en_GB']),
+    unknown=training.RandomTextBlockGenerator()
+),augment_prob=0.05, cache_size=100,renew_num=10)
+bg.classmap, bg.num_generators
+
+# %%
+bgi=bg.__iter__()
+addr = [next(bgi) for i in range(1000)]
+
+# %%
+df = pd.DataFrame(addr, columns=["txt","class"])
+
+# %%
+df["class"]=df["class"]
+df["class"]=df["class"].apply(lambda x: x.numpy())
+
+# %%
+# evaluate prediction
+dfl=df.txt.to_list()
+y_pred = model.predict(dfl)
+y_true = df["class"].replace(dict(
+    contact="unknown",
+    directions="unknown",
+    company="unknown",
+    country="unknown"
+))
+target_names = list(model.classmap_.values())
+
+from sklearn.metrics import classification_report
+print(classification_report(y_true, y_pred, target_names=target_names))
+
+# %%

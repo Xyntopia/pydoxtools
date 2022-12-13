@@ -9,17 +9,17 @@ import abc
 import functools
 import logging
 import pathlib
-import string
 import typing
 import urllib
 from typing import Tuple, List
 
 import pandas as pd
 import pytorch_lightning
+import sklearn
 import torch
-import torch.nn.functional as F
 import torchmetrics
 import tqdm
+from torch.nn import functional as F
 from transformers import AutoTokenizer, AutoModel
 
 from pydoxtools import html_utils
@@ -28,9 +28,6 @@ from pydoxtools.settings import settings
 logger = logging.getLogger(__name__)
 memory = settings.get_memory_cache()
 tqdm.tqdm.pandas()
-
-import sklearn
-import sklearn.model_selection
 
 
 class nlp_functions:
@@ -155,7 +152,6 @@ class lightning_training_procedures(pytorch_lightning.LightningModule):
     def __init__(self):
         super(lightning_training_procedures, self).__init__()
         self.histograms = True
-        self.class_weight = torch.tensor([1., 1.])
 
     def add_standard_metrics(self, num_classes, hist_params=None):
         # TODO: get rid of this function in all child classes and somehow
@@ -165,6 +161,7 @@ class lightning_training_procedures(pytorch_lightning.LightningModule):
             self.hist_params = ['linear.weight', 'linear.bias']
         else:
             self.hist_params = hist_params
+
         threshold = 0.5
         self.metrics = torch.nn.ModuleDict({
             'accuracy': torchmetrics.Accuracy(threshold, num_classes),
@@ -178,11 +175,12 @@ class lightning_training_procedures(pytorch_lightning.LightningModule):
         # It is independent of forward
         x, y = batch
         y_train_pred = self(x)
-        # this function handles th multiple categorical outputs from
+
+        # this function handles the multiple categorical outputs from
         # y_train_pred and numerical categories from y automatically...
         loss = F.cross_entropy(
             y_train_pred, y,
-            weight=self.class_weight.to(device=self.device)
+            # weight=self.class_weight.to(device=self.device)
         )
         # Logging to TensorBoard by default
         # self.log('train_loss', loss)
@@ -228,7 +226,8 @@ class lightning_training_procedures(pytorch_lightning.LightningModule):
 
         return {
             # "tests": est,
-            "classification_report": sklearn.metrics.classification_report(test, predicted)
+            "classification_report": sklearn.metrics.classification_report(
+                test, predicted, output_dict=True)
         }
 
     def validation_step(self, batch, batch_idx):
@@ -239,7 +238,23 @@ class lightning_training_procedures(pytorch_lightning.LightningModule):
         pred, target = torch.cat(pred), torch.cat(target)
         for metric_name in self.metrics:
             self.metrics[metric_name](pred, target)
-            self.log(metric_name, self.metrics[metric_name])
+            # self.log(metric_name, self.metrics[metric_name])
+
+        classes = list(self.classmap_.values())
+        est = pd.DataFrame(pred.cpu().numpy(), columns=classes)
+        est['target'] = target.cpu().numpy()
+        est['max'] = est.loc[:, classes].max(axis=1)  # get the calculated certainty
+        est['maxidx'] = est.loc[:, classes].idxmax(axis=1)  # get the label
+        est['target_label'] = est['target'].map(self.classmap_)
+
+        # Model Accuracy
+        predicted, test = est[['maxidx', 'target_label']].values.T
+        accuracy = sklearn.metrics.accuracy_score(test, predicted)
+
+        self.log_dict(
+            sklearn.metrics.classification_report(
+                test, predicted, output_dict=True)
+        )
 
     def configure_optimizers(self):
         weight_decay = 0.0
@@ -268,7 +283,6 @@ class txt_block_classifier(
         self.classmapinv_ = {v: k for k, v in classmap.items()}
         self.classes_ = list(classmap.values())
         num_classes = len(classmap)
-        self.class_weight = torch.tensor([0.75, 1.4])
         super(txt_block_classifier, self).__init__()
 
         # TODO: get rid of model dependency... only use the vocabulary for the tokenizer...
@@ -629,14 +643,12 @@ def gen_meta_info(url, htmlstr) -> torch.tensor:
 
 gen_meta_info_cached = memory.cache(gen_meta_info)
 
+
 # TODO: move all the following functions into a separate
 #       "data preparation" file and only load the generated data here...
 
 
 # @functools.lru_cache(maxsize=5)
-
-
-_asciichars = ''.join(sorted(set(chr(i) for i in range(32, 128)).union(string.printable)))
 
 
 class CLassificationExtractor():

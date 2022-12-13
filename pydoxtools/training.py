@@ -1,11 +1,11 @@
 import collections
-import collections
 import datetime
 import functools
 import logging
 import pickle
 import random
 import re
+import string
 import time
 import typing
 from functools import cached_property
@@ -19,11 +19,13 @@ import torch
 
 from pydoxtools import file_utils, list_utils
 from pydoxtools.classifier import pdfClassifier, gen_meta_info_cached, \
-    pageClassifier, _asciichars, txt_block_classifier
+    pageClassifier, txt_block_classifier
 from pydoxtools.settings import settings
 
 logger = logging.getLogger(__name__)
 memory = settings.get_memory_cache()
+
+_asciichars = ''.join(sorted(set(chr(i) for i in range(32, 128)).union(string.printable)))
 
 
 @functools.lru_cache()
@@ -171,6 +173,15 @@ sep_chars = rand_chars({"\n": 4, ", ": 2, "; ": 1, " | ": 1})
 
 
 class BusinessAddressGenerator(GeneratorMixin):
+    def __init__(self):
+        import faker
+        self._available_locales = faker.config.AVAILABLE_LOCALES
+        try:
+            # this in order to avoid warning: "UserWarning: fr_QC locale is deprecated. Please use fr_CA."
+            self._available_locales.remove("fr_QC")
+        except ValueError:
+            pass
+
     @cached_property
     def url_replace_regex(self):
         return re.compile(r'[^A-Za-z0-9-_]')
@@ -208,7 +219,7 @@ class BusinessAddressGenerator(GeneratorMixin):
         faker.Faker.seed(seed)
         rand = random.Random(seed)
         rc, r = rand.choice, rand.random
-        f = faker.Faker(rc(faker.config.AVAILABLE_LOCALES))
+        f = faker.Faker(rc(self._available_locales))
 
         company: str = f.company()
 
@@ -454,6 +465,18 @@ def random_string_augmenter(data: str, prob: float) -> str:
     return "".join(c if random.random() > prob else random.choice(_asciichars) for c in data)
 
 
+class PandasDataframeLoader(torch.utils.data.Dataset):
+    def __init__(self, X: pd.DataFrame, y: pd.Series):
+        self._X = X
+        self._y = y
+
+    def __getitem__(self, i):
+        return self._X[i], self._y[i]
+
+    def __len__(self):
+        return len(self._X)
+
+
 class TextBlockGenerator(torch.utils.data.IterableDataset):
     def __init__(
             self,
@@ -542,15 +565,34 @@ def prepare_textblock_training(num_workers: int = 4, steps_per_epoch: int = 500,
     # label_file = settings.TRAINING_DATA_DIR / "labeled_txt_boxes.xlsx"
     # df_labeled = pd.read_excel(label_file)
 
-    # give training dataset some augmentation...
-    generators = dict(
-        address=BusinessAddressGenerator(fake_langs=['en_US', 'de_DE', 'en_GB']),
-        unknown=RandomTextBlockGenerator()
+    virtual_size = steps_per_epoch * batch_size
+    train_dataset = TextBlockGenerator(
+        generators=[
+            ("address", BusinessAddressGenerator()),
+            ("unknown", RandomTextBlockGenerator()),
+            ("unknown", RandomListGenerator()),
+        ],
+        weights=[10, 8, 2],
+        augment_prob=1.0 / 50.0,
+        cache_size=10000,
+        renew_num=1000,
+        virtual_size=virtual_size
     )
 
-    virtual_size = steps_per_epoch * batch_size
-    train_dataset = TextBlockGenerator(generators=generators, augment_prob=1.0 / 50.0, virtual_size=virtual_size)
-    test_dataset = TextBlockGenerator(generators=generators, augment_prob=0.0, virtual_size=virtual_size)
+    # load manually labeled dataset for performance evaluation
+    label_file = settings.TRAINING_DATA_DIR / "labeled_txt_boxes.xlsx"
+    df = pd.read_excel(label_file).fillna(" ")
+    y = df["label"].replace(dict(
+        contact="unknown",
+        directions="unknown",
+        company="unknown",
+        country="unknown",
+        url="unknown",
+        list="unknown"
+    ))
+    y = y.replace(train_dataset.classmap_inv)
+    test_dataset = PandasDataframeLoader(X=df['txt'], y=y)
+
     train_loader = torch.utils.data.DataLoader(
         dataset=train_dataset,
         batch_size=batch_size,
@@ -558,10 +600,11 @@ def prepare_textblock_training(num_workers: int = 4, steps_per_epoch: int = 500,
         persistent_workers=True
         # sampler=weighted_sampler
     )
-    test_loader = torch.utils.data.DataLoader(
+    validation_loader = torch.utils.data.DataLoader(
         dataset=test_dataset,
-        batch_size=500,
-        num_workers=num_workers
+        batch_size=len(test_dataset),
+        num_workers=num_workers,
+        persistent_workers=True
         # sampler=weighted_sampler
     )
 
@@ -569,11 +612,12 @@ def prepare_textblock_training(num_workers: int = 4, steps_per_epoch: int = 500,
     logger.info(f"extracted classes: {classmap}")
     model = txt_block_classifier(classmap)
 
-    return train_loader, test_loader, model
+    return train_loader, validation_loader, model
 
 
 @functools.lru_cache()
 def prepare_url_training():
+    # TODO:  use our textblock classifier for this!
     df = load_labeled_webpages()
     # TODO make a classmap here instead of classes for added safety, that
     #      categorical encoding stay the same...
@@ -646,7 +690,7 @@ def train_page_classifier(max_epochs=100, old_model=None):
 
 
 def train_text_block_classifier(old_model=None, num_workers=4, steps_per_epoch=200, **kwargs):
-    train_loader, test_loader, model = prepare_textblock_training(num_workers, steps_per_epoch=steps_per_epoch)
+    train_loader, validation_loader, model = prepare_textblock_training(num_workers, steps_per_epoch=steps_per_epoch)
     if old_model:
         model = old_model
     checkpoint_callback = pytorch_lightning.callbacks.ModelCheckpoint(
@@ -659,7 +703,7 @@ def train_text_block_classifier(old_model=None, num_workers=4, steps_per_epoch=2
         accelerator="auto",  # "auto"
         gpus=kwargs.get("gpus", 1),
         # gpus=-1, auto_select_gpus=True,s
-        log_every_n_steps=100,
+        log_every_n_steps=kwargs.get("log_every_n_steps", 100),
         # limit_train_batches=100,
         max_epochs=kwargs.get("max_epochs", -1),
         # checkpoint_callback=False,
@@ -670,18 +714,14 @@ def train_text_block_classifier(old_model=None, num_workers=4, steps_per_epoch=2
         default_root_dir=settings.MODEL_STORE("text_block").parent
     )
     if True:
-        # TODO: normally this should be discouraged to do this...
-        #       (using test dataset for validation) ...
-        #       but we don't have enough test data yet.
-        val_dataloader = test_loader
-        trainer.fit(model, train_loader, val_dataloader)
+        trainer.fit(model, train_loader, validation_loader)
         trainer.save_checkpoint(settings.MODEL_STORE("text_block"))
         curtime = datetime.datetime.now()
         curtimestr = curtime.strftime("%Y%m%d%H%M")
         trainer.save_checkpoint(
             settings.MODEL_STORE("text_block").parent / f"text_blockclassifier{curtimestr}.ckpt")
 
-    return trainer.test(model, test_dataloaders=test_loader, ckpt_path=settings.MODEL_STORE('text_block')), model
+    return trainer.test(model, test_dataloaders=validation_loader, ckpt_path=settings.MODEL_STORE('text_block')), model
 
 
 def train_pdf_classifier(max_epochs=100, old_model=None):
