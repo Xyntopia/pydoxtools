@@ -19,7 +19,8 @@
 
 # %% tags=[]
 import logging
-
+import datetime
+import platform
 import pytorch_lightning
 import torch
 from IPython.display import display, HTML
@@ -45,22 +46,6 @@ pdf_utils._set_log_levels()
 memory = settings.get_memory_cache()
 
 nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.cudnn.version()
-
-# %% [markdown]
-# ## load pdf files
-
-# %% [markdown]
-# we can find addresses here:
-#
-# https://archive.org/details/libpostal-parser-training-data-20170304
-#
-# from this project: https://github.com/openvenues/libpostal
-#
-# now we can simply mix addresses from taht repository with random text boxes and
-# run a classifier on them! yay!
-
-# %% [markdown]
-# # translate text boxes into vectors...
 
 # %% [markdown] tags=[]
 # test the model once
@@ -98,30 +83,46 @@ upload = False
 
 
 # %%
-# test webdav connection
-# wu.push_dir_diff(hostname, token, syncpath)
+ts=datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+sysinfo=dict(
+    platform=platform.platform(),
+    cpu=platform.processor()
+)
+with open(settings.MODEL_DIR/f"ts_{ts}.txt","w") as f:
+    f.write(str(sysinfo))
 
+# %%
+# test webdav connection
+settings.MODEL_DIR.mkdir(parents=True, exist_ok=True)
+# and create a timestamp file to make sure we know it works!
+
+
+# %%
+wu.push_dir_diff(hostname, token, syncpath)
 
 # %% tags=[]
-class WebdavSyncCallback(pytorch_lightning.Callback):
-    def on_train_epoch_start(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
-        wu.push_dir_diff(hostname, token, syncpath)
+if True:
+    class WebdavSyncCallback(pytorch_lightning.Callback):
+        def on_train_epoch_start(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
+            wu.push_dir_diff(hostname, token, syncpath)
 
 
-additional_callbacks = []
-if upload:
-    additional_callbacks = [
-        WebdavSyncCallback(),
-        # pytorch_lightning.callbacks.RichProgressBar()
-    ]
+    additional_callbacks = []
+    if upload:
+        additional_callbacks = [
+            WebdavSyncCallback(),
+            # pytorch_lightning.callbacks.RichProgressBar()
+        ]
 
-import warnings
-warnings.filterwarnings("ignore", ".*Your `IterableDataset` has `__len__` defined.*")
+    import warnings
+    warnings.filterwarnings("ignore", ".*Your `IterableDataset` has `__len__` defined.*")
 
-trainer, model = training.train_text_block_classifier(
-    num_workers=8,
-    max_epochs=-1, gpus=1,
-    callbacks=additional_callbacks,
-    steps_per_epoch=20,
-    log_every_n_steps=10
-)
+    trainer, model = training.train_text_block_classifier(
+        num_workers=8,
+        max_epochs=-1, gpus=1,
+        callbacks=additional_callbacks,
+        steps_per_epoch=20,
+        log_every_n_steps=10
+    )
+
+# %%
