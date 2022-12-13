@@ -115,6 +115,9 @@ if upload:
         # pytorch_lightning.callbacks.RichProgressBar()
     ]
 
+import warnings
+warnings.filterwarnings("ignore", ".*Your `IterableDataset` has `__len__` defined.*")
+
 trainer, model = training.train_text_block_classifier(
     num_workers=8,
     max_epochs=-1, gpus=1,
