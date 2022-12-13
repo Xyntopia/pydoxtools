@@ -140,29 +140,31 @@ y_true = df["class"].replace(dict(
 ))
 target_names = list(model.classmap_.values())
 
-from sklearn.metrics import classification_report
-print(classification_report(y_true, y_pred, target_names=target_names))
-
 # %%
-set(y_pred), y_true.unique()
+from sklearn.metrics import classification_report
+print(classification_report(y_true, y_pred))
 
 # %%
 model.classmap_,model.predict_proba(dfl).detach().numpy()
 
 # %%
-df['proba'] = model.predict_proba(dfl).detach().numpy()[:,0]
+df['proba_address'] = model.predict_proba(dfl).detach().numpy()[:,model.classmapinv_['address']]
 
 # %%
-df['proba'].hist()
+df['proba_address'].hist(bins=20)
 
 # %%
-df[df.label=="address"].proba.hist()
+df[df.label=="address"].proba_address.hist(bins=20)
 
 # %% [markdown]
 # false positives?
 
 # %% tags=[]
-pretty_print(df[(df.label!="address") & (df.proba > 0.5)][["txt","proba","label"]])
+fp = df[(df.label!="address") & (df.proba_address > 0.5)][["txt","proba_address","label"]]
+fp
+
+# %% tags=[]
+pretty_print(fp)
 
 # %% [markdown]
 # which addresses were not recognized?
@@ -180,13 +182,27 @@ Less EMF Inc
 www.lessemf.com
 +1-518-432-1550""",
 """
-XCAM Limited, </s>2 Stone Circle Road, Round Spinney, Northampton, NN3 8RF
+XCAM asdad asssd
+2 Stone Circle Road
+Northampton
+NN3 8RF
 """,
+"""
+XCAM Limited
+2 Stone Circle Road
+Northampton
+NN3 8RF
+Tel: 44 (0)1604 673700
+Fax: 44 (0)1604 671584
+www.xcam.co.uk
+Email: info@xcam.co.uk
+"""
+,
 """
 Ⓒ 2018 LG Chem ESS Battery Division
 LG Guanghwamun Building, 58, Saemunan-ro, Jongro-gu, Seoul, 03184, Korea
 http://www.lgesspartner.com http://www.lgchem.com
-"""
+""",
 """
 XCAM Limited
 2 Stone Circle Road
@@ -199,8 +215,11 @@ Email: info@xcam.co.uk
 """
 ])
 
+# %% [markdown]
+# false negatives
+
 # %% tags=[]
-pretty_print(df[(df.label=="address") & (df.proba < 0.5)][["txt","proba","label"]])
+pretty_print(df[(df.label=="address") & (df.proba_address < 0.5)][["txt","proba_address","label"]])
 
 # %% [markdown]
 # ## testing the generator..

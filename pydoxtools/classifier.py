@@ -105,6 +105,17 @@ def cached_str_vectorize(model, raw_string):
     return model(raw_string)
 
 
+def make_tensorboard_compatible(d):
+    new_d = {}
+    for k, v in d.items():
+        if isinstance(v, dict):
+            for i, j in v.items():
+                new_d[f"{k}.{i}"] = j
+        else:
+            new_d[k] = v
+    return new_d
+
+
 class classifier_functions:
     @abc.abstractmethod
     def generate_features(self, X):
@@ -249,12 +260,15 @@ class lightning_training_procedures(pytorch_lightning.LightningModule):
 
         # Model Accuracy
         predicted, test = est[['maxidx', 'target_label']].values.T
-        accuracy = sklearn.metrics.accuracy_score(test, predicted)
+        #accuracy = sklearn.metrics.accuracy_score(test, predicted)
 
-        self.log_dict(
-            sklearn.metrics.classification_report(
-                test, predicted, output_dict=True)
+        classification_report = sklearn.metrics.classification_report(
+            test, predicted,
+            output_dict=True,
+            zero_division=0
         )
+
+        self.log_dict(make_tensorboard_compatible(classification_report))
 
     def configure_optimizers(self):
         weight_decay = 0.0

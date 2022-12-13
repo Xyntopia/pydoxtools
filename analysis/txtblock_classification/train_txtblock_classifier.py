@@ -16,12 +16,13 @@
 
 # %% [markdown] tags=[]
 # # Train the Textblock classifier
-#
-# import logging
-#
-# import pytorch_lightning
-# import torch
-# from IPython.display import display, HTML
+
+# %% tags=[]
+import logging
+
+import pytorch_lightning
+import torch
+from IPython.display import display, HTML
 
 # %% tags=[]
 # %load_ext autoreload
@@ -30,9 +31,6 @@
 from pydoxtools import pdf_utils, nlp_utils, cluster_utils, training
 from pydoxtools import webdav_utils as wu
 from pydoxtools.settings import settings
-import logging
-import torch
-import pytorch_lightning
 
 
 def pretty_print(df):
@@ -112,14 +110,15 @@ class WebdavSyncCallback(pytorch_lightning.Callback):
 
 additional_callbacks = []
 if upload:
-    additional_callbacks = [WebdavSyncCallback(), pytorch_lightning.callbacks.RichProgressBar()]
+    additional_callbacks = [
+        WebdavSyncCallback(),
+        # pytorch_lightning.callbacks.RichProgressBar()
+    ]
 
 trainer, model = training.train_text_block_classifier(
     num_workers=8,
-    max_epochs=-1, gpus=1, 
+    max_epochs=-1, gpus=1,
     callbacks=additional_callbacks,
-    steps_per_epoch=10,
+    steps_per_epoch=20,
     log_every_n_steps=10
 )
-
-# %%
