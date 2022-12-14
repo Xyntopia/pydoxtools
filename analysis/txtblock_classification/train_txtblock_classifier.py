@@ -83,6 +83,12 @@ upload = False
 
 
 # %%
+# test webdav connection
+settings.MODEL_DIR.mkdir(parents=True, exist_ok=True)
+# and create a timestamp file to make sure we know it works!
+
+
+# %%
 ts=datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 sysinfo=dict(
     platform=platform.platform(),
@@ -90,12 +96,6 @@ sysinfo=dict(
 )
 with open(settings.MODEL_DIR/f"ts_{ts}.txt","w") as f:
     f.write(str(sysinfo))
-
-# %%
-# test webdav connection
-settings.MODEL_DIR.mkdir(parents=True, exist_ok=True)
-# and create a timestamp file to make sure we know it works!
-
 
 # %%
 wu.push_dir_diff(hostname, token, syncpath)
