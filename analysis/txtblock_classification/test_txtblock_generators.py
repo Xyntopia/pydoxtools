@@ -15,7 +15,7 @@
 # ---
 
 # %% [markdown] tags=[]
-# # Train the Textblock classifier
+# # Test augmentation and mixing of textblocks
 
 # %% tags=[]
 # %load_ext autoreload
@@ -62,7 +62,7 @@ bg = training.TextBlockGenerator(generators=(
     ("unknown",training.RandomTextBlockGenerator()),
     ("unknown",training.RandomListGenerator()),
 ),weights=[100,80,20],
-augment_prob=0.05, cache_size=100,renew_num=10)
+random_char_prob=0.1, cache_size=100,renew_num=10)
 bg.classmap,bg.classmap_inv, bg.num_generators, bg.class_gen
 
 # %%
@@ -82,7 +82,7 @@ addr = [next(bgi) for i in range(1000)]
 # - 28.2 ms 100/10
 
 # %%
-for p in [next(bgi) for i in range(10)]:
+for p in [next(bgi) for i in range(100)]:
     print(p[0]+"\n\n")
 
 # %%

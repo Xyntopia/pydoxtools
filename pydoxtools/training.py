@@ -233,7 +233,7 @@ class BusinessAddressGenerator(GeneratorMixin):
             country=(0.1, lambda: rc([f.current_country(), f.current_country_code()])),
             phone=(0.2, lambda: rc(["", "phone ", "phone: "]) + f.phone_number()),
             fax=(0.1, lambda: rc(["", "fax ", "fax: "]) + f.phone_number()),
-            www=(0.2, lambda: self.generate_url(rand, company, f.tld())),
+            www=(0.2, lambda: rc(["", "www: ", "web: "]) + self.generate_url(rand, company, f.tld())),
             email=(0.1, lambda: rc(["", "email ", "email: "]) + f.email())
         )
 
@@ -472,10 +472,6 @@ def prepare_page_training():
     return train_loader, test_loader, model
 
 
-def random_string_augmenter(data: str, prob: float) -> str:
-    return "".join(c if random.random() > prob else random.choice(_asciichars) for c in data)
-
-
 class PandasDataframeLoader(torch.utils.data.Dataset):
     def __init__(self, X: pd.DataFrame, y: pd.Series):
         self._X = X
@@ -493,7 +489,9 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
             self,
             generators: list[tuple[str, typing.Any]],
             weights: list[int],
-            augment_prob: float = 0.0,
+            random_char_prob: float = 0.0,
+            random_word_prob: float = 0.0,
+            word_shuffle_prob: float = 0.0,
             cache_size: int = 10000,
             renew_num: int = 1000,
             virtual_size: int = 100000
@@ -509,8 +507,10 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
         """
         self._generators = generators
         self._weights = weights
-        self.augment = augment_prob
-        self.random = random.Random(time.time())  # get our own random number generator
+        self._random_char_prob = random_char_prob
+        self._random_word_prob = random_word_prob
+        self._word_shuffle_prob = word_shuffle_prob
+        self._random = random.Random(time.time())  # get our own random number generator
         self._cache_size = cache_size
         self._renew_num = renew_num
         self._virtual_size = virtual_size
@@ -534,29 +534,64 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
 
     def single(self, seed):
         # randomly choose a generator for a certain class
-        cl, gen = self.random.choices(population=self._generators, weights=self._weights)[0]
+        cl, gen = self._random.choices(population=self._generators, weights=self._weights)[0]
         # generate random input data for the class to be predicted
         x = gen(seed)
         y = self.classmap_inv[cl]
 
-        if self.augment:
+        if self._random_char_prob:
             # we use some augmentation for our dataset here to make the classifier more robust...
-            return random_string_augmenter(x, prob=self.augment), torch.tensor(y)
-        else:
-            return x, torch.tensor(y)
+            t = []
+            x_list = list(x)
+            lenx = len(x)
+            for i, c in enumerate(x_list):
+                selector = random.randint(0, 7)
+                if random.random() < self._random_char_prob:
+                    if selector == 0:  # substitute
+                        t.append(random.choice(_asciichars))
+                    elif selector == 1:  # insert before
+                        t.append(random.choice(_asciichars))
+                        t.append(c)
+                    elif selector == 2:  # insert after
+                        t.append(c)
+                        t.append(random.choice(_asciichars))
+                    elif selector == 3:  # delete
+                        continue
+                    elif selector == 4:  # duplicate
+                        t.append(c)
+                        t.append(c)
+                    elif selector == 5:  # swap
+                        i2 = random.randrange(0, lenx)
+                        x_list[i2] = c
+                        t.append(x_list[i2])
+                    elif selector == 6:  # neighbourswap
+                        if random.random() > 0.5:
+                            i2 = min(i + 1, lenx - 1)
+                        else:
+                            i2 = max(i - 1, 0)
+                        x_list[i2] = c
+                        t.append(x_list[i2])
+                    elif selector == 7:  # one-side-swap (only substitue the item with a duplicate from somewhere else in the string)
+                        t.append(random.choice(x))
+                else:
+                    t.append(c)
+
+            x = "".join(t)
+
+        return x, torch.tensor(y)
 
     def __iter__(self):
         # initialize cache with random samples
         cache = collections.deque(
             (self.single(
-                seed=self.random.random()) for i in range(self._cache_size)),
+                seed=self._random.random()) for i in range(self._cache_size)),
             maxlen=self._cache_size)
         while True:
             # serve all sample currently in cache
             yield from cache
             # add new samples to the cache collections deque automatically drops old samples
             # that exceed _cache_size
-            cache.extend(self.single(seed=self.random.random()) for i in range(self._renew_num))
+            cache.extend(self.single(seed=self._random.random()) for i in range(self._renew_num))
 
     def __len__(self):
         return self._virtual_size
@@ -584,7 +619,7 @@ def prepare_textblock_training(num_workers: int = 4, steps_per_epoch: int = 500,
             ("unknown", RandomListGenerator()),
         ],
         weights=[10, 8, 2],
-        augment_prob=1.0 / 50.0,
+        random_char_prob=1.0 / 50.0,
         cache_size=10000,
         renew_num=1000,
         virtual_size=virtual_size
@@ -708,7 +743,7 @@ def train_text_block_classifier(old_model=None, num_workers=4, steps_per_epoch=2
         monitor='weighted avg.f1-score',  # or 'accuracy' or 'f1'
         mode='max', save_top_k=5,
         dirpath=settings.MODEL_STORE("text_block").parent,
-        filename='text_block-{epoch:02d}-{train_loss:.2f}.ckpt'
+        filename="text_block-{epoch:02d}-{'weighted avg.f1-score':.2f}.ckpt"
     )
     trainer = pytorch_lightning.Trainer(
         accelerator="auto",  # "auto"
