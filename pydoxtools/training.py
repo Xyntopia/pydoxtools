@@ -492,6 +492,8 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
             random_char_prob: float = 0.0,
             random_word_prob: float = 0.0,
             word_shuffle_prob: float = 0.0,
+            mixed_blocks_generation_prob: float = 0.0,
+            mixed_blocks_label: float = 0.0,
             cache_size: int = 10000,
             renew_num: int = 1000,
             virtual_size: int = 100000
@@ -499,6 +501,8 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
         """
         augment_prop: augmentation is mainly used if we are training making the random samples more iverse with
                         random letters etc....
+        mixed_blocks_generation_prob:  append blocks from different generators to each other
+                                       and give them a label according to "mixed_blocks_label"  option
 
         cache_size: Maximum cache size. The cache is used to speed up the random generator
                     by reusing old generated sample every loop
@@ -510,6 +514,8 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
         self._random_char_prob = random_char_prob
         self._random_word_prob = random_word_prob
         self._word_shuffle_prob = word_shuffle_prob
+        self._mixed_blocks_generation_prob = mixed_blocks_generation_prob
+        self._mixed_blocks_label = mixed_blocks_label
         self._random = random.Random(time.time())  # get our own random number generator
         self._cache_size = cache_size
         self._renew_num = renew_num
@@ -533,11 +539,18 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
         return {j: i for i, j in self.classmap.items()}
 
     def single(self, seed):
+        # TODO: does it really make sense here to keep seed?
+        #       only makes sense if EVERY random choice is 100% included in it
         # randomly choose a generator for a certain class
         cl, gen = self._random.choices(population=self._generators, weights=self._weights)[0]
         # generate random input data for the class to be predicted
         x = gen(seed)
-        y = self.classmap_inv[cl]
+        if self._mixed_blocks_generation_prob > self._random.random():
+            cl, gen = self._random.choices(population=self._generators, weights=self._weights)[0]
+            x += "\n" + gen(seed + 1)
+            y = self.classmap_inv[self._mixed_blocks_label]
+        else:
+            y = self.classmap_inv[cl]
 
         if self._random_char_prob:
             # we use some augmentation for our dataset here to make the classifier more robust...
