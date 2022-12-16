@@ -176,13 +176,13 @@ class BusinessAddressGenerator(GeneratorMixin):
     def __init__(self):
         import faker
         self._available_locales = faker.config.AVAILABLE_LOCALES
-        # pre-initialize fakers for all languages
-        self._faker = faker.Faker(self._available_locales)
         try:
             # this in order to avoid warning: "UserWarning: fr_QC locale is deprecated. Please use fr_CA."
             self._available_locales.remove("fr_QC")
         except ValueError:
             pass
+        # pre-initialize fakers for all languages
+        self._faker = faker.Faker(self._available_locales)
 
     @cached_property
     def url_replace_regex(self):
@@ -520,6 +520,15 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
         self._cache_size = cache_size
         self._renew_num = renew_num
         self._virtual_size = virtual_size
+        import faker
+        self._available_locales = faker.config.AVAILABLE_LOCALES
+        try:
+            # this in order to avoid warning: "UserWarning: fr_QC locale is deprecated. Please use fr_CA."
+            self._available_locales.remove("fr_QC")
+        except ValueError:
+            pass
+        # pre-initialize fakers for all languages
+        self._faker = faker.Faker(self._available_locales)
 
     @cached_property
     def class_gen(self):
@@ -541,6 +550,8 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
     def single(self, seed):
         # TODO: does it really make sense here to keep seed?
         #       only makes sense if EVERY random choice is 100% included in it
+        self._random.seed(seed)
+
         # randomly choose a generator for a certain class
         cl, gen = self._random.choices(population=self._generators, weights=self._weights)[0]
         # generate random input data for the class to be predicted
@@ -552,40 +563,92 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
         else:
             y = self.classmap_inv[cl]
 
+        # word augmentation
+        if self._random_word_prob:
+            # we use some augmentation for our dataset here to make the classifier more robust...
+            t = []
+            words = x.split()
+            wordnum = len(words)
+            for i, w in enumerate(words):
+                # TODO:  merge word and char augmentation into a general "list-augmenation" function
+                if self._random.random() < self._random_word_prob:
+                    selector = self._random.randint(0, 9)
+                    if selector == 0:  # substitute with random char sequences
+                        t.append(self._faker.bothify(text="?" * self._random.randint(1, 15)))
+                    elif selector == 1:  # insert before
+                        t.append(self._faker.bothify(text="?" * self._random.randint(1, 15)))
+                        t.append(w)
+                    elif selector == 2:  # insert after
+                        t.append(w)
+                        t.append(self._faker.bothify(text="?" * self._random.randint(1, 15)))
+                    elif selector == 3:  # delete
+                        continue
+                    elif selector == 4:  # duplicate
+                        t.append(w)
+                        t.append(w)
+                    elif selector == 5:  # swap
+                        i2 = self._random.randrange(0, wordnum)
+                        t.append(words[i2])
+                        words[i2] = w
+                    elif selector == 6:  # neighbourswap
+                        if self._random.random() > 0.5:
+                            i2 = min(i + 1, wordnum - 1)
+                        else:
+                            i2 = max(i - 1, 0)
+                        t.append(words[i2])
+                        words[i2] = w
+                    elif selector == 7:  # one-side-swap (only substitue the item with a duplicate from somewhere else in the string)
+                        t.append(self._random.choice(words))
+                    # already handled by inserting random characters
+                    # elif selector ==8: #randomly split words
+                    #    splitnum=self._random.randrange(0,len(w))
+                    #    t.extend([w[:splitnum],w[splitnum:]])
+                    elif selector == 8:  # reverse
+                        t.append(w[::-1])
+                    elif selector == 9:  # crop
+                        crop = self._random.randrange(len(w))
+                        if crop > (len(w) // 2):
+                            t.append(w[crop:])
+                        else:
+                            t.append(w[:crop])
+                else:
+                    t.append(w)
+
+        # character augmentation
         if self._random_char_prob:
             # we use some augmentation for our dataset here to make the classifier more robust...
             t = []
             x_list = list(x)
             lenx = len(x)
             for i, c in enumerate(x_list):
-                selector = random.randint(0, 7)
-                if random.random() < self._random_char_prob:
+                if self._random.random() < self._random_char_prob:
+                    selector = self._random.randint(0, 7)
                     if selector == 0:  # substitute
-                        t.append(random.choice(_asciichars))
+                        t.append(self._random.choice(_asciichars))
                     elif selector == 1:  # insert before
-                        t.append(random.choice(_asciichars))
+                        t.append(self._random.choice(_asciichars))
                         t.append(c)
                     elif selector == 2:  # insert after
                         t.append(c)
-                        t.append(random.choice(_asciichars))
+                        t.append(self._random.choice(_asciichars))
                     elif selector == 3:  # delete
                         continue
                     elif selector == 4:  # duplicate
                         t.append(c)
                         t.append(c)
                     elif selector == 5:  # swap
-                        i2 = random.randrange(0, lenx)
-                        x_list[i2] = c
+                        i2 = self._random.randrange(0, lenx)
                         t.append(x_list[i2])
+                        x_list[i2] = c
                     elif selector == 6:  # neighbourswap
-                        if random.random() > 0.5:
+                        if self._random.random() > 0.5:
                             i2 = min(i + 1, lenx - 1)
                         else:
                             i2 = max(i - 1, 0)
-                        x_list[i2] = c
                         t.append(x_list[i2])
+                        x_list[i2] = c
                     elif selector == 7:  # one-side-swap (only substitue the item with a duplicate from somewhere else in the string)
-                        t.append(random.choice(x))
+                        t.append(self._random.choice(x))
                 else:
                     t.append(c)
 

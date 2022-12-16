@@ -23,7 +23,6 @@ from pydoxtools import webdav_utils as wu
 from pydoxtools.settings import settings
 import torch
 import gzip
-import bgzip
 from IPython.display import display
 import re
 import random
@@ -75,7 +74,7 @@ tg = training.RandomTextBlockGenerator()
 
 # %%
 #txt = tg([random.random() for i in range(10)])
-txt = tg(list(range(10)))
+txt = tg(list(range(200)))
 for t in txt:
     print(f"{t}\n")
 

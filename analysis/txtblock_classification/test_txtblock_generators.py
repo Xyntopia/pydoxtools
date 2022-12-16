@@ -62,7 +62,8 @@ bg = training.TextBlockGenerator(generators=(
     ("unknown",training.RandomTextBlockGenerator()),
     ("unknown",training.RandomListGenerator()),
 ),weights=[100,80,20],
-random_char_prob=0.1, cache_size=100,renew_num=10)
+random_char_prob=0.1, random_word_prob=0.1,
+cache_size=100,renew_num=10, mixed_blocks_generation_prob=0.1, mixed_blocks_label="unknown")
 bg.classmap,bg.classmap_inv, bg.num_generators, bg.class_gen
 
 # %%
@@ -83,6 +84,6 @@ addr = [next(bgi) for i in range(1000)]
 
 # %%
 for p in [next(bgi) for i in range(100)]:
-    print(p[0]+"\n\n")
+    print(f"{bg.classmap[p[1].item()]}:\n{p[0]}+\n\n")
 
 # %%
