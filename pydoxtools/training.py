@@ -493,7 +493,7 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
             random_word_prob: float = 0.0,
             word_shuffle_prob: float = 0.0,
             mixed_blocks_generation_prob: float = 0.0,
-            mixed_blocks_label: float = 0.0,
+            mixed_blocks_label: str = "unknown",
             cache_size: int = 10000,
             renew_num: int = 1000,
             virtual_size: int = 100000
@@ -567,11 +567,12 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
         if self._random_word_prob:
             # we use some augmentation for our dataset here to make the classifier more robust...
             t = []
-            words = x.split()
+            # we would like to preserve newline chars thats why we are splitting in such a "funny" way
+            words = x.replace("\n", " \n ").split(" ")
             wordnum = len(words)
             for i, w in enumerate(words):
                 # TODO:  merge word and char augmentation into a general "list-augmenation" function
-                if self._random.random() < self._random_word_prob:
+                if w and (self._random.random() < self._random_word_prob):
                     selector = self._random.randint(0, 9)
                     if selector == 0:  # substitute with random char sequences
                         t.append(self._faker.bothify(text="?" * self._random.randint(1, 15)))
@@ -613,6 +614,7 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
                             t.append(w[:crop])
                 else:
                     t.append(w)
+            x = " ".join(t).replace(" \n ", "\n")
 
         # character augmentation
         if self._random_char_prob:
@@ -695,9 +697,12 @@ def prepare_textblock_training(num_workers: int = 4, steps_per_epoch: int = 500,
             ("unknown", RandomListGenerator()),
         ],
         weights=[10, 8, 2],
-        random_char_prob=1.0 / 50.0,
+        random_char_prob=1.0 / 20.0,
+        random_word_prob=1.0 / 20.0,
         cache_size=10000,
         renew_num=1000,
+        mixed_blocks_generation_prob=0.1,
+        mixed_blocks_label="unknown",
         virtual_size=virtual_size
     )
 
@@ -710,9 +715,11 @@ def prepare_textblock_training(num_workers: int = 4, steps_per_epoch: int = 500,
         company="unknown",
         country="unknown",
         url="unknown",
-        list="unknown"
+        list="unknown",
+        multiaddress="unknown"
     ))
     y = y.replace(train_dataset.classmap_inv)
+    assert y.dtype == np.dtype('int64'), f"has to be numeric!! y.unique: {y.unique()}"
     test_dataset = PandasDataframeLoader(X=df['txt'], y=y)
 
     train_loader = torch.utils.data.DataLoader(
