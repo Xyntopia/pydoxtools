@@ -1,5 +1,42 @@
+import logging
+import subprocess
+import time
+
 import requests
 from webdav3.client import Client
+
+logger = logging.getLogger(__name__)
+
+
+def rclone_single_sync_models(hostname, token, syncpath):
+    """
+    implements the following command for nextcloud shared webdav folders
+
+    rclone bisync :webdav: /local/sync/dir/ \
+        --webdav-url=https://sync.example.net/public.php/webdav \
+        --webdav-vendor=nextcloud \
+        --webdav-user=KwkyKj8LgFZy8mo  #name of shared folder link in nextcloud
+    """
+    # install rclone
+    # for non-shared folders it is /remote.php/webdav:
+    cmd = (f"rclone bisync :webdav: {syncpath} --resync "
+           f"--webdav-url={hostname}/public.php/webdav "
+           f"--webdav-vendor=nextcloud "
+           f"--webdav-user={token} ")
+
+    logger.info(f"sync {syncpath} using rclone to {hostname}")
+    result = subprocess.run(cmd, shell=True, capture_output=True)
+    if result.stderr:
+        logger.info(result.stderr)
+    return result, cmd
+
+
+def continuous_sync_models():
+    """sync every 60s"""
+    while True:
+        rclone_single_sync()
+        print("sync successfully completed...")
+        time.sleep(60)
 
 
 # this upload command works:
@@ -41,3 +78,9 @@ def push_dir_diff(hostname: str, token: str, syncpath: str) -> None:
     # client.verify = False # To not check SSL certificates (Default = True)
     # client.list()
     client.push(local_directory=syncpath, remote_directory="/")
+
+
+if __name__ == "__main__":
+    res, cmd = rclone_single_sync()
+    print(res.stderr.decode())
+    print(res.stdout.decode())
