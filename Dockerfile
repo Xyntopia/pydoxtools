@@ -108,6 +108,10 @@ RUN --mount=type=cache,target=/root/.cache/ \
 #    && rm -rf /var/lib/{apt,dpkg,cache,log}/
 
 ARG PROJECT_DIR
+
+# install rclone in order to synchronize training files
+RUN curl https://rclone.org/install.sh | bash
+
 # TODO: copy training datasets
 # TODO: copy training datasets from online repository (S3)?
 COPY ./training_data "${PROJECT_DIR}/training_data"
@@ -124,7 +128,6 @@ COPY ./training_data "${PROJECT_DIR}/training_data"
 ARG PROJECT_NAME
 # copy only necessary files
 COPY ./analysis      ${PROJECT_DIR}/analysis/
-COPY ./data          ${PROJECT_DIR}/data/
 COPY ./$PROJECT_NAME ${PROJECT_DIR}/$PROJECT_NAME
 # initialize training cache
 # this is no needed right now, as the calculation was sped up siginificantly

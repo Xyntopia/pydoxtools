@@ -91,11 +91,14 @@ FROM python-base as production
 # if we need to install some apt packages....
 RUN apt-get update && \
     DEBIAN_FRONTEND="noninteractive" apt-get install --no-install-recommends -y \
-    python3-minimal python3-pip \
+    python3-minimal python3-pip curl unzip\
     #cleaning up
     && apt-get clean autoclean \
     && apt-get autoremove --yes \
     && rm -rf /var/lib/{apt,dpkg,cache,log}/
+
+# install rclone in order to synchronize training files
+RUN curl https://rclone.org/install.sh | bash
 
 ARG PROJECT_DIR
 # TODO: copy training datasets
