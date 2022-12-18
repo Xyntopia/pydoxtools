@@ -491,7 +491,6 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
             weights: list[int],
             random_char_prob: float = 0.0,
             random_word_prob: float = 0.0,
-            word_shuffle_prob: float = 0.0,
             mixed_blocks_generation_prob: float = 0.0,
             mixed_blocks_label: str = "unknown",
             cache_size: int = 10000,
@@ -513,7 +512,6 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
         self._weights = weights
         self._random_char_prob = random_char_prob
         self._random_word_prob = random_word_prob
-        self._word_shuffle_prob = word_shuffle_prob
         self._mixed_blocks_generation_prob = mixed_blocks_generation_prob
         self._mixed_blocks_label = mixed_blocks_label
         self._random = random.Random(time.time())  # get our own random number generator
@@ -675,8 +673,13 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
         return self._virtual_size
 
 
-@functools.lru_cache()
-def prepare_textblock_training(num_workers: int = 4, steps_per_epoch: int = 500, batch_size=2 ** 10):
+def prepare_textblock_training(
+        num_workers: int = 4,
+        steps_per_epoch: int = 500,
+        batch_size=2 ** 10,
+        data_config=None,
+        model_config=None
+):
     """
     loads text block data and puts into pytorch dataloaders
 
@@ -690,7 +693,7 @@ def prepare_textblock_training(num_workers: int = 4, steps_per_epoch: int = 500,
     # df_labeled = pd.read_excel(label_file)
 
     virtual_size = steps_per_epoch * batch_size
-    train_dataset = TextBlockGenerator(
+    user_generator_config = dict(
         generators=[
             ("address", BusinessAddressGenerator()),
             ("unknown", RandomTextBlockGenerator()),
@@ -705,6 +708,8 @@ def prepare_textblock_training(num_workers: int = 4, steps_per_epoch: int = 500,
         mixed_blocks_label="unknown",
         virtual_size=virtual_size
     )
+    user_generator_config.update(data_config or {})
+    train_dataset = TextBlockGenerator(**user_generator_config)
 
     # load manually labeled dataset for performance evaluation
     label_file = settings.TRAINING_DATA_DIR / "labeled_txt_boxes.xlsx"
@@ -739,7 +744,7 @@ def prepare_textblock_training(num_workers: int = 4, steps_per_epoch: int = 500,
 
     classmap = train_dataset.classmap
     logger.info(f"extracted classes: {classmap}")
-    model = txt_block_classifier(classmap)
+    model = txt_block_classifier(classmap, **(model_config or {}))
 
     return train_loader, validation_loader, model
 
@@ -818,15 +823,23 @@ def train_page_classifier(max_epochs=100, old_model=None):
     return trainer.test(model, test_dataloaders=test_loader, ckpt_path=settings.MODEL_STORE('page')), model
 
 
-def train_text_block_classifier(old_model=None, num_workers=4, steps_per_epoch=200, **kwargs):
-    train_loader, validation_loader, model = prepare_textblock_training(num_workers, steps_per_epoch=steps_per_epoch)
+def train_text_block_classifier(
+        old_model=None,
+        num_workers=4,
+        steps_per_epoch=200,
+        data_config=None,
+        model_config=None,
+        **kwargs,
+):
+    train_loader, validation_loader, model = prepare_textblock_training(
+        num_workers, steps_per_epoch=steps_per_epoch, data_config=data_config, model_config=model_config)
     if old_model:
         model = old_model
     checkpoint_callback = pytorch_lightning.callbacks.ModelCheckpoint(
         monitor='weighted avg.f1-score',  # or 'accuracy' or 'f1'
         mode='max', save_top_k=5,
         dirpath=settings.MODEL_STORE("text_block").parent,
-        filename="text_block-{epoch:02d}-{'weighted avg.f1-score':.2f}.ckpt"
+        filename="text_blockclassifier-{epoch:02d}-{weighted avg.f1-score:.2f}.ckpt"
     )
     trainer = pytorch_lightning.Trainer(
         accelerator="auto",  # "auto"
@@ -850,7 +863,7 @@ def train_text_block_classifier(old_model=None, num_workers=4, steps_per_epoch=2
         trainer.save_checkpoint(
             settings.MODEL_STORE("text_block").parent / f"text_blockclassifier{curtimestr}.ckpt")
 
-    return trainer.test(model, test_dataloaders=validation_loader, ckpt_path=settings.MODEL_STORE('text_block')), model
+    return trainer, model
 
 
 def train_pdf_classifier(max_epochs=100, old_model=None):

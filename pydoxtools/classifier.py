@@ -260,7 +260,7 @@ class lightning_training_procedures(pytorch_lightning.LightningModule):
 
         # Model Accuracy
         predicted, test = est[['maxidx', 'target_label']].values.T
-        #accuracy = sklearn.metrics.accuracy_score(test, predicted)
+        # accuracy = sklearn.metrics.accuracy_score(test, predicted)
 
         classification_report = sklearn.metrics.classification_report(
             test, predicted,
@@ -290,7 +290,16 @@ class txt_block_classifier(
     This model takes a string and classifies it.
     """
 
-    def __init__(self, classmap):
+    def __init__(
+            self, classmap,
+            embeddings_dim=16,  # embeddings vector size (standard BERT has a vector size of 768 )
+            token_seq_length1=5,  # what length of a work do we assume in terms of tokens?
+            seq_features1=40,  # how many filters should we run for the analysis = num of generated features?
+            dropout1=0.3,  # first layer dropout
+            token_seq_length2=40,  # how many tokens in a row do we want to analyze?
+            seq_features2=100,  # how many filters should we run for the analysis?
+            dropout2=0.3  # second layer dropout
+    ):
         super(txt_block_classifier, self).__init__()
         self.save_hyperparameters()  # make sure we have
         self.classmap_ = classmap
@@ -302,8 +311,9 @@ class txt_block_classifier(
         # TODO: get rid of model dependency... only use the vocabulary for the tokenizer...
         self.model_name = settings.PDXT_STANDARD_TOKENIZER  # name of model used for initialization
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-        embedding_num = 119547  # size of multilingual BERT vocabulary
-        embedding_dim = 768  # size of bert token embeddings
+        # declare our embeddings we use the size of multilingial BET vocabulary
+        # as we are using the same tokenizer
+        embedding_num = 119547  # size of multilingual BERT vocabulary this should not be changed!
 
         # TODO: the 2D paramters of the AvgPool would be a really nice parameter
         #       for hyperparameter optimization
@@ -313,26 +323,21 @@ class txt_block_classifier(
         # self.cv1 = torch.nn.Conv1d(
         #    in_channels=1, out_channels=10,
         #    kernel_size=768, stride=1) # reduce size of word vectors
-        reduced_embeddings_dim = 16  # reduced feature size
         # TODO: the following is only needed if we use pretrained embeddings
         # self.l1 = torch.nn.Linear(in_features=embedding_dim, out_features=reduced_embeddings_dim)
-        self.embedding = torch.nn.Embedding(embedding_num, reduced_embeddings_dim)
-        self.dropout1 = torch.nn.Dropout(p=0.5)
-        token_seq_length1 = 5  # what length of a work do we assume in terms of tokens?
-        seq_features1 = 40  # how many filters should we run for the analysis = num of generated features?
+        self.embedding = torch.nn.Embedding(embedding_num, embeddings_dim)
+        self.dropout1 = torch.nn.Dropout(p=dropout1)
         self.cv1 = torch.nn.Conv2d(
             in_channels=1,  # only one layer of embeddings
             out_channels=seq_features1,  # num of encoded features/word
             kernel_size=(
                 token_seq_length1,
-                reduced_embeddings_dim  # we want to put all features of the embedded word vector through the filter
+                embeddings_dim  # we want to put all features of the embedded word vector through the filter
             ),
             # the second dimension of stride has no effect, as our filter has the same size
             # as the vector anyways and we can leave it at 1
             stride=(token_seq_length1 // 2, 1)
         )
-        token_seq_length2 = 40  # how many tokens in a row do we want to analyze?
-        seq_features2 = 100  # how many filters should we run for the analysis?
         self.cv2 = torch.nn.Conv2d(
             in_channels=1,  # only one layer of embeddings
             out_channels=seq_features2,  # num of encoded features/word
@@ -345,11 +350,11 @@ class txt_block_classifier(
             # this time we have to switch around the stride as well
             stride=(1, token_seq_length2 // 2)
         )
-        self.dropout2 = torch.nn.Dropout(p=0.5)
+        self.dropout2 = torch.nn.Dropout(p=dropout2)
         # afterwards we do a max pooling and feed the input into a linear layer
         # we add addtional features here...
         # right now: 1: length of string + average embeddings vector for entire string
-        meta_features = 1 + reduced_embeddings_dim
+        meta_features = 1 + embeddings_dim
         self.linear = torch.nn.Linear(
             in_features=seq_features2 + meta_features, out_features=num_classes
         )

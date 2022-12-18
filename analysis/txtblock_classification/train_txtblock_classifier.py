@@ -16,11 +16,16 @@
 
 # %% [markdown] tags=[]
 # # Train the Textblock classifier
-
+#
+# import datetime
 # %% tags=[]
-import logging
 import datetime
+import warnings
+
+import logging
 import platform
+
+import optuna
 import pytorch_lightning
 import torch
 from IPython.display import display, HTML
@@ -29,7 +34,7 @@ from IPython.display import display, HTML
 # %load_ext autoreload
 # %autoreload 2
 # from pydoxtools import nlp_utils
-from pydoxtools import pdf_utils, nlp_utils, cluster_utils, training
+from pydoxtools import pdf_utils, nlp_utils, cluster_utils, training, classifier
 from pydoxtools import webdav_utils as wu
 from pydoxtools.settings import settings
 
@@ -81,7 +86,6 @@ token = "KwkyKj8LgFZy8mo"
 syncpath = str(settings.MODEL_DIR)
 upload = False
 
-
 # %%
 # test webdav connection
 settings.MODEL_DIR.mkdir(parents=True, exist_ok=True)
@@ -89,40 +93,66 @@ settings.MODEL_DIR.mkdir(parents=True, exist_ok=True)
 
 
 # %%
-ts=datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-sysinfo=dict(
+ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+sysinfo = dict(
     platform=platform.platform(),
     cpu=platform.processor()
 )
-with open(settings.MODEL_DIR/f"ts_{ts}.txt","w") as f:
+with open(settings.MODEL_DIR / f"ts_{ts}.txt", "w") as f:
     f.write(str(sysinfo))
 
 # %%
-wu.push_dir_diff(hostname, token, syncpath)
+wu.rclone_single_sync_models(method="bisync",hostname=hostname, token=token, syncpath=syncpath)
 
 # %% tags=[]
 if True:
-    class WebdavSyncCallback(pytorch_lightning.Callback):
-        def on_train_epoch_start(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
-            wu.push_dir_diff(hostname, token, syncpath)
-
-
-    additional_callbacks = []
-    if upload:
-        additional_callbacks = [
-            WebdavSyncCallback(),
-            # pytorch_lightning.callbacks.RichProgressBar()
-        ]
-
-    import warnings
     warnings.filterwarnings("ignore", ".*Your `IterableDataset` has `__len__` defined.*")
 
+    class WebdavSyncCallback(pytorch_lightning.Callback):
+        def on_train_epoch_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
+            logger.info("""lightning: sync models with rclone!""")
+            logger.info(wu.rclone_single_sync_models(method="sync", hostname=hostname, token=token, syncpath=syncpath)[0])
+
+    additional_callbacks = [
+        WebdavSyncCallback(),
+        # pytorch_lightning.callbacks.RichProgressBar()
+    ]
+            
+    
+    data_config = dict(
+        # generators=[
+        #    ("address", BusinessAddressGenerator()),
+        #    ("unknown", RandomTextBlockGenerator()),
+        #    ("unknown", RandomListGenerator()),
+        # ],
+        # weights=[10, 8, 2],
+        random_char_prob=1.0/50,
+        random_word_prob=1.0/50,
+        mixed_blocks_generation_prob=1.0/20,
+        mixed_blocks_label="unknown",
+    )
+
+    model_config = dict(
+        embeddings_dim=16,  # embeddings vector size (standard BERT has a vector size of 768 )
+        token_seq_length1=5,  # what length of a work do we assume in terms of tokens?
+        seq_features1=40,  # how many filters should we run for the analysis = num of generated features?
+        dropout1=0.5,  # first layer dropout
+        token_seq_length2=40,  # how many tokens in a row do we want to analyze?
+        seq_features2=100,  # how many filters should we run for the analysis?
+        dropout2=0.5  # second layer dropout
+    )
+
+    #m = classifier.txt_block_classifier.load_from_checkpoint(settings.MODEL_DIR/"text_blockclassifier_0.ckpt")
+    m=None
     trainer, model = training.train_text_block_classifier(
-        num_workers=8,
-        max_epochs=-1, gpus=1,
+        old_model=m,
+        num_workers=8, gpus=1,
         callbacks=additional_callbacks,
-        steps_per_epoch=20,
-        log_every_n_steps=10
+        steps_per_epoch=300,
+        log_every_n_steps=20,
+        max_epochs=10,
+        data_config=data_config,
+        model_config=model_config
     )
 
 # %%

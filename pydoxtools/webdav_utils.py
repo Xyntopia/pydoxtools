@@ -8,7 +8,7 @@ from webdav3.client import Client
 logger = logging.getLogger(__name__)
 
 
-def rclone_single_sync_models(hostname, token, syncpath):
+def rclone_single_sync_models(hostname, token, syncpath, method):
     """
     implements the following command for nextcloud shared webdav folders
 
@@ -19,7 +19,7 @@ def rclone_single_sync_models(hostname, token, syncpath):
     """
     # install rclone
     # for non-shared folders it is /remote.php/webdav:
-    cmd = (f"rclone bisync :webdav: {syncpath} --resync "
+    cmd = (f"rclone {method} :webdav: {syncpath} --resync "
            f"--webdav-url={hostname}/public.php/webdav "
            f"--webdav-vendor=nextcloud "
            f"--webdav-user={token} ")

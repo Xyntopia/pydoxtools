@@ -11,10 +11,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - pydoxtools.componardo.com
+    - pydoxtools.doxcavator.com
     secretName: pydoxtools-training-tls
   rules:
-  - host: "pydoxtools.componardo.com"
+  - host: "pydoxtools.doxcavator.com"
     http:
       paths:
       - path: /
