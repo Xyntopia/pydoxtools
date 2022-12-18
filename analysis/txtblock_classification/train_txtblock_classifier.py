@@ -20,12 +20,10 @@
 # import datetime
 # %% tags=[]
 import datetime
-import warnings
-
 import logging
 import platform
+import warnings
 
-import optuna
 import pytorch_lightning
 import torch
 from IPython.display import display, HTML
@@ -34,7 +32,7 @@ from IPython.display import display, HTML
 # %load_ext autoreload
 # %autoreload 2
 # from pydoxtools import nlp_utils
-from pydoxtools import pdf_utils, nlp_utils, cluster_utils, training, classifier
+from pydoxtools import pdf_utils, nlp_utils, cluster_utils, training
 from pydoxtools import webdav_utils as wu
 from pydoxtools.settings import settings
 
@@ -102,23 +100,27 @@ with open(settings.MODEL_DIR / f"ts_{ts}.txt", "w") as f:
     f.write(str(sysinfo))
 
 # %%
-wu.rclone_single_sync_models(method="bisync",hostname=hostname, token=token, syncpath=syncpath)
+wu.rclone_single_sync_models(method="bisync", hostname=hostname, token=token, syncpath=syncpath)
 
 # %% tags=[]
+# %env TOKENIZERS_PARALLELISM=true
 if True:
     warnings.filterwarnings("ignore", ".*Your `IterableDataset` has `__len__` defined.*")
 
+
     class WebdavSyncCallback(pytorch_lightning.Callback):
         def on_train_epoch_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
-            logger.info("""lightning: sync models with rclone!""")
-            logger.info(wu.rclone_single_sync_models(method="sync", hostname=hostname, token=token, syncpath=syncpath)[0])
+            print("""lightning: sync models with rclone!""")
+            print(wu.rclone_single_sync_models(
+                method="copy", hostname=hostname, token=token, syncpath=syncpath)[0]
+                 )
+
 
     additional_callbacks = [
         WebdavSyncCallback(),
         # pytorch_lightning.callbacks.RichProgressBar()
     ]
-            
-    
+
     data_config = dict(
         # generators=[
         #    ("address", BusinessAddressGenerator()),
@@ -126,9 +128,9 @@ if True:
         #    ("unknown", RandomListGenerator()),
         # ],
         # weights=[10, 8, 2],
-        random_char_prob=1.0/50,
-        random_word_prob=1.0/50,
-        mixed_blocks_generation_prob=1.0/20,
+        random_char_prob=1.0 / 50,
+        random_word_prob=1.0 / 50,
+        mixed_blocks_generation_prob=1.0 / 20,
         mixed_blocks_label="unknown",
     )
 
@@ -142,14 +144,14 @@ if True:
         dropout2=0.5  # second layer dropout
     )
 
-    #m = classifier.txt_block_classifier.load_from_checkpoint(settings.MODEL_DIR/"text_blockclassifier_0.ckpt")
-    m=None
+    # m = classifier.txt_block_classifier.load_from_checkpoint(settings.MODEL_DIR/"text_blockclassifier_0.ckpt")
+    m = None
     trainer, model = training.train_text_block_classifier(
         old_model=m,
         num_workers=8, gpus=1,
         callbacks=additional_callbacks,
-        steps_per_epoch=300,
-        log_every_n_steps=20,
+        steps_per_epoch=20,
+        log_every_n_steps=10,
         max_epochs=10,
         data_config=data_config,
         model_config=model_config

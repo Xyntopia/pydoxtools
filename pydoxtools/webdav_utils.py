@@ -19,7 +19,8 @@ def rclone_single_sync_models(hostname, token, syncpath, method):
     """
     # install rclone
     # for non-shared folders it is /remote.php/webdav:
-    cmd = (f"rclone {method} :webdav: {syncpath} --resync "
+    flag = '--resync' if method == 'bisync' else ""
+    cmd = (f"rclone {method} {syncpath} :webdav: {flag} "
            f"--webdav-url={hostname}/public.php/webdav "
            f"--webdav-vendor=nextcloud "
            f"--webdav-user={token} ")
