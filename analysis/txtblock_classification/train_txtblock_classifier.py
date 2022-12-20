@@ -113,7 +113,7 @@ if True:
             print("""lightning: sync models with rclone!""")
             print(wu.rclone_single_sync_models(
                 method="copy", hostname=hostname, token=token, syncpath=syncpath)[0]
-                 )
+                  )
 
 
     additional_callbacks = [
@@ -148,11 +148,14 @@ if True:
     m = None
     trainer, model = training.train_text_block_classifier(
         old_model=m,
-        num_workers=8, gpus=1,
+        num_workers=8,
+        accelerator="auto", devices=8,
+        strategy="ddp_find_unused_parameters_false",
+        # strategy="ddp",
         callbacks=additional_callbacks,
-        steps_per_epoch=20,
-        log_every_n_steps=10,
-        max_epochs=10,
+        steps_per_epoch=300,
+        log_every_n_steps=20,
+        max_epochs=100,
         data_config=data_config,
         model_config=model_config
     )

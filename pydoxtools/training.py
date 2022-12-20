@@ -842,8 +842,9 @@ def train_text_block_classifier(
         filename="text_blockclassifier-{epoch:02d}-{weighted avg.f1-score:.2f}.ckpt"
     )
     trainer = pytorch_lightning.Trainer(
-        accelerator="auto",  # "auto"
-        gpus=kwargs.get("gpus", 1),
+        accelerator=kwargs.get('accelerator', 'cpu'),
+        devices=kwargs.get('devices', 1),
+        strategy=kwargs.get('strategy', 'ddp'),
         # gpus=-1, auto_select_gpus=True,s
         log_every_n_steps=kwargs.get("log_every_n_steps", 100),
         # limit_train_batches=100,

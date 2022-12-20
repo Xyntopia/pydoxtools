@@ -222,7 +222,7 @@ class lightning_training_procedures(pytorch_lightning.LightningModule):
         pred, target = torch.cat(pred), torch.cat(target)
         for metric_name in self.metrics:
             self.metrics[metric_name](pred, target)
-            self.log(metric_name, self.metrics[metric_name])
+            self.log(metric_name, self.metrics[metric_name], sync_dist=True)
 
         classes = [v for k, v in self.classmap_.items()]
         est = pd.DataFrame(pred.cpu().numpy(), columns=classes)
@@ -249,7 +249,7 @@ class lightning_training_procedures(pytorch_lightning.LightningModule):
         pred, target = torch.cat(pred), torch.cat(target)
         for metric_name in self.metrics:
             self.metrics[metric_name](pred, target)
-            # self.log(metric_name, self.metrics[metric_name])
+            # self.log(metric_name, self.metrics[metric_name], sync_dist=True)
 
         classes = list(self.classmap_.values())
         est = pd.DataFrame(pred.cpu().numpy(), columns=classes)
@@ -268,7 +268,7 @@ class lightning_training_procedures(pytorch_lightning.LightningModule):
             zero_division=0
         )
 
-        self.log_dict(make_tensorboard_compatible(classification_report))
+        self.log_dict(make_tensorboard_compatible(classification_report), sync_dist=True)
 
     def configure_optimizers(self):
         weight_decay = 0.0
