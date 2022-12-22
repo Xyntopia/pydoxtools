@@ -198,7 +198,7 @@ class lightning_training_procedures(pytorch_lightning.LightningModule):
         self.log(
             'train_loss', loss, on_step=True,
             on_epoch=True, prog_bar=True, logger=True,
-            batch_size=len(batch)
+            batch_size=len(batch), sync_dist=True
         )
         return loss
 
@@ -301,8 +301,9 @@ class txt_block_classifier(
             dropout2=0.3  # second layer dropout
     ):
         super(txt_block_classifier, self).__init__()
-        self.save_hyperparameters()  # make sure we have
-        self.classmap_ = classmap
+        # we are saving all hyperparameters from above in the model checkpoint this way...
+        self.save_hyperparameters()
+        self.classmap_ = self.hparams.classmap
         self.classmapinv_ = {v: k for k, v in classmap.items()}
         self.classes_ = list(classmap.values())
         num_classes = len(classmap)
@@ -325,38 +326,38 @@ class txt_block_classifier(
         #    kernel_size=768, stride=1) # reduce size of word vectors
         # TODO: the following is only needed if we use pretrained embeddings
         # self.l1 = torch.nn.Linear(in_features=embedding_dim, out_features=reduced_embeddings_dim)
-        self.embedding = torch.nn.Embedding(embedding_num, embeddings_dim)
-        self.dropout1 = torch.nn.Dropout(p=dropout1)
+        self.embedding = torch.nn.Embedding(embedding_num, self.hparams.embeddings_dim)
+        self.dropout1 = torch.nn.Dropout(p=self.hparams.dropout1)
         self.cv1 = torch.nn.Conv2d(
             in_channels=1,  # only one layer of embeddings
-            out_channels=seq_features1,  # num of encoded features/word
+            out_channels=self.hparams.seq_features1,  # num of encoded features/word
             kernel_size=(
-                token_seq_length1,
-                embeddings_dim  # we want to put all features of the embedded word vector through the filter
+                self.hparams.token_seq_length1,
+                self.hparams.embeddings_dim  # we want to put all features of the embedded word vector through the filter
             ),
             # the second dimension of stride has no effect, as our filter has the same size
             # as the vector anyways and we can leave it at 1
-            stride=(token_seq_length1 // 2, 1)
+            stride=(self.hparams.token_seq_length1 // 2, 1)
         )
         self.cv2 = torch.nn.Conv2d(
             in_channels=1,  # only one layer of embeddings
-            out_channels=seq_features2,  # num of encoded features/word
+            out_channels=self.hparams.seq_features2,  # num of encoded features/word
             kernel_size=(
                 # we have to switch around features and seq length, as cv1 puts
                 # the kernel features before the new sequence length
-                seq_features1,
-                token_seq_length2
+                self.hparams.seq_features1,
+                self.hparams.token_seq_length2
             ),
             # this time we have to switch around the stride as well
-            stride=(1, token_seq_length2 // 2)
+            stride=(1, self.hparams.token_seq_length2 // 2)
         )
-        self.dropout2 = torch.nn.Dropout(p=dropout2)
+        self.dropout2 = torch.nn.Dropout(p=self.hparams.dropout2)
         # afterwards we do a max pooling and feed the input into a linear layer
         # we add addtional features here...
         # right now: 1: length of string + average embeddings vector for entire string
-        meta_features = 1 + embeddings_dim
+        meta_features = 1 + self.hparams.embeddings_dim
         self.linear = torch.nn.Linear(
-            in_features=seq_features2 + meta_features, out_features=num_classes
+            in_features=self.hparams.seq_features2 + meta_features, out_features=num_classes
         )
 
         # and add metrics
