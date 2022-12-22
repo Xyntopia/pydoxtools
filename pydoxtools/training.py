@@ -235,6 +235,7 @@ class BusinessAddressGenerator(GeneratorMixin):
             fax=(0.1, lambda: rc(["", "fax ", "fax: "]) + f.phone_number()),
             www=(0.2, lambda: rc(["", "www: ", "web: "]) + self.generate_url(rand, company, f.tld())),
             email=(0.1, lambda: rc(["", "email ", "email: "]) + f.email())
+            #TODO: bank_details=(0.01, lambda: f.)
         )
 
         parts = []
@@ -491,6 +492,7 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
             weights: list[int],
             random_char_prob: float = 0.0,
             random_word_prob: float = 0.0,
+            random_upper_prob: float = 0.0,
             mixed_blocks_generation_prob: float = 0.0,
             mixed_blocks_label: str = "unknown",
             cache_size: int = 10000,
@@ -512,6 +514,7 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
         self._weights = weights
         self._random_char_prob = random_char_prob
         self._random_word_prob = random_word_prob
+        self._random_upper_prob = random_upper_prob
         self._mixed_blocks_generation_prob = mixed_blocks_generation_prob
         self._mixed_blocks_label = mixed_blocks_label
         self._random = random.Random(time.time())  # get our own random number generator
@@ -571,7 +574,7 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
             for i, w in enumerate(words):
                 # TODO:  merge word and char augmentation into a general "list-augmenation" function
                 if w and (self._random.random() < self._random_word_prob):
-                    selector = self._random.randint(0, 9)
+                    selector = self._random.randint(0, 10)
                     if selector == 0:  # substitute with random char sequences
                         t.append(self._faker.bothify(text="?" * self._random.randint(1, 15)))
                     elif selector == 1:  # insert before
@@ -610,6 +613,8 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
                             t.append(w[crop:])
                         else:
                             t.append(w[:crop])
+                    elif selector == 10:  # convert to upper case
+                        t.append(w.upper())
                 else:
                     t.append(w)
             x = " ".join(t).replace(" \n ", "\n")
@@ -622,7 +627,7 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
             lenx = len(x)
             for i, c in enumerate(x_list):
                 if self._random.random() < self._random_char_prob:
-                    selector = self._random.randint(0, 7)
+                    selector = self._random.randint(0, 8)
                     if selector == 0:  # substitute
                         t.append(self._random.choice(_asciichars))
                     elif selector == 1:  # insert before
@@ -649,10 +654,15 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
                         x_list[i2] = c
                     elif selector == 7:  # one-side-swap (only substitue the item with a duplicate from somewhere else in the string)
                         t.append(self._random.choice(x))
+                    elif selector == 8:
+                        t.append(c.upper())
                 else:
                     t.append(c)
 
             x = "".join(t)
+
+        if self._random_upper_prob < self._random.random():
+            x = x.upper()
 
         return x, torch.tensor(y)
 
