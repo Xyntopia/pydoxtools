@@ -167,7 +167,7 @@ class RandomTextBlockGenerator(GeneratorMixin):
 class BusinessAddressGenerator(GeneratorMixin):
     """TODO: convert this into  aker provider?"""
 
-    def __init__(self):
+    def __init__(self, rand_perc=0.3):
         import faker
         self._available_locales = faker.config.AVAILABLE_LOCALES
         try:
@@ -180,6 +180,7 @@ class BusinessAddressGenerator(GeneratorMixin):
         self._rand = random.Random()
         # function which returns some random separation characters
         self._sep_chars = rand_chars({"\n": 4, ", ": 2, "; ": 1, " | ": 1})
+        self._rand_letter_street_perc = rand_perc
 
     def rand_word(self, f):
         mean_word_len = 4.5  # ~500 words is one page, 4.5 is the average word length in english, min len+1
@@ -284,13 +285,13 @@ class BusinessAddressGenerator(GeneratorMixin):
                 return faker_address
 
         def addr1():
-            if random.random() < 0.3:
+            if random.random() < self._rand_letter_street_perc:
                 return self.random_streetname(f)
             else:
                 return get_faker_address()[0]
 
         def addr3():
-            if random.random() < 0.3:
+            if random.random() < self._rand_letter_street_perc:
                 return self.random_city(f, s2, s3)
             else:
                 return get_faker_address()[1]
