@@ -155,9 +155,9 @@ if True:
         # strategy="ddp",
         strategy=None, # in case of running jupyter notebook
         callbacks=additional_callbacks,
-        steps_per_epoch=300,
-        log_every_n_steps=20,
-        max_epochs=100,
+        steps_per_epoch=500,
+        log_every_n_steps=50,
+        max_epochs=-1,
         data_config=data_config,
         model_config=model_config
     )

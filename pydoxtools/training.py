@@ -175,8 +175,8 @@ class BusinessAddressGenerator(GeneratorMixin):
             self._available_locales.remove("fr_QC")
         except ValueError:
             pass
-        # pre-initialize fakers for all languages
-        self._faker = faker.Faker(self._available_locales)
+        # pre-initialize fakers for all languages for speed
+        self._fakers = {locale: faker.Faker(locale) for locale in self._available_locales}
         self._rand = random.Random()
         # function which returns some random separation characters
         self._sep_chars = rand_chars({"\n": 4, ", ": 2, "; ": 1, " | ": 1})
@@ -266,7 +266,7 @@ class BusinessAddressGenerator(GeneratorMixin):
         faker.Faker.seed(seed)
         self._rand.seed(seed)
         rc, r = self._rand.choice, self._rand.random
-        f = self._faker[rc(self._available_locales)]
+        f = self._fakers[rc(self._available_locales)]
         line_separator = (" " if r() > 0.9 else "") + self._sep_chars() + (" " if r() > 0.5 else "")
         # next level separators
         s2_choices = {",", ";", ",", "|"} - {line_separator}
@@ -294,7 +294,16 @@ class BusinessAddressGenerator(GeneratorMixin):
             if random.random() < self._rand_letter_street_perc:
                 return self.random_city(f, s2, s3)
             else:
-                return get_faker_address()[1]
+                try:
+                    return get_faker_address()[1]
+                except IndexError:
+                    return " "
+
+        def get_country():
+            try:
+                return rc([f.current_country(), f.current_country_code()])
+            except (ValueError, AttributeError):
+                return " "
 
         all_parts = dict(
             line1=(0.05, lambda: f.catch_phrase()),
@@ -304,9 +313,9 @@ class BusinessAddressGenerator(GeneratorMixin):
             addrline2=(0.05, lambda: s2.join([self.rand_word(f), str(self._rand.randint(0, 1000))][::rc((1, -1))])),
             # postbox, building number etc...
             addrline3=(0.9, addr3),  # city, postcode, state
-            country=(0.1, lambda: rc([f.current_country(), f.current_country_code()])),
-            phone=(0.2, lambda: rc(["", "phone ", "phone: "]) + f.phone_number()),
-            fax=(0.1, lambda: rc(["", "fax ", "fax: "]) + f.phone_number()),
+            country=(0.1, get_country),
+            phone=(0.2, lambda: rc(["", "phone ", "phone: "]) + getattr(f, "phone_number", lambda: " ")()),
+            fax=(0.1, lambda: rc(["", "fax ", "fax: "]) + getattr(f, "phone_number", lambda: " ")()),
             www=(0.2, lambda: rc(["", "www: ", "web: "]) + self.generate_url(company, f.tld())),
             email=(0.1, lambda: rc(["", "email ", "email: "]) + f.email())
             # TODO: bank_details=(0.01, lambda: f.)
@@ -332,7 +341,8 @@ class BusinessAddressGenerator(GeneratorMixin):
                 try:
                     v = v()
                 except:
-                    continue
+                    logger.exception("error in address generation function")
+                    v = " "
                 if r() < 0.3:  # probability to have a part in upper case
                     v = v.upper()
                 elif r() < 0.5:  # only first letter
