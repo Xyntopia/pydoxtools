@@ -182,6 +182,9 @@ class lightning_training_procedures(pytorch_lightning.LightningModule):
         })
 
     def training_step(self, batch, batch_idx):
+        # TODO: add option to remember "failed" predictions, cache them
+        #      and repeat their training a fixed number of times!
+        # TODO: use f1-accuracy as loss!
         # training_step defined the train loop.
         # It is independent of forward
         x, y = batch
@@ -292,7 +295,7 @@ class txt_block_classifier(
 
     def __init__(
             self, classmap,
-            embeddings_dim=16,  # embeddings vector size (standard BERT has a vector size of 768 )
+            embeddings_dim=2,  # embeddings vector size (standard BERT has a vector size of 768 )
             token_seq_length1=5,  # what length of a work do we assume in terms of tokens?
             seq_features1=40,  # how many filters should we run for the analysis = num of generated features?
             dropout1=0.3,  # first layer dropout
@@ -333,7 +336,8 @@ class txt_block_classifier(
             out_channels=self.hparams.seq_features1,  # num of encoded features/word
             kernel_size=(
                 self.hparams.token_seq_length1,
-                self.hparams.embeddings_dim  # we want to put all features of the embedded word vector through the filter
+                self.hparams.embeddings_dim
+            # we want to put all features of the embedded word vector through the filter
             ),
             # the second dimension of stride has no effect, as our filter has the same size
             # as the vector anyways and we can leave it at 1

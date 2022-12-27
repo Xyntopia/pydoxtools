@@ -30,6 +30,7 @@ import re
 import random
 import pytorch_lightning
 import logging
+import collections
 
 from IPython.display import display, HTML
 import pandas as pd
@@ -60,7 +61,7 @@ nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.c
 gen = training.BusinessAddressGenerator()
 
 # %%
-addr = [gen[random.random()] for i in range(10000)]
+addr = [gen[random.random()] for i in range(1000)]
 #for a in addr: print(f"_____\n{a}\n")
 
 # %%

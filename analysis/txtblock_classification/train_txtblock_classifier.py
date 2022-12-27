@@ -122,20 +122,21 @@ if True:
     ]
 
     data_config = dict(
-        # generators=[
-        #    ("address", BusinessAddressGenerator()),
-        #    ("unknown", RandomTextBlockGenerator()),
-        #    ("unknown", RandomListGenerator()),
-        # ],
-        # weights=[10, 8, 2],
+        generators=[
+            ("address", training.BusinessAddressGenerator(rand_perc=0.3)),
+            ("unknown", training.RandomTextBlockGenerator()),
+            ("unknown", training.RandomListGenerator()),
+        ],
+        weights=[10, 8, 2],
         random_char_prob=1.0 / 50,
         random_word_prob=1.0 / 50,
+        random_upper_prob=1.0/50,
         mixed_blocks_generation_prob=1.0 / 20,
         mixed_blocks_label="unknown",
     )
 
     model_config = dict(
-        embeddings_dim=16,  # embeddings vector size (standard BERT has a vector size of 768 )
+        embeddings_dim=2,  # embeddings vector size (standard BERT has a vector size of 768 )
         token_seq_length1=5,  # what length of a work do we assume in terms of tokens?
         seq_features1=40,  # how many filters should we run for the analysis = num of generated features?
         dropout1=0.5,  # first layer dropout
@@ -149,9 +150,10 @@ if True:
     trainer, model = training.train_text_block_classifier(
         old_model=m,
         num_workers=8,
-        accelerator="auto", devices=8,
-        strategy="ddp_find_unused_parameters_false",
+        accelerator="auto", devices=1,
+        #strategy="ddp_find_unused_parameters_false",
         # strategy="ddp",
+        strategy=None, # in case of running jupyter notebook
         callbacks=additional_callbacks,
         steps_per_epoch=300,
         log_every_n_steps=20,

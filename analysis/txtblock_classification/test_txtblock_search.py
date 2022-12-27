@@ -119,7 +119,7 @@ df['class']=df['label']
 df = df.fillna(" ")
 
 # %%
-count = df["class"].value_counts()
+count = df["label"].value_counts()
 count
 
 # %%
@@ -130,8 +130,9 @@ classes
 # evaluate prediction
 dfl=df.txt.to_list()
 y_pred = model.predict(dfl)
-y_true = df["class"].replace(dict(
-    contact="unknown",
+df["label"] = y_true = df["label"].replace(dict(
+    contact="address",
+    multiaddress="unknown",
     directions="unknown",
     company="unknown",
     country="unknown",
@@ -143,9 +144,7 @@ target_names = list(model.classmap_.values())
 # %%
 from sklearn.metrics import classification_report
 print(classification_report(y_true, y_pred))
-
-# %%
-classification_report(y_true, y_pred, dic)
+#classifier.make_tensorboard_compatible(classification_report(y_true, y_pred, output_dict=True))
 
 # %%
 model.classmap_,model.predict_proba(dfl).detach().numpy()
@@ -160,11 +159,18 @@ df['proba_address'].hist(bins=20)
 df[df.label=="address"].proba_address.hist(bins=20)
 
 # %% [markdown]
+# true positives?
+
+# %% tags=[]
+tp = df[(df.label=="address") & (df.proba_address > 0.5)][["txt","proba_address","label"]]
+#pretty_print(tp)
+
+# %% [markdown]
 # false positives?
 
 # %% tags=[]
 fp = df[(df.label!="address") & (df.proba_address > 0.5)][["txt","proba_address","label"]]
-fp
+len(fp)
 
 # %% tags=[]
 pretty_print(fp)
@@ -173,21 +179,11 @@ pretty_print(fp)
 # which addresses were not recognized?
 
 # %%
-model.predict_proba(["""
-MEAN WELL USA, INC.
-44030 Fremont Blvd., Fremont,
-CA 94538,
-Tel: +1-510-683-8886
-Web: www.meanwellusa.com""",
+model.predict_proba([
 """
-Available Exclusively From 
-Less EMF Inc
-www.lessemf.com
-+1-518-432-1550""",
-"""
-XCAM asdad asssd
-2 Stone Circle Road
-Northampton
+north
+2234 Circle Road
+Bonn
 NN3 8RF
 """,
 """
@@ -202,11 +198,6 @@ Email: info@xcam.co.uk
 """
 ,
 """
-Ⓒ 2018 LG Chem ESS Battery Division
-LG Guanghwamun Building, 58, Saemunan-ro, Jongro-gu, Seoul, 03184, Korea
-http://www.lgesspartner.com http://www.lgchem.com
-""",
-"""
 XCAM Limited
 2 Stone Circle Road
 Northampton
@@ -215,51 +206,60 @@ Tel: 44 (0)1604 673700
 Fax: 44 (0)1604 671584
 www.xcam.co.uk
 Email: info@xcam.co.uk
+""",
 """
-])
+Fluke GmbH
+Engematten 14
+79286 Glottertal
+Telefon: (069) 2 22 22 02 00
+Telefax: (069) 2 22 22 02 01
+E-Mail: info@de.ﬂuke.nl
+Web: www.ﬂ uke.de
+""",
+"""
+Fluke GmbH
+Engematten 14
+79286 engen
+069 2 22 22 02 00
+069 2 22 22 02 01
+info@de.ﬂuke.nl
+www.ﬂ uke.de
+""",
+"""
+Astro- und Feinwerktechnik Adlershof GmbH
+Albert Einstein Str. 12
+12489 Berlin
+""",
+"""
+Adlershof GmbH
+Einstein Str. 12
+12489 Berlin
+""",
+"""
+Rosen Str. 12
+12489 Berlin
+""",
+"""
+Neue Str 12
+Berlin 12489
+"""
+]), model.classmap_
 
 # %% [markdown]
 # false negatives
 
 # %% tags=[]
-pretty_print(df[(df.label=="address") & (df.proba_address < 0.5)][["txt","proba_address","label"]])
+fn = df[(df.label=="address") & (df.proba_address < 0.5)]
+pretty_print(fn[["txt","proba_address","label"]])
 
 # %% [markdown]
 # ## testing the generator..
 #
-# which addresses were problematic in the generator?
+# which textblocks are problematic in the generator?
 
 # %%
-bg = training.TextBlockGenerator(generators=dict(
-    address=training.BusinessAddressGenerator(fake_langs=['en_US', 'de_DE', 'en_GB']),
-    unknown=training.RandomTextBlockGenerator()
-),augment_prob=0.05, cache_size=100,renew_num=10)
-bg.classmap, bg.num_generators
-
-# %%
-bgi=bg.__iter__()
-addr = [next(bgi) for i in range(1000)]
-
-# %%
-df = pd.DataFrame(addr, columns=["txt","class"])
-
-# %%
-df["class"]=df["class"]
-df["class"]=df["class"].apply(lambda x: x.numpy())
-
-# %%
-# evaluate prediction
-dfl=df.txt.to_list()
-y_pred = model.predict(dfl)
-y_true = df["class"].replace(dict(
-    contact="unknown",
-    directions="unknown",
-    company="unknown",
-    country="unknown"
-))
-target_names = list(model.classmap_.values())
-
-from sklearn.metrics import classification_report
-print(classification_report(y_true, y_pred, target_names=target_names))
-
-# %%
+addgen=training.BusinessAddressGenerator()
+addr = [addgen(random.random()) for i in range(10000)]
+dfa=pd.DataFrame(model.predict(addr))
+dfa["txt"]=addr
+dfa[dfa[0]!="address"]
