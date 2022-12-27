@@ -337,7 +337,7 @@ class txt_block_classifier(
             kernel_size=(
                 self.hparams.token_seq_length1,
                 self.hparams.embeddings_dim
-            # we want to put all features of the embedded word vector through the filter
+                # we want to put all features of the embedded word vector through the filter
             ),
             # the second dimension of stride has no effect, as our filter has the same size
             # as the vector anyways and we can leave it at 1

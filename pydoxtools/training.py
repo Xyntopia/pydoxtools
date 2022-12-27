@@ -167,7 +167,7 @@ class RandomTextBlockGenerator(GeneratorMixin):
 class BusinessAddressGenerator(GeneratorMixin):
     """TODO: convert this into  aker provider?"""
 
-    def __init__(self, rand_perc=0.3):
+    def __init__(self, rand_str_perc=0.3):
         import faker
         self._available_locales = faker.config.AVAILABLE_LOCALES
         try:
@@ -180,7 +180,7 @@ class BusinessAddressGenerator(GeneratorMixin):
         self._rand = random.Random()
         # function which returns some random separation characters
         self._sep_chars = rand_chars({"\n": 4, ", ": 2, "; ": 1, " | ": 1})
-        self._rand_letter_street_perc = rand_perc
+        self._rand_letter_street_perc = rand_str_perc
 
     def rand_word(self, f):
         mean_word_len = 4.5  # ~500 words is one page, 4.5 is the average word length in english, min len+1
@@ -939,6 +939,8 @@ def train_page_classifier(max_epochs=100, old_model=None):
 
 
 def train_text_block_classifier(
+        model_id="unknown",  # for example to identify models in a distributed optimization study
+        log_hparams: dict = None,
         old_model=None,
         num_workers=4,
         steps_per_epoch=200,
@@ -951,10 +953,10 @@ def train_text_block_classifier(
     if old_model:
         model = old_model
     checkpoint_callback = pytorch_lightning.callbacks.ModelCheckpoint(
-        monitor='weighted avg.f1-score',  # or 'accuracy' or 'f1'
-        mode='max', save_top_k=5,
+        monitor='address.f1-score',  # or 'accuracy' or 'f1'
+        mode='max', save_top_k=3,
         dirpath=settings.MODEL_STORE("text_block").parent,
-        filename="text_blockclassifier-{epoch:02d}-{weighted avg.f1-score:.2f}.ckpt"
+        filename=f"{model_id}" + "-{epoch:02d}-{address.f1-score:.2f}.ckpt"
     )
     trainer = pytorch_lightning.Trainer(
         accelerator=kwargs.get('accelerator', 'cpu'),
@@ -972,6 +974,7 @@ def train_text_block_classifier(
         default_root_dir=settings.MODEL_STORE("text_block").parent
     )
     if True:
+        trainer.logger.log_hyperparams(log_hparams)
         trainer.fit(model, train_loader, validation_loader)
         trainer.save_checkpoint(settings.MODEL_STORE("text_block"))
         curtime = datetime.datetime.now()

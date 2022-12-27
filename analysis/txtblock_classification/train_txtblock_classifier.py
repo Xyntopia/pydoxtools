@@ -123,7 +123,7 @@ if True:
 
     data_config = dict(
         generators=[
-            ("address", training.BusinessAddressGenerator(rand_perc=0.3)),
+            ("address", training.BusinessAddressGenerator(rand_str_perc=0.3)),
             ("unknown", training.RandomTextBlockGenerator()),
             ("unknown", training.RandomListGenerator()),
         ],
@@ -155,8 +155,8 @@ if True:
         # strategy="ddp",
         strategy=None, # in case of running jupyter notebook
         callbacks=additional_callbacks,
-        steps_per_epoch=500,
-        log_every_n_steps=50,
+        steps_per_epoch=10,
+        log_every_n_steps=5,
         max_epochs=-1,
         data_config=data_config,
         model_config=model_config

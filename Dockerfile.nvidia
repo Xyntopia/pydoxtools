@@ -91,7 +91,7 @@ FROM python-base as production
 # if we need to install some apt packages....
 RUN apt-get update && \
     DEBIAN_FRONTEND="noninteractive" apt-get install --no-install-recommends -y \
-    python3-minimal python3-pip curl unzip\
+    python3-minimal python3-pip curl unzip htop byobu\
     #cleaning up
     && apt-get clean autoclean \
     && apt-get autoremove --yes \

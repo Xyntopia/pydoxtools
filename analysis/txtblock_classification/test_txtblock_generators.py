@@ -58,7 +58,7 @@ nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.c
 
 # %%
 bg = training.TextBlockGenerator(generators=(
-    ("address",training.BusinessAddressGenerator(rand_perc=0.3)),
+    ("address",training.BusinessAddressGenerator(rand_str_perc=0.3)),
     ("unknown",training.RandomTextBlockGenerator()),
     ("unknown",training.RandomListGenerator()),
 ),weights=[100,80,20],
