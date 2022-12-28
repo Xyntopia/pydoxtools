@@ -116,8 +116,15 @@ if True:
                   )
 
 
+    checkpoint_callback = pytorch_lightning.callbacks.ModelCheckpoint(
+        monitor='address.f1-score',  # or 'accuracy' or 'f1'
+        mode='max', save_top_k=3,
+        dirpath=settings.MODEL_STORE("text_block").parent,
+        filename="text_blockclassifier-{epoch:02d}-{address.f1-score:.2f}.ckpt"
+    )
+
     additional_callbacks = [
-        WebdavSyncCallback(),
+        WebdavSyncCallback(), checkpoint_callback
         # pytorch_lightning.callbacks.RichProgressBar()
     ]
 
@@ -130,10 +137,10 @@ if True:
         weights=[10, 8, 2],
         cache_size=5000,
         renew_num=500,
-        random_char_prob=1.0 / 50,
-        random_word_prob=1.0 / 50,
-        random_upper_prob=1.0 / 50,
-        mixed_blocks_generation_prob=1.0 / 20,
+        random_char_prob=0.1,
+        random_word_prob=0.1,
+        random_upper_prob=0.1,
+        mixed_blocks_generation_prob=0.05,
         mixed_blocks_label="unknown",
     )
 
@@ -148,9 +155,10 @@ if True:
         dropout2=0.5  # second layer dropout
     )
 
-    m = None
     if True:
-        m = classifier.txt_block_classifier.load_from_checkpoint(settings.MODEL_DIR/"text_blockclassifier.ckpt")
+        m = classifier.txt_block_classifier.load_from_checkpoint(settings.MODEL_DIR / "text_blockclassifier.ckpt")
+    else:
+        m = None
     trainer, model, train_loader, validation_loader = training.train_text_block_classifier(
         train_model=False,
         old_model=m,
@@ -160,8 +168,8 @@ if True:
         # strategy="ddp",
         strategy=None,  # in case of running jupyter notebook
         callbacks=additional_callbacks,
-        steps_per_epoch=10,
-        log_every_n_steps=5,
+        steps_per_epoch=500,
+        log_every_n_steps=50,
         max_epochs=-1,
         data_config=data_config,
         model_config=model_config
@@ -171,7 +179,7 @@ if True:
 lr_finder = trainer.tuner.lr_find(model, train_loader, validation_loader)
 
 # %% tags=[]
-#print(lr_finder.results)
+# print(lr_finder.results)
 # Pick point based on plot, or get suggestion
 new_lr = lr_finder.suggestion()
 new_lr

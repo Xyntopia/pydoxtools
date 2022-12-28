@@ -939,7 +939,6 @@ def train_page_classifier(max_epochs=100, old_model=None):
 
 
 def train_text_block_classifier(
-        model_id="unknown",  # for example to identify models in a distributed optimization study
         log_hparams: dict = None,
         old_model=None,
         num_workers=4,
@@ -952,12 +951,6 @@ def train_text_block_classifier(
         num_workers, steps_per_epoch=steps_per_epoch, data_config=data_config, model_config=model_config)
     if old_model:
         model = old_model
-    checkpoint_callback = pytorch_lightning.callbacks.ModelCheckpoint(
-        monitor='address.f1-score',  # or 'accuracy' or 'f1'
-        mode='max', save_top_k=3,
-        dirpath=settings.MODEL_STORE("text_block").parent,
-        filename=f"{model_id}" + "-{epoch:02d}-{address.f1-score:.2f}.ckpt"
-    )
     trainer = pytorch_lightning.Trainer(
         accelerator=kwargs.get('accelerator', 'cpu'),
         devices=kwargs.get('devices', 1),
@@ -970,7 +963,7 @@ def train_text_block_classifier(
         enable_checkpointing=True,
         max_steps=-1,
         # auto_scale_batch_size=True,
-        callbacks=kwargs.get('callbacks', []),  # + [checkpoint_callback],
+        callbacks=kwargs.get('callbacks', []),
         default_root_dir=settings.MODEL_STORE("text_block").parent
     )
     if kwargs.get("train_model", False):
