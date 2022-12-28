@@ -54,7 +54,7 @@ nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.c
 # test the model once
 
 # %%
-if True:
+if False:
     _, _, m = training.prepare_textblock_training()
     res = m.predict(["""ex king ltd
     Springfield Gardens
@@ -130,17 +130,17 @@ if True:
 
     data_config = dict(
         generators=[
-            ("address", training.BusinessAddressGenerator(rand_str_perc=0.3)),
+            ("address", training.BusinessAddressGenerator(rand_str_perc=0.22533)),
             ("unknown", training.RandomTextBlockGenerator()),
             ("unknown", training.RandomListGenerator()),
         ],
         weights=[10, 8, 2],
         cache_size=5000,
         renew_num=500,
-        random_char_prob=0.1,
-        random_word_prob=0.1,
-        random_upper_prob=0.1,
-        mixed_blocks_generation_prob=0.05,
+        random_char_prob=0.41889,
+        random_word_prob=0.076671,
+        random_upper_prob=0.12228,
+        mixed_blocks_generation_prob=0.23431,
         mixed_blocks_label="unknown",
     )
 
@@ -155,12 +155,12 @@ if True:
         dropout2=0.5  # second layer dropout
     )
 
-    if True:
+    if False:
         m = classifier.txt_block_classifier.load_from_checkpoint(settings.MODEL_DIR / "text_blockclassifier.ckpt")
     else:
         m = None
     trainer, model, train_loader, validation_loader = training.train_text_block_classifier(
-        train_model=False,
+        train_model=Trueloss,
         old_model=m,
         num_workers=8,
         accelerator="auto", devices=1,
@@ -175,22 +175,19 @@ if True:
         model_config=model_config
     )
 
-# %% tags=[]
-lr_finder = trainer.tuner.lr_find(model, train_loader, validation_loader)
-
-# %% tags=[]
-# print(lr_finder.results)
-# Pick point based on plot, or get suggestion
-new_lr = lr_finder.suggestion()
-new_lr
-
-# %% [markdown]
-# - 0.00025 for a new model
-# - 0.00229 for a pre-trained model
-
-# %% tags=[]
-# Plot with
-fig = lr_finder.plot(suggest=True)
-fig.show()
-
 # %%
+tune_learning_rate=False
+if tune_learning_rate:
+    lr_finder = trainer.tuner.lr_find(model, train_loader, validation_loader)
+
+    # print(lr_finder.results)
+    # Pick point based on plot, or get suggestion
+    new_lr = lr_finder.suggestion()
+    new_lr
+
+    #- 0.00025 for a new model
+    #- 0.00229 for a pre-trained model
+
+    # Plot with
+    fig = lr_finder.plot(suggest=True)
+    fig.show()

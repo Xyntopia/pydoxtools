@@ -145,6 +145,8 @@ if True:
                 ("unknown", training.RandomListGenerator()),
             ],
             weights=[10, 8, 2],
+            cache_size=5000,
+            renew_num=500,
             random_char_prob=trial.suggest_float("random_char_prob", 0.0, 0.5),
             random_word_prob=trial.suggest_float("random_word_prob", 0.0, 0.5),
             random_upper_prob=trial.suggest_float("random_upper_prob", 0.0, 0.5),
@@ -153,6 +155,7 @@ if True:
         )
 
         model_config = dict(
+            learning_rate=0.01,
             embeddings_dim=4,  # embeddings vector size (standard BERT has a vector size of 768 )
             token_seq_length1=5,  # what length of a work do we assume in terms of tokens?
             seq_features1=40,  # how many filters should we run for the analysis = num of generated features?
@@ -165,8 +168,8 @@ if True:
         # m = classifier.txt_block_classifier.load_from_checkpoint(settings.MODEL_DIR/"text_blockclassifier_0.ckpt")
         m = None
         trainer, model = training.train_text_block_classifier(
+            train_model=True,
             log_hparams=trial.params,
-            model_id=f"{trial.number}",
             old_model=m,
             num_workers=4,
             accelerator="auto", devices=1,
@@ -176,7 +179,7 @@ if True:
             callbacks=additional_callbacks,
             steps_per_epoch=500,
             log_every_n_steps=50,
-            max_epochs=50,
+            max_epochs=10,
             data_config=data_config,
             model_config=model_config
         )
@@ -188,10 +191,17 @@ if True:
         study_name="find_data_generation_parameters",
         storage=f"sqlite:///{str(settings.MODEL_DIR)}/study.sqlite",
         load_if_exists=True,
-        direction=optuna.study.StudyDirection.MAXIMIZE
+        direction=optuna.study.StudyDirection.MINIMIZE
     )
 
-    study = optuna.create_study()
-    study.optimize(train_model, n_trials=100)
+    """
+    study.enqueue_trial(dict(
+        rand_str_perc=0.1,
+        random_char_prob=0.01,
+        random_word_prob=0.01,
+        random_upper_prob=0.01,
+        mixed_blocks_generation_prob=0.1
+    ))"""
+    study.optimize(train_model, n_trials=1)
 
 # %%

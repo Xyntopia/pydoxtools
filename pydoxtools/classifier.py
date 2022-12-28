@@ -201,7 +201,7 @@ class lightning_training_procedures(pytorch_lightning.LightningModule):
         self.log(
             'train_loss', loss, on_step=True,
             on_epoch=True, prog_bar=True, logger=True,
-            batch_size=len(batch), sync_dist=True
+            batch_size=len(batch), #sync_dist=True
         )
         return loss
 
@@ -225,7 +225,7 @@ class lightning_training_procedures(pytorch_lightning.LightningModule):
         pred, target = torch.cat(pred), torch.cat(target)
         for metric_name in self.metrics:
             self.metrics[metric_name](pred, target)
-            self.log(metric_name, self.metrics[metric_name], sync_dist=True)
+            self.log(metric_name, self.metrics[metric_name])#, sync_dist=True)
 
         classes = [v for k, v in self.classmap_.items()]
         est = pd.DataFrame(pred.cpu().numpy(), columns=classes)
@@ -272,7 +272,7 @@ class lightning_training_procedures(pytorch_lightning.LightningModule):
         )
 
         metrics = make_tensorboard_compatible(classification_report)
-        self.log_dict(metrics, sync_dist=True)
+        self.log_dict(metrics)#, sync_dist=True)
         self.logger.log_hyperparams(self.hparams, metrics=metrics)
 
     def configure_optimizers(self):
