@@ -32,7 +32,7 @@ from IPython.display import display, HTML
 # %load_ext autoreload
 # %autoreload 2
 # from pydoxtools import nlp_utils
-from pydoxtools import pdf_utils, nlp_utils, cluster_utils, training
+from pydoxtools import pdf_utils, nlp_utils, cluster_utils, training, classifier
 from pydoxtools import webdav_utils as wu
 from pydoxtools.settings import settings
 
@@ -128,15 +128,18 @@ if True:
             ("unknown", training.RandomListGenerator()),
         ],
         weights=[10, 8, 2],
+        cache_size=5000,
+        renew_num=500,
         random_char_prob=1.0 / 50,
         random_word_prob=1.0 / 50,
-        random_upper_prob=1.0/50,
+        random_upper_prob=1.0 / 50,
         mixed_blocks_generation_prob=1.0 / 20,
         mixed_blocks_label="unknown",
     )
 
     model_config = dict(
-        embeddings_dim=2,  # embeddings vector size (standard BERT has a vector size of 768 )
+        learning_rate=0.01,
+        embeddings_dim=4,  # embeddings vector size (standard BERT has a vector size of 768 )
         token_seq_length1=5,  # what length of a work do we assume in terms of tokens?
         seq_features1=40,  # how many filters should we run for the analysis = num of generated features?
         dropout1=0.5,  # first layer dropout
@@ -145,15 +148,17 @@ if True:
         dropout2=0.5  # second layer dropout
     )
 
-    # m = classifier.txt_block_classifier.load_from_checkpoint(settings.MODEL_DIR/"text_blockclassifier_0.ckpt")
     m = None
-    trainer, model = training.train_text_block_classifier(
+    if True:
+        m = classifier.txt_block_classifier.load_from_checkpoint(settings.MODEL_DIR/"text_blockclassifier.ckpt")
+    trainer, model, train_loader, validation_loader = training.train_text_block_classifier(
+        train_model=False,
         old_model=m,
         num_workers=8,
         accelerator="auto", devices=1,
-        #strategy="ddp_find_unused_parameters_false",
+        # strategy="ddp_find_unused_parameters_false",
         # strategy="ddp",
-        strategy=None, # in case of running jupyter notebook
+        strategy=None,  # in case of running jupyter notebook
         callbacks=additional_callbacks,
         steps_per_epoch=10,
         log_every_n_steps=5,
@@ -161,5 +166,23 @@ if True:
         data_config=data_config,
         model_config=model_config
     )
+
+# %% tags=[]
+lr_finder = trainer.tuner.lr_find(model, train_loader, validation_loader)
+
+# %% tags=[]
+#print(lr_finder.results)
+# Pick point based on plot, or get suggestion
+new_lr = lr_finder.suggestion()
+new_lr
+
+# %% [markdown]
+# - 0.00025 for a new model
+# - 0.00229 for a pre-trained model
+
+# %% tags=[]
+# Plot with
+fig = lr_finder.plot(suggest=True)
+fig.show()
 
 # %%

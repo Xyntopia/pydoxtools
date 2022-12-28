@@ -271,11 +271,13 @@ class lightning_training_procedures(pytorch_lightning.LightningModule):
             zero_division=0
         )
 
-        self.log_dict(make_tensorboard_compatible(classification_report), sync_dist=True)
+        metrics = make_tensorboard_compatible(classification_report)
+        self.log_dict(metrics, sync_dist=True)
+        self.logger.log_hyperparams(self.hparams, metrics=metrics)
 
     def configure_optimizers(self):
         weight_decay = 0.0
-        learning_rate = 0.001
+        learning_rate = self.hparams.learning_rate
         optimizer = torch.optim.Adam(
             self.parameters(), lr=learning_rate,
             weight_decay=weight_decay
@@ -301,7 +303,8 @@ class txt_block_classifier(
             dropout1=0.3,  # first layer dropout
             token_seq_length2=40,  # how many tokens in a row do we want to analyze?
             seq_features2=100,  # how many filters should we run for the analysis?
-            dropout2=0.3  # second layer dropout
+            dropout2=0.3,  # second layer dropout
+            learning_rate=0.01
     ):
         super(txt_block_classifier, self).__init__()
         # we are saving all hyperparameters from above in the model checkpoint this way...

@@ -817,8 +817,8 @@ def prepare_textblock_training(
         weights=[10, 8, 2],
         random_char_prob=1.0 / 20.0,
         random_word_prob=1.0 / 20.0,
-        cache_size=10000,
-        renew_num=1000,
+        cache_size=5000,
+        renew_num=500,
         mixed_blocks_generation_prob=0.1,
         mixed_blocks_label="unknown",
         virtual_size=virtual_size
@@ -970,19 +970,25 @@ def train_text_block_classifier(
         enable_checkpointing=True,
         max_steps=-1,
         # auto_scale_batch_size=True,
-        callbacks=[checkpoint_callback] + kwargs.get('callbacks', []),
+        callbacks=kwargs.get('callbacks', []),  # + [checkpoint_callback],
         default_root_dir=settings.MODEL_STORE("text_block").parent
     )
-    if True:
-        trainer.logger.log_hyperparams(log_hparams)
+    if kwargs.get("train_model", False):
         trainer.fit(model, train_loader, validation_loader)
+        trainer.logger.log_hyperparams(log_hparams)
         trainer.save_checkpoint(settings.MODEL_STORE("text_block"))
+        trainer.logger.log_hyperparams(log_hparams, metrics=dict(
+            model.metrics
+        ))
         curtime = datetime.datetime.now()
         curtimestr = curtime.strftime("%Y%m%d%H%M")
         trainer.save_checkpoint(
-            settings.MODEL_STORE("text_block").parent / f"text_blockclassifier{curtimestr}.ckpt")
+            settings.MODEL_STORE(
+                "text_block").parent / f"text_blockclassifier_v{trainer.logger.version}_{curtimestr}.ckpt")
 
-    return trainer, model
+        return trainer, model
+    else:
+        return trainer, model, train_loader, validation_loader
 
 
 def train_pdf_classifier(max_epochs=100, old_model=None):
