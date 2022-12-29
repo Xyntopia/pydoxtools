@@ -177,6 +177,11 @@ if True:
             log_every_n_steps=50,
             max_epochs=10
         )
+        epoch_config = dict(
+            steps_per_epoch=5,
+            log_every_n_steps=1,
+            max_epochs=4
+        )
         trainer, model, _, _ = training.train_text_block_classifier(
             train_model=True,
             log_hparams=trial.params,
@@ -187,9 +192,6 @@ if True:
             # strategy="ddp",
             strategy=None,  # in case of running jupyter notebook
             callbacks=additional_callbacks,
-            steps_per_epoch=500,
-            log_every_n_steps=1,
-            max_epochs=4,
             data_config=data_config,
             model_config=model_config,
             **epoch_config

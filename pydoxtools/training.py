@@ -967,7 +967,8 @@ def train_text_block_classifier(
         default_root_dir=settings.MODEL_STORE("text_block").parent
     )
     if kwargs.get("train_model", False):
-        trainer.logger.log_hyperparams(log_hparams)
+        # TODO: ho can we set hp_metric to 0 at the start?
+        trainer.logger.log_hyperparams(log_hparams)#, metrics=dict(hp_metric=0))
         trainer.fit(model, train_loader, validation_loader)
         # trainer.logger.log_hyperparams(log_hparams, metrics=dict(
         #    model.metrics
