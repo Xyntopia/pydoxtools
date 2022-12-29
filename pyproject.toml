@@ -6,7 +6,7 @@ authors = ["thomas meschede <yeusblender@gmail.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.12" # python version constraints are caused by scipy
+python = ">=3.8,<3.11" # python version constraints are caused by scipy
 goose3 = { optional = true, version = ">=3.1.6" }
 # we are using this version of readability as the other version has a little bug...
 readability-lxml = { optional = true, version = ">=0.8.1" }
@@ -78,11 +78,12 @@ tensorboard = "^2.7.0"
 pigeonXT-jupyter = "^0.6.1" # for labeling purposes...
 odfpy = "^1.4.1"
 openpyxl = "^3.0.9"
-optuna = "^2.10.0"
+optuna = "^3.0.5"
 # TODO: until webdavclient removes a bug in push:
 #       https://github.com/ezhov-evgeny/webdav-client-python-3/issues/89
 #       we need to use our own fork. check regularly if we can revert to the master
 #webdavclient3 = {version = "^3.14.6", optional = true}
+# we can probably remove webdavclient3 because we are using rclone for synchronization
 webdavclient3 = { git = "https://github.com/yeus/webdav-client-python-3.git", branch = "master" }
 Faker = { version = "^10.0.0" }
 jupytext = "^1.13.7"
