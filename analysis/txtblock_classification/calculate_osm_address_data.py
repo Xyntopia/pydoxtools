@@ -24,44 +24,56 @@ import pandas as pd
 #import dask
 import numpy as np
 #import dask.bag as db
-#import dask.dataframe as dd
+import dask.dataframe as dd
 #from dask.delayed import delayed
 #from dask.distributed import Client
 from tqdm import tqdm
 
 # %%
+#pip install fiona (in order to open the respecive file!)
 #convert addresses from osmdata.xyz
 if False:
     fn = "/home/tom/comcharax/data/trainingdata/osm/address_EPSG4326.gpkg"
-    if False:
-        size = 5000000
-        last_save = 0
-        with fiona.open(fn) as src:
-            count = len(src)
-            print(f'count: {count}')
-            df = []
-            for i,item in tqdm(enumerate(src)):
-                df.append(item['properties'])
-                if size<=(i-last_save):
-                    print(f"saving {i}")
-                    df = pd.DataFrame(df)
-                    df = df.drop(columns=['osm_id','osm_timestamp','other_tags'])
-                    df = df.to_parquet(f"/home/tom/comcharax/data/trainingdata/osm_addresses/addr_{i}.parquet")
-                    df = []
-                    last_save=i
+    size = 5000000
+    last_save = 0
+    with fiona.open(fn) as src:
+        count = len(src)
+        print(f'count: {count}')
+        df = []
+        for i,item in tqdm(enumerate(src)):
+            df.append(item['properties'])
+            if size<=(i-last_save):
+                print(f"saving {i}")
+                df = pd.DataFrame(df)
+                df = df.drop(columns=['osm_id','osm_timestamp','other_tags'])
+                df = df.to_parquet(f"/home/tom/comcharax/data/trainingdata/osm_addresses/addr_{i}.parquet")
+                df = []
+                last_save=i
 
-        df = pd.DataFrame(df)
-        df = df.drop(columns=['osm_id','osm_timestamp','other_tags'])
-        df = df.to_parquet(f"/home/tom/comcharax/data/trainingdata/osm_addresses/addr_{i}.parquet")
+    df = pd.DataFrame(df)
+    df = df.drop(columns=['osm_id','osm_timestamp','other_tags'])
+    df = df.to_parquet(f"/home/tom/comcharax/data/trainingdata/osm_addresses/addr_{i}.parquet")
 
 # %%
 df = pd.read_parquet(
     "/home/tom/comcharax/data/osm_address_data.parquet", 
     engine="fastparquet"
-).sample(100000).copy()
+)#.sample(100000).copy()
 
 # %%
-df.columns
+df.to_csv("/home/tom/comcharax/data/osm_address_data.csv", chunksize=1000)
+
+# %%
+df.size
+
+# %%
+chunksize = int(df.size//1000)#
+chunksize
+
+# %%
+ddf = dd.from_pandas(df, chunksize=1000000, sort=False)
+save_dir = '/home/tom/comcharax/data/osm_address_data'
+ddf.to_parquet(save_dir)
 
 # %% [markdown]
 # extract all countries
