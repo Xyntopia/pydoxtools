@@ -163,6 +163,7 @@ class lightning_training_procedures(pytorch_lightning.LightningModule):
     def __init__(self):
         super(lightning_training_procedures, self).__init__()
         self.histograms = True
+        self._hp_metric = None
 
     def add_standard_metrics(self, num_classes, hist_params=None):
         # TODO: get rid of this function in all child classes and somehow
@@ -252,6 +253,8 @@ class lightning_training_procedures(pytorch_lightning.LightningModule):
 
         metrics = make_tensorboard_compatible(classification_report)
         self.log_dict(metrics)  # , sync_dist=True)
+        if self._hp_metric:
+            self.log("hp_metric", metrics[self._hp_metric])
         return metrics
 
     def configure_optimizers(self):
@@ -283,7 +286,8 @@ class txt_block_classifier(
             token_seq_length2=40,  # how many tokens in a row do we want to analyze?
             seq_features2=100,  # how many filters should we run for the analysis?
             dropout2=0.3,  # second layer dropout
-            learning_rate=0.01
+            learning_rate=0.01,
+            hp_metric=None,
     ):
         super(txt_block_classifier, self).__init__()
         # we are saving all hyperparameters from above in the model checkpoint this way...
@@ -292,7 +296,7 @@ class txt_block_classifier(
         self.classmapinv_ = {v: k for k, v in classmap.items()}
         self.classes_ = list(classmap.values())
         num_classes = len(classmap)
-        super(txt_block_classifier, self).__init__()
+        self._hp_metric = hp_metric
 
         # TODO: get rid of model dependency... only use the vocabulary for the tokenizer...
         self.model_name = settings.PDXT_STANDARD_TOKENIZER  # name of model used for initialization

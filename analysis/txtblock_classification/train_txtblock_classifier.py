@@ -160,7 +160,7 @@ if True:
     else:
         m = None
     trainer, model, train_loader, validation_loader = training.train_text_block_classifier(
-        train_model=Trueloss,
+        train_model=True,
         old_model=m,
         num_workers=8,
         accelerator="auto", devices=1,

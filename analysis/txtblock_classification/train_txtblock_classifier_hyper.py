@@ -33,7 +33,7 @@ from IPython.display import display, HTML
 # %load_ext autoreload
 # %autoreload 2
 # from pydoxtools import nlp_utils
-from pydoxtools import pdf_utils, nlp_utils, cluster_utils, training
+from pydoxtools import pdf_utils, nlp_utils, cluster_utils, training, classifier
 from pydoxtools import webdav_utils as wu
 from pydoxtools.settings import settings
 
@@ -155,19 +155,29 @@ if True:
         )
 
         model_config = dict(
-            learning_rate=0.01,
-            embeddings_dim=4,  # embeddings vector size (standard BERT has a vector size of 768 )
+            learning_rate=0.005,
+            embeddings_dim=2,  # embeddings vector size (standard BERT has a vector size of 768 )
             token_seq_length1=5,  # what length of a work do we assume in terms of tokens?
             seq_features1=40,  # how many filters should we run for the analysis = num of generated features?
             dropout1=0.5,  # first layer dropout
             token_seq_length2=40,  # how many tokens in a row do we want to analyze?
             seq_features2=100,  # how many filters should we run for the analysis?
-            dropout2=0.5  # second layer dropout
+            dropout2=0.5,  # second layer dropout
+            hp_metric="address.f1-score"  # the metric to optimize for and should be logged...
         )
 
-        # m = classifier.txt_block_classifier.load_from_checkpoint(settings.MODEL_DIR/"text_blockclassifier_0.ckpt")
-        m = None
-        trainer, model = training.train_text_block_classifier(
+        if False:
+            m = classifier.txt_block_classifier.load_from_checkpoint(
+                settings.MODEL_DIR / "text_blockclassifier-epoch=06-address.f1-score=0.24.ckpt.ckpt")
+        else:
+            m = None
+
+        epoch_config = dict(
+            steps_per_epoch=500,
+            log_every_n_steps=50,
+            max_epochs=10
+        )
+        trainer, model, _, _ = training.train_text_block_classifier(
             train_model=True,
             log_hparams=trial.params,
             old_model=m,
@@ -178,20 +188,23 @@ if True:
             strategy=None,  # in case of running jupyter notebook
             callbacks=additional_callbacks,
             steps_per_epoch=500,
-            log_every_n_steps=50,
-            max_epochs=10,
+            log_every_n_steps=1,
+            max_epochs=4,
             data_config=data_config,
-            model_config=model_config
+            model_config=model_config,
+            **epoch_config
         )
 
-        return 1 - trainer.callback_metrics['address.f1-score']
+        # trainer.logger.log_hyperparams()
+
+        return trainer.callback_metrics['address.f1-score']
 
 
     study = optuna.create_study(
         study_name="find_data_generation_parameters",
         storage=f"sqlite:///{str(settings.MODEL_DIR)}/study.sqlite",
         load_if_exists=True,
-        direction=optuna.study.StudyDirection.MINIMIZE
+        direction=optuna.study.StudyDirection.MAXIMIZE
     )
 
     """
@@ -202,6 +215,6 @@ if True:
         random_upper_prob=0.01,
         mixed_blocks_generation_prob=0.1
     ))"""
-    study.optimize(train_model, n_trials=1)
+    study.optimize(train_model, n_trials=5)
 
 # %%

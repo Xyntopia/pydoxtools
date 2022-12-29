@@ -967,21 +967,19 @@ def train_text_block_classifier(
         default_root_dir=settings.MODEL_STORE("text_block").parent
     )
     if kwargs.get("train_model", False):
-        trainer.fit(model, train_loader, validation_loader)
         trainer.logger.log_hyperparams(log_hparams)
+        trainer.fit(model, train_loader, validation_loader)
+        # trainer.logger.log_hyperparams(log_hparams, metrics=dict(
+        #    model.metrics
+        # ))
         trainer.save_checkpoint(settings.MODEL_STORE("text_block"))
-        trainer.logger.log_hyperparams(log_hparams, metrics=dict(
-            model.metrics
-        ))
         curtime = datetime.datetime.now()
         curtimestr = curtime.strftime("%Y%m%d%H%M")
         trainer.save_checkpoint(
             settings.MODEL_STORE(
                 "text_block").parent / f"text_blockclassifier_v{trainer.logger.version}_{curtimestr}.ckpt")
 
-        return trainer, model
-    else:
-        return trainer, model, train_loader, validation_loader
+    return trainer, model, train_loader, validation_loader
 
 
 def train_pdf_classifier(max_epochs=100, old_model=None):
