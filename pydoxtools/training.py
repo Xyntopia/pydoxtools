@@ -960,7 +960,7 @@ def train_text_block_classifier(
         # limit_train_batches=100,
         max_epochs=kwargs.get("max_epochs", -1),
         # checkpoint_callback=False,
-        enable_checkpointing=True,
+        enable_checkpointing=False,
         max_steps=-1,
         # auto_scale_batch_size=True,
         callbacks=kwargs.get('callbacks', []),

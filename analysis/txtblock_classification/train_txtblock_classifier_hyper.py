@@ -131,7 +131,7 @@ if True:
         # we introduce a report call back in order to stop optimization runs early
         class ReportCallback(pytorch_lightning.Callback):
             def on_train_epoch_end(self, trainer: pytorch_lightning.Trainer, pl_module: "pl.LightningModule") -> None:
-                score = trainer.callback_metrics['weighted avg.f1-score']
+                score = trainer.callback_metrics['address.f1-score']
                 trial.report(score, trainer.current_epoch)
 
         additional_callbacks.append(ReportCallback())
@@ -177,7 +177,7 @@ if True:
             log_every_n_steps=50,
             max_epochs=10
         )
-        epoch_config = dict(
+        epoch_config1 = dict(
             steps_per_epoch=5,
             log_every_n_steps=1,
             max_epochs=4
@@ -217,6 +217,6 @@ if True:
         random_upper_prob=0.01,
         mixed_blocks_generation_prob=0.1
     ))"""
-    study.optimize(train_model, n_trials=5)
+    study.optimize(train_model, n_trials=100)
 
 # %%
