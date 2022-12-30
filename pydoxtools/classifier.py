@@ -327,8 +327,11 @@ class txt_block_classifier(
             ),
             # the second dimension of stride has no effect, as our filter has the same size
             # as the vector anyways and we can leave it at 1
+            # we are dividing the stride by two to make sure our scan filters overlap by 50%
             stride=(self.hparams.token_seq_length1 // 2, 1)
         )
+        # TODO: we might no need to take ALL features into acount
+        # every single time so maybe make the kernel_size smaller than seq_features1
         self.cv2 = torch.nn.Conv2d(
             in_channels=1,  # only one layer of embeddings
             out_channels=self.hparams.seq_features2,  # num of encoded features/word
@@ -339,15 +342,17 @@ class txt_block_classifier(
                 self.hparams.token_seq_length2
             ),
             # this time we have to switch around the stride as well
+            # we are dividing the stride by two to make sure our scan filters overlap by 50%
+            # TODO: use stride length as hyperparameter...
             stride=(1, self.hparams.token_seq_length2 // 2)
         )
         self.dropout2 = torch.nn.Dropout(p=self.hparams.dropout2)
         # afterwards we do a max pooling and feed the input into a linear layer
         # we add addtional features here...
-        # right now: 1: length of string + average embeddings vector for entire string
-        meta_features = 1 + self.hparams.embeddings_dim
+        # right now: 1: length of string + number of lines + number of words (defined by spaces)
+        meta_features = 1 + 1 + 1
         self.linear = torch.nn.Linear(
-            in_features=self.hparams.seq_features2 + meta_features, out_features=num_classes
+            in_features=self.hparams.seq_features2 * 2 + meta_features, out_features=num_classes
         )
 
         # and add metrics
@@ -360,7 +365,9 @@ class txt_block_classifier(
     def forward(self, str_list: typing.Iterable):
         # TODO: we might be able to us "diskcache" here in order to cache some layers!!!
         #       for example the tokenized ids
-        lengths = torch.tensor([len(s) for s in str_list]).unsqueeze(1).to(device=self.device)
+        # count number of letters, words and lines here...
+        meta = torch.tensor([(len(s), s.count("\n"), s.count(" "))
+                             for s in str_list]).unsqueeze(1).to(device=self.device)
         # TODO: add optional str.strip here... (deactivated during training to improve speed)
         ids = self.tokenizer(
             list(str_list),  # convert trlist into an actual list (e.g. if it is a pandas dataframe)
@@ -372,16 +379,26 @@ class txt_block_classifier(
         # x = torch.Tensor(ids.shape[0], ids.shape[1])
         # ids = torch.tensor(ids)
         x = self.embedding(ids)
-        embeddings_mean = x.mean(axis=1)
         x = self.dropout1(x)
         # x = self.l1(x) # if we use "frozen" embeddings we want to transform them into a more usable format...
-        # "unsqueeze" to add the channl dimensions and then "squeeze" out the channel at the end...
+        # "unsqueeze" to add the channel dimensions and then "squeeze" out the channel at the end...
         x = self.cv1(x.unsqueeze(1)).squeeze(3)
         x = self.dropout2(x)
         x = self.cv2(x.unsqueeze(1)).squeeze(2)
-        x = torch.max(x, dim=2).values
+        # TODO: look at the text in "different resolution" by applying multiple conv2d using
+        #       different sequence lengths
+        # TODO: does it make sense to introduce another feature layer to extract even more complexity?
+        #       do some hyperparameter reaserchon this...
+        # TODO: specify pooling method as a hypeparameter as well...
+        # max:  takes the max of every feature vector (meaning the max value for
+        # every individual feature for the entire text). hats left over are 1 value for each feature
+        x_max = torch.max(x, dim=2).values
+        x_mean = torch.mean(x, dim=2)
+        # TODO: do spectral pooling using fft in order to reduce to a fixed number of dimensions
+        # TODO: maybe we should rather take the mean? --> do this in an optimizatino algorithm
         # combine features
-        x = torch.cat([x, lengths, embeddings_mean], 1)
+        x = torch.cat([x_max, x_mean, meta.flatten(1)], 1)
+        # finally, interprete the features
         x = self.linear(x.flatten(1))
         return x
 
