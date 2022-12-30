@@ -204,7 +204,7 @@ if True:
 
 
     study = optuna.create_study(
-        study_name="find_data_generation_parameters",
+        study_name="find_more_data_generation_parameters",
         storage=f"sqlite:///{str(settings.MODEL_DIR)}/study.sqlite",
         load_if_exists=True,
         direction=optuna.study.StudyDirection.MAXIMIZE

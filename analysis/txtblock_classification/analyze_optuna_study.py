@@ -10,7 +10,7 @@ storage_url = f"sqlite:////home/tom/Nextcloud/pydoxtools_training/study.sqlite"
 storage_url
 
 study = optuna.load_study(
-    study_name="find_data_generation_parameters",
+    study_name="find_more_data_generation_parameters",
     storage=storage_url
 )
 
