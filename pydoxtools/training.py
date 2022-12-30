@@ -401,7 +401,7 @@ class RandomListGenerator(GeneratorMixin):
 
         # define list symbol
         list_indicators = [""] + list(" -*∙•+~")
-        list_symbol = rand.choices(list_indicators, k=1)[0]
+        list_symbol = rand.choice(list_indicators)
         # define symbols to choose from
         a = '??????????###############--|.:?/\\'
         strlen = min(int(random.gammavariate(1.7, 3.8)) + 1, len(a))
@@ -427,7 +427,7 @@ class RandomListGenerator(GeneratorMixin):
             res.append(prefix + f.pystr_format(string_format=list_word))
 
         separator = f.random_element(collections.OrderedDict(
-            (("\n", 0.8), (", ", 0.1), (",", 0.1), (" ", 0.05))
+            (("\n", 0.4), (", ", 0.2), (",", 0.2), (" ", 0.2))
         ))
 
         return separator.join(res)

@@ -240,8 +240,20 @@ Rosen Str. 12
 12489 Berlin
 """,
 """
-Neue Str 12
+Neue Str. 12
 Berlin 12489
+""",
+"""
+Astro-und Feinwerktechnik Adlershof GmbH
+Albert-Einstein-Str. 12
+12489 Berlin
+Germany
+""","""
+Texas Instruments, Post Office Box 655303, Dallas, Texas 75265
+Copyright © 2010, Texas Instruments Incorporated
+""",
+"""
+Texas Instruments, Post Office Box 655303, Dallas, Texas 75265
 """
 ]), model.classmap_
 
@@ -263,3 +275,5 @@ addr = [addgen(random.random()) for i in range(10000)]
 dfa=pd.DataFrame(model.predict(addr))
 dfa["txt"]=addr
 dfa[dfa[0]!="address"]
+
+# %%

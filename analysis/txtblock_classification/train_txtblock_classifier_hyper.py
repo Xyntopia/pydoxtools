@@ -144,13 +144,13 @@ if True:
                 ("unknown", training.RandomTextBlockGenerator()),
                 ("unknown", training.RandomListGenerator()),
             ],
-            weights=[10, 8, 2],
+            weights=[10, 5, 5],
             cache_size=5000,
             renew_num=500,
-            random_char_prob=trial.suggest_float("random_char_prob", 0.0, 0.5),
-            random_word_prob=trial.suggest_float("random_word_prob", 0.0, 0.5),
-            random_upper_prob=trial.suggest_float("random_upper_prob", 0.0, 0.5),
-            mixed_blocks_generation_prob=trial.suggest_float("mixed_blocks_generation_prob", 0.0, 0.5),
+            random_char_prob=trial.suggest_float("random_char_prob", 0.0, 1.0),
+            random_word_prob=trial.suggest_float("random_word_prob", 0.0, 1.0),
+            random_upper_prob=trial.suggest_float("random_upper_prob", 0.0, 1.0),
+            mixed_blocks_generation_prob=trial.suggest_float("mixed_blocks_generation_prob", 0.0, 0.2),
             mixed_blocks_label="unknown",
         )
 
@@ -187,9 +187,10 @@ if True:
             log_hparams=trial.params,
             old_model=m,
             num_workers=4,
-            accelerator="auto", devices=1,
+            accelerator="auto", devices=[1], # use simple integer to specify number of devices...
             # strategy="ddp_find_unused_parameters_false",
             # strategy="ddp",
+            enable_checkpointing=False,
             strategy=None,  # in case of running jupyter notebook
             callbacks=additional_callbacks,
             data_config=data_config,

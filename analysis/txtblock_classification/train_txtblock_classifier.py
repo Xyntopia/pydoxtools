@@ -54,15 +54,18 @@ nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.c
 # test the model once
 
 # %%
-if False:
+if True:
     _, _, m = training.prepare_textblock_training()
     res = m.predict(["""ex king ltd
     Springfield Gardens
     Queens
     N. Y 11413
     www.something.com
+    """,
     """
-                     ])
+    some stupid text that doesn't mean anything...
+    """
+    ])
     print(res)
 
 # %% [markdown]
@@ -100,6 +103,7 @@ with open(settings.MODEL_DIR / f"ts_{ts}.txt", "w") as f:
     f.write(str(sysinfo))
 
 # %%
+print("sync with cloud...")
 wu.rclone_single_sync_models(method="bisync", hostname=hostname, token=token, syncpath=syncpath)
 
 # %% tags=[]
@@ -130,17 +134,17 @@ if True:
 
     data_config = dict(
         generators=[
-            ("address", training.BusinessAddressGenerator(rand_str_perc=0.22533)),
+            ("address", training.BusinessAddressGenerator(rand_str_perc=0.7)),
             ("unknown", training.RandomTextBlockGenerator()),
             ("unknown", training.RandomListGenerator()),
         ],
         weights=[10, 8, 2],
         cache_size=5000,
         renew_num=500,
-        random_char_prob=0.41889,
-        random_word_prob=0.076671,
-        random_upper_prob=0.12228,
-        mixed_blocks_generation_prob=0.23431,
+        random_char_prob=0.45,
+        random_word_prob=0.1,
+        random_upper_prob=0.3,
+        mixed_blocks_generation_prob=0.0,
         mixed_blocks_label="unknown",
     )
 
@@ -168,6 +172,7 @@ if True:
         # strategy="ddp",
         strategy=None,  # in case of running jupyter notebook
         callbacks=additional_callbacks,
+        enable_checkpointing=True,
         steps_per_epoch=500,
         log_every_n_steps=50,
         max_epochs=-1,
