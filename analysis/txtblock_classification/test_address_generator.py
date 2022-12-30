@@ -61,10 +61,5 @@ nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.c
 gen = training.BusinessAddressGenerator(rand_str_perc=0.1)
 
 # %%
-addr = [gen[random.random()] for i in range(100000)]
-#for a in addr: print(f"_____\n{a}\n")
-
-# %%
-addr
-
-# %%
+addr = [gen[random.random()] for i in range(1000)]
+for a in addr: print(f"_____\n{a}\n")

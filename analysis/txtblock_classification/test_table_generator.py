@@ -62,6 +62,8 @@ nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.c
 gen =training.RandomListGenerator()
 
 # %%
-print(gen(random.random()))
+for i in range(100):
+    print(gen(random.random()))
+    print("\n\n")
 
 # %%

@@ -179,7 +179,7 @@ class BusinessAddressGenerator(GeneratorMixin):
         self._fakers = {locale: faker.Faker(locale) for locale in self._available_locales}
         self._rand = random.Random()
         # function which returns some random separation characters
-        self._sep_chars = rand_chars({"\n": 4, ", ": 2, "; ": 1, " | ": 1})
+        self._sep_chars = rand_chars({"\n": 24, ", ": 12, "; ": 6, " | ": 6, "·": 1})
         self._rand_letter_street_perc = rand_str_perc
 
     def rand_word(self, f):
@@ -269,7 +269,7 @@ class BusinessAddressGenerator(GeneratorMixin):
         f = self._fakers[rc(self._available_locales)]
         line_separator = (" " if r() > 0.9 else "") + self._sep_chars() + (" " if r() > 0.5 else "")
         # next level separators
-        s2_choices = {",", ";", ",", "|"} - {line_separator}
+        s2_choices = {",", ";", ",", "|", "·"} - {line_separator}
         s2, s3 = f.random_elements(elements=s2_choices, length=2, unique=True)
 
         company: str = f.company()
@@ -301,25 +301,43 @@ class BusinessAddressGenerator(GeneratorMixin):
 
         def get_country():
             try:
-                return rc([f.current_country(), f.current_country_code()])
+                selector = r()
+                if selector < 0.5:
+                    return f.current_country_code()
+                elif selector < 0.9:
+                    return f.current_country()
+                else:
+                    return self.rand_word(f)
             except (ValueError, AttributeError):
                 return " "
 
-        all_parts = dict(
-            line1=(0.05, lambda: f.catch_phrase()),
-            name=(0.1, lambda: f.name()),
-            company_name=(0.3, lambda: company),
-            addrline1=(0.9, addr1),  # street
-            addrline2=(0.05, lambda: s2.join([self.rand_word(f), str(self._rand.randint(0, 1000))][::rc((1, -1))])),
+        def line1() -> str:
+            """introducing the address"""
+            if r() > 0.5:
+                line = f.catch_phrase()
+            else:
+                line = self.rand_word(f)
+
+            line += rc((":", ""))
+            line += "\n" * random.randint(0, 5)
+            return line
+
+        all_parts = {
+            ("",): (0.05, line1),  # for example an announcement, or company introduction, catch phrase...
+            ("name",): (0.1, lambda: f.name()),
+            ("company_name", "company"): (0.3, lambda: company),
+            ("address", "mailing address", "mail address"): (0.9, addr1),  # street
+            ("",): (
+                0.05, lambda: s2.join([self.rand_word(f), str(self._rand.randint(0, 1000))][::rc((1, -1))])),
             # postbox, building number etc...
-            addrline3=(0.9, addr3),  # city, postcode, state
-            country=(0.1, get_country),
-            phone=(0.2, lambda: rc(["", "phone ", "phone: "]) + getattr(f, "phone_number", lambda: " ")()),
-            fax=(0.1, lambda: rc(["", "fax ", "fax: "]) + getattr(f, "phone_number", lambda: " ")()),
-            www=(0.2, lambda: rc(["", "www: ", "web: "]) + self.generate_url(company, f.tld())),
-            email=(0.1, lambda: rc(["", "email ", "email: "]) + f.email())
-            # TODO: bank_details=(0.01, lambda: f.)
-        )
+            ("",): (0.9, addr3),  # city, postcode, state
+            ("country",): (0.1, get_country),
+            ("tel", "phone", "phone number"): (0.2, lambda: getattr(f, "phone_number", lambda: " ")()),
+            ("fax", "fax number"): (0.1, lambda: getattr(f, "phone_number", lambda: " ")()),
+            ("www", "web", "homepage", "webpage"): (0.2, lambda: self.generate_url(company, f.tld())),
+            ("email", ""): (0.1, lambda: f.email()),
+            ("bank details"): (0.05, lambda: " ".join(self.rand_word(f) for i in range(self._rand.randint(1, 5))))
+        }
 
         # select random selection of address parts
         parts = set()
@@ -343,6 +361,10 @@ class BusinessAddressGenerator(GeneratorMixin):
                 except:
                     logger.exception("error in address generation function")
                     v = " "
+                if k[0]:
+                    if r() < 0.2:
+                        field_name = rc(k) if r() < 0.7 else self.rand_word(f)
+                        v = field_name + rc((" ", ": ", ":")) + v
                 if r() < 0.3:  # probability to have a part in upper case
                     v = v.upper()
                 elif r() < 0.5:  # only first letter
@@ -378,7 +400,8 @@ class RandomListGenerator(GeneratorMixin):
         f = self._faker
 
         # define list symbol
-        list_symbol = rand.choice("   ----**∙∙••+~")
+        list_indicators = [""] + list(" -*∙•+~")
+        list_symbol = rand.choices(list_indicators, k=1)[0]
         # define symbols to choose from
         a = '??????????###############--|.:?/\\'
         strlen = min(int(random.gammavariate(1.7, 3.8)) + 1, len(a))
@@ -404,7 +427,7 @@ class RandomListGenerator(GeneratorMixin):
             res.append(prefix + f.pystr_format(string_format=list_word))
 
         separator = f.random_element(collections.OrderedDict(
-            (("\n", 0.8), (", ", 0.1), (",", 0.1))
+            (("\n", 0.8), (", ", 0.1), (",", 0.1), (" ", 0.05))
         ))
 
         return separator.join(res)
@@ -948,7 +971,8 @@ def train_text_block_classifier(
         **kwargs,
 ):
     train_loader, validation_loader, model = prepare_textblock_training(
-        num_workers, steps_per_epoch=steps_per_epoch, data_config=data_config, model_config=model_config)
+        num_workers, steps_per_epoch=steps_per_epoch, data_config=data_config, model_config=model_config
+    )
     if old_model:
         model = old_model
     trainer = pytorch_lightning.Trainer(
@@ -960,7 +984,7 @@ def train_text_block_classifier(
         # limit_train_batches=100,
         max_epochs=kwargs.get("max_epochs", -1),
         # checkpoint_callback=False,
-        enable_checkpointing=False,
+        enable_checkpointing=kwargs.get("enable_checkpointing", False),
         max_steps=-1,
         # auto_scale_batch_size=True,
         callbacks=kwargs.get('callbacks', []),
@@ -968,7 +992,7 @@ def train_text_block_classifier(
     )
     if kwargs.get("train_model", False):
         # TODO: ho can we set hp_metric to 0 at the start?
-        trainer.logger.log_hyperparams(log_hparams)#, metrics=dict(hp_metric=0))
+        trainer.logger.log_hyperparams(log_hparams)  # , metrics=dict(hp_metric=0))
         trainer.fit(model, train_loader, validation_loader)
         # trainer.logger.log_hyperparams(log_hparams, metrics=dict(
         #    model.metrics
