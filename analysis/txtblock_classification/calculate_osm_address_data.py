@@ -55,25 +55,16 @@ if False:
     df = df.to_parquet(f"/home/tom/comcharax/data/trainingdata/osm_addresses/addr_{i}.parquet")
 
 # %%
-df = pd.read_parquet(
-    "/home/tom/comcharax/data/osm_address_data.parquet", 
-    engine="fastparquet"
-)#.sample(100000).copy()
+if False: #convert our existing extracted addresses file to csv
+    df = pd.read_parquet(
+        "/home/tom/comcharax/data/osm_address_data.parquet", 
+        engine="fastparquet"
+    )#.sample(100000).copy()
+
+    df.to_csv("/home/tom/comcharax/data/osm_address_data.csv", chunksize=1000)
 
 # %%
-df.to_csv("/home/tom/comcharax/data/osm_address_data.csv", chunksize=1000)
-
-# %%
-df.size
-
-# %%
-chunksize = int(df.size//1000)#
-chunksize
-
-# %%
-ddf = dd.from_pandas(df, chunksize=1000000, sort=False)
-save_dir = '/home/tom/comcharax/data/osm_address_data'
-ddf.to_parquet(save_dir)
+ddf = dd.read_csv("/home/tom/comcharax/data/osm_address_data.csv", blocksize="64MB")
 
 # %% [markdown]
 # extract all countries
