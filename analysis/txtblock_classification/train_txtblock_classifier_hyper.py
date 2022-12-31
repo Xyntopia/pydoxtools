@@ -105,10 +105,6 @@ with open(settings.MODEL_DIR / f"ts_{ts}.txt", "w") as f:
 # we don't need this right now, as our modelnames get synchronized through the optuna msql storage...
 # wu.rclone_single_sync_models(method="bisync", hostname=hostname, token=token, syncpath=syncpath)
 
-# %%
-f"sqlite:///{str(settings.MODEL_DIR)}/study.sqlite"
-
-
 # %% tags=[]
 # %env TOKENIZERS_PARALLELISM=true
 class WebdavSyncCallback(pytorch_lightning.Callback):

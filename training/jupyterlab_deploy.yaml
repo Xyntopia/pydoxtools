@@ -11,10 +11,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - pydoxtools.doxcavator.com
+    - pydoxtools.xyntopia.com
     secretName: pydoxtools-training-tls
   rules:
-  - host: "pydoxtools.doxcavator.com"
+  - host: "pydoxtools.xyntopia.com"
     http:
       paths:
       - path: /

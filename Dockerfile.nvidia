@@ -111,6 +111,8 @@ COPY --from=builder-base $VENV_DIR $VENV_DIR
 # ENV PATH="$PROJECT_DIR/LIBS:$PATH"
 
 ARG PROJECT_NAME
+# TODO: move the following dependency into pyproject.toml
+RUN pip install pymysql
 # copy only necessary files
 COPY ./analysis      ${PROJECT_DIR}/analysis/
 COPY ./$PROJECT_NAME ${PROJECT_DIR}/$PROJECT_NAME

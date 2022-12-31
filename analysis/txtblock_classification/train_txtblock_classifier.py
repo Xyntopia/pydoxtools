@@ -149,7 +149,7 @@ if True:
     )
 
     model_config = dict(
-        learning_rate=0.01,
+        learning_rate=0.005,
         embeddings_dim=4,  # embeddings vector size (standard BERT has a vector size of 768 )
         token_seq_length1=5,  # what length of a work do we assume in terms of tokens?
         seq_features1=40,  # how many filters should we run for the analysis = num of generated features?
