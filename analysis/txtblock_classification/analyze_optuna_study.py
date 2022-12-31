@@ -7,7 +7,9 @@ optuna.__version__
 
 #storage_url = f"sqlite:///{str(settings.MODEL_DIR)}/study.sqlite"
 storage_url = f"sqlite:////home/tom/Nextcloud/pydoxtools_training/study.sqlite"
-storage_url
+#local_storage=f"sqlite:///{str(settings.MODEL_DIR)}/study.sqlite"
+remote_storage="TODO: get from env variable (f"mysql+pymysql:....")"
+remote_storage
 
 study = optuna.load_study(
     study_name="find_more_data_generation_parameters",
@@ -15,12 +17,14 @@ study = optuna.load_study(
 )
 
 
+optuna.copy_study(
+    from_study_name="test",
+    from_storage=remote_storage,
+    to_storage=storage_url,
+)
+
+
 study.best_params
-
-ov.plot_contour(study, params=study.best_params.keys()).write_html("/tmp/contour.html")
-
-import subprocess
-subprocess.run(f"google-chrome /tmp/contour.html",shell=True)
 
 # +
 
@@ -39,6 +43,12 @@ if ov.is_available():
     for key, fig in figs.items():
         fig.show()
         #fig.write_html()
+# +
+ov.plot_contour(study, params=study.best_params.keys()).write_html("/tmp/contour.html")
+
+import subprocess
+subprocess.run(f"google-chrome /tmp/contour.html",shell=True)
 # -
+
 
 

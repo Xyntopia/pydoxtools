@@ -341,7 +341,10 @@ class txt_block_classifier(
                 self.hparams.seq_features1,
                 self.hparams.token_seq_length2
             ),
-            # this time we have to switch around the stride as well
+            # this time we have to switch around the stride as we now have the results
+            # from the previous layer in the other dimension
+            # ultimately it doesn't matter which way we organize the features s we are
+            # moving 2D-filters over them anyways...
             # we are dividing the stride by two to make sure our scan filters overlap by 50%
             # TODO: use stride length as hyperparameter...
             stride=(1, self.hparams.token_seq_length2 // 2)

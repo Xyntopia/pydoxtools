@@ -963,13 +963,17 @@ def train_page_classifier(max_epochs=100, old_model=None):
 
 def train_text_block_classifier(
         log_hparams: dict = None,
-        old_model=None,
-        num_workers=4,
-        steps_per_epoch=200,
-        data_config=None,
-        model_config=None,
+        model_name: str = None,
+        old_model: txt_block_classifier = None,
+        num_workers: int = 4,
+        steps_per_epoch: int = 200,
+        data_config: dir = None,
+        model_config: dir = None,
         **kwargs,
 ):
+    # only importing this here as we don#t want to use this in "inference" mode
+    from pytorch_lightning.loggers import TensorBoardLogger
+
     train_loader, validation_loader, model = prepare_textblock_training(
         num_workers, steps_per_epoch=steps_per_epoch, data_config=data_config, model_config=model_config
     )
@@ -981,6 +985,11 @@ def train_text_block_classifier(
         strategy=kwargs.get('strategy', 'ddp'),
         # gpus=-1, auto_select_gpus=True,s
         log_every_n_steps=kwargs.get("log_every_n_steps", 100),
+        logger=TensorBoardLogger(
+            save_dir=settings.MODEL_STORE("text_block").parent,
+            version=model_name,
+            name="lightning_logs"
+        ),
         # limit_train_batches=100,
         max_epochs=kwargs.get("max_epochs", -1),
         # checkpoint_callback=False,

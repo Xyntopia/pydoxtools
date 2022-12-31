@@ -16,10 +16,6 @@
 
 # %%
 import datetime
-# %% [markdown] tags=[]
-# # Train the Textblock classifier
-#
-# import datetime
 # %% tags=[]
 import logging
 import platform
@@ -38,6 +34,11 @@ from pydoxtools import webdav_utils as wu
 from pydoxtools.settings import settings
 
 
+# %% [markdown] tags=[]
+# # Train the Textblock classifier
+#
+# import datetime
+# %% tags=[]
 def pretty_print(df):
     return display(HTML(df.to_html().replace("\\n", "<br>")))
 
@@ -101,123 +102,156 @@ with open(settings.MODEL_DIR / f"ts_{ts}.txt", "w") as f:
     f.write(str(sysinfo))
 
 # %%
-wu.rclone_single_sync_models(method="bisync", hostname=hostname, token=token, syncpath=syncpath)
+# we don't need this right now, as our modelnames get synchronized through the optuna msql storage...
+# wu.rclone_single_sync_models(method="bisync", hostname=hostname, token=token, syncpath=syncpath)
 
 # %%
 f"sqlite:///{str(settings.MODEL_DIR)}/study.sqlite"
 
+
 # %% tags=[]
 # %env TOKENIZERS_PARALLELISM=true
-if True:
-    class WebdavSyncCallback(pytorch_lightning.Callback):
-        def on_train_epoch_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
-            print("""lightning: sync models with rclone!""")
-            print(wu.rclone_single_sync_models(
-                method="copy", hostname=hostname, token=token, syncpath=syncpath)[0]
-                  )
+class WebdavSyncCallback(pytorch_lightning.Callback):
+    def on_train_epoch_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
+        print("""lightning: sync models with rclone!""")
+        print(wu.rclone_single_sync_models(
+            method="copy", hostname=hostname, token=token, syncpath=syncpath)[0]
+              )
 
 
-    additional_callbacks = [
-        WebdavSyncCallback(),
-        # pytorch_lightning.callbacks.RichProgressBar()
-    ]
+additional_callbacks = [
+    WebdavSyncCallback(),
+    # pytorch_lightning.callbacks.RichProgressBar()
+]
 
-    import warnings
+import warnings
 
-    warnings.filterwarnings("ignore", ".*Your `IterableDataset` has `__len__` defined.*")
-
-
-    def train_model(trial: optuna.Trial):
-        # we introduce a report call back in order to stop optimization runs early
-        class ReportCallback(pytorch_lightning.Callback):
-            def on_train_epoch_end(self, trainer: pytorch_lightning.Trainer, pl_module: "pl.LightningModule") -> None:
-                score = trainer.callback_metrics['address.f1-score']
-                trial.report(score, trainer.current_epoch)
-
-        additional_callbacks.append(ReportCallback())
-
-        data_config = dict(
-            generators=[
-                ("address", training.BusinessAddressGenerator(
-                    rand_str_perc=trial.suggest_float("rand_str_perc", 0.0, 1.0))
-                 ),
-                ("unknown", training.RandomTextBlockGenerator()),
-                ("unknown", training.RandomListGenerator()),
-            ],
-            weights=[10, 5, 5],
-            cache_size=5000,
-            renew_num=500,
-            random_char_prob=trial.suggest_float("random_char_prob", 0.0, 1.0),
-            random_word_prob=trial.suggest_float("random_word_prob", 0.0, 1.0),
-            random_upper_prob=trial.suggest_float("random_upper_prob", 0.0, 1.0),
-            mixed_blocks_generation_prob=trial.suggest_float("mixed_blocks_generation_prob", 0.0, 0.2),
-            mixed_blocks_label="unknown",
-        )
-
-        model_config = dict(
-            learning_rate=0.005,
-            embeddings_dim=2,  # embeddings vector size (standard BERT has a vector size of 768 )
-            token_seq_length1=5,  # what length of a work do we assume in terms of tokens?
-            seq_features1=40,  # how many filters should we run for the analysis = num of generated features?
-            dropout1=0.5,  # first layer dropout
-            token_seq_length2=40,  # how many tokens in a row do we want to analyze?
-            seq_features2=100,  # how many filters should we run for the analysis?
-            dropout2=0.5,  # second layer dropout
-            hp_metric="address.f1-score"  # the metric to optimize for and should be logged...
-        )
-
-        if False:
-            m = classifier.txt_block_classifier.load_from_checkpoint(
-                settings.MODEL_DIR / "text_blockclassifier-epoch=06-address.f1-score=0.24.ckpt.ckpt")
-        else:
-            m = None
-
-        epoch_config = dict(
-            steps_per_epoch=500,
-            log_every_n_steps=50,
-            max_epochs=10
-        )
-        epoch_config1 = dict(
-            steps_per_epoch=5,
-            log_every_n_steps=1,
-            max_epochs=4
-        )
-        trainer, model, _, _ = training.train_text_block_classifier(
-            train_model=True,
-            log_hparams=trial.params,
-            old_model=m,
-            num_workers=4,
-            accelerator="auto", devices=[1], # use simple integer to specify number of devices...
-            # strategy="ddp_find_unused_parameters_false",
-            # strategy="ddp",
-            enable_checkpointing=False,
-            strategy=None,  # in case of running jupyter notebook
-            callbacks=additional_callbacks,
-            data_config=data_config,
-            model_config=model_config,
-            **epoch_config
-        )
-
-        # trainer.logger.log_hyperparams()
-
-        return trainer.callback_metrics['address.f1-score']
+warnings.filterwarnings("ignore", ".*Your `IterableDataset` has `__len__` defined.*")
 
 
-    study = optuna.create_study(
-        study_name="find_more_data_generation_parameters",
-        storage=f"sqlite:///{str(settings.MODEL_DIR)}/study.sqlite",
-        load_if_exists=True,
-        direction=optuna.study.StudyDirection.MAXIMIZE
+def train_model(trial: optuna.Trial):
+    # we introduce a report call back in order to stop optimization runs early
+    class ReportCallback(pytorch_lightning.Callback):
+        def on_train_epoch_end(self, trainer: pytorch_lightning.Trainer, pl_module: "pl.LightningModule") -> None:
+            score = trainer.callback_metrics['address.f1-score']
+            trial.report(score, trainer.current_epoch)
+
+    additional_callbacks.append(ReportCallback())
+
+    data_config = dict(
+        generators=[
+            ("address", training.BusinessAddressGenerator(
+                rand_str_perc=trial.suggest_float("rand_str_perc", 0.0, 1.0))
+             ),
+            ("unknown", training.RandomTextBlockGenerator()),
+            ("unknown", training.RandomListGenerator()),
+        ],
+        weights=[10, 5, 5],
+        cache_size=5000,
+        renew_num=500,
+        random_char_prob=trial.suggest_float("random_char_prob", 0.0, 1.0),
+        random_word_prob=trial.suggest_float("random_word_prob", 0.0, 1.0),
+        random_upper_prob=trial.suggest_float("random_upper_prob", 0.0, 1.0),
+        mixed_blocks_generation_prob=trial.suggest_float("mixed_blocks_generation_prob", 0.0, 0.2),
+        mixed_blocks_label="unknown",
     )
 
-    """
-    study.enqueue_trial(dict(
-        rand_str_perc=0.1,
-        random_char_prob=0.01,
-        random_word_prob=0.01,
-        random_upper_prob=0.01,
-        mixed_blocks_generation_prob=0.1
-    ))"""
-    study.optimize(train_model, n_trials=100)
+    model_config = dict(
+        learning_rate=0.005,
+        embeddings_dim=2,  # embeddings vector size (standard BERT has a vector size of 768 )
+        token_seq_length1=5,  # what length of a word do we assume in terms of tokens?
+        seq_features1=40,  # how many filters should we run for the analysis = num of generated features?
+        dropout1=0.5,  # first layer dropout
+        token_seq_length2=40,  # how many tokens in a row do we want to analyze?
+        seq_features2=100,  # how many filters should we run for the analysis?
+        dropout2=0.5,  # second layer dropout
+        hp_metric="address.f1-score"  # the metric to optimize for and should be logged...
+    )
+
+    if False:
+        m = classifier.txt_block_classifier.load_from_checkpoint(
+            settings.MODEL_DIR / "text_blockclassifier-epoch=06-address.f1-score=0.24.ckpt.ckpt")
+    else:
+        m = None
+
+    epoch_config = dict(
+        steps_per_epoch=500,
+        log_every_n_steps=50,
+        max_epochs=10
+    )
+    epoch_config1 = dict(
+        steps_per_epoch=5,
+        log_every_n_steps=1,
+        max_epochs=4
+    )
+    trainer, model, _, _ = training.train_text_block_classifier(
+        train_model=True,
+        model_name=f"{trial.study.study_name}/{trial.number}",
+        log_hparams=trial.params,
+        old_model=m,
+        num_workers=4,
+        accelerator="auto", devices=1,  # use simple integer to specify number of devices...
+        # strategy="ddp_find_unused_parameters_false",
+        # strategy="ddp",
+        enable_checkpointing=False,
+        strategy=None,  # in case of running jupyter notebook
+        callbacks=additional_callbacks,
+        data_config=data_config,
+        model_config=model_config,
+        **epoch_config
+    )
+
+    # trainer.logger.log_hyperparams()
+
+    return trainer.callback_metrics['address.f1-score']
+
 
 # %%
+local_storage = f"sqlite:///{str(settings.MODEL_DIR)}/study.sqlite"
+remote_storage = "TODO: get from env variable (f"mysql+pymysql:....")"
+remote_storage
+
+# %% [markdown]
+# create a mysql server in docker like this:
+#
+#
+# example docker-compose.yml file:
+#
+# ```
+# version: '3' 
+# services:
+#   db:
+#     image: mariadb
+#     container_name: nextcloud-mariadb
+#     volumes:
+#       - $HOME/pydoxtools/db:/var/lib/mysql
+#       - /etc/localtime:/etc/localtime:ro
+#     environment:
+#       - MARIADB_ROOT_PASSWORD=y3pl5vb6qesu7vfbdtyntuh2fm093q206pk
+#       - MARIADB_PASSWORD=haekf5ln0i4uy6hezn1wyvwjqy1qu4htx7n
+#       - MARIADB_DATABASE=pydoxtools
+#       - MARIADB_USER=pydoxtools
+#     restart: unless-stopped
+#     ports:
+#       - 3808:3808
+# ```
+
+# %% tags=[]
+study = optuna.create_study(
+    study_name="test",
+    storage=remote_storage,
+    load_if_exists=True,
+    direction=optuna.study.StudyDirection.MAXIMIZE
+)
+
+# %% tags=[]
+"""
+study.enqueue_trial(dict(
+    rand_str_perc=0.1,
+    random_char_prob=0.01,
+    random_word_prob=0.01,
+    random_upper_prob=0.01,
+    mixed_blocks_generation_prob=0.1
+))"""
+if True:
+    study.optimize(train_model, n_trials=100)
