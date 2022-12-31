@@ -286,6 +286,7 @@ class txt_block_classifier(
             token_seq_length2=40,  # how many tokens in a row do we want to analyze?
             seq_features2=100,  # how many filters should we run for the analysis?
             dropout2=0.3,  # second layer dropout
+            fft_pool_size=20,  # precision of fft for spectral pooling at the end
             learning_rate=0.01,
             hp_metric=None,
     ):
@@ -354,8 +355,10 @@ class txt_block_classifier(
         # we add addtional features here...
         # right now: 1: length of string + number of lines + number of words (defined by spaces)
         meta_features = 1 + 1 + 1
+        self.fft_pool_size = (self.hparams.seq_features2, self.hparams.fft_pool_size)
         self.linear = torch.nn.Linear(
-            in_features=self.hparams.seq_features2 * 2 + meta_features, out_features=num_classes
+            in_features=self.hparams.seq_features2 * (self.hparams.fft_pool_size//2+1) + meta_features,
+            out_features=num_classes
         )
 
         # and add metrics
@@ -395,12 +398,14 @@ class txt_block_classifier(
         # TODO: specify pooling method as a hypeparameter as well...
         # max:  takes the max of every feature vector (meaning the max value for
         # every individual feature for the entire text). hats left over are 1 value for each feature
-        x_max = torch.max(x, dim=2).values
-        x_mean = torch.mean(x, dim=2)
+        # x_max = torch.max(x, dim=2).values
+        # x_mean = torch.mean(x, dim=2)
+        x_fft = torch.fft.rfft2(x, s=self.fft_pool_size).real
         # TODO: do spectral pooling using fft in order to reduce to a fixed number of dimensions
         # TODO: maybe we should rather take the mean? --> do this in an optimizatino algorithm
         # combine features
-        x = torch.cat([x_max, x_mean, meta.flatten(1)], 1)
+        # x = torch.cat([x_max, x_mean, meta.flatten(1)], 1)
+        x = torch.cat([x_fft.flatten(1), meta.flatten(1)], 1)
         # finally, interprete the features
         x = self.linear(x.flatten(1))
         return x
