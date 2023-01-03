@@ -62,10 +62,10 @@ if True:
     N. Y 11413
     www.something.com
     """,
-    """
-    some stupid text that doesn't mean anything...
-    """
-    ])
+                     """
+                     some stupid text that doesn't mean anything...
+                     """
+                     ])
     print(res)
 
 # %% [markdown]
@@ -133,12 +133,12 @@ if True:
     ]
 
     data_config = dict(
-        generators=[
-            ("address", training.BusinessAddressGenerator(rand_str_perc=0.7)),
-            ("unknown", training.RandomTextBlockGenerator()),
-            ("unknown", training.RandomListGenerator()),
-        ],
-        weights=[10, 8, 2],
+        generators={
+            "address": ((10, training.BusinessAddressGenerator(rand_str_perc=0.7)),),
+            "unknown": (
+                (5, training.RandomTextBlockGenerator()),
+                (5, training.RandomListGenerator()))
+        },
         cache_size=5000,
         renew_num=500,
         random_char_prob=0.45,
@@ -149,7 +149,7 @@ if True:
     )
 
     model_config = dict(
-        learning_rate=0.005,
+        learning_rate=0.0005,
         embeddings_dim=4,  # embeddings vector size (standard BERT has a vector size of 768 )
         token_seq_length1=5,  # what length of a work do we assume in terms of tokens?
         seq_features1=40,  # how many filters should we run for the analysis = num of generated features?
@@ -159,12 +159,12 @@ if True:
         dropout2=0.5  # second layer dropout
     )
 
-    if False:
+    if True:
         m = classifier.txt_block_classifier.load_from_checkpoint(settings.MODEL_DIR / "text_blockclassifier.ckpt")
     else:
         m = None
     trainer, model, train_loader, validation_loader = training.train_text_block_classifier(
-        train_model=True,
+        train_model=False,
         old_model=m,
         num_workers=8,
         accelerator="auto", devices=1,
@@ -181,7 +181,7 @@ if True:
     )
 
 # %%
-tune_learning_rate=False
+tune_learning_rate = True
 if tune_learning_rate:
     lr_finder = trainer.tuner.lr_find(model, train_loader, validation_loader)
 
@@ -190,9 +190,21 @@ if tune_learning_rate:
     new_lr = lr_finder.suggestion()
     new_lr
 
-    #- 0.00025 for a new model
-    #- 0.00229 for a pre-trained model
+    # - 0.00025 for a new model
+    # - 0.00229 for a pre-trained model
 
     # Plot with
     fig = lr_finder.plot(suggest=True)
     fig.show()
+
+# %%
+new_lr
+
+# %% [markdown]
+# learning rate "fresh" model:   0.000363078054770101  (in case of fft)
+
+# %%
+pytorch_lightning.utilities.memory.get_model_size_mb(model)
+
+# %%
+model.hparams

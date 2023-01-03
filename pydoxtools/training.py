@@ -601,8 +601,7 @@ class PandasDataframeLoader(torch.utils.data.Dataset):
 class TextBlockGenerator(torch.utils.data.IterableDataset):
     def __init__(
             self,
-            generators: list[tuple[str, typing.Any]],
-            weights: list[int],
+            generators: dict[str, tuple[typing.Any]],
             random_char_prob: float = 0.0,
             random_word_prob: float = 0.0,
             random_upper_prob: float = 0.0,
@@ -624,7 +623,6 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
         virtual_size: defines what the "__len__" gives back
         """
         self._generators = generators
-        self._weights = weights
         self._random_char_prob = random_char_prob
         self._random_word_prob = random_word_prob
         self._random_upper_prob = random_upper_prob
@@ -646,16 +644,23 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
 
     @cached_property
     def class_gen(self):
-        return list(j for _, j in self._generators)
+        return tuple(k[1] for _, j in self._generators.items() for k in j)
+
+    @cached_property
+    def gen_mapping(self):
+        return {k[1]: name for name, j in self._generators.items() for k in j}
+
+    @cached_property
+    def weights(self):
+        return tuple(k[0] for name, j in self._generators.items() for k in j)
 
     @cached_property
     def num_generators(self):
-        return len(self._generators)
+        return len(self.class_gen)
 
     @cached_property
     def classmap(self):
-        classes = set(i for i, _ in self._generators)
-        return dict(enumerate(classes))
+        return dict(enumerate(self._generators))
 
     @cached_property
     def classmap_inv(self):
@@ -667,11 +672,12 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
         self._random.seed(seed)
 
         # randomly choose a generator for a certain class
-        cl, gen = self._random.choices(population=self._generators, weights=self._weights)[0]
+        gen = self._random.choices(population=self.class_gen, weights=self.weights)[0]
+        cl = self.gen_mapping[gen]
         # generate random input data for the class to be predicted
         x = gen(seed)
         if self._mixed_blocks_generation_prob > self._random.random():
-            cl, gen = self._random.choices(population=self._generators, weights=self._weights)[0]
+            gen = self._random.choices(population=self.class_gen, weights=self.weights)[0]
             x += "\n" + gen(seed + 1)
             y = self.classmap_inv[self._mixed_blocks_label]
         else:
@@ -832,12 +838,10 @@ def prepare_textblock_training(
 
     virtual_size = steps_per_epoch * batch_size
     user_generator_config = dict(
-        generators=[
-            ("address", BusinessAddressGenerator()),
-            ("unknown", RandomTextBlockGenerator()),
-            ("unknown", RandomListGenerator()),
-        ],
-        weights=[10, 8, 2],
+        generators={
+            "address": ((100, BusinessAddressGenerator()),),
+            "unknown": ((80, RandomTextBlockGenerator()), (20, RandomListGenerator()))
+        },
         random_char_prob=1.0 / 20.0,
         random_word_prob=1.0 / 20.0,
         cache_size=5000,

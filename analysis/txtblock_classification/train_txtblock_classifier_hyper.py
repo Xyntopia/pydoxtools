@@ -102,8 +102,19 @@ with open(settings.MODEL_DIR / f"ts_{ts}.txt", "w") as f:
     f.write(str(sysinfo))
 
 # %%
+# study_params
+study_name = "tune_gener_hyparams_fft"
+start_model = "text_blockclassifier_x0.ckpt"
+
+# %%
 # we don't need this right now, as our modelnames get synchronized through the optuna msql storage...
 # wu.rclone_single_sync_models(method="bisync", hostname=hostname, token=token, syncpath=syncpath)
+# # copy our start model to the new training process
+if start_model:
+    wu.rclone_single_sync_models(
+        method="copyto", hostname=hostname, token=token,
+        syncpath=syncpath, file_name=start_model, reversed=True)
+
 
 # %% tags=[]
 # %env TOKENIZERS_PARALLELISM=true
@@ -135,14 +146,11 @@ def train_model(trial: optuna.Trial):
     additional_callbacks.append(ReportCallback())
 
     data_config = dict(
-        generators=[
-            ("address", training.BusinessAddressGenerator(
-                rand_str_perc=trial.suggest_float("rand_str_perc", 0.0, 1.0))
-             ),
-            ("unknown", training.RandomTextBlockGenerator()),
-            ("unknown", training.RandomListGenerator()),
-        ],
-        weights=[10, 5, 5],
+        generators={
+            "address": (100
+            training.BusinessAddressGenerator(rand_str_perc=trial.suggest_float("rand_str_perc", 0.0, 1.0)),),
+            "unknown": ((50,training.RandomTextBlockGenerator()), (50,training.RandomListGenerator()))
+        },
         cache_size=5000,
         renew_num=500,
         random_char_prob=trial.suggest_float("random_char_prob", 0.0, 1.0),
@@ -153,7 +161,7 @@ def train_model(trial: optuna.Trial):
     )
 
     model_config = dict(
-        learning_rate=0.005,
+        learning_rate=0.0005,
         embeddings_dim=2,  # embeddings vector size (standard BERT has a vector size of 768 )
         token_seq_length1=5,  # what length of a word do we assume in terms of tokens?
         seq_features1=40,  # how many filters should we run for the analysis = num of generated features?
@@ -164,16 +172,16 @@ def train_model(trial: optuna.Trial):
         hp_metric="address.f1-score"  # the metric to optimize for and should be logged...
     )
 
-    if False:
+    if start_model:
         m = classifier.txt_block_classifier.load_from_checkpoint(
-            settings.MODEL_DIR / "text_blockclassifier-epoch=06-address.f1-score=0.24.ckpt.ckpt")
+            settings.MODEL_DIR / start_model)
     else:
         m = None
 
     epoch_config = dict(
         steps_per_epoch=500,
-        log_every_n_steps=50,
-        max_epochs=10
+        log_every_n_steps=100,
+        max_epochs=100
     )
     epoch_config1 = dict(
         steps_per_epoch=5,
@@ -234,7 +242,7 @@ remote_storage
 
 # %% tags=[]
 study = optuna.create_study(
-    study_name="test",
+    study_name=study_name,
     storage=remote_storage,
     load_if_exists=True,
     direction=optuna.study.StudyDirection.MAXIMIZE

@@ -212,7 +212,7 @@ class lightning_training_procedures(pytorch_lightning.LightningModule):
                 if name in self.hist_params:
                     self.logger.experiment.add_histogram(name, params, self.current_epoch)
 
-    def training_epoch_end(self, training_step_outputs):
+    def training_epoch_start(self, training_step_outputs):
         self.custom_histogram_adder()
 
     def test_step(self, batch, batch_idx):
@@ -357,7 +357,7 @@ class txt_block_classifier(
         meta_features = 1 + 1 + 1
         self.fft_pool_size = (self.hparams.seq_features2, self.hparams.fft_pool_size)
         self.linear = torch.nn.Linear(
-            in_features=self.hparams.seq_features2 * (self.hparams.fft_pool_size//2+1) + meta_features,
+            in_features=self.hparams.seq_features2 * (self.hparams.fft_pool_size // 2 + 1) + meta_features,
             out_features=num_classes
         )
 

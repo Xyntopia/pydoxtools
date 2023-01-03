@@ -16,29 +16,23 @@
 
 # %% [markdown] tags=[]
 # # Test augmentation and mixing of textblocks
+#
+# import logging
+#
+# import torch
+# from IPython.display import display, HTML
+# from tqdm import tqdm
 
 # %% tags=[]
 # %load_ext autoreload
 # %autoreload 2
 # from pydoxtools import nlp_utils
-from pydoxtools import pdf_utils, classifier, nlp_utils, cluster_utils, training
-from pydoxtools import webdav_utils as wu
+from pydoxtools import pdf_utils, nlp_utils, cluster_utils, training
 from pydoxtools.settings import settings
-import torch
-from IPython.display import display
-import re
-import random
-import pytorch_lightning
 import logging
-
-from IPython.display import display, HTML
-import pandas as pd
 from tqdm import tqdm
-from faker import Faker
-import sklearn
-import numpy as np
-import os
-from os.path import join
+import pandas as pd
+import torch
 
 
 def pretty_print(df):
@@ -57,17 +51,17 @@ memory = settings.get_memory_cache()
 nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.cudnn.version()
 
 # %%
-bg = training.TextBlockGenerator(generators=(
-    ("address",training.BusinessAddressGenerator(rand_str_perc=0.3)),
-    ("unknown",training.RandomTextBlockGenerator()),
-    ("unknown",training.RandomListGenerator()),
-),weights=[100,80,20],
-random_char_prob=0.05, random_word_prob=0.05,random_upper_prob=0.05,
-cache_size=100,renew_num=10, mixed_blocks_generation_prob=0.1, mixed_blocks_label="unknown")
-bg.classmap,bg.classmap_inv, bg.num_generators, bg.class_gen
+bg = training.TextBlockGenerator(
+    generators={
+        "address": ((100, training.BusinessAddressGenerator(rand_str_perc=0.5)),),
+        "unknown": ((50, training.RandomTextBlockGenerator()), (50, training.RandomListGenerator()))
+    },
+    random_char_prob=0.05, random_word_prob=0.05, random_upper_prob=0.05,
+    cache_size=100, renew_num=10, mixed_blocks_generation_prob=0.1, mixed_blocks_label="unknown")
+bg.classmap, bg.classmap_inv, bg.num_generators, bg.class_gen, bg.gen_mapping, bg.weights
 
 # %%
-bgi=bg.__iter__()
+bgi = bg.__iter__()
 
 # %% [markdown]
 # check how fast the text generation is wwith different cache settings...
@@ -75,7 +69,7 @@ bgi=bg.__iter__()
 # %%
 # %%timeit
 addr = [next(bgi) for i in range(1000)]
-#for a in addr: print(f"{a}\n")
+# for a in addr: print(f"{a}\n")
 
 # %% [markdown]
 # progression:
