@@ -108,77 +108,88 @@ wu.rclone_single_sync_models(method="bisync", hostname=hostname, token=token, sy
 
 # %% tags=[]
 # %env TOKENIZERS_PARALLELISM=true
-if True:
-    warnings.filterwarnings("ignore", ".*Your `IterableDataset` has `__len__` defined.*")
+warnings.filterwarnings("ignore", ".*Your `IterableDataset` has `__len__` defined.*")
 
 
-    class WebdavSyncCallback(pytorch_lightning.Callback):
-        def on_train_epoch_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
-            print("""lightning: sync models with rclone!""")
-            print(wu.rclone_single_sync_models(
-                method="copy", hostname=hostname, token=token, syncpath=syncpath)[0]
-                  )
+class WebdavSyncCallback(pytorch_lightning.Callback):
+    def on_train_epoch_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
+        print("""lightning: sync models with rclone!""")
+        print(wu.rclone_single_sync_models(
+            method="copy", hostname=hostname, token=token, syncpath=syncpath)[0]
+              )
 
 
-    checkpoint_callback = pytorch_lightning.callbacks.ModelCheckpoint(
-        monitor='address.f1-score',  # or 'accuracy' or 'f1'
-        mode='max', save_top_k=3,
-        dirpath=settings.MODEL_STORE("text_block").parent,
-        filename="text_blockclassifier-{epoch:02d}-{address.f1-score:.2f}.ckpt"
-    )
+checkpoint_callback = pytorch_lightning.callbacks.ModelCheckpoint(
+    monitor='address.f1-score',  # or 'accuracy' or 'f1'
+    mode='max', save_top_k=3,
+    dirpath=settings.MODEL_STORE("text_block").parent,
+    filename="text_blockclassifier-{epoch:02d}-{address.f1-score:.2f}.ckpt"
+)
 
-    additional_callbacks = [
-        WebdavSyncCallback(), checkpoint_callback
-        # pytorch_lightning.callbacks.RichProgressBar()
-    ]
+additional_callbacks = [
+    WebdavSyncCallback(), checkpoint_callback
+    # pytorch_lightning.callbacks.RichProgressBar()
+]
 
-    data_config = dict(
-        generators={
-            "address": ((10, training.BusinessAddressGenerator(rand_str_perc=0.7)),),
-            "unknown": (
-                (5, training.RandomTextBlockGenerator()),
-                (5, training.RandomListGenerator()))
-        },
-        cache_size=5000,
-        renew_num=500,
-        random_char_prob=0.45,
-        random_word_prob=0.1,
-        random_upper_prob=0.3,
-        mixed_blocks_generation_prob=0.0,
-        mixed_blocks_label="unknown",
-    )
+data_config = dict(
+    generators={
+        "address": ((10, training.BusinessAddressGenerator(rand_str_perc=0.7)),),
+        "unknown": (
+            (5, training.RandomTextBlockGenerator()),
+            (5, training.RandomListGenerator()))
+    },
+    cache_size=5000,
+    renew_num=500,
+    random_char_prob=0.45,
+    random_word_prob=0.1,
+    random_upper_prob=0.3,
+    mixed_blocks_generation_prob=0.0,
+    mixed_blocks_label="unknown",
+)
 
-    model_config = dict(
-        learning_rate=0.0005,
-        embeddings_dim=4,  # embeddings vector size (standard BERT has a vector size of 768 )
-        token_seq_length1=5,  # what length of a work do we assume in terms of tokens?
-        seq_features1=40,  # how many filters should we run for the analysis = num of generated features?
-        dropout1=0.5,  # first layer dropout
-        token_seq_length2=40,  # how many tokens in a row do we want to analyze?
-        seq_features2=100,  # how many filters should we run for the analysis?
-        dropout2=0.5  # second layer dropout
-    )
+model_config = dict(
+    learning_rate=0.0005,
+    embeddings_dim=2,  # embeddings vector size (standard BERT has a vector size of 768 )
+    token_seq_length1=5,  # what length of a work do we assume in terms of tokens?
+    seq_features1=40,  # how many filters should we run for the analysis = num of generated features?
+    dropout1=0.5,  # first layer dropout
+    token_seq_length2=40,  # how many tokens in a row do we want to analyze?
+    seq_features2=100,  # how many filters should we run for the analysis?
+    dropout2=0.5  # second layer dropout
+)
 
-    if True:
-        m = classifier.txt_block_classifier.load_from_checkpoint(settings.MODEL_DIR / "text_blockclassifier.ckpt")
-    else:
-        m = None
-    trainer, model, train_loader, validation_loader = training.train_text_block_classifier(
-        train_model=False,
-        old_model=m,
-        num_workers=8,
-        accelerator="auto", devices=1,
-        # strategy="ddp_find_unused_parameters_false",
-        # strategy="ddp",
-        strategy=None,  # in case of running jupyter notebook
-        callbacks=additional_callbacks,
-        enable_checkpointing=True,
-        steps_per_epoch=500,
-        log_every_n_steps=50,
-        max_epochs=-1,
-        data_config=data_config,
-        model_config=model_config
-    )
+if False:
+    m = classifier.txt_block_classifier.load_from_checkpoint(settings.MODEL_DIR / "text_blockclassifier.ckpt")
+else:
+    m = None
+
+
+# %% tags=[]
+trainer, model, train_loader, validation_loader = training.train_text_block_classifier(
+    train_model=True,
+    old_model=m,
+    num_workers=8,
+    accelerator="auto", devices=1,
+    # strategy="ddp_find_unused_parameters_false",
+    # strategy="ddp",
+    strategy=None,  # in case of running jupyter notebook
+    callbacks=additional_callbacks,
+    enable_checkpointing=True,
+    steps_per_epoch=2,
+    log_every_n_steps=1,
+    max_epochs=1,
+    data_config=data_config,
+    model_config=model_config
+)
+
+# %%
+trainer.save_checkpoint(settings.MODEL_DIR/"test2", weights_only=True)
+
+# %%
+pytorch_lightning.utilities.memory.get_model_size_mb(model)
+
+# %%
+model.hparams
 
 # %%
 tune_learning_rate = True
@@ -202,9 +213,3 @@ new_lr
 
 # %% [markdown]
 # learning rate "fresh" model:   0.000363078054770101  (in case of fft)
-
-# %%
-pytorch_lightning.utilities.memory.get_model_size_mb(model)
-
-# %%
-model.hparams

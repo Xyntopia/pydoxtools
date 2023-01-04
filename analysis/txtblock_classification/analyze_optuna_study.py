@@ -11,20 +11,24 @@ storage_url = f"sqlite:////home/tom/Nextcloud/pydoxtools_training/study.sqlite"
 remote_storage="TODO: get from env variable (f"mysql+pymysql:....")"
 remote_storage
 
+optuna.copy_study(
+    from_study_name="tune_gener_hyparams_fft_3",
+    from_storage=remote_storage,
+    to_storage=storage_url
+)
+
+
 study = optuna.load_study(
-    study_name="find_more_data_generation_parameters",
+    study_name="tune_gener_hyparams_fft_3",
     storage=storage_url
 )
 
 
-optuna.copy_study(
-    from_study_name="test",
-    from_storage=remote_storage,
-    to_storage=storage_url,
-)
+# +
+#study.trials
+# -
 
-
-study.best_params
+study.best_trial.number, study.best_trial.params
 
 # +
 

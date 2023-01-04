@@ -966,6 +966,7 @@ def train_page_classifier(max_epochs=100, old_model=None):
 
 
 def train_text_block_classifier(
+        batch_size: int = 2 ** 10,
         log_hparams: dict = None,
         model_name: str = None,
         old_model: txt_block_classifier = None,
@@ -979,7 +980,8 @@ def train_text_block_classifier(
     from pytorch_lightning.loggers import TensorBoardLogger
 
     train_loader, validation_loader, model = prepare_textblock_training(
-        num_workers, steps_per_epoch=steps_per_epoch, data_config=data_config, model_config=model_config
+        num_workers, steps_per_epoch=steps_per_epoch, data_config=data_config, model_config=model_config,
+        batch_size=batch_size,
     )
     if old_model:
         model = old_model

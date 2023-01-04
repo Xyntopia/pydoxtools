@@ -110,6 +110,9 @@ df_labeled.label.unique()
 # %%
 model = classifier.load_classifier("text_block")
 
+# %%
+pytorch_lightning.utilities.memory.get_model_size_mb(model)
+
 # %% tags=[]
 import warnings
 warnings.filterwarnings('ignore')
@@ -183,7 +186,7 @@ model.predict_proba([
 """
 north
 2234 Circle Road
-Bonn
+Northhampton
 NN3 8RF
 """,
 """

@@ -288,7 +288,7 @@ class txt_block_classifier(
             dropout2=0.3,  # second layer dropout
             fft_pool_size=20,  # precision of fft for spectral pooling at the end
             learning_rate=0.01,
-            hp_metric=None,
+            hp_metric=None
     ):
         super(txt_block_classifier, self).__init__()
         # we are saving all hyperparameters from above in the model checkpoint this way...
@@ -297,7 +297,7 @@ class txt_block_classifier(
         self.classmapinv_ = {v: k for k, v in classmap.items()}
         self.classes_ = list(classmap.values())
         num_classes = len(classmap)
-        self._hp_metric = hp_metric
+        self._hp_metric = self.hparams.hp_metric
 
         # TODO: get rid of model dependency... only use the vocabulary for the tokenizer...
         self.model_name = settings.PDXT_STANDARD_TOKENIZER  # name of model used for initialization

@@ -15,6 +15,18 @@
 # ---
 
 # %%
+# study_params
+study_name = "tune_gener_hyparams_fft_3"
+# if we use a "start_model" we will not have hyperparameters!!
+# also: if some model in tensorboard are using hyperparameters, while
+#       others don't, we will not have hyperparameters displayed!!
+start_model = "text_blockclassifier_x0.ckpt"
+
+# run with:
+# TOKENIZERS_PARALLELISM=true python /project/analysis/txtblock_classification/train_txtblock_classifier_hyper.py
+
+
+# %%
 import datetime
 # %% tags=[]
 import logging
@@ -102,11 +114,6 @@ with open(settings.MODEL_DIR / f"ts_{ts}.txt", "w") as f:
     f.write(str(sysinfo))
 
 # %%
-# study_params
-study_name = "tune_gener_hyparams_fft"
-start_model = "text_blockclassifier_x0.ckpt"
-
-# %%
 # we don't need this right now, as our modelnames get synchronized through the optuna msql storage...
 # wu.rclone_single_sync_models(method="bisync", hostname=hostname, token=token, syncpath=syncpath)
 # # copy our start model to the new training process
@@ -147,9 +154,9 @@ def train_model(trial: optuna.Trial):
 
     data_config = dict(
         generators={
-            "address": (100
-            training.BusinessAddressGenerator(rand_str_perc=trial.suggest_float("rand_str_perc", 0.0, 1.0)),),
-            "unknown": ((50,training.RandomTextBlockGenerator()), (50,training.RandomListGenerator()))
+            "address": ((100, training.BusinessAddressGenerator(
+                rand_str_perc=trial.suggest_float("rand_str_perc", 0.0, 1.0))),),
+            "unknown": ((50, training.RandomTextBlockGenerator()), (50, training.RandomListGenerator()))
         },
         cache_size=5000,
         renew_num=500,
@@ -206,8 +213,23 @@ def train_model(trial: optuna.Trial):
     )
 
     # trainer.logger.log_hyperparams()
-
-    return trainer.callback_metrics['address.f1-score']
+    # calculate score
+    max_mb = 50
+    model_mb = pytorch_lightning.utilities.memory.get_model_size_mb(model)
+    metric = trainer.callback_metrics['address.f1-score'] #max 1.0
+    # increase score by metric and penalize by model size.
+    # e.g.:
+    # 1.0 & 50MB = 1.0
+    # 0.5 & 50MB = 0.5
+    # 0.1 & 50MB = 0.1
+    # 1.0 & 25MB = 1.0
+    # 0.5 & 25MB = 1.0
+    # 1.0 & 60MB = 0.8
+    # 1.0 & 100MB = -0.5
+    # 1.0 & 75MB = 0.0
+    oversize_penalty = (0.0 if model_mb<max_mb else ((model_mb-max_mb)/max_mb))
+    score = min(metric**2 * max_mb/model_mb,1.0)-oversize_penalty
+    return metric
 
 
 # %%
