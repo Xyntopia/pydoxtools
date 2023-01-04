@@ -212,7 +212,7 @@ class lightning_training_procedures(pytorch_lightning.LightningModule):
                 if name in self.hist_params:
                     self.logger.experiment.add_histogram(name, params, self.current_epoch)
 
-    def training_epoch_start(self, training_step_outputs):
+    def training_epoch_end(self, training_step_outputs):
         self.custom_histogram_adder()
 
     def test_step(self, batch, batch_idx):
@@ -386,6 +386,8 @@ class txt_block_classifier(
         # ids = torch.tensor(ids)
         x = self.embedding(ids)
         x = self.dropout1(x)
+        # TODO: implement more fft directly after initialization
+        # x_fft = torch.fft.rfft2(x, s=self.fft_pool_size).real
         # x = self.l1(x) # if we use "frozen" embeddings we want to transform them into a more usable format...
         # "unsqueeze" to add the channel dimensions and then "squeeze" out the channel at the end...
         x = self.cv1(x.unsqueeze(1)).squeeze(3)

@@ -1005,12 +1005,14 @@ def train_text_block_classifier(
     )
     if kwargs.get("train_model", False):
         # TODO: ho can we set hp_metric to 0 at the start?
+        # if we use an already initialized "start_model" we can not log hyperparameters!!
         trainer.logger.log_hyperparams(log_hparams)  # , metrics=dict(hp_metric=0))
         trainer.fit(model, train_loader, validation_loader)
         # trainer.logger.log_hyperparams(log_hparams, metrics=dict(
         #    model.metrics
         # ))
         trainer.save_checkpoint(settings.MODEL_STORE("text_block"))
+        trainer.save_checkpoint(settings.MODEL_STORE("text_block_wo"), weights_only=True)
         curtime = datetime.datetime.now()
         curtimestr = curtime.strftime("%Y%m%d%H%M")
         trainer.save_checkpoint(
