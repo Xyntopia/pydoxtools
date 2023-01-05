@@ -2,6 +2,7 @@ import collections
 import datetime
 import functools
 import logging
+import pathlib
 import pickle
 import random
 import re
@@ -96,6 +97,18 @@ def load_labeled_pdf_files(label_subset=None) -> pd.DataFrame:
     return df
 
 
+class TextResource:
+    def __init__(self, filename: str | pathlib.Path):
+        self._f = f = open(filename, "rb")
+        self._max_size = f.seek(0, 2)  # get the end f the text file
+
+    def get_random_str(self, str_len: int) -> str:
+        pos = random.randrange(0, self._max_size - str_len)
+        self._f.seek(pos)
+        txt = self._f.read(str_len).decode('utf-8', errors='ignore')
+        return txt
+
+
 def rand_chars(char_dict: dict) -> typing.Callable[[], str]:
     """create a random function which randomly selects characters from
     a list. function Argument is a dictionary with weights on how often
@@ -132,8 +145,7 @@ class GeneratorMixin:
 
 class RandomTextBlockGenerator(GeneratorMixin):
     def __init__(self):
-        self._f = f = open(settings.TRAINING_DATA_DIR / "all_text.txt", "rb")
-        self._max_size = f.seek(0, 2)  # get the end f the text file
+        self._txt_res = TextResource(settings.TRAINING_DATA_DIR / "all_text.txt")
         self._separators = {
             " ": 10, ",": 2, "\n": 4, ";": 2, " |": 1,
             ":": 1, "/": 1
@@ -147,11 +159,8 @@ class RandomTextBlockGenerator(GeneratorMixin):
         alpha = (mean_text_len / var) ** 2
         # β = μ / α
         txt_len = int(random.gammavariate(alpha=alpha, beta=mean_text_len / alpha)) + 1
-        r1 = rand.randrange(0, self._max_size - txt_len)
-        r2 = rand.randrange(0, self._max_size - txt_len)
-        s1 = self._f.seek(r1)
-        txt1 = self._f.read(txt_len).decode('utf-8', errors='ignore')
-        if mix_blocks > 1:  # TODO: implement this
+        txt1 = self._txt_res.get_random_str(txt_len)
+        if mix_blocks > 1:  # TODO: implement this, combine two different text strings into one
             raise NotImplementedError
             s2 = self._f.seek(r2)
             txt2 = self._f.read(txt_len).decode('utf-8', errors='ignore')
@@ -181,6 +190,11 @@ class BusinessAddressGenerator(GeneratorMixin):
         # function which returns some random separation characters
         self._sep_chars = rand_chars({"\n": 24, ", ": 12, "; ": 6, " | ": 6, "·": 1})
         self._rand_letter_street_perc = rand_str_perc
+        self.osm_data = dict(
+            cities="cities.txt",
+            streets="streets.txt",
+
+        )
 
     def rand_word(self, f):
         mean_word_len = 4.5  # ~500 words is one page, 4.5 is the average word length in english, min len+1
