@@ -64,7 +64,43 @@ if False: #convert our existing extracted addresses file to csv
     df.to_csv("/home/tom/comcharax/data/osm_address_data.csv", chunksize=1000)
 
 # %%
-ddf = dd.read_csv("/home/tom/comcharax/data/osm_address_data.csv", blocksize="64MB")
+ddf = dd.read_csv("/home/tom/comcharax/data/osm_address_data.csv", blocksize="64MB", dtype=str)
+
+# %%
+ddf.columns
+
+# %% [markdown]
+# columns not worth using:   addr, 
+
+# %%
+from dask.diagnostics import ProgressBar
+with ProgressBar():
+    df = ddf["addr_place"].unique().compute()
+df
+
+# %%
+from dask.diagnostics import ProgressBar
+with ProgressBar():
+    cities = ddf["addr_city"].unique().compute()
+    countries = ddf["addr_country"].unique().compute()
+    streets=ddf["addr_street"].unique().compute()
+    names=ddf["name"].unique().compute()
+
+# %%
+cities.to_csv("/home/tom/comcharax/data/cities.txt", index=False, header=False)
+streets.to_csv("/home/tom/comcharax/data/streets.txt", index=False, header=False)
+names.to_csv("/home/tom/comcharax/data/names.txt", index=False, header=False)
+states.to_csv("/home/tom/comcharax/data/states.txt", index=False, header=False)
+
+# %%
+# most common words in "streets":
+street_words = streets.str.split().explode().value_counts()
+pd.Series(street_words.index).to_csv("/home/tom/comcharax/data/street_words.txt", index=False, header=False)
+
+# %%
+# most common words in "names":
+name_words = names.str.split().explode().value_counts()
+pd.Series(name_words.index).to_csv("/home/tom/comcharax/data/name_words.txt", index=False, header=False)
 
 # %% [markdown]
 # extract all countries

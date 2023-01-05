@@ -1,3 +1,4 @@
+import abc
 import collections
 import datetime
 import functools
@@ -102,10 +103,23 @@ class TextResource:
         self._f = f = open(filename, "rb")
         self._max_size = f.seek(0, 2)  # get the end f the text file
 
-    def get_random_str(self, str_len: int) -> str:
+    def random_str(self, str_len: int) -> str:
         pos = random.randrange(0, self._max_size - str_len)
         self._f.seek(pos)
         txt = self._f.read(str_len).decode('utf-8', errors='ignore')
+        return txt
+
+    def random_line(self, max_search: int = 100) -> str:
+        """returns a random line it will search for preceding newline character maximum of "max_search" characters"""
+        pos = random.randrange(0, self._max_size)
+        if pos<max_search:
+            max_search2 = max(pos-max_search, pos)
+        else:
+            max_search2 = max_search
+        self._f.seek(pos - max_search2)  # only search in the 100 lines before cursor position
+        nl_idx = self._f.read(max_search2).rfind(b"\n")
+        self._f.seek(pos - max_search2 + nl_idx + 1)
+        txt = self._f.readline().decode('utf-8', errors='ignore').rstrip()
         return txt
 
 
@@ -134,6 +148,10 @@ class GeneratorMixin:
     def __getitem__(self, ids: list[int] | int):
         return self(ids)
 
+    @abc.abstractmethod
+    def single(self, seed):
+        pass
+
     def __call__(self, ids: list[int] | int) -> str | list[str]:
         # TODO: international addresses
         # TODO: more variations
@@ -159,7 +177,7 @@ class RandomTextBlockGenerator(GeneratorMixin):
         alpha = (mean_text_len / var) ** 2
         # β = μ / α
         txt_len = int(random.gammavariate(alpha=alpha, beta=mean_text_len / alpha)) + 1
-        txt1 = self._txt_res.get_random_str(txt_len)
+        txt1 = self._txt_res.random_str(txt_len)
         if mix_blocks > 1:  # TODO: implement this, combine two different text strings into one
             raise NotImplementedError
             s2 = self._f.seek(r2)
@@ -176,7 +194,7 @@ class RandomTextBlockGenerator(GeneratorMixin):
 class BusinessAddressGenerator(GeneratorMixin):
     """TODO: convert this into  aker provider?"""
 
-    def __init__(self, rand_str_perc=0.3):
+    def __init__(self, rand_str_perc=0.3, osm_perc=0.5):
         import faker
         self._available_locales = faker.config.AVAILABLE_LOCALES
         try:
@@ -185,24 +203,39 @@ class BusinessAddressGenerator(GeneratorMixin):
         except ValueError:
             pass
         # pre-initialize fakers for all languages for speed
-        self._fakers = {locale: faker.Faker(locale) for locale in self._available_locales}
+        self._fakers: dict[str, faker.Faker] = {
+            locale: faker.Faker(locale) for locale in self._available_locales}
         self._rand = random.Random()
         # function which returns some random separation characters
         self._sep_chars = rand_chars({"\n": 24, ", ": 12, "; ": 6, " | ": 6, "·": 1})
         self._rand_letter_street_perc = rand_str_perc
-        self.osm_data = dict(
+        self._osm_perc = osm_perc
+        osm_data_files = dict(
             cities="cities.txt",
             streets="streets.txt",
-
+            names="names.txt",
+            states="states.txt"
         )
+        self._osm_resources: dict[str, TextResource] = {
+            k: TextResource(settings.TRAINING_DATA_DIR / v) for k, v in osm_data_files.items()
+        }
+        self._f: faker.Faker | None = None
 
-    def rand_word(self, f):
+    def reset_faker(self, seed=None):
+        if seed:
+            import faker
+            faker.Faker.seed(seed)
+            self._rand.seed(seed)
+        rc, r = self._rand.choice, self._rand.random
+        self._f = self._fakers[rc(self._available_locales)]
+
+    def rand_word(self):
         mean_word_len = 4.5  # ~500 words is one page, 4.5 is the average word length in english, min len+1
         var = 3  # σ²=α/β², σ/μ=1/sqrt(α) => α = μ²/σ²
         alpha = (mean_word_len / var) ** 2
         # β = μ / α
         wordlen = int(random.gammavariate(alpha=alpha, beta=mean_word_len / alpha)) + 1
-        return "".join(f.random_lowercase_letter() for i in range(wordlen))
+        return "".join(self._f.random_lowercase_letter() for i in range(wordlen))
 
     @cached_property
     def url_replace_regex(self):
@@ -236,37 +269,54 @@ class BusinessAddressGenerator(GeneratorMixin):
         # TODO: add words different from company name...
         return url
 
-    def random_streetname(self, f):
+    def random_streetname(self):
         """generate an address which consists
         - of purely random letter and numbers (resemble the structure of a real address)
-        - or an augmented faker address
         """
-        rc = self._rand.choice
-        street_name = [self.rand_word(f) for i in range(self._rand.randint(1, 3))]
-        if self._rand.random() > 0.1:
+        f = self._f
+        street_name = [self.rand_word() for i in range(self._rand.randint(1, 3))]
+        if self._rand.random() < 0.9:
             street_name = street_name + [f.street_suffix()]
-        street_addr = f.random_element(collections.OrderedDict(
+        street_name = f.random_element(collections.OrderedDict(
             ((" ", 0.9), ("-", 0.05), ("", 0.05)))).join(street_name)
-        building_num = str(self._rand.randint(0, 10000))
-        return " ".join([building_num, street_addr][::rc((1, -1))])
+        return street_name
 
-    def random_city(self, f, s2, s3):
+    def random_city_name(self):
         city = []
         r = self._rand.random
+        # generate completly random city
         if r() > 0.5:  # prefix
-            city += [self.rand_word(f)]
+            city += [self.rand_word()]
         # name
-        city += [self.rand_word(f)]
+        city += [self.rand_word()]
         if r() > 0.5:  # suffix
-            city += [self.rand_word(f)]
+            city += [self.rand_word()]
 
         city = " ".join(city)
+        return city
 
-        if r() < 0.8:  # state abbrev.
-            state = "".join(f.random_uppercase_letter() for i in range(self._rand.randint(2, 3)))
+    def random_state(self):
+        r = self._rand.random
+        if r() < 0.4:  # state abbrev.
+            state = "".join(self._f.random_uppercase_letter() for i in range(self._rand.randint(2, 3)))
         else:  # state
-            state = self.rand_word(f)
+            state = self.rand_word()
+        return state
 
+    def get_country(self):
+        selector = self._rand.random()
+        try:
+            if selector < 0.5:
+                return self._f.current_country_code()
+            elif selector < 0.9:
+                return self._f.current_country()
+        except (ValueError, AttributeError):
+            pass
+
+        return self.rand_word()
+
+    def addr_line3(self, s2, s3, city, state):
+        r = self._rand.random
         postcode = str(self._rand.randint(1000, 99999))
 
         selec = r()
@@ -275,18 +325,30 @@ class BusinessAddressGenerator(GeneratorMixin):
         else:
             return f"{postcode} {city}{s2} {state}"
 
+    def line1(self) -> str:
+        """introducing the address"""
+        if self._rand.random() > 0.5:
+            line = self._f.catch_phrase()
+        else:
+            line = self.rand_word()
+
+        line += self._rand.choice((":", ""))
+        line += "\n" * random.randint(0, 5)
+        return line
+
     def single(self, seed) -> str:
-        import faker
-        faker.Faker.seed(seed)
-        self._rand.seed(seed)
+        self.reset_faker(seed)
         rc, r = self._rand.choice, self._rand.random
-        f = self._fakers[rc(self._available_locales)]
         line_separator = (" " if r() > 0.9 else "") + self._sep_chars() + (" " if r() > 0.5 else "")
         # next level separators
         s2_choices = {",", ";", ",", "|", "·"} - {line_separator}
-        s2, s3 = f.random_elements(elements=s2_choices, length=2, unique=True)
+        s2, s3 = self._f.random_elements(elements=s2_choices, length=2, unique=True)
 
-        company: str = f.company()
+        company: str
+        if r() < 0.3:
+            company = self._f.company()
+        else:
+            company = self._osm_resources["names"].random_line()
 
         faker_address = None
 
@@ -295,62 +357,51 @@ class BusinessAddressGenerator(GeneratorMixin):
             if faker_address:
                 return faker_address
             else:
-                faker_address = f.address().split("\n")
+                faker_address = self._f.address().split("\n")
                 return faker_address
 
         def addr1():
-            if random.random() < self._rand_letter_street_perc:
-                return self.random_streetname(f)
+            if r() < self._osm_perc:
+                street_name = self._osm_resources['streets'].random_line()
+                building_num = str(self._rand.randint(0, 10000))
+                return " ".join([building_num, street_name][::rc((1, -1))])
             else:
-                return get_faker_address()[0]
+                if r() < self._rand_letter_street_perc:
+                    street_name = self.random_streetname()
+                    building_num = str(self._rand.randint(0, 10000))
+                    return " ".join([building_num, street_name][::rc((1, -1))])
+                else:
+                    return get_faker_address()[0]
 
         def addr3():
-            if random.random() < self._rand_letter_street_perc:
-                return self.random_city(f, s2, s3)
+            if r() < self._osm_perc:
+                city = self._osm_resources['cities'].random_line()
+                state = self._osm_resources['states'].random_line()
+                return self.addr_line3(s2=s2, s3=s3, city=city, state=state)
             else:
-                try:
-                    return get_faker_address()[1]
-                except IndexError:
-                    return " "
-
-        def get_country():
-            try:
-                selector = r()
-                if selector < 0.5:
-                    return f.current_country_code()
-                elif selector < 0.9:
-                    return f.current_country()
+                if r() < self._rand_letter_street_perc:
+                    city = self.random_city_name()
+                    state = self.random_state()
+                    return self.addr_line3(s2=s2, s3=s3, city=city, state=state)
                 else:
-                    return self.rand_word(f)
-            except (ValueError, AttributeError):
-                return " "
-
-        def line1() -> str:
-            """introducing the address"""
-            if r() > 0.5:
-                line = f.catch_phrase()
-            else:
-                line = self.rand_word(f)
-
-            line += rc((":", ""))
-            line += "\n" * random.randint(0, 5)
-            return line
+                    return get_faker_address()[1]
 
         all_parts = {
-            ("",): (0.05, line1),  # for example an announcement, or company introduction, catch phrase...
-            ("name",): (0.1, lambda: f.name()),
+            ("",): (0.05, lambda: self.line1()),
+            # for example an announcement, or company introduction, catch phrase...
+            ("name",): (0.1, lambda: self._f.name()),
             ("company_name", "company"): (0.3, lambda: company),
             ("address", "mailing address", "mail address"): (0.9, addr1),  # street
-            ("",): (
-                0.05, lambda: s2.join([self.rand_word(f), str(self._rand.randint(0, 1000))][::rc((1, -1))])),
+            ("",): (  # TODO: find something "nice" for this line in osm data
+                0.05, lambda: s2.join([self.rand_word(), str(self._rand.randint(0, 1000))][::rc((1, -1))])),
             # postbox, building number etc...
             ("",): (0.9, addr3),  # city, postcode, state
-            ("country",): (0.1, get_country),
-            ("tel", "phone", "phone number"): (0.2, lambda: getattr(f, "phone_number", lambda: " ")()),
-            ("fax", "fax number"): (0.1, lambda: getattr(f, "phone_number", lambda: " ")()),
-            ("www", "web", "homepage", "webpage"): (0.2, lambda: self.generate_url(company, f.tld())),
-            ("email", ""): (0.1, lambda: f.email()),
-            ("bank details"): (0.05, lambda: " ".join(self.rand_word(f) for i in range(self._rand.randint(1, 5))))
+            ("country",): (0.1, lambda: self.get_country()),
+            ("tel", "phone", "phone number"): (0.2, lambda: getattr(self._f, "phone_number", lambda: " ")()),
+            ("fax", "fax number"): (0.1, lambda: getattr(self._f, "phone_number", lambda: " ")()),
+            ("www", "web", "homepage", "webpage"): (0.2, lambda: self.generate_url(company, self._f.tld())),
+            ("email", ""): (0.1, lambda: self._f.email()),
+            ("bank details"): (0.05, lambda: " ".join(self.rand_word() for i in range(self._rand.randint(1, 5))))
         }
 
         # select random selection of address parts
@@ -370,14 +421,15 @@ class BusinessAddressGenerator(GeneratorMixin):
         render_parts = []
         for k, (p, v) in all_parts.items():
             if k in parts:
-                try:
-                    v = v()
-                except:
-                    logger.exception("error in address generation function")
-                    v = " "
+                # try:
+                #    v = v()
+                # except:
+                #    logger.exception("error in address generation function")
+                #    v = " "
+                v = v()
                 if k[0]:
                     if r() < 0.2:
-                        field_name = rc(k) if r() < 0.7 else self.rand_word(f)
+                        field_name = rc(k) if r() < 0.7 else self.rand_word()
                         v = field_name + rc((" ", ": ", ":")) + v
                 if r() < 0.3:  # probability to have a part in upper case
                     v = v.upper()
