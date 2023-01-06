@@ -937,34 +937,18 @@ def prepare_textblock_training(
         steps_per_epoch: int = 500,
         batch_size=2 ** 10,
         data_config=None,
-        model_config=None
+        model_config=None,
+        model_name: str = None,
+        **kwargs
 ):
     """
-    loads text block data and puts into pytorch dataloaders
-
-    # TODO: this is the right place for hyperparameteroptimization....
-
-    TODO: we also need to detect the pdf langauge in order
-          to have a balances dataset with addresses from different countries
+    prepare training infrastructure for txtblock classifier
     """
-    # TODO: build a "validation" loader with df_labeled...
     # label_file = settings.TRAINING_DATA_DIR / "labeled_txt_boxes.xlsx"
     # df_labeled = pd.read_excel(label_file)
 
     virtual_size = steps_per_epoch * batch_size
-    user_generator_config = dict(
-        generators={
-            "address": ((100, BusinessAddressGenerator()),),
-            "unknown": ((80, RandomTextBlockGenerator()), (20, RandomListGenerator()))
-        },
-        random_char_prob=1.0 / 20.0,
-        random_word_prob=1.0 / 20.0,
-        cache_size=5000,
-        renew_num=500,
-        mixed_blocks_generation_prob=0.1,
-        mixed_blocks_label="unknown",
-        virtual_size=virtual_size
-    )
+    user_generator_config = dict(virtual_size=virtual_size)
     user_generator_config.update(data_config or {})
     train_dataset = TextBlockGenerator(**user_generator_config)
 
@@ -1003,7 +987,30 @@ def prepare_textblock_training(
     logger.info(f"extracted classes: {classmap}")
     model = txt_block_classifier(classmap, **(model_config or {}))
 
-    return train_loader, validation_loader, model
+    from pytorch_lightning.loggers import TensorBoardLogger
+
+    trainer = pytorch_lightning.Trainer(
+        accelerator=kwargs.get('accelerator', 'cpu'),
+        devices=kwargs.get('devices', 1),
+        strategy=kwargs.get('strategy', 'ddp'),
+        # gpus=-1, auto_select_gpus=True,s
+        log_every_n_steps=kwargs.get("log_every_n_steps", 100),
+        logger=pytorch_lightning.loggers.TensorBoardLogger(
+            save_dir=settings.MODEL_STORE("text_block").parent,
+            version=model_name,
+            name="lightning_logs"
+        ),
+        # limit_train_batches=100,
+        max_epochs=kwargs.get("max_epochs", -1),
+        # checkpoint_callback=False,
+        enable_checkpointing=kwargs.get("enable_checkpointing", False),
+        max_steps=-1,
+        # auto_scale_batch_size=True,
+        callbacks=kwargs.get('callbacks', []),
+        default_root_dir=settings.MODEL_STORE("text_block").parent
+    )
+
+    return train_loader, validation_loader, model, trainer
 
 
 @functools.lru_cache()
@@ -1081,62 +1088,34 @@ def train_page_classifier(max_epochs=100, old_model=None):
 
 
 def train_text_block_classifier(
-        batch_size: int = 2 ** 10,
+        train_loader,
+        validation_loader,
+        model,
+        trainer,
         log_hparams: dict = None,
-        model_name: str = None,
-        old_model: txt_block_classifier = None,
-        num_workers: int = 4,
-        steps_per_epoch: int = 200,
-        data_config: dir = None,
-        model_config: dir = None,
-        **kwargs,
+        old_model: txt_block_classifier = None
 ):
     # only importing this here as we don#t want to use this in "inference" mode
-    from pytorch_lightning.loggers import TensorBoardLogger
 
-    train_loader, validation_loader, model = prepare_textblock_training(
-        num_workers, steps_per_epoch=steps_per_epoch, data_config=data_config, model_config=model_config,
-        batch_size=batch_size,
-    )
     if old_model:
         model = old_model
-    trainer = pytorch_lightning.Trainer(
-        accelerator=kwargs.get('accelerator', 'cpu'),
-        devices=kwargs.get('devices', 1),
-        strategy=kwargs.get('strategy', 'ddp'),
-        # gpus=-1, auto_select_gpus=True,s
-        log_every_n_steps=kwargs.get("log_every_n_steps", 100),
-        logger=TensorBoardLogger(
-            save_dir=settings.MODEL_STORE("text_block").parent,
-            version=model_name,
-            name="lightning_logs"
-        ),
-        # limit_train_batches=100,
-        max_epochs=kwargs.get("max_epochs", -1),
-        # checkpoint_callback=False,
-        enable_checkpointing=kwargs.get("enable_checkpointing", False),
-        max_steps=-1,
-        # auto_scale_batch_size=True,
-        callbacks=kwargs.get('callbacks', []),
-        default_root_dir=settings.MODEL_STORE("text_block").parent
-    )
-    if kwargs.get("train_model", False):
-        # TODO: ho can we set hp_metric to 0 at the start?
-        # if we use an already initialized "start_model" we can not log hyperparameters!!
-        trainer.logger.log_hyperparams(log_hparams)  # , metrics=dict(hp_metric=0))
-        trainer.fit(model, train_loader, validation_loader)
-        # trainer.logger.log_hyperparams(log_hparams, metrics=dict(
-        #    model.metrics
-        # ))
-        trainer.save_checkpoint(settings.MODEL_STORE("text_block"))
-        trainer.save_checkpoint(settings.MODEL_STORE("text_block_wo"), weights_only=True)
-        curtime = datetime.datetime.now()
-        curtimestr = curtime.strftime("%Y%m%d%H%M")
-        trainer.save_checkpoint(
-            settings.MODEL_STORE(
-                "text_block").parent / f"text_blockclassifier_v{trainer.logger.version}_{curtimestr}.ckpt")
 
-    return trainer, model, train_loader, validation_loader
+    # TODO: ho can we set hp_metric to 0 at the start?
+    # if we use an already initialized "start_model" we can not log hyperparameters!!
+    trainer.logger.log_hyperparams(log_hparams)  # , metrics=dict(hp_metric=0))
+    trainer.fit(model, train_loader, validation_loader)
+    # trainer.logger.log_hyperparams(log_hparams, metrics=dict(
+    #    model.metrics
+    # ))
+    trainer.save_checkpoint(settings.MODEL_STORE("text_block"))
+    trainer.save_checkpoint(settings.MODEL_STORE("text_block_wo"), weights_only=True)
+    curtime = datetime.datetime.now()
+    curtimestr = curtime.strftime("%Y%m%d%H%M")
+    trainer.save_checkpoint(
+        settings.MODEL_STORE(
+            "text_block").parent / f"text_blockclassifier_v{trainer.logger.version}_{curtimestr}.ckpt")
+
+    return trainer, model
 
 
 def train_pdf_classifier(max_epochs=100, old_model=None):

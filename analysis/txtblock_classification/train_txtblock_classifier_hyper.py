@@ -16,11 +16,12 @@
 
 # %%
 # study_params
-study_name = "hyparams_fft_4"
+study_name = "hyparams_test_50max"
 # if we use a "start_model" we will not have hyperparameters!!
 # also: if some model in tensorboard are using hyperparameters, while
 #       others don't, we will not have hyperparameters displayed!!
 start_model = ""  # text_blockclassifier_x0.ckpt"
+max_mb = 50
 
 # run with:
 # TOKENIZERS_PARALLELISM=true python /project/analysis/txtblock_classification/train_txtblock_classifier_hyper.py
@@ -69,7 +70,7 @@ nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.c
 
 # %%
 if False:
-    _, _, m = training.prepare_textblock_training()
+    _, _, m, _ = training.prepare_textblock_training()
     res = m.predict(["""ex king ltd
     Springfield Gardens
     Queens
@@ -176,18 +177,21 @@ def train_model(trial: optuna.Trial):
 
     model_config = dict(
         learning_rate=0.0005,
-        embeddings_dim=trial.suggest_int(1, 32),  # embeddings vector size (standard BERT has a vector size of 768 )
-        token_seq_length1=trial.suggest_int(3, 16),  # what length of a word do we assume in terms of tokens?
-        seq_features1=trial.suggest_int(10, 500),
+        embeddings_dim=trial.suggest_int("embeddings_dim", 1, 32),
+        # embeddings vector size (standard BERT has a vector size of 768 )
+        token_seq_length1=trial.suggest_int("token_seq_length1", 3, 16),
+        # what length of a word do we assume in terms of tokens?
+        seq_features1=trial.suggest_int("seq_features1", 10, 500),
         # how many filters should we run for the analysis = num of generated features?
         dropout1=0.5,  # first layer dropout
-        cv_layers=trial.suggest_int(1, 2),  # number of cv layers
-        token_seq_length2=trial.suggest_int(3, 100),  # how many tokens in a row do we want to analyze?
-        seq_features2=trial.suggest_int(10, 500),  # how many filters should we run for the analysis?
+        cv_layers=trial.suggest_int("cv_layers", 1, 2),  # number of cv layers
+        token_seq_length2=trial.suggest_int("token_seq_length2", 3, 100),
+        # how many tokens in a row do we want to analyze?
+        seq_features2=trial.suggest_int("seq_features2", 10, 500),  # how many filters should we run for the analysis?
         dropout2=0.5,  # second layer dropout
-        meanmax_pooling=trial.suggest_int(0, 1),  # whether to use meanmax_pooling at the end
-        fft_pooling=trial.suggest_int(0, 1),  # whether to use fft_pooling at the end
-        fft_pool_size=trial.suggest_int(5, 50),  # size of the fft_pooling method
+        meanmax_pooling=trial.suggest_int("meanmax_pooling", 0, 1),  # whether to use meanmax_pooling at the end
+        fft_pooling=trial.suggest_int("fft_pooling", 0, 1),  # whether to use fft_pooling at the end
+        fft_pool_size=trial.suggest_int("fft_pool_size", 5, 50),  # size of the fft_pooling method
         hp_metric="address.f1-score"  # the metric to optimize for and should be logged...
     )
 
@@ -198,38 +202,53 @@ def train_model(trial: optuna.Trial):
         m = None
 
     epoch_config = dict(
-        steps_per_epoch=500,
+        steps_per_epoch=200,
         log_every_n_steps=100,
-        max_epochs=100
+        max_epochs=20
     )
-    epoch_config = dict(
+    epoch_config1 = dict(
         steps_per_epoch=2,
         log_every_n_steps=1,
         max_epochs=2
     )
-    trainer, model, _, _ = training.train_text_block_classifier(
-        train_model=True,
-        batch_size=10000,
-        model_name=f"{trial.study.study_name}/{trial.number}",
-        log_hparams=trial.params,
-        old_model=m,
+
+    train_loader, validation_loader, model, trainer = training.prepare_textblock_training(
         num_workers=4,
-        accelerator="auto", devices=1,  # use simple integer to specify number of devices...
+        data_config=data_config, model_config=model_config,
         # strategy="ddp_find_unused_parameters_false",
         # strategy="ddp",
         enable_checkpointing=False,
         strategy=None,  # in case of running jupyter notebook
         callbacks=additional_callbacks,
-        data_config=data_config,
-        model_config=model_config,
-        **epoch_config
+        batch_size=2 ** 12,
+        accelerator="auto", devices=1,  # use simple integer to specify number of devices...
+        **epoch_config,
     )
 
-    # trainer.logger.log_hyperparams()
-    # calculate score
-    max_mb = 50
     model_mb = pytorch_lightning.utilities.memory.get_model_size_mb(model)  # minimize
-    metric = trainer.callback_metrics['address.f1-score']  # maximize
+    # Store the constraints as user attributes so that they can be restored after optimization.
+    constraint = model_mb - max_mb  # constraint <=0  are considered as feasible!
+    trial.set_user_attr("constraint", constraint)
+
+    print(f"entering: {trial.params}")
+
+    if model_mb > (max_mb + 1):  # basically our constraint!
+        print(f"model has {model_mb}>{max_mb}+1 => fast-return!!")
+        metric = -1.0
+    else:
+        try:
+            trainer, model = training.train_text_block_classifier(
+                train_loader=train_loader, validation_loader=validation_loader,
+                model=model, trainer=trainer,
+                log_hparams=trial.params,
+                old_model=m
+            )
+            metric = trainer.callback_metrics['address.f1-score']  # maximize
+        except:
+            metric = -1.0
+        # trainer.logger.log_hyperparams()
+        # calculate score
+
     objectives = metric, model_mb
     return objectives  # maximize, minimize
 
@@ -238,6 +257,7 @@ def train_model(trial: optuna.Trial):
 local_storage = f"sqlite:///{str(settings.MODEL_DIR)}/study.sqlite"
 remote_storage = "TODO: get from env variable (f"mysql+pymysql:....")"
 remote_storage
+
 
 # %% [markdown]
 # create a mysql server in docker like this:
@@ -265,6 +285,11 @@ remote_storage
 # ```
 
 # %% tags=[]
+def constraints(trial: optuna.Trial):
+    return trial.user_attrs["constraint"]
+
+
+sampler = optuna.samplers.NSGAIISampler(constraints_func=constraints)
 study = optuna.create_study(
     study_name=study_name,
     storage=optuna.storages.RDBStorage(
@@ -275,6 +300,7 @@ study = optuna.create_study(
         heartbeat_interval=60 * 5,
         grace_period=60 * 21,
     ),
+    sampler=sampler,
     load_if_exists=True,
     directions=["maximize", "minimize"]
 )

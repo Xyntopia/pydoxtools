@@ -55,7 +55,7 @@ nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.c
 
 # %%
 if False:
-    _, _, m = training.prepare_textblock_training()
+    _, _, m, _ = training.prepare_textblock_training()
     res = m.predict(["""ex king ltd
     Springfield Gardens
     Queens
