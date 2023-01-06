@@ -709,19 +709,32 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
         self._random_separation_prob = random_separation_prob
         self._mixed_blocks_generation_prob = mixed_blocks_generation_prob
         self._mixed_blocks_label = mixed_blocks_label
-        self._random = random.Random(time.time())  # get our own random number generator
         self._cache_size = cache_size
         self._renew_num = renew_num
         self._virtual_size = virtual_size
+
+    @cached_property
+    def rand(self):
+        return random.Random(time.time())  # get our own random number generator
+
+    @cached_property
+    def available_locales(self) -> list[str]:
         import faker
-        self._available_locales = faker.config.AVAILABLE_LOCALES
+        available_locales = faker.config.AVAILABLE_LOCALES
         try:
             # this in order to avoid warning: "UserWarning: fr_QC locale is deprecated. Please use fr_CA."
-            self._available_locales.remove("fr_QC")
+            available_locales.remove("fr_QC")
         except ValueError:
             pass
+
+        return available_locales
+
+    @cached_property
+    def faker(self):
+        import faker
         # pre-initialize fakers for all languages
-        self._faker = faker.Faker(self._available_locales)
+        faker = faker.Faker(self.available_locales)
+        return faker
 
     @cached_property
     def class_gen(self):
@@ -750,15 +763,15 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
     def single(self, seed):
         # TODO: does it really make sense here to keep seed?
         #       only makes sense if EVERY random choice is 100% included in it
-        self._random.seed(seed)
+        self.rand.seed(seed)
 
         # randomly choose a generator for a certain class
-        gen = self._random.choices(population=self.class_gen, weights=self.weights)[0]
+        gen = self.rand.choices(population=self.class_gen, weights=self.weights)[0]
         cl = self.gen_mapping[gen]
         # generate random input data for the class to be predicted
         x: str = gen(seed)
-        if self._mixed_blocks_generation_prob > self._random.random():
-            gen = self._random.choices(population=self.class_gen, weights=self.weights)[0]
+        if self._mixed_blocks_generation_prob > self.rand.random():
+            gen = self.rand.choices(population=self.class_gen, weights=self.weights)[0]
             x += "\n" + gen(seed + 1)
             y = self.classmap_inv[self._mixed_blocks_label]
         else:
@@ -779,34 +792,34 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
             wordnum = len(words)
             for i, w in enumerate(words):
                 # TODO:  merge word and char augmentation into a general "list-augmenation" function
-                if w and (self._random.random() < self._random_word_prob):
-                    selector = self._random.randint(0, 10)
+                if w and (self.rand.random() < self._random_word_prob):
+                    selector = self.rand.randint(0, 10)
                     if selector == 0:  # substitute with random char sequences
-                        t.append(self._faker.bothify(text="?" * self._random.randint(1, 15)))
+                        t.append(self.faker.bothify(text="?" * self.rand.randint(1, 15)))
                     elif selector == 1:  # insert before
-                        t.append(self._faker.bothify(text="?" * self._random.randint(1, 15)))
+                        t.append(self.faker.bothify(text="?" * self.rand.randint(1, 15)))
                         t.append(w)
                     elif selector == 2:  # insert after
                         t.append(w)
-                        t.append(self._faker.bothify(text="?" * self._random.randint(1, 15)))
+                        t.append(self.faker.bothify(text="?" * self.rand.randint(1, 15)))
                     elif selector == 3:  # delete
                         continue
                     elif selector == 4:  # duplicate
                         t.append(w)
                         t.append(w)
                     elif selector == 5:  # swap
-                        i2 = self._random.randrange(0, wordnum)
+                        i2 = self.rand.randrange(0, wordnum)
                         t.append(words[i2])
                         words[i2] = w
                     elif selector == 6:  # neighbourswap
-                        if self._random.random() > 0.5:
+                        if self.rand.random() > 0.5:
                             i2 = min(i + 1, wordnum - 1)
                         else:
                             i2 = max(i - 1, 0)
                         t.append(words[i2])
                         words[i2] = w
                     elif selector == 7:  # one-side-swap (only substitue the item with a duplicate from somewhere else in the string)
-                        t.append(self._random.choice(words))
+                        t.append(self.rand.choice(words))
                     # already handled by inserting random characters
                     # elif selector ==8: #randomly split words
                     #    splitnum=self._random.randrange(0,len(w))
@@ -814,13 +827,13 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
                     elif selector == 8:  # reverse
                         t.append(w[::-1])
                     elif selector == 9:  # crop
-                        crop = self._random.randrange(len(w))
+                        crop = self.rand.randrange(len(w))
                         if crop > (len(w) // 2):
                             t.append(w[crop:])
                         else:
                             t.append(w[:crop])
                     elif selector == 10:  # convert to upper case
-                        if self._random.random() > 0.5:
+                        if self.rand.random() > 0.5:
                             t.append(w.upper())
                         elif len(w) > 1:  # only first letters
                             t.append(w[0].upper() + w[1:])
@@ -835,34 +848,34 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
             x_list = list(x)
             lenx = len(x)
             for i, c in enumerate(x_list):
-                if self._random.random() < self._random_char_prob:
-                    selector = self._random.randint(0, 8)
+                if self.rand.random() < self._random_char_prob:
+                    selector = self.rand.randint(0, 8)
                     if selector == 0:  # substitute
-                        t.append(self._random.choice(_asciichars))
+                        t.append(self.rand.choice(_asciichars))
                     elif selector == 1:  # insert before
-                        t.append(self._random.choice(_asciichars))
+                        t.append(self.rand.choice(_asciichars))
                         t.append(c)
                     elif selector == 2:  # insert after
                         t.append(c)
-                        t.append(self._random.choice(_asciichars))
+                        t.append(self.rand.choice(_asciichars))
                     elif selector == 3:  # delete
                         continue
                     elif selector == 4:  # duplicate
                         t.append(c)
                         t.append(c)
                     elif selector == 5:  # swap
-                        i2 = self._random.randrange(0, lenx)
+                        i2 = self.rand.randrange(0, lenx)
                         t.append(x_list[i2])
                         x_list[i2] = c
                     elif selector == 6:  # neighbourswap
-                        if self._random.random() > 0.5:
+                        if self.rand.random() > 0.5:
                             i2 = min(i + 1, lenx - 1)
                         else:
                             i2 = max(i - 1, 0)
                         t.append(x_list[i2])
                         x_list[i2] = c
                     elif selector == 7:  # one-side-swap (only substitue the item with a duplicate from somewhere else in the string)
-                        t.append(self._random.choice(x))
+                        t.append(self.rand.choice(x))
                     elif selector == 8:
                         t.append(c.upper())
                 else:
@@ -871,8 +884,8 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
             x = "".join(t)
 
         # whole text augmentation
-        if self._random.random() < self._random_upper_prob:
-            selec = self._random.random()
+        if self.rand.random() < self._random_upper_prob:
+            selec = self.rand.random()
             if selec < 0.45:
                 x = x.upper()
             elif selec < 0.5:
@@ -887,7 +900,7 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
 
         # line augmentation
         if self._random_line_prob:
-            if self._random.random() < self._random_line_prob:
+            if self.rand.random() < self._random_line_prob:
                 modified = True
                 # randomly swap lines
                 lines = x.split("\n")
@@ -896,8 +909,8 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
                 x = "\n".join(lines)
 
         if self._random_separation_prob:
-            if self._random.random() < self._random_separation_prob:
-                x = x.replace("\n", self._random.choice(("\n ", " \n", " \n ")))
+            if self.rand.random() < self._random_separation_prob:
+                x = x.replace("\n", self.rand.choice(("\n ", " \n", " \n ")))
             # TODO: replace separation chars with somethin different!
 
         return x, torch.tensor(y)
@@ -906,14 +919,14 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
         # initialize cache with random samples
         cache = collections.deque(
             (self.single(
-                seed=self._random.random()) for i in range(self._cache_size)),
+                seed=self.rand.random()) for i in range(self._cache_size)),
             maxlen=self._cache_size)
         while True:
             # serve all sample currently in cache
             yield from cache
             # add new samples to the cache collections deque automatically drops old samples
             # that exceed _cache_size
-            cache.extend(self.single(seed=self._random.random()) for i in range(self._renew_num))
+            cache.extend(self.single(seed=self.rand.random()) for i in range(self._renew_num))
 
     def __len__(self):
         return self._virtual_size
