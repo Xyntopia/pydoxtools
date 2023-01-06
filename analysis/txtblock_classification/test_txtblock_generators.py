@@ -53,11 +53,14 @@ nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.c
 # %%
 bg = training.TextBlockGenerator(
     generators={
-        "address": ((100, training.BusinessAddressGenerator(rand_str_perc=0.5)),),
-        "unknown": ((50, training.RandomTextBlockGenerator()), (50, training.RandomListGenerator()))
+        "address": ((100, training.BusinessAddressGenerator(
+            rand_str_perc=0.3, osm_perc=0.5, fieldname_prob=0.05)),),
+        "unknown": ((80, training.RandomTextBlockGenerator()), (20, training.RandomListGenerator()))
     },
-    random_char_prob=0.05, random_word_prob=0.05, random_upper_prob=0.05,
-    cache_size=100, renew_num=10, mixed_blocks_generation_prob=0.1, mixed_blocks_label="unknown")
+    random_char_prob=0.0025, random_word_prob=0.1, random_upper_prob=0.4, random_line_prob=0.1,
+    random_separation_prob=0.5,
+    cache_size=100, renew_num=10, mixed_blocks_generation_prob=0.025, mixed_blocks_label="unknown"
+)
 bg.classmap, bg.classmap_inv, bg.num_generators, bg.class_gen, bg.gen_mapping, bg.weights
 
 # %%
@@ -79,5 +82,7 @@ addr = [next(bgi) for i in range(1000)]
 # %%
 for p in [next(bgi) for i in range(100)]:
     print(f"{p[1]} {bg.classmap[p[1].item()]}:\n{p[0]}+\n\n")
+
+# %%
 
 # %%
