@@ -57,7 +57,7 @@ bg = training.TextBlockGenerator(
             rand_str_perc=0.3, osm_perc=0.5, fieldname_prob=0.05)),),
         "unknown": ((80, training.RandomTextBlockGenerator()), (20, training.RandomListGenerator()))
     },
-    random_char_prob=0.0025, random_word_prob=0.1, random_upper_prob=0.4, random_line_prob=0.1,
+    random_char_prob=0.0025, random_word_prob=0.1, random_upper_prob=0.2, random_line_prob=0.1,
     random_separation_prob=0.2,
     cache_size=100, renew_num=10, mixed_blocks_generation_prob=0.025, mixed_blocks_label="unknown"
 )

@@ -148,22 +148,29 @@ def train_model(trial: optuna.Trial):
     class ReportCallback(pytorch_lightning.Callback):
         def on_train_epoch_end(self, trainer: pytorch_lightning.Trainer, pl_module: "pl.LightningModule") -> None:
             score = trainer.callback_metrics['address.f1-score']
+            # TODO: only works if we are optimizing for a single objective!
             trial.report(score, trainer.current_epoch)
 
     additional_callbacks.append(ReportCallback())
 
     data_config = dict(
         generators={
-            "address": ((100, training.BusinessAddressGenerator(
-                rand_str_perc=trial.suggest_float("rand_str_perc", 0.0, 1.0))),),
+            "address": (
+                (100, training.BusinessAddressGenerator(
+                    rand_str_perc=0.5,  # trial.suggest_float("rand_str_perc", 0.1, 0.4),
+                    osm_perc=0.5,
+                    fieldname_prob=0.05)),
+            ),
             "unknown": ((50, training.RandomTextBlockGenerator()), (50, training.RandomListGenerator()))
         },
-        cache_size=5000,
-        renew_num=500,
-        random_char_prob=trial.suggest_float("random_char_prob", 0.0, 1.0),
-        random_word_prob=trial.suggest_float("random_word_prob", 0.0, 1.0),
-        random_upper_prob=trial.suggest_float("random_upper_prob", 0.0, 1.0),
-        mixed_blocks_generation_prob=trial.suggest_float("mixed_blocks_generation_prob", 0.0, 0.2),
+        cache_size=20000,
+        renew_num=2000,
+        random_separation_prob=0.2,
+        random_line_prob=0.1,
+        random_char_prob=0.05,  # trial.suggest_float("random_char_prob", 0.0, 1.0),
+        random_word_prob=0.1,  # trial.suggest_float("random_word_prob", 0.0, 1.0),
+        random_upper_prob=0.3,  # trial.suggest_float("random_upper_prob", 0.0, 1.0),
+        mixed_blocks_generation_prob=0.05,  # trial.suggest_float("mixed_blocks_generation_prob", 0.05, 0.1),
         mixed_blocks_label="unknown",
     )
 
@@ -173,9 +180,13 @@ def train_model(trial: optuna.Trial):
         token_seq_length1=5,  # what length of a word do we assume in terms of tokens?
         seq_features1=40,  # how many filters should we run for the analysis = num of generated features?
         dropout1=0.5,  # first layer dropout
+        cv_layers=2,  # number of cv layers
         token_seq_length2=40,  # how many tokens in a row do we want to analyze?
         seq_features2=100,  # how many filters should we run for the analysis?
         dropout2=0.5,  # second layer dropout
+        meanmax_pooling=True,  # whether to use meanmax_pooling at the end
+        fft_pooling=True,  # whether to use fft_pooling at the end
+        fft_pool_size=20,  # size of the fft_pooling method
         hp_metric="address.f1-score"  # the metric to optimize for and should be logged...
     )
 
@@ -197,6 +208,7 @@ def train_model(trial: optuna.Trial):
     )
     trainer, model, _, _ = training.train_text_block_classifier(
         train_model=True,
+        batch_size=10000,
         model_name=f"{trial.study.study_name}/{trial.number}",
         log_hparams=trial.params,
         old_model=m,
@@ -215,21 +227,10 @@ def train_model(trial: optuna.Trial):
     # trainer.logger.log_hyperparams()
     # calculate score
     max_mb = 50
-    model_mb = pytorch_lightning.utilities.memory.get_model_size_mb(model)
-    metric = trainer.callback_metrics['address.f1-score'] #max 1.0
-    # increase score by metric and penalize by model size.
-    # e.g.:
-    # 1.0 & 50MB = 1.0
-    # 0.5 & 50MB = 0.5
-    # 0.1 & 50MB = 0.1
-    # 1.0 & 25MB = 1.0
-    # 0.5 & 25MB = 1.0
-    # 1.0 & 60MB = 0.8
-    # 1.0 & 100MB = -0.5
-    # 1.0 & 75MB = 0.0
-    oversize_penalty = (0.0 if model_mb<max_mb else ((model_mb-max_mb)/max_mb))
-    score = min(metric**2 * max_mb/model_mb,1.0)-oversize_penalty
-    return metric
+    model_mb = pytorch_lightning.utilities.memory.get_model_size_mb(model)  # minimize
+    metric = trainer.callback_metrics['address.f1-score']  # maximize
+    objectives = metric, model_mb
+    return objectives  # maximize, minimize
 
 
 # %%
@@ -265,9 +266,16 @@ remote_storage
 # %% tags=[]
 study = optuna.create_study(
     study_name=study_name,
-    storage=remote_storage,
+    storage=optuna.storages.RDBStorage(
+        url=remote_storage,
+        # engine_kwargs={"pool_size": 20, "connect_args": {"timeout": 10}},
+        # add heartbeat i order to automatically mark "crashed" trials
+        # as "failed" so that they can be repeated
+        heartbeat_interval=60 * 5,
+        grace_period=60 * 21,
+    ),
     load_if_exists=True,
-    direction=optuna.study.StudyDirection.MAXIMIZE
+    directions=["maximize", "minimize"]
 )
 
 # %% tags=[]

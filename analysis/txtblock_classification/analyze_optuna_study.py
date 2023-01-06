@@ -11,11 +11,14 @@ storage_url = f"sqlite:////home/tom/Nextcloud/pydoxtools_training/study.sqlite"
 remote_storage="TODO: get from env variable (f"mysql+pymysql:....")"
 remote_storage
 
-optuna.copy_study(
-    from_study_name="tune_gener_hyparams_fft_3",
-    from_storage=remote_storage,
-    to_storage=storage_url
-)
+try:
+    optuna.copy_study(
+        from_study_name="tune_gener_hyparams_fft_3",
+        from_storage=remote_storage,
+        to_storage=storage_url
+    )
+except optuna.exceptions.DuplicatedStudyError:
+    pass
 
 
 study = optuna.load_study(

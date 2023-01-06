@@ -54,7 +54,7 @@ nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.c
 # test the model once
 
 # %%
-if True:
+if False:
     _, _, m = training.prepare_textblock_training()
     res = m.predict(["""ex king ltd
     Springfield Gardens
@@ -133,29 +133,39 @@ additional_callbacks = [
 
 data_config = dict(
     generators={
-        "address": ((10, training.BusinessAddressGenerator(rand_str_perc=0.7)),),
-        "unknown": (
-            (5, training.RandomTextBlockGenerator()),
-            (5, training.RandomListGenerator()))
+        "address": (
+            (100, training.BusinessAddressGenerator(
+                rand_str_perc=0.5,  # trial.suggest_float("rand_str_perc", 0.1, 0.4),
+                osm_perc=0.5,
+                fieldname_prob=0.05)),
+        ),
+        "unknown": ((50, training.RandomTextBlockGenerator()), (50, training.RandomListGenerator()))
     },
-    cache_size=5000,
-    renew_num=500,
-    random_char_prob=0.45,
-    random_word_prob=0.1,
-    random_upper_prob=0.3,
-    mixed_blocks_generation_prob=0.0,
+    cache_size=20000,
+    renew_num=2000,
+    random_separation_prob=0.2,
+    random_line_prob=0.1,
+    random_char_prob=0.05,  # trial.suggest_float("random_char_prob", 0.0, 1.0),
+    random_word_prob=0.1,  # trial.suggest_float("random_word_prob", 0.0, 1.0),
+    random_upper_prob=0.3,  # trial.suggest_float("random_upper_prob", 0.0, 1.0),
+    mixed_blocks_generation_prob=0.05,  # trial.suggest_float("mixed_blocks_generation_prob", 0.05, 0.1),
     mixed_blocks_label="unknown",
 )
 
 model_config = dict(
     learning_rate=0.0005,
     embeddings_dim=2,  # embeddings vector size (standard BERT has a vector size of 768 )
-    token_seq_length1=5,  # what length of a work do we assume in terms of tokens?
+    token_seq_length1=5,  # what length of a word do we assume in terms of tokens?
     seq_features1=40,  # how many filters should we run for the analysis = num of generated features?
     dropout1=0.5,  # first layer dropout
+    cv_layers=1,  # number of cv layers
     token_seq_length2=40,  # how many tokens in a row do we want to analyze?
     seq_features2=100,  # how many filters should we run for the analysis?
-    dropout2=0.5  # second layer dropout
+    dropout2=0.5,  # second layer dropout
+    meanmax_pooling=False,  # whether to use meanmax_pooling at the end
+    fft_pooling=True,  # whether to use fft_pooling at the end
+    fft_pool_size=20,  # size of the fft_pooling method
+    hp_metric="address.f1-score"  # the metric to optimize for and should be logged...
 )
 
 if False:
@@ -166,7 +176,7 @@ else:
 
 # %% tags=[]
 trainer, model, train_loader, validation_loader = training.train_text_block_classifier(
-    train_model=True,
+    train_model=False,
     old_model=m,
     num_workers=8,
     accelerator="auto", devices=1,
@@ -183,7 +193,7 @@ trainer, model, train_loader, validation_loader = training.train_text_block_clas
 )
 
 # %%
-trainer.save_checkpoint(settings.MODEL_DIR/"test2", weights_only=True)
+#trainer.save_checkpoint(settings.MODEL_DIR/"test2", weights_only=True)
 
 # %%
 pytorch_lightning.utilities.memory.get_model_size_mb(model)

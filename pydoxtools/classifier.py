@@ -283,14 +283,18 @@ class txt_block_classifier(
             token_seq_length1=5,  # what length of a work do we assume in terms of tokens?
             seq_features1=40,  # how many filters should we run for the analysis = num of generated features?
             dropout1=0.3,  # first layer dropout
+            cv_layers=2,  # number of cv layers
             token_seq_length2=40,  # how many tokens in a row do we want to analyze?
             seq_features2=100,  # how many filters should we run for the analysis?
             dropout2=0.3,  # second layer dropout
             fft_pool_size=20,  # precision of fft for spectral pooling at the end
             learning_rate=0.01,
+            fft_pooling=True,
+            meanmax_pooling=True,
             hp_metric=None
     ):
         super(txt_block_classifier, self).__init__()
+
         # we are saving all hyperparameters from above in the model checkpoint this way...
         self.save_hyperparameters()
         self.classmap_ = self.hparams.classmap
@@ -331,33 +335,36 @@ class txt_block_classifier(
             # we are dividing the stride by two to make sure our scan filters overlap by 50%
             stride=(self.hparams.token_seq_length1 // 2, 1)
         )
+        self.dropout2 = torch.nn.Dropout(p=self.hparams.dropout2)
         # TODO: we might no need to take ALL features into acount
         # every single time so maybe make the kernel_size smaller than seq_features1
-        self.cv2 = torch.nn.Conv2d(
-            in_channels=1,  # only one layer of embeddings
-            out_channels=self.hparams.seq_features2,  # num of encoded features/word
-            kernel_size=(
-                # we have to switch around features and seq length, as cv1 puts
-                # the kernel features before the new sequence length
-                self.hparams.seq_features1,
-                self.hparams.token_seq_length2
-            ),
-            # this time we have to switch around the stride as we now have the results
-            # from the previous layer in the other dimension
-            # ultimately it doesn't matter which way we organize the features s we are
-            # moving 2D-filters over them anyways...
-            # we are dividing the stride by two to make sure our scan filters overlap by 50%
-            # TODO: use stride length as hyperparameter...
-            stride=(1, self.hparams.token_seq_length2 // 2)
-        )
-        self.dropout2 = torch.nn.Dropout(p=self.hparams.dropout2)
+        if self.hparams.cv_layers > 1:
+            self.cv2 = torch.nn.Conv2d(
+                in_channels=1,  # only one layer of embeddings
+                out_channels=self.hparams.seq_features2,  # num of encoded features/word
+                kernel_size=(
+                    # we have to switch around features and seq length, as cv1 puts
+                    # the kernel features before the new sequence length
+                    self.hparams.seq_features1,
+                    self.hparams.token_seq_length2
+                ),
+                # this time we have to switch around the stride as we now have the results
+                # from the previous layer in the other dimension
+                # ultimately it doesn't matter which way we organize the features s we are
+                # moving 2D-filters over them anyways...
+                # we are dividing the stride by two to make sure our scan filters overlap by 50%
+                # TODO: use stride length as hyperparameter...
+                stride=(1, self.hparams.token_seq_length2 // 2)
+            )
         # afterwards we do a max pooling and feed the input into a linear layer
         # we add addtional features here...
         # right now: 1: length of string + number of lines + number of words (defined by spaces)
         meta_features = 1 + 1 + 1
         self.fft_pool_size = (self.hparams.seq_features2, self.hparams.fft_pool_size)
+        fft_out = (self.hparams.fft_pool_size // 2 + 1) if self.hparams.fft_pooling else 0
+        pooling_out = 2 if self.hparams.meanmax_pooling else 0
         self.linear = torch.nn.Linear(
-            in_features=self.hparams.seq_features2 * (self.hparams.fft_pool_size // 2 + 1) + meta_features,
+            in_features=self.hparams.seq_features2 * (fft_out + pooling_out) + meta_features,
             out_features=num_classes
         )
 
@@ -392,7 +399,8 @@ class txt_block_classifier(
         # "unsqueeze" to add the channel dimensions and then "squeeze" out the channel at the end...
         x = self.cv1(x.unsqueeze(1)).squeeze(3)
         x = self.dropout2(x)
-        x = self.cv2(x.unsqueeze(1)).squeeze(2)
+        if self.hparams.cv_layers > 1:
+            x = self.cv2(x.unsqueeze(1)).squeeze(2)
         # TODO: look at the text in "different resolution" by applying multiple conv2d using
         #       different sequence lengths
         # TODO: does it make sense to introduce another feature layer to extract even more complexity?
@@ -400,14 +408,16 @@ class txt_block_classifier(
         # TODO: specify pooling method as a hypeparameter as well...
         # max:  takes the max of every feature vector (meaning the max value for
         # every individual feature for the entire text). hats left over are 1 value for each feature
-        # x_max = torch.max(x, dim=2).values
-        # x_mean = torch.mean(x, dim=2)
-        x_fft = torch.fft.rfft2(x, s=self.fft_pool_size).real
-        # TODO: do spectral pooling using fft in order to reduce to a fixed number of dimensions
-        # TODO: maybe we should rather take the mean? --> do this in an optimizatino algorithm
+        poolings = [meta.flatten(1)]
+        if self.hparams.meanmax_pooling:
+            poolings.append(torch.max(x, dim=2).values)
+            poolings.append(torch.mean(x, dim=2))
+        if self.hparams.fft_pooling:
+            x_fft = torch.fft.rfft2(x, s=self.fft_pool_size).real
+            poolings.append(x_fft.flatten(1))
+
+        x = torch.cat(poolings, 1)
         # combine features
-        # x = torch.cat([x_max, x_mean, meta.flatten(1)], 1)
-        x = torch.cat([x_fft.flatten(1), meta.flatten(1)], 1)
         # finally, interprete the features
         x = self.linear(x.flatten(1))
         return x
