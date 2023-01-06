@@ -363,8 +363,9 @@ class txt_block_classifier(
         self.fft_pool_size = (self.hparams.seq_features2, self.hparams.fft_pool_size)
         fft_out = (self.hparams.fft_pool_size // 2 + 1) if self.hparams.fft_pooling else 0
         pooling_out = 2 if self.hparams.meanmax_pooling else 0
+        final_feature_num = self.hparams.seq_features2 if self.hparams.cv_layers > 1 else self.hparams.seq_features1
         self.linear = torch.nn.Linear(
-            in_features=self.hparams.seq_features2 * (fft_out + pooling_out) + meta_features,
+            in_features=final_feature_num * (fft_out + pooling_out) + meta_features,
             out_features=num_classes
         )
 

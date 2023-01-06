@@ -13,6 +13,7 @@
 #     language: python
 #     name: python3
 # ---
+import typing
 
 # %%
 # study_params
@@ -29,7 +30,6 @@ max_mb = 50
 
 # %%
 import datetime
-# %% tags=[]
 import logging
 import platform
 
@@ -134,7 +134,7 @@ class WebdavSyncCallback(pytorch_lightning.Callback):
               )
 
 
-additional_callbacks = [
+additional_callbacks: list[typing.Any] = [
     WebdavSyncCallback(),
     # pytorch_lightning.callbacks.RichProgressBar()
 ]
@@ -144,7 +144,7 @@ import warnings
 warnings.filterwarnings("ignore", ".*Your `IterableDataset` has `__len__` defined.*")
 
 
-def train_model(trial: optuna.Trial):
+def train_model(trial: optuna.trial.BaseTrial):
     # we introduce a report call back in order to stop optimization runs early
     class ReportCallback(pytorch_lightning.Callback):
         def on_train_epoch_end(self, trainer: pytorch_lightning.Trainer, pl_module: "pl.LightningModule") -> None:
@@ -314,5 +314,23 @@ study.enqueue_trial(dict(
     random_upper_prob=0.01,
     mixed_blocks_generation_prob=0.1
 ))"""
-if True:
-    study.optimize(train_model, n_trials=100)
+if False:
+    study.optimize(train_model, n_jobs=int(sys.argv[1]), n_trials=100)
+else:
+    train_model(optuna.trial.FixedTrial(dict(
+        embeddings_dim=2,
+        # embeddings vector size (standard BERT has a vector size of 768 )
+        token_seq_length1=4,
+        # what length of a word do we assume in terms of tokens?
+        seq_features1=10,
+        # how many filters should we run for the analysis = num of generated features?
+        dropout1=0.5,  # first layer dropout
+        cv_layers=1,  # number of cv layers
+        token_seq_length2=20,
+        # how many tokens in a row do we want to analyze?
+        seq_features2=50,  # how many filters should we run for the analysis?
+        dropout2=0.5,  # second layer dropout
+        meanmax_pooling=1,  # whether to use meanmax_pooling at the end
+        fft_pooling=0,  # whether to use fft_pooling at the end
+        fft_pool_size=5  # size of the fft_pooling method
+    )))
