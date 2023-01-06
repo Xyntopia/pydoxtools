@@ -64,7 +64,7 @@ gen = training.BusinessAddressGenerator(rand_str_perc=0.5, osm_perc=0.5, fieldna
 print(gen[random.random()])
 
 # %%
-addr = [gen[random.random()] for i in tqdm(range(1000))]
+addr = [gen[random.random()] for i in tqdm(range(10000000))]
 
 # %%
 for a in random.sample(addr,100): print(f"_____\n{a}\n")

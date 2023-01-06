@@ -16,11 +16,11 @@
 
 # %%
 # study_params
-study_name = "tune_gener_hyparams_fft_3"
+study_name = "hyparams_fft_4"
 # if we use a "start_model" we will not have hyperparameters!!
 # also: if some model in tensorboard are using hyperparameters, while
 #       others don't, we will not have hyperparameters displayed!!
-start_model = "text_blockclassifier_x0.ckpt"
+start_model = ""  # text_blockclassifier_x0.ckpt"
 
 # run with:
 # TOKENIZERS_PARALLELISM=true python /project/analysis/txtblock_classification/train_txtblock_classifier_hyper.py
@@ -176,17 +176,18 @@ def train_model(trial: optuna.Trial):
 
     model_config = dict(
         learning_rate=0.0005,
-        embeddings_dim=2,  # embeddings vector size (standard BERT has a vector size of 768 )
-        token_seq_length1=5,  # what length of a word do we assume in terms of tokens?
-        seq_features1=40,  # how many filters should we run for the analysis = num of generated features?
+        embeddings_dim=trial.suggest_int(1, 32),  # embeddings vector size (standard BERT has a vector size of 768 )
+        token_seq_length1=trial.suggest_int(3, 16),  # what length of a word do we assume in terms of tokens?
+        seq_features1=trial.suggest_int(10, 500),
+        # how many filters should we run for the analysis = num of generated features?
         dropout1=0.5,  # first layer dropout
-        cv_layers=2,  # number of cv layers
-        token_seq_length2=40,  # how many tokens in a row do we want to analyze?
-        seq_features2=100,  # how many filters should we run for the analysis?
+        cv_layers=trial.suggest_int(1, 2),  # number of cv layers
+        token_seq_length2=trial.suggest_int(3, 100),  # how many tokens in a row do we want to analyze?
+        seq_features2=trial.suggest_int(10, 500),  # how many filters should we run for the analysis?
         dropout2=0.5,  # second layer dropout
-        meanmax_pooling=True,  # whether to use meanmax_pooling at the end
-        fft_pooling=True,  # whether to use fft_pooling at the end
-        fft_pool_size=20,  # size of the fft_pooling method
+        meanmax_pooling=trial.suggest_int(0, 1),  # whether to use meanmax_pooling at the end
+        fft_pooling=trial.suggest_int(0, 1),  # whether to use fft_pooling at the end
+        fft_pool_size=trial.suggest_int(5, 50),  # size of the fft_pooling method
         hp_metric="address.f1-score"  # the metric to optimize for and should be logged...
     )
 
@@ -201,10 +202,10 @@ def train_model(trial: optuna.Trial):
         log_every_n_steps=100,
         max_epochs=100
     )
-    epoch_config1 = dict(
-        steps_per_epoch=5,
+    epoch_config = dict(
+        steps_per_epoch=2,
         log_every_n_steps=1,
-        max_epochs=4
+        max_epochs=2
     )
     trainer, model, _, _ = training.train_text_block_classifier(
         train_model=True,
