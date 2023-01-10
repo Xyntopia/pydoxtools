@@ -17,20 +17,34 @@ import typing
 
 # %%
 # study_params
-study_name = "hyparams_test_50max"
+# select GPU device: CUDA_VISIBLE_DEVICES=1,2
+# run with:
+# CUDA_VISIBLE_DEVICES=2 TOKENIZERS_PARALLELISM=true python /project/analysis/txtblock_classification/train_txtblock_classifier_hyper.py 1
+
+study_name = "hyparams_50max2"
+optimize = True
 # if we use a "start_model" we will not have hyperparameters!!
 # also: if some model in tensorboard are using hyperparameters, while
 #       others don't, we will not have hyperparameters displayed!!
 start_model = ""  # text_blockclassifier_x0.ckpt"
 max_mb = 50
 
-# run with:
-# TOKENIZERS_PARALLELISM=true python /project/analysis/txtblock_classification/train_txtblock_classifier_hyper.py
+epoch_config = dict(
+    steps_per_epoch=100,
+    log_every_n_steps=20,
+    max_epochs=20
+)
+epoch_config1 = dict(
+    steps_per_epoch=2,
+    log_every_n_steps=1,
+    max_epochs=2
+)
 
 
 # %%
 import datetime
 import logging
+import sys
 import platform
 
 import optuna
@@ -135,7 +149,7 @@ class WebdavSyncCallback(pytorch_lightning.Callback):
 
 
 additional_callbacks: list[typing.Any] = [
-    WebdavSyncCallback(),
+    # WebdavSyncCallback(),
     # pytorch_lightning.callbacks.RichProgressBar()
 ]
 
@@ -144,16 +158,24 @@ import warnings
 warnings.filterwarnings("ignore", ".*Your `IterableDataset` has `__len__` defined.*")
 
 
+# we introduce a report call back in order to stop optimization runs early
+class ReportCallback(pytorch_lightning.Callback):
+    def __init__(self, trial: optuna.trial.BaseTrial):
+        self._trial = trial
+
+    def on_train_epoch_end(self, trainer: pytorch_lightning.Trainer, pl_module: "pl.LightningModule") -> None:
+        score = trainer.callback_metrics['address.f1-score']
+        # TODO: only works if we are optimizing for a single objective!
+        try:
+            self._trial.report(score, trainer.current_epoch)
+        except NotImplementedError:
+            # trying to catch multi-objective optimization
+            # where the report function doesn't work!
+            logger.info("not reporting, as we are probably going for multi-objective optimization...")
+
+
 def train_model(trial: optuna.trial.BaseTrial):
-    # we introduce a report call back in order to stop optimization runs early
-    class ReportCallback(pytorch_lightning.Callback):
-        def on_train_epoch_end(self, trainer: pytorch_lightning.Trainer, pl_module: "pl.LightningModule") -> None:
-            score = trainer.callback_metrics['address.f1-score']
-            # TODO: only works if we are optimizing for a single objective!
-            trial.report(score, trainer.current_epoch)
-
-    additional_callbacks.append(ReportCallback())
-
+    additional_callbacks.append(ReportCallback(trial))
     data_config = dict(
         generators={
             "address": (
@@ -201,17 +223,6 @@ def train_model(trial: optuna.trial.BaseTrial):
     else:
         m = None
 
-    epoch_config = dict(
-        steps_per_epoch=200,
-        log_every_n_steps=100,
-        max_epochs=20
-    )
-    epoch_config1 = dict(
-        steps_per_epoch=2,
-        log_every_n_steps=1,
-        max_epochs=2
-    )
-
     train_loader, validation_loader, model, trainer = training.prepare_textblock_training(
         num_workers=4,
         data_config=data_config, model_config=model_config,
@@ -227,7 +238,7 @@ def train_model(trial: optuna.trial.BaseTrial):
 
     model_mb = pytorch_lightning.utilities.memory.get_model_size_mb(model)  # minimize
     # Store the constraints as user attributes so that they can be restored after optimization.
-    constraint = model_mb - max_mb  # constraint <=0  are considered as feasible!
+    constraint = [model_mb - max_mb]  # constraint <=0  are considered as feasible!
     trial.set_user_attr("constraint", constraint)
 
     print(f"entering: {trial.params}")
@@ -245,7 +256,8 @@ def train_model(trial: optuna.trial.BaseTrial):
             )
             metric = trainer.callback_metrics['address.f1-score']  # maximize
         except:
-            metric = -1.0
+            logger.exception("training failed!!")
+            metric = -2.0
         # trainer.logger.log_hyperparams()
         # calculate score
 
@@ -314,23 +326,26 @@ study.enqueue_trial(dict(
     random_upper_prob=0.01,
     mixed_blocks_generation_prob=0.1
 ))"""
-if False:
-    study.optimize(train_model, n_jobs=int(sys.argv[1]), n_trials=100)
+if optimize:
+    if len(sys.argv) > 1:
+        study.optimize(train_model, n_jobs=int(sys.argv[1]), n_trials=1000)
+    else:
+        study.optimize(train_model, n_jobs=1, n_trials=1000)
 else:
     train_model(optuna.trial.FixedTrial(dict(
-        embeddings_dim=2,
+        embeddings_dim=10,
         # embeddings vector size (standard BERT has a vector size of 768 )
-        token_seq_length1=4,
+        token_seq_length1=3,
         # what length of a word do we assume in terms of tokens?
-        seq_features1=10,
+        seq_features1=99,
         # how many filters should we run for the analysis = num of generated features?
         dropout1=0.5,  # first layer dropout
         cv_layers=1,  # number of cv layers
-        token_seq_length2=20,
+        token_seq_length2=74,
         # how many tokens in a row do we want to analyze?
-        seq_features2=50,  # how many filters should we run for the analysis?
+        seq_features2=10,  # how many filters should we run for the analysis?
         dropout2=0.5,  # second layer dropout
-        meanmax_pooling=1,  # whether to use meanmax_pooling at the end
-        fft_pooling=0,  # whether to use fft_pooling at the end
-        fft_pool_size=5  # size of the fft_pooling method
+        meanmax_pooling=0,  # whether to use meanmax_pooling at the end
+        fft_pooling=1,  # whether to use fft_pooling at the end
+        fft_pool_size=13  # size of the fft_pooling method
     )))

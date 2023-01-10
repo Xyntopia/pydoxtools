@@ -344,7 +344,12 @@ class txt_block_classifier(
                 out_channels=self.hparams.seq_features2,  # num of encoded features/word
                 kernel_size=(
                     # we have to switch around features and seq length, as cv1 puts
-                    # the kernel features before the new sequence length
+                    # the kernel features before the new sequence length. This is, because
+                    # we are treating embeddings vector dimension as number of "features"
+                    # as input for cv1. but the number of features for the vectors are in the 3d dimension whereas
+                    # in cv we need have them as the second dimension due to their variable length.
+                    # so cv1 switches the dimensions and onwards of cv2 we need to switch features and seq_length
+                    # in comparison to cv1.
                     self.hparams.seq_features1,
                     self.hparams.token_seq_length2
                 ),
@@ -360,12 +365,12 @@ class txt_block_classifier(
         # we add addtional features here...
         # right now: 1: length of string + number of lines + number of words (defined by spaces)
         meta_features = 1 + 1 + 1
-        self.fft_pool_size = (self.hparams.seq_features2, self.hparams.fft_pool_size)
+        final_cv_feature_num = self.hparams.seq_features2 if self.hparams.cv_layers > 1 else self.hparams.seq_features1
+        self.fft_pool_size = (final_cv_feature_num, self.hparams.fft_pool_size)
         fft_out = (self.hparams.fft_pool_size // 2 + 1) if self.hparams.fft_pooling else 0
         pooling_out = 2 if self.hparams.meanmax_pooling else 0
-        final_feature_num = self.hparams.seq_features2 if self.hparams.cv_layers > 1 else self.hparams.seq_features1
         self.linear = torch.nn.Linear(
-            in_features=final_feature_num * (fft_out + pooling_out) + meta_features,
+            in_features=final_cv_feature_num * (fft_out + pooling_out) + meta_features,
             out_features=num_classes
         )
 
