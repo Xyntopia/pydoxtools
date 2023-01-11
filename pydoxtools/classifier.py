@@ -254,7 +254,7 @@ class lightning_training_procedures(pytorch_lightning.LightningModule):
         metrics = make_tensorboard_compatible(classification_report)
         self.log_dict(metrics)  # , sync_dist=True)
         if self._hp_metric:
-            self.log("hp_metric", metrics[self._hp_metric])
+            self.log("hp_metric", metrics[self._hp_metric], prog_bar=True)
         return metrics
 
     def configure_optimizers(self):

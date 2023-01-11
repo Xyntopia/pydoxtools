@@ -13,7 +13,10 @@
 #     language: python
 #     name: python3
 # ---
+
+# %%
 import typing
+import traceback
 
 # %%
 # study_params
@@ -142,14 +145,12 @@ if start_model:
 # %env TOKENIZERS_PARALLELISM=true
 class WebdavSyncCallback(pytorch_lightning.Callback):
     def on_train_epoch_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
-        print("""lightning: sync models with rclone!""")
-        print(wu.rclone_single_sync_models(
-            method="copy", hostname=hostname, token=token, syncpath=syncpath)[0]
-              )
+        #print("""lightning: sync models with rclone!""")
+        wu.rclone_single_sync_models(method="copy", hostname=hostname, token=token, syncpath=syncpath)
 
 
 additional_callbacks: list[typing.Any] = [
-    # WebdavSyncCallback(),
+    WebdavSyncCallback(),
     # pytorch_lightning.callbacks.RichProgressBar()
 ]
 
@@ -224,6 +225,7 @@ def train_model(trial: optuna.trial.BaseTrial):
         m = None
 
     train_loader, validation_loader, model, trainer = training.prepare_textblock_training(
+        model_name=trial.number,
         num_workers=4,
         data_config=data_config, model_config=model_config,
         # strategy="ddp_find_unused_parameters_false",
@@ -245,7 +247,7 @@ def train_model(trial: optuna.trial.BaseTrial):
 
     if model_mb > (max_mb + 1):  # basically our constraint!
         print(f"model has {model_mb}>{max_mb}+1 => fast-return!!")
-        metric = -1.0
+        metric = 0
     else:
         try:
             trainer, model = training.train_text_block_classifier(
@@ -255,9 +257,11 @@ def train_model(trial: optuna.trial.BaseTrial):
                 old_model=m
             )
             metric = trainer.callback_metrics['address.f1-score']  # maximize
-        except:
+        except Exception as ex:
             logger.exception("training failed!!")
-            metric = -2.0
+            tb = "".join(traceback.TracebackException.from_exception(ex).format())
+            trial.set_user_attr("exception", tb)
+            metric = 0
         # trainer.logger.log_hyperparams()
         # calculate score
 

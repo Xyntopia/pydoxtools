@@ -1113,7 +1113,7 @@ def train_text_block_classifier(
     curtimestr = curtime.strftime("%Y%m%d%H%M")
     trainer.save_checkpoint(
         settings.MODEL_STORE(
-            "text_block").parent / f"text_blockclassifier_v{trainer.logger.version}_{curtimestr}.ckpt")
+            "text_block").parent / f"text_blockclassifier_{trainer.logger.version}_{curtimestr}.ckpt")
 
     return trainer, model
 
