@@ -14,17 +14,17 @@
 #     name: python3
 # ---
 
+import traceback
 # %%
 import typing
-import traceback
 
 # %%
 # study_params
 # select GPU device: CUDA_VISIBLE_DEVICES=1,2
 # run with:
-# CUDA_VISIBLE_DEVICES=2 TOKENIZERS_PARALLELISM=true python /project/analysis/txtblock_classification/train_txtblock_classifier_hyper.py 1
+# CUDA_VISIBLE_DEVICES=0 TOKENIZERS_PARALLELISM=true python /project/analysis/txtblock_classification/train_txtblock_classifier_hyper.py 1
 
-study_name = "hyparams_50max2"
+study_name = "hyparams_50_inf_ep1"
 optimize = True
 # if we use a "start_model" we will not have hyperparameters!!
 # also: if some model in tensorboard are using hyperparameters, while
@@ -35,14 +35,13 @@ max_mb = 50
 epoch_config = dict(
     steps_per_epoch=100,
     log_every_n_steps=20,
-    max_epochs=20
+    max_epochs=200
 )
 epoch_config1 = dict(
     steps_per_epoch=2,
     log_every_n_steps=1,
     max_epochs=2
 )
-
 
 # %%
 import datetime
@@ -62,6 +61,7 @@ from IPython.display import display, HTML
 from pydoxtools import pdf_utils, nlp_utils, cluster_utils, training, classifier
 from pydoxtools import webdav_utils as wu
 from pydoxtools.settings import settings
+from pytorch_lightning.callbacks import EarlyStopping
 
 
 # %% [markdown] tags=[]
@@ -145,7 +145,7 @@ if start_model:
 # %env TOKENIZERS_PARALLELISM=true
 class WebdavSyncCallback(pytorch_lightning.Callback):
     def on_train_epoch_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
-        #print("""lightning: sync models with rclone!""")
+        # print("""lightning: sync models with rclone!""")
         wu.rclone_single_sync_models(method="copy", hostname=hostname, token=token, syncpath=syncpath)
 
 
@@ -176,7 +176,17 @@ class ReportCallback(pytorch_lightning.Callback):
 
 
 def train_model(trial: optuna.trial.BaseTrial):
-    additional_callbacks.append(ReportCallback(trial))
+    callbacks = additional_callbacks + [
+        ReportCallback(trial),
+        EarlyStopping(
+            monitor="address.f1-score",
+            min_delta=0.001,  # 200 episodes*0.001 = 0.2 ~20%
+            patience=10,
+            mode="max",
+            divergence_threshold=0.15,
+            # check_on_train_epoch_end=True # we want to run it at the end of validation
+        )
+    ]
     data_config = dict(
         generators={
             "address": (
@@ -200,21 +210,22 @@ def train_model(trial: optuna.trial.BaseTrial):
 
     model_config = dict(
         learning_rate=0.0005,
-        embeddings_dim=trial.suggest_int("embeddings_dim", 1, 32),
         # embeddings vector size (standard BERT has a vector size of 768 )
-        token_seq_length1=trial.suggest_int("token_seq_length1", 3, 16),
+        embeddings_dim=trial.suggest_int("embeddings_dim", 1, 32),
         # what length of a word do we assume in terms of tokens?
-        seq_features1=trial.suggest_int("seq_features1", 10, 500),
+        token_seq_length1=trial.suggest_int("token_seq_length1", 3, 16),
         # how many filters should we run for the analysis = num of generated features?
+        seq_features1=trial.suggest_int("seq_features1", 10, 500),
         dropout1=0.5,  # first layer dropout
         cv_layers=trial.suggest_int("cv_layers", 1, 2),  # number of cv layers
-        token_seq_length2=trial.suggest_int("token_seq_length2", 3, 100),
         # how many tokens in a row do we want to analyze?
+        token_seq_length2=trial.suggest_int("token_seq_length2", 3, 100),
         seq_features2=trial.suggest_int("seq_features2", 10, 500),  # how many filters should we run for the analysis?
         dropout2=0.5,  # second layer dropout
-        meanmax_pooling=trial.suggest_int("meanmax_pooling", 0, 1),  # whether to use meanmax_pooling at the end
-        fft_pooling=trial.suggest_int("fft_pooling", 0, 1),  # whether to use fft_pooling at the end
-        fft_pool_size=trial.suggest_int("fft_pool_size", 5, 50),  # size of the fft_pooling method
+        # whether to use meanmax_pooling at the end
+        meanmax_pooling=trial.suggest_categorical("meanmax_pooling", [0, 1]),
+        fft_pooling=trial.suggest_categorical("fft_pooling", [0, 1]),  # whether to use fft_pooling at the end
+        fft_pool_size=trial.suggest_int("fft_pool_size", 5, 100),  # size of the fft_pooling method
         hp_metric="address.f1-score"  # the metric to optimize for and should be logged...
     )
 
@@ -225,14 +236,14 @@ def train_model(trial: optuna.trial.BaseTrial):
         m = None
 
     train_loader, validation_loader, model, trainer = training.prepare_textblock_training(
-        model_name=trial.number,
+        model_name=f"{trial.study.study_name}/{trial.number}",
         num_workers=4,
         data_config=data_config, model_config=model_config,
         # strategy="ddp_find_unused_parameters_false",
         # strategy="ddp",
         enable_checkpointing=False,
         strategy=None,  # in case of running jupyter notebook
-        callbacks=additional_callbacks,
+        callbacks=callbacks,
         batch_size=2 ** 12,
         accelerator="auto", devices=1,  # use simple integer to specify number of devices...
         **epoch_config,
