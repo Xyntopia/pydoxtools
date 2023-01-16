@@ -15,27 +15,33 @@
 # ---
 
 import traceback
-# %%
 import typing
+import os
+import warnings
+import datetime
+import logging
+import sys
+import platform
 
 # %%
 # study_params
 # select GPU device: CUDA_VISIBLE_DEVICES=1,2
 # run with:
-# CUDA_VISIBLE_DEVICES=0 TOKENIZERS_PARALLELISM=true python /project/analysis/txtblock_classification/train_txtblock_classifier_hyper.py 1
+# CUDA_VISIBLE_DEVICES=0 python /project/analysis/txtblock_classification/train_txtblock_classifier_hyper.py 1
 
-study_name = "hyparams_50_inf_ep1"
-optimize = True
+study_name = "hyparams_50_inf_ep2"
+optimize = False
 # if we use a "start_model" we will not have hyperparameters!!
 # also: if some model in tensorboard are using hyperparameters, while
 #       others don't, we will not have hyperparameters displayed!!
 start_model = ""  # text_blockclassifier_x0.ckpt"
 max_mb = 50
+fast_dev_run = False
 
 epoch_config = dict(
     steps_per_epoch=100,
     log_every_n_steps=20,
-    max_epochs=200
+    max_epochs=200 if optimize else -1
 )
 epoch_config1 = dict(
     steps_per_epoch=2,
@@ -44,11 +50,6 @@ epoch_config1 = dict(
 )
 
 # %%
-import datetime
-import logging
-import sys
-import platform
-
 import optuna
 import pytorch_lightning
 import torch
@@ -106,7 +107,6 @@ if False:
 # start training
 
 # %% tags=[]
-# %env TOKENIZERS_PARALLELISM=true
 # url of nextcloud instance to point to
 hostname = 'https://sync.rosemesh.net'
 # the token is the last part of a sharing link:
@@ -142,19 +142,25 @@ if start_model:
 
 
 # %% tags=[]
-# %env TOKENIZERS_PARALLELISM=true
 class WebdavSyncCallback(pytorch_lightning.Callback):
+    def __init__(self):
+        super().__init__()
+        self._when = "training_end" if optimize else "epoch_end"
+
     def on_train_epoch_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
-        # print("""lightning: sync models with rclone!""")
-        wu.rclone_single_sync_models(method="copy", hostname=hostname, token=token, syncpath=syncpath)
+        if self._when == "epoch_end":
+            # print("""lightning: sync models with rclone!""")
+            wu.rclone_single_sync_models(method="copy", hostname=hostname, token=token, syncpath=syncpath)
+
+    def on_train_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
+        if self._when == "training_end":
+            wu.rclone_single_sync_models(method="copy", hostname=hostname, token=token, syncpath=syncpath)
 
 
 additional_callbacks: list[typing.Any] = [
     WebdavSyncCallback(),
     # pytorch_lightning.callbacks.RichProgressBar()
 ]
-
-import warnings
 
 warnings.filterwarnings("ignore", ".*Your `IterableDataset` has `__len__` defined.*")
 
@@ -183,7 +189,7 @@ def train_model(trial: optuna.trial.BaseTrial):
             min_delta=0.001,  # 200 episodes*0.001 = 0.2 ~20%
             patience=10,
             mode="max",
-            divergence_threshold=0.15,
+            # divergence_threshold=0.15,
             # check_on_train_epoch_end=True # we want to run it at the end of validation
         )
     ]
@@ -217,14 +223,14 @@ def train_model(trial: optuna.trial.BaseTrial):
         # how many filters should we run for the analysis = num of generated features?
         seq_features1=trial.suggest_int("seq_features1", 10, 500),
         dropout1=0.5,  # first layer dropout
-        cv_layers=trial.suggest_int("cv_layers", 1, 2),  # number of cv layers
+        cv_layers=2,  # trial.suggest_int("cv_layers", 1, 2),  # number of cv layers
         # how many tokens in a row do we want to analyze?
         token_seq_length2=trial.suggest_int("token_seq_length2", 3, 100),
         seq_features2=trial.suggest_int("seq_features2", 10, 500),  # how many filters should we run for the analysis?
         dropout2=0.5,  # second layer dropout
         # whether to use meanmax_pooling at the end
-        meanmax_pooling=trial.suggest_categorical("meanmax_pooling", [0, 1]),
-        fft_pooling=trial.suggest_categorical("fft_pooling", [0, 1]),  # whether to use fft_pooling at the end
+        meanmax_pooling=1,  # trial.suggest_categorical("meanmax_pooling", [0, 1]),
+        fft_pooling=1,  # trial.suggest_categorical("fft_pooling", [0, 1]),  # whether to use fft_pooling at the end
         fft_pool_size=trial.suggest_int("fft_pool_size", 5, 100),  # size of the fft_pooling method
         hp_metric="address.f1-score"  # the metric to optimize for and should be logged...
     )
@@ -235,8 +241,14 @@ def train_model(trial: optuna.trial.BaseTrial):
     else:
         m = None
 
+    if isinstance(trial, optuna.trial.FixedTrial):
+        model_name = f"single_train"
+    else:
+        model_name = f"{trial.study.study_name}/{trial.number}"
+
     train_loader, validation_loader, model, trainer = training.prepare_textblock_training(
-        model_name=f"{trial.study.study_name}/{trial.number}",
+        fast_dev_run=fast_dev_run,
+        model_name=model_name,
         num_workers=4,
         data_config=data_config, model_config=model_config,
         # strategy="ddp_find_unused_parameters_false",
@@ -265,7 +277,8 @@ def train_model(trial: optuna.trial.BaseTrial):
                 train_loader=train_loader, validation_loader=validation_loader,
                 model=model, trainer=trainer,
                 log_hparams=trial.params,
-                old_model=m
+                old_model=m,
+                save_model=False if optimize else True
             )
             metric = trainer.callback_metrics['address.f1-score']  # maximize
         except Exception as ex:
@@ -316,22 +329,6 @@ def constraints(trial: optuna.Trial):
     return trial.user_attrs["constraint"]
 
 
-sampler = optuna.samplers.NSGAIISampler(constraints_func=constraints)
-study = optuna.create_study(
-    study_name=study_name,
-    storage=optuna.storages.RDBStorage(
-        url=remote_storage,
-        # engine_kwargs={"pool_size": 20, "connect_args": {"timeout": 10}},
-        # add heartbeat i order to automatically mark "crashed" trials
-        # as "failed" so that they can be repeated
-        heartbeat_interval=60 * 5,
-        grace_period=60 * 21,
-    ),
-    sampler=sampler,
-    load_if_exists=True,
-    directions=["maximize", "minimize"]
-)
-
 # %% tags=[]
 """
 study.enqueue_trial(dict(
@@ -341,26 +338,43 @@ study.enqueue_trial(dict(
     random_upper_prob=0.01,
     mixed_blocks_generation_prob=0.1
 ))"""
+os.environ["TOKENIZERS_PARALLELISM"] = "true"
 if optimize:
+    sampler = optuna.samplers.NSGAIISampler(constraints_func=constraints)
+    study = optuna.create_study(
+        study_name=study_name,
+        storage=optuna.storages.RDBStorage(
+            url=remote_storage,
+            # engine_kwargs={"pool_size": 20, "connect_args": {"timeout": 10}},
+            # add heartbeat i order to automatically mark "crashed" trials
+            # as "failed" so that they can be repeated
+            heartbeat_interval=60 * 5,
+            grace_period=60 * 21,
+        ),
+        sampler=sampler,
+        load_if_exists=True,
+        directions=["maximize", "minimize"]
+    )
+
     if len(sys.argv) > 1:
         study.optimize(train_model, n_jobs=int(sys.argv[1]), n_trials=1000)
     else:
         study.optimize(train_model, n_jobs=1, n_trials=1000)
 else:
     train_model(optuna.trial.FixedTrial(dict(
-        embeddings_dim=10,
+        embeddings_dim=20,
         # embeddings vector size (standard BERT has a vector size of 768 )
-        token_seq_length1=3,
+        token_seq_length1=10,
         # what length of a word do we assume in terms of tokens?
-        seq_features1=99,
+        seq_features1=300,
         # how many filters should we run for the analysis = num of generated features?
         dropout1=0.5,  # first layer dropout
-        cv_layers=1,  # number of cv layers
-        token_seq_length2=74,
+        cv_layers=2,  # number of cv layers
+        token_seq_length2=30,
         # how many tokens in a row do we want to analyze?
-        seq_features2=10,  # how many filters should we run for the analysis?
+        seq_features2=200,  # how many filters should we run for the analysis?
         dropout2=0.5,  # second layer dropout
-        meanmax_pooling=0,  # whether to use meanmax_pooling at the end
+        meanmax_pooling=1,  # whether to use meanmax_pooling at the end
         fft_pooling=1,  # whether to use fft_pooling at the end
-        fft_pool_size=13  # size of the fft_pooling method
+        fft_pool_size=50  # size of the fft_pooling method
     )))

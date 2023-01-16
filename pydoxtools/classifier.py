@@ -303,9 +303,6 @@ class txt_block_classifier(
         num_classes = len(classmap)
         self._hp_metric = self.hparams.hp_metric
 
-        # TODO: get rid of model dependency... only use the vocabulary for the tokenizer...
-        self.model_name = settings.PDXT_STANDARD_TOKENIZER  # name of model used for initialization
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         # declare our embeddings we use the size of multilingial BET vocabulary
         # as we are using the same tokenizer
         embedding_num = 119547  # size of multilingual BERT vocabulary this should not be changed!
@@ -380,6 +377,12 @@ class txt_block_classifier(
             "cv2.weight", "cv2.bias",
             "cv1.weight", "cv1.bias"
         ])
+
+    @functools.cached_property
+    def tokenizer(self):
+        # TODO: get rid of model dependency... only use the vocabulary for the tokenizer...
+        self.model_name = settings.PDXT_STANDARD_TOKENIZER  # name of model used for initialization
+        return AutoTokenizer.from_pretrained(self.model_name)
 
     def forward(self, str_list: typing.Iterable):
         # TODO: we might be able to us "diskcache" here in order to cache some layers!!!

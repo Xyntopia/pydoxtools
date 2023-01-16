@@ -990,6 +990,7 @@ def prepare_textblock_training(
     from pytorch_lightning.loggers import TensorBoardLogger
 
     trainer = pytorch_lightning.Trainer(
+        fast_dev_run=kwargs.get('fast_dev_run', False),
         accelerator=kwargs.get('accelerator', 'cpu'),
         devices=kwargs.get('devices', 1),
         strategy=kwargs.get('strategy', 'ddp'),
@@ -1093,7 +1094,8 @@ def train_text_block_classifier(
         model,
         trainer,
         log_hparams: dict = None,
-        old_model: txt_block_classifier = None
+        old_model: txt_block_classifier = None,
+        save_model=False
 ):
     # only importing this here as we don#t want to use this in "inference" mode
 
@@ -1107,13 +1109,14 @@ def train_text_block_classifier(
     # trainer.logger.log_hyperparams(log_hparams, metrics=dict(
     #    model.metrics
     # ))
-    trainer.save_checkpoint(settings.MODEL_STORE("text_block"))
-    trainer.save_checkpoint(settings.MODEL_STORE("text_block_wo"), weights_only=True)
-    curtime = datetime.datetime.now()
-    curtimestr = curtime.strftime("%Y%m%d%H%M")
-    trainer.save_checkpoint(
-        settings.MODEL_STORE(
-            "text_block").parent / f"text_blockclassifier_{trainer.logger.version}_{curtimestr}.ckpt")
+    if save_model:
+        trainer.save_checkpoint(settings.MODEL_STORE("text_block"))
+        trainer.save_checkpoint(settings.MODEL_STORE("text_block_wo"), weights_only=True)
+        curtime = datetime.datetime.now()
+        curtimestr = curtime.strftime("%Y%m%d%H%M")
+        trainer.save_checkpoint(
+            settings.MODEL_STORE(
+                "text_block").parent / f"text_blockclassifier_{trainer.logger.version}_{curtimestr}.ckpt")
 
     return trainer, model
 
