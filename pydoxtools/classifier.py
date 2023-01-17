@@ -305,7 +305,8 @@ class txt_block_classifier(
 
         # declare our embeddings we use the size of multilingial BET vocabulary
         # as we are using the same tokenizer
-        embedding_num = 119547  # size of multilingual BERT vocabulary this should not be changed!
+        # size of multilingual BERT vocabulary this should not be changed, as it is defined by the tokenizer!
+        embedding_num = 119547
 
         # TODO: the 2D paramters of the AvgPool would be a really nice parameter
         #       for hyperparameter optimization
@@ -370,6 +371,13 @@ class txt_block_classifier(
             in_features=final_cv_feature_num * (fft_out + pooling_out) + meta_features,
             out_features=num_classes
         )
+
+        # number of features can roughly be calculated ike this:
+        # param_num = embedding_num * embeddings_dim
+        # + ((token_seq_length1 * embeddings_dim + 1) * seq_features1)
+        # + ((token_seq_length2 * seq_features1 + 1) * seq_features2)
+        # + (seq_features2 * (((fft_pool_size // 2) + 1) + 2) + 3 + 1) * num_classes
+
 
         # and add metrics
         self.add_standard_metrics(num_classes, hist_params=[

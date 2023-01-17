@@ -14,14 +14,14 @@
 #     name: python3
 # ---
 
-import traceback
-import typing
-import os
-import warnings
 import datetime
 import logging
-import sys
+import os
 import platform
+import sys
+import traceback
+import typing
+import warnings
 
 # %%
 # study_params
@@ -31,6 +31,7 @@ import platform
 
 study_name = "hyparams_50_inf_ep2"
 optimize = False
+tune_learning_rate = False
 # if we use a "start_model" we will not have hyperparameters!!
 # also: if some model in tensorboard are using hyperparameters, while
 #       others don't, we will not have hyperparameters displayed!!
@@ -181,7 +182,7 @@ class ReportCallback(pytorch_lightning.Callback):
             logger.info("not reporting, as we are probably going for multi-objective optimization...")
 
 
-def train_model(trial: optuna.trial.BaseTrial):
+def train_model(trial: optuna.trial.BaseTrial, tune_learning_rate=False):
     callbacks = additional_callbacks + [
         ReportCallback(trial),
         EarlyStopping(
@@ -217,7 +218,7 @@ def train_model(trial: optuna.trial.BaseTrial):
     model_config = dict(
         learning_rate=0.0005,
         # embeddings vector size (standard BERT has a vector size of 768 )
-        embeddings_dim=trial.suggest_int("embeddings_dim", 1, 32),
+        embeddings_dim=trial.suggest_int("embeddings_dim", 1, 128),
         # what length of a word do we assume in terms of tokens?
         token_seq_length1=trial.suggest_int("token_seq_length1", 3, 16),
         # how many filters should we run for the analysis = num of generated features?
@@ -231,7 +232,7 @@ def train_model(trial: optuna.trial.BaseTrial):
         # whether to use meanmax_pooling at the end
         meanmax_pooling=1,  # trial.suggest_categorical("meanmax_pooling", [0, 1]),
         fft_pooling=1,  # trial.suggest_categorical("fft_pooling", [0, 1]),  # whether to use fft_pooling at the end
-        fft_pool_size=trial.suggest_int("fft_pool_size", 5, 100),  # size of the fft_pooling method
+        fft_pool_size=trial.suggest_int("fft_pool_size", 5, 500),  # size of the fft_pooling method
         hp_metric="address.f1-score"  # the metric to optimize for and should be logged...
     )
 
@@ -260,6 +261,24 @@ def train_model(trial: optuna.trial.BaseTrial):
         accelerator="auto", devices=1,  # use simple integer to specify number of devices...
         **epoch_config,
     )
+
+    if tune_learning_rate:
+        lr_finder = trainer.tuner.lr_find(
+            model, train_dataloaders=train_loader,
+            val_dataloaders=validation_loader,
+            num_training=100
+        )
+
+        # print(lr_finder.results)
+        # Pick point based on plot, or get suggestion
+        new_lr = lr_finder.suggestion()
+
+        # - 0.00025 for a new model
+        # - 0.00229 for a pre-trained model
+
+        # Plot with
+        fig = lr_finder.plot(suggest=True)
+        return new_lr, fig
 
     model_mb = pytorch_lightning.utilities.memory.get_model_size_mb(model)  # minimize
     # Store the constraints as user attributes so that they can be restored after optimization.
@@ -361,20 +380,30 @@ if optimize:
     else:
         study.optimize(train_model, n_jobs=1, n_trials=1000)
 else:
-    train_model(optuna.trial.FixedTrial(dict(
-        embeddings_dim=20,
+    params = optuna.trial.FixedTrial(dict(
+        embeddings_dim=64,
         # embeddings vector size (standard BERT has a vector size of 768 )
         token_seq_length1=10,
         # what length of a word do we assume in terms of tokens?
-        seq_features1=300,
+        seq_features1=400,
         # how many filters should we run for the analysis = num of generated features?
         dropout1=0.5,  # first layer dropout
         cv_layers=2,  # number of cv layers
         token_seq_length2=30,
         # how many tokens in a row do we want to analyze?
-        seq_features2=200,  # how many filters should we run for the analysis?
+        seq_features2=150,  # how many filters should we run for the analysis?
         dropout2=0.5,  # second layer dropout
         meanmax_pooling=1,  # whether to use meanmax_pooling at the end
         fft_pooling=1,  # whether to use fft_pooling at the end
-        fft_pool_size=50  # size of the fft_pooling method
-    )))
+        fft_pool_size=200  # size of the fft_pooling method
+    ))
+
+    if tune_learning_rate:
+        new_lr, fig = train_model(params, tune_learning_rate=True)
+        print(f"suggested learning rate: {new_lr}")
+        from matplotlib import pyplot as plt
+
+        plt.show()
+        # fig.show()
+    else:
+        train_model(params)
