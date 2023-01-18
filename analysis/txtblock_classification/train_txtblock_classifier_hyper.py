@@ -29,7 +29,7 @@ import warnings
 # run with:
 # CUDA_VISIBLE_DEVICES=0 python /project/analysis/txtblock_classification/train_txtblock_classifier_hyper.py 1
 
-study_name = "hyparams_50_inf_ep2"
+study_name = "single_train4"
 optimize = False
 tune_learning_rate = False
 # if we use a "start_model" we will not have hyperparameters!!
@@ -183,17 +183,28 @@ class ReportCallback(pytorch_lightning.Callback):
 
 
 def train_model(trial: optuna.trial.BaseTrial, tune_learning_rate=False):
-    callbacks = additional_callbacks + [
-        ReportCallback(trial),
-        EarlyStopping(
+    callbacks = additional_callbacks
+    if optimize:
+        callbacks += [
+            ReportCallback(trial)
+        ]
+        callbacks += [EarlyStopping(
             monitor="address.f1-score",
             min_delta=0.001,  # 200 episodes*0.001 = 0.2 ~20%
             patience=10,
             mode="max",
             # divergence_threshold=0.15,
             # check_on_train_epoch_end=True # we want to run it at the end of validation
-        )
-    ]
+        )]
+    else:
+        callbacks += [pytorch_lightning.callbacks.ModelCheckpoint(
+            monitor='address.f1-score',  # or 'accuracy' or 'f1'
+            mode='max', save_top_k=3,
+            save_weights_only=True,
+            dirpath=settings.MODEL_STORE("text_block").parent,
+            auto_insert_metric_name=False,
+            # filename="text_blockclassifier-{epoch:02d}-{address.f1-score:.2f}.ckpt"
+        )]
     data_config = dict(
         generators={
             "address": (
@@ -243,7 +254,7 @@ def train_model(trial: optuna.trial.BaseTrial, tune_learning_rate=False):
         m = None
 
     if isinstance(trial, optuna.trial.FixedTrial):
-        model_name = f"single_train"
+        model_name = f"{trial.study.study_name}"
     else:
         model_name = f"{trial.study.study_name}/{trial.number}"
 
@@ -254,7 +265,7 @@ def train_model(trial: optuna.trial.BaseTrial, tune_learning_rate=False):
         data_config=data_config, model_config=model_config,
         # strategy="ddp_find_unused_parameters_false",
         # strategy="ddp",
-        enable_checkpointing=False,
+        enable_checkpointing=False if optimize else True,
         strategy=None,  # in case of running jupyter notebook
         callbacks=callbacks,
         batch_size=2 ** 12,
