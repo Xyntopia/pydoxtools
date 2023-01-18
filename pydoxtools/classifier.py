@@ -105,14 +105,14 @@ def cached_str_vectorize(model, raw_string):
     return model(raw_string)
 
 
-def make_tensorboard_compatible(d):
+def make_tensorboard_compatible_dict(d, prefix=""):
     new_d = {}
     for k, v in d.items():
         if isinstance(v, dict):
-            for i, j in v.items():
-                new_d[f"{k}.{i}"] = j
+            sub_d = make_tensorboard_compatible_dict(v, prefix=k + ".")
+            new_d.update(sub_d)
         else:
-            new_d[k] = v
+            new_d[prefix + k] = torch.tensor(v, dtype=torch.float32)
     return new_d
 
 
@@ -251,7 +251,7 @@ class lightning_training_procedures(pytorch_lightning.LightningModule):
             zero_division=0
         )
 
-        metrics = make_tensorboard_compatible(classification_report)
+        metrics = make_tensorboard_compatible_dict(classification_report)
         self.log_dict(metrics)  # , sync_dist=True)
         if self._hp_metric:
             self.log("hp_metric", metrics[self._hp_metric], prog_bar=True)
@@ -377,7 +377,6 @@ class txt_block_classifier(
         # + ((token_seq_length1 * embeddings_dim + 1) * seq_features1)
         # + ((token_seq_length2 * seq_features1 + 1) * seq_features2)
         # + (seq_features2 * (((fft_pool_size // 2) + 1) + 2) + 3 + 1) * num_classes
-
 
         # and add metrics
         self.add_standard_metrics(num_classes, hist_params=[
