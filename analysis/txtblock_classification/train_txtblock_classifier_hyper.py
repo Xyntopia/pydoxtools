@@ -13,7 +13,7 @@
 #     language: python
 #     name: python3
 # ---
-
+import copy
 import datetime
 import logging
 import os
@@ -36,8 +36,8 @@ tune_learning_rate = False
 # also: if some model in tensorboard are using hyperparameters, while
 #       others don't, we will not have hyperparameters displayed!!
 start_model = ""  # text_blockclassifier_x0.ckpt"
-max_mb = 50
-fast_dev_run = False
+max_mb = 800
+fast_dev_run = True
 
 epoch_config = dict(
     steps_per_epoch=100,
@@ -226,7 +226,8 @@ def train_model(trial: optuna.trial.BaseTrial, tune_learning_rate=False):
         mixed_blocks_label="unknown",
     )
 
-    model_config = dict(
+    model_config = copy.copy(trial._params)
+    model_config.update(dict(
         learning_rate=0.0005,
         # embeddings vector size (standard BERT has a vector size of 768 )
         embeddings_dim=trial.suggest_int("embeddings_dim", 1, 128),
@@ -245,7 +246,7 @@ def train_model(trial: optuna.trial.BaseTrial, tune_learning_rate=False):
         fft_pooling=1,  # trial.suggest_categorical("fft_pooling", [0, 1]),  # whether to use fft_pooling at the end
         fft_pool_size=trial.suggest_int("fft_pool_size", 5, 500),  # size of the fft_pooling method
         hp_metric="address.f1-score"  # the metric to optimize for and should be logged...
-    )
+    ))
 
     if start_model:
         m = classifier.txt_block_classifier.load_from_checkpoint(
@@ -254,7 +255,7 @@ def train_model(trial: optuna.trial.BaseTrial, tune_learning_rate=False):
         m = None
 
     if isinstance(trial, optuna.trial.FixedTrial):
-        model_name = f"{trial.study.study_name}"
+        model_name = f"{study_name}"
     else:
         model_name = f"{trial.study.study_name}/{trial.number}"
 
@@ -376,7 +377,7 @@ if optimize:
         storage=optuna.storages.RDBStorage(
             url=remote_storage,
             # engine_kwargs={"pool_size": 20, "connect_args": {"timeout": 10}},
-            # add heartbeat i order to automatically mark "crashed" trials
+            # add heartbeat in order to automatically mark "crashed" trials
             # as "failed" so that they can be repeated
             heartbeat_interval=60 * 5,
             grace_period=60 * 21,
@@ -392,6 +393,7 @@ if optimize:
         study.optimize(train_model, n_jobs=1, n_trials=1000)
 else:
     params = optuna.trial.FixedTrial(dict(
+        use_bert_embeddings=True,
         embeddings_dim=64,
         # embeddings vector size (standard BERT has a vector size of 768 )
         token_seq_length1=10,
@@ -404,7 +406,7 @@ else:
         # how many tokens in a row do we want to analyze?
         seq_features2=150,  # how many filters should we run for the analysis?
         dropout2=0.5,  # second layer dropout
-        meanmax_pooling=1,  # whether to use meanmax_pooling at the end
+        meanmax_pooling=0,  # whether to use meanmax_pooling at the end
         fft_pooling=1,  # whether to use fft_pooling at the end
         fft_pool_size=200  # size of the fft_pooling method
     ))

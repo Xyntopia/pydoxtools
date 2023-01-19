@@ -30,25 +30,24 @@ memory = settings.get_memory_cache()
 tqdm.tqdm.pandas()
 
 
-class nlp_functions:
-    def init_embeddings(self):
-        """
-        This function can be used to pre-initialize the embeddings using
-        for example BERT embeddings.
+def init_embeddings(model_name: str):
+    """
+    This function can be used to pre-initialize the embeddings using
+    for example BERT embeddings.
 
-        We freeze the embeddings used here so that we can generalize the vectorization
-        for many different documents and tasks. this way we can generate the vectorizations
-        once and then store them in a database and reuse them for all kinds of different tasks.
+    We freeze the embeddings used here so that we can generalize the vectorization
+    for many different documents and tasks. this way we can generate the vectorizations
+    once and then store them in a database and reuse them for all kinds of different tasks.
 
-        """
-        model = AutoModel.from_pretrained(self.model_name)
+    """
+    model = AutoModel.from_pretrained(model_name)
 
-        self.embedding = torch.nn.Embedding.from_pretrained(
-            model.embeddings.word_embeddings.weight,
-            freeze=True, padding_idx=None, max_norm=None,
-            norm_type=2.0, scale_grad_by_freq=False, sparse=False
-        )
-        return self
+    embedding = torch.nn.Embedding.from_pretrained(
+        model.embeddings.word_embeddings.weight,
+        freeze=True, padding_idx=None, max_norm=None,
+        norm_type=2.0, scale_grad_by_freq=False, sparse=False
+    )
+    return embedding
 
 
 class string_vectorizer(torch.nn.Module):
@@ -63,25 +62,6 @@ class string_vectorizer(torch.nn.Module):
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         embedding_num, embedding_dim = 119547, 768  # size of multilingual BERT vocabulary
         self.embedding = torch.nn.Embedding(embedding_num, embedding_dim)
-
-    def init_embeddings(self):
-        """
-        This function can be used to pre-initialize the embeddings using
-        for example BERT embeddings.
-
-        We freeze the embeddings used here so that we can generalize the vectorization
-        for many different documents and tasks. this way we can generate the vectorizations
-        once and then store them in a database and reuse them for all kinds of different tasks.
-
-        """
-        model = AutoModel.from_pretrained(self.model_name)
-
-        self.embedding = torch.nn.Embedding.from_pretrained(
-            model.embeddings.word_embeddings.weight,
-            freeze=True, padding_idx=None, max_norm=None,
-            norm_type=2.0, scale_grad_by_freq=False, sparse=False
-        )
-        return self
 
     def forward(self, strlist):
         # TODO: we might be able to us "diskcache" here in order to cache some layers!!!
@@ -268,7 +248,6 @@ class lightning_training_procedures(pytorch_lightning.LightningModule):
 
 
 class txt_block_classifier(
-    nlp_functions,
     lightning_training_procedures,
     classifier_functions,
     pytorch_lightning.LightningModule
@@ -291,7 +270,8 @@ class txt_block_classifier(
             learning_rate=0.01,
             fft_pooling=True,
             meanmax_pooling=True,
-            hp_metric=None
+            hp_metric=None,
+            use_bert_embeddings=False
     ):
         super(txt_block_classifier, self).__init__()
 
@@ -312,13 +292,18 @@ class txt_block_classifier(
         #       for hyperparameter optimization
         # TODO: checkout if it might be a better idea to use transformers for this task?
         # TODO: finetune a hugginface transformer for this task?
-        # TODO: use some hyperparameter optimization for all the stuff below...
-        # self.cv1 = torch.nn.Conv1d(
-        #    in_channels=1, out_channels=10,
-        #    kernel_size=768, stride=1) # reduce size of word vectors
-        # TODO: the following is only needed if we use pretrained embeddings
-        # self.l1 = torch.nn.Linear(in_features=embedding_dim, out_features=reduced_embeddings_dim)
-        self.embedding = torch.nn.Embedding(embedding_num, self.hparams.embeddings_dim)
+        if self.hparams.use_bert_embeddings:
+            self.embedding = init_embeddings('bert-base-multilingual-cased')
+            # reduce vector size
+            # self.l1 = torch.nn.Linear(in_features=embedding_dim, out_features=embeddings_dim)
+            self.cv0 = torch.nn.Conv2d(
+                in_channels=1, out_channels=self.hparams.embeddings_dim,
+                kernel_size=(1, self.embedding.embedding_dim),  # reduce size of word vectors
+                stride=1
+            )
+        else:
+            self.embedding = torch.nn.Embedding(embedding_num, self.hparams.embeddings_dim)
+
         self.dropout1 = torch.nn.Dropout(p=self.hparams.dropout1)
         self.cv1 = torch.nn.Conv2d(
             in_channels=1,  # only one layer of embeddings
@@ -408,6 +393,8 @@ class txt_block_classifier(
         # x = torch.Tensor(ids.shape[0], ids.shape[1])
         # ids = torch.tensor(ids)
         x = self.embedding(ids)
+        if self.hparams.use_bert_embeddings:
+            x = self.cv0(x.unsqueeze(1)).squeeze(3).transpose(1,2)  # reduce size of embeddings
         x = self.dropout1(x)
         # TODO: implement more fft directly after initialization
         # x_fft = torch.fft.rfft2(x, s=self.fft_pool_size).real
