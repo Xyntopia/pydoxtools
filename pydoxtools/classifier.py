@@ -30,22 +30,23 @@ memory = settings.get_memory_cache()
 tqdm.tqdm.pandas()
 
 
-def init_embeddings(model_name: str = None):
+def init_embeddings(model_name: str = None, dimension=None):
     """
     This function can be used to pre-initialize the embeddings using
     for example BERT embeddings.
 
     We freeze the embeddings used here so that we can generalize the vectorization
-    for many different documents and tasks. this way we can generate the vectorizations
+    for many documents and tasks. this way we can generate the vectorizations
     once and then store them in a database and reuse them for all kinds of different tasks.
 
     """
+    # TODO: add umap embeddings conversion "on-the-fly"
     if model_name:
         model = AutoModel.from_pretrained(model_name)
         weights = model.embeddings.word_embeddings.weight
     else:
         # load pre-initialized embeddings
-        weights = torch.tensor(pd.read_parquet(settings.TRAINING_DATA_DIR / "red_bert_emb_64.parquet"))
+        weights = torch.tensor(pd.read_parquet(settings.TRAINING_DATA_DIR / "red_bert_emb_64.parquet").to_numpy())
 
     embedding = torch.nn.Embedding.from_pretrained(
         weights,
@@ -276,7 +277,7 @@ class txt_block_classifier(
             fft_pooling=True,
             meanmax_pooling=True,
             hp_metric=None,
-            use_bert_embeddings=False
+            embeddings_mode=None
     ):
         super(txt_block_classifier, self).__init__()
 
@@ -297,8 +298,8 @@ class txt_block_classifier(
         #       for hyperparameter optimization
         # TODO: checkout if it might be a better idea to use transformers for this task?
         # TODO: finetune a hugginface transformer for this task?
-        if self.hparams.use_bert_embeddings:
-            self.embedding = init_embeddings()
+        if self.hparams.embeddings_mode == "bert":
+            self.embedding = init_embeddings(model_name="bert-base-multilingual-cased")
             # reduce vector size
             # self.l1 = torch.nn.Linear(in_features=embedding_dim, out_features=embeddings_dim)
             self.cv0 = torch.nn.Conv2d(
@@ -306,6 +307,8 @@ class txt_block_classifier(
                 kernel_size=(1, self.embedding.embedding_dim),  # reduce size of word vectors
                 stride=1
             )
+        elif self.hparams.embeddings_mode == "pre_initialized":
+            self.embedding = init_embeddings(dimension=self.hparams.embeddings_dim)
         else:
             self.embedding = torch.nn.Embedding(embedding_num, self.hparams.embeddings_dim)
 
@@ -398,7 +401,7 @@ class txt_block_classifier(
         # x = torch.Tensor(ids.shape[0], ids.shape[1])
         # ids = torch.tensor(ids)
         x = self.embedding(ids)
-        if self.hparams.use_bert_embeddings:
+        if self.hparams.embeddings_mode == "bert":
             x = self.cv0(x.unsqueeze(1)).squeeze(3).transpose(1, 2)  # reduce size of embeddings
         x = self.dropout1(x)
         # TODO: implement more fft directly after initialization
@@ -410,9 +413,9 @@ class txt_block_classifier(
         if self.hparams.cv_layers > 1:
             x = self.cv2(x.unsqueeze(1)).squeeze(2)
         # TODO: look at the text in "different resolution" by applying multiple conv2d using
-        #       different sequence lengths
+        #       different sequence lengths/strides
         # TODO: does it make sense to introduce another feature layer to extract even more complexity?
-        #       do some hyperparameter reaserchon this...
+        #       do some hyperparameter reaserch on this...
         # TODO: specify pooling method as a hypeparameter as well...
         # max:  takes the max of every feature vector (meaning the max value for
         # every individual feature for the entire text). hats left over are 1 value for each feature

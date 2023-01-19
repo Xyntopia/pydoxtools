@@ -393,7 +393,7 @@ if optimize:
         study.optimize(train_model, n_jobs=1, n_trials=1000)
 else:
     params = optuna.trial.FixedTrial(dict(
-        use_bert_embeddings=True,
+        embeddings_mode="pre_initialized",
         embeddings_dim=64,
         # embeddings vector size (standard BERT has a vector size of 768 )
         token_seq_length1=10,
