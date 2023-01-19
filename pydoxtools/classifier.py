@@ -30,7 +30,7 @@ memory = settings.get_memory_cache()
 tqdm.tqdm.pandas()
 
 
-def init_embeddings(model_name: str):
+def init_embeddings(model_name: str = None):
     """
     This function can be used to pre-initialize the embeddings using
     for example BERT embeddings.
@@ -40,11 +40,16 @@ def init_embeddings(model_name: str):
     once and then store them in a database and reuse them for all kinds of different tasks.
 
     """
-    model = AutoModel.from_pretrained(model_name)
+    if model_name:
+        model = AutoModel.from_pretrained(model_name)
+        weights = model.embeddings.word_embeddings.weight
+    else:
+        # load pre-initialized embeddings
+        weights = torch.tensor(pd.read_parquet(settings.TRAINING_DATA_DIR / "red_bert_emb_64.parquet"))
 
     embedding = torch.nn.Embedding.from_pretrained(
-        model.embeddings.word_embeddings.weight,
-        freeze=True, padding_idx=None, max_norm=None,
+        weights,
+        freeze=False, padding_idx=None, max_norm=None,
         norm_type=2.0, scale_grad_by_freq=False, sparse=False
     )
     return embedding
@@ -293,7 +298,7 @@ class txt_block_classifier(
         # TODO: checkout if it might be a better idea to use transformers for this task?
         # TODO: finetune a hugginface transformer for this task?
         if self.hparams.use_bert_embeddings:
-            self.embedding = init_embeddings('bert-base-multilingual-cased')
+            self.embedding = init_embeddings()
             # reduce vector size
             # self.l1 = torch.nn.Linear(in_features=embedding_dim, out_features=embeddings_dim)
             self.cv0 = torch.nn.Conv2d(
@@ -394,7 +399,7 @@ class txt_block_classifier(
         # ids = torch.tensor(ids)
         x = self.embedding(ids)
         if self.hparams.use_bert_embeddings:
-            x = self.cv0(x.unsqueeze(1)).squeeze(3).transpose(1,2)  # reduce size of embeddings
+            x = self.cv0(x.unsqueeze(1)).squeeze(3).transpose(1, 2)  # reduce size of embeddings
         x = self.dropout1(x)
         # TODO: implement more fft directly after initialization
         # x_fft = torch.fft.rfft2(x, s=self.fft_pool_size).real
