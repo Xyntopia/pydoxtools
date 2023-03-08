@@ -13,6 +13,7 @@ import typing
 import urllib
 from typing import Tuple, List
 
+import numpy as np
 import pandas as pd
 import pytorch_lightning
 import sklearn
@@ -253,6 +254,25 @@ class lightning_training_procedures(pytorch_lightning.LightningModule):
         return optimizer
 
 
+def get_topk_ngrams(txt: str, k: int = 5, ngram_size: int = 2):
+    """
+    generate top k frequency ngrams for a string
+
+    This can help in identifying the structure of a text. For example the top frequency ngrams
+    of a table will be very high count while in a "normal" text they will be very low. Random
+    letters will be the lowest.
+    """
+    txt = txt.lower()
+    ngrams = list(zip(*[txt[i:] for i in range(ngram_size)]))
+    unique, counts = np.unique(ngrams, return_counts=True, axis=0)  # count ngrams
+    # get top k elements. High numbers should indicate high repetitiveness
+    ind = np.argpartition(counts, -min(counts.shape[0], k))[-k:]
+    topk = counts[ind]
+    topk = np.pad(topk, (0, k - len(topk)), 'constant', constant_values=0)
+    topk = np.sort(topk)
+    return topk
+
+
 class txt_block_classifier(
     lightning_training_procedures,
     classifier_functions,
@@ -275,6 +295,8 @@ class txt_block_classifier(
             fft_pool_size=20,  # precision of fft for spectral pooling at the end
             learning_rate=0.01,
             fft_pooling=True,
+            ngram_size=2,  # size of ngrams to calculate for features
+            topk_ngrams=5,  # number of top frequency ngrams to include in metadata
             meanmax_pooling=True,
             hp_metric=None,
             embeddings_mode=None
@@ -298,72 +320,86 @@ class txt_block_classifier(
         #       for hyperparameter optimization
         # TODO: checkout if it might be a better idea to use transformers for this task?
         # TODO: finetune a hugginface transformer for this task?
-        if self.hparams.embeddings_mode == "bert":
-            self.embedding = init_embeddings(model_name="bert-base-multilingual-cased")
-            # reduce vector size
-            # self.l1 = torch.nn.Linear(in_features=embedding_dim, out_features=embeddings_dim)
-            self.cv0 = torch.nn.Conv2d(
-                in_channels=1, out_channels=self.hparams.embeddings_dim,
-                kernel_size=(1, self.embedding.embedding_dim),  # reduce size of word vectors
-                stride=1
-            )
-        elif self.hparams.embeddings_mode == "pre_initialized":
-            self.embedding = init_embeddings(dimension=self.hparams.embeddings_dim)
-        else:
-            self.embedding = torch.nn.Embedding(embedding_num, self.hparams.embeddings_dim)
+        if embeddings_dim:
+            if self.hparams.embeddings_mode == "bert":
+                self.embedding = init_embeddings(model_name="bert-base-multilingual-cased")
+                # reduce vector size
+                # self.l1 = torch.nn.Linear(in_features=embedding_dim, out_features=embeddings_dim)
+                self.cv0 = torch.nn.Conv2d(
+                    in_channels=1, out_channels=self.hparams.embeddings_dim,
+                    kernel_size=(1, self.embedding.embedding_dim),  # reduce size of word vectors
+                    stride=1
+                )
+            elif self.hparams.embeddings_mode == "pre_initialized":
+                self.embedding = init_embeddings(dimension=self.hparams.embeddings_dim)
+            elif self.hparams.embeddings_mode == "fresh":
+                self.embedding = torch.nn.Embedding(embedding_num, self.hparams.embeddings_dim)
 
-        self.dropout1 = torch.nn.Dropout(p=self.hparams.dropout1)
-        self.cv1 = torch.nn.Conv2d(
-            in_channels=1,  # only one layer of embeddings
-            out_channels=self.hparams.seq_features1,  # num of encoded features/word
-            kernel_size=(
-                self.hparams.token_seq_length1,
-                self.hparams.embeddings_dim
-                # we want to put all features of the embedded word vector through the filter
-            ),
-            # the second dimension of stride has no effect, as our filter has the same size
-            # as the vector anyways and we can leave it at 1
-            # we are dividing the stride by two to make sure our scan filters overlap by 50%
-            stride=(self.hparams.token_seq_length1 // 2, 1)
-        )
-        self.dropout2 = torch.nn.Dropout(p=self.hparams.dropout2)
-        # TODO: we might no need to take ALL features into acount
-        # every single time so maybe make the kernel_size smaller than seq_features1
-        if self.hparams.cv_layers > 1:
-            self.cv2 = torch.nn.Conv2d(
+            self.dropout1 = torch.nn.Dropout(p=self.hparams.dropout1)
+            self.cv1 = torch.nn.Conv2d(
                 in_channels=1,  # only one layer of embeddings
-                out_channels=self.hparams.seq_features2,  # num of encoded features/word
+                out_channels=self.hparams.seq_features1,  # num of encoded features/word
                 kernel_size=(
-                    # we have to switch around features and seq length, as cv1 puts
-                    # the kernel features before the new sequence length. This is, because
-                    # we are treating embeddings vector dimension as number of "features"
-                    # as input for cv1. but the number of features for the vectors are in the 3d dimension whereas
-                    # in cv we need have them as the second dimension due to their variable length.
-                    # so cv1 switches the dimensions and onwards of cv2 we need to switch features and seq_length
-                    # in comparison to cv1.
-                    self.hparams.seq_features1,
-                    self.hparams.token_seq_length2
+                    self.hparams.token_seq_length1,
+                    self.hparams.embeddings_dim
+                    # we want to put all features of the embedded word vector through the filter
                 ),
-                # this time we have to switch around the stride as we now have the results
-                # from the previous layer in the other dimension
-                # ultimately it doesn't matter which way we organize the features s we are
-                # moving 2D-filters over them anyways...
+                # the second dimension of stride has no effect, as our filter has the same size
+                # as the vector anyways and we can leave it at 1
                 # we are dividing the stride by two to make sure our scan filters overlap by 50%
-                # TODO: use stride length as hyperparameter...
-                stride=(1, self.hparams.token_seq_length2 // 2)
+                stride=(self.hparams.token_seq_length1 // 2, 1)
             )
+            self.dropout2 = torch.nn.Dropout(p=self.hparams.dropout2)
+            # TODO: we might no need to take ALL features into acount
+            # every single time so maybe make the kernel_size smaller than seq_features1
+            if self.hparams.cv_layers > 1:
+                self.cv2 = torch.nn.Conv2d(
+                    in_channels=1,  # only one layer of embeddings
+                    out_channels=self.hparams.seq_features2,  # num of encoded features/word
+                    kernel_size=(
+                        # we have to switch around features and seq length, as cv1 puts
+                        # the kernel features before the new sequence length. This is, because
+                        # we are treating embeddings vector dimension as number of "features"
+                        # as input for cv1. but the number of features for the vectors are in the 3d dimension whereas
+                        # in cv we need have them as the second dimension due to their variable length.
+                        # so cv1 switches the dimensions and onwards of cv2 we need to switch features and seq_length
+                        # in comparison to cv1.
+                        self.hparams.seq_features1,
+                        self.hparams.token_seq_length2
+                    ),
+                    # this time we have to switch around the stride as we now have the results
+                    # from the previous layer in the other dimension
+                    # ultimately it doesn't matter which way we organize the features s we are
+                    # moving 2D-filters over them anyways...
+                    # we are dividing the stride by two to make sure our scan filters overlap by 50%
+                    # TODO: use stride length as hyperparameter...
+                    stride=(1, self.hparams.token_seq_length2 // 2)
+                )
+
         # afterwards we do a max pooling and feed the input into a linear layer
         # we add addtional features here...
         # right now: 1: length of string + number of lines + number of words (defined by spaces)
-        meta_features = 1 + 1 + 1
+        #                   + number of digits + topk_ngrams
+        # TODO: add number of seperators, number of letters, number of digit-words
+        meta_features = 1 + 1 + 1 + 1 + self.hparams.topk_ngrams
         final_cv_feature_num = self.hparams.seq_features2 if self.hparams.cv_layers > 1 else self.hparams.seq_features1
         self.fft_pool_size = (final_cv_feature_num, self.hparams.fft_pool_size)
         fft_out = (self.hparams.fft_pool_size // 2 + 1) if self.hparams.fft_pooling else 0
         pooling_out = 2 if self.hparams.meanmax_pooling else 0
-        self.linear = torch.nn.Linear(
-            in_features=final_cv_feature_num * (fft_out + pooling_out) + meta_features,
-            out_features=num_classes
-        )
+        if embeddings_dim:
+            linear1_features = final_cv_feature_num * (fft_out + pooling_out) + meta_features
+        else:
+            linear1_features = meta_features
+
+        linear_dims = [100, 50, num_classes]
+        self.linear = torch.nn.ModuleList()
+        in_dem = linear1_features
+        for out_dim in linear_dims:
+            self.linear.append(torch.nn.Linear(
+                in_features=in_dem,
+                out_features=out_dim
+            ))
+            in_dem = out_dim
 
         # number of features can roughly be calculated ike this:
         # param_num = embedding_num * embeddings_dim
@@ -388,30 +424,42 @@ class txt_block_classifier(
         # TODO: we might be able to us "diskcache" here in order to cache some layers!!!
         #       for example the tokenized ids
         # count number of letters, words and lines here...
-        meta = torch.tensor([(len(s), s.count("\n"), s.count(" "))
-                             for s in str_list]).unsqueeze(1).to(device=self.device)
-        # TODO: add optional str.strip here... (deactivated during training to improve speed)
-        ids = self.tokenizer(
-            list(str_list),  # convert trlist into an actual list (e.g. if it is a pandas dataframe)
-            padding='max_length', truncation=True,
-            max_length=500,  # approx. half an A4 page of text
-            return_tensors='pt',
-            return_length=True  # use this as another feature
-        ).input_ids.to(device=self.device)
-        # x = torch.Tensor(ids.shape[0], ids.shape[1])
-        # ids = torch.tensor(ids)
-        x = self.embedding(ids)
-        if self.hparams.embeddings_mode == "bert":
-            x = self.cv0(x.unsqueeze(1)).squeeze(3).transpose(1, 2)  # reduce size of embeddings
-        x = self.dropout1(x)
-        # TODO: implement more fft directly after initialization
-        # x_fft = torch.fft.rfft2(x, s=self.fft_pool_size).real
-        # x = self.l1(x) # if we use "frozen" embeddings we want to transform them into a more usable format...
-        # "unsqueeze" to add the channel dimensions and then "squeeze" out the channel at the end...
-        x = self.cv1(x.unsqueeze(1)).squeeze(3)
-        x = self.dropout2(x)
-        if self.hparams.cv_layers > 1:
-            x = self.cv2(x.unsqueeze(1)).squeeze(2)
+        str_lens = torch.tensor([len(s) for s in str_list]).unsqueeze(1)
+        counts = torch.tensor([(
+            s.count("\n"), s.count(" "),
+            sum(c.isdigit() for c in s),
+            # create n-grams and count their frequency. Add frequency of top-5 n-grams to
+            # metadata. The hope is that we can recognize repetitiveness more easily this way.
+            *get_topk_ngrams(s, k=self.hparams.topk_ngrams, ngram_size=self.hparams.ngram_size)
+        ) for s in str_list], dtype=torch.float32).unsqueeze(1).to(device=self.device).squeeze()
+        # normalize meta data on string length
+        counts_norm = counts / (str_lens + 0.0001)  # adding 0.0001 to prevent div errors
+        # len(s) / 2000,  # normalize size with 2000 (approx 1 pages = 1.0)
+        meta = torch.cat([counts_norm, str_lens/2000], 1)
+
+        if self.hparams.embeddings_dim:
+            # TODO: add optional str.strip here... (deactivated during training to improve speed)
+            ids = self.tokenizer(
+                list(str_list),  # convert trlist into an actual list (e.g. if it is a pandas dataframe)
+                padding='max_length', truncation=True,
+                max_length=500,  # approx. half an A4 page of text
+                return_tensors='pt',
+                return_length=True  # use this as another feature
+            ).input_ids.to(device=self.device)
+            # x = torch.Tensor(ids.shape[0], ids.shape[1])
+            # ids = torch.tensor(ids)
+            x = self.embedding(ids)
+            if self.hparams.embeddings_mode == "bert":
+                x = self.cv0(x.unsqueeze(1)).squeeze(3).transpose(1, 2)  # reduce size of embeddings
+            x = self.dropout1(x)
+            # TODO: implement more fft directly after initialization
+            # x_fft = torch.fft.rfft2(x, s=self.fft_pool_size).real
+            # x = self.l1(x) # if we use "frozen" embeddings we want to transform them into a more usable format...
+            # "unsqueeze" to add the channel dimensions and then "squeeze" out the channel at the end...
+            x = self.cv1(x.unsqueeze(1)).squeeze(3)
+            x = self.dropout2(x)
+            if self.hparams.cv_layers > 1:
+                x = self.cv2(x.unsqueeze(1)).squeeze(2)
         # TODO: look at the text in "different resolution" by applying multiple conv2d using
         #       different sequence lengths/strides
         # TODO: does it make sense to introduce another feature layer to extract even more complexity?
@@ -419,18 +467,21 @@ class txt_block_classifier(
         # TODO: specify pooling method as a hypeparameter as well...
         # max:  takes the max of every feature vector (meaning the max value for
         # every individual feature for the entire text). hats left over are 1 value for each feature
-        poolings = [meta.flatten(1)]
-        if self.hparams.meanmax_pooling:
-            poolings.append(torch.max(x, dim=2).values)
-            poolings.append(torch.mean(x, dim=2))
-        if self.hparams.fft_pooling:
-            x_fft = torch.fft.rfft2(x, s=self.fft_pool_size).real
-            poolings.append(x_fft.flatten(1))
+        poolings = [meta]
+        if self.hparams.embeddings_dim:
+            if self.hparams.meanmax_pooling:
+                poolings.append(torch.max(x, dim=2).values)
+                poolings.append(torch.mean(x, dim=2))
+            if self.hparams.fft_pooling:
+                x_fft = torch.fft.rfft2(x, s=self.fft_pool_size).real
+                poolings.append(x_fft.flatten(1))
 
         x = torch.cat(poolings, 1)
         # combine features
         # finally, interprete the features
-        x = self.linear(x.flatten(1))
+        x = x.flatten(1)
+        for linear in self.linear:
+            x = linear(x)
         return x
 
 

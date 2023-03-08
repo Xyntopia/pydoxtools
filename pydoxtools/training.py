@@ -930,7 +930,7 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
         if self._random_separation_prob:
             if self.rand.random() < self._random_separation_prob:
                 x = x.replace("\n", self.rand.choice(("\n ", " \n", " \n ")))
-            # TODO: replace separation chars with somethin different!
+            # TODO: replace separation chars with something different!
 
         return x, torch.tensor(y)
 

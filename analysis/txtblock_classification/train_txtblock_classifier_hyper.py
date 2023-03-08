@@ -13,6 +13,8 @@
 #     language: python
 #     name: python3
 # ---
+
+# %%
 import copy
 import datetime
 import logging
@@ -29,15 +31,17 @@ import warnings
 # run with:
 # CUDA_VISIBLE_DEVICES=0 python /project/analysis/txtblock_classification/train_txtblock_classifier_hyper.py 1
 
-study_name = "single_train4"
+study_name = "only_programmed_features1"
 optimize = False
 tune_learning_rate = False
 # if we use a "start_model" we will not have hyperparameters!!
 # also: if some model in tensorboard are using hyperparameters, while
 #       others don't, we will not have hyperparameters displayed!!
-start_model = ""  # text_blockclassifier_x0.ckpt"
+start_model = ""  # "" as "empty" to train from scratch, text_blockclassifier_x0.ckpt"
+use_checkpoint = False
 max_mb = 800
-fast_dev_run = True
+fast_dev_run = False
+num_devices = 1
 
 epoch_config = dict(
     steps_per_epoch=100,
@@ -84,29 +88,6 @@ memory = settings.get_memory_cache()
 
 nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.cudnn.version()
 
-# %% [markdown] tags=[]
-# test the model once
-
-# %%
-if False:
-    _, _, m, _ = training.prepare_textblock_training()
-    res = m.predict(["""ex king ltd
-    Springfield Gardens
-    Queens
-    N. Y 11413
-    www.something.com
-    """
-                     ])
-    print(res)
-
-# %% [markdown]
-# TODO: its probabybl a ood idea to use some hyperparemeter optimization in order to find out what is the best method here...
-#
-# we would probably need some manually labeled addresses from our dataset for this...
-
-# %% [markdown]
-# start training
-
 # %% tags=[]
 # url of nextcloud instance to point to
 hostname = 'https://sync.rosemesh.net'
@@ -137,6 +118,7 @@ with open(settings.MODEL_DIR / f"ts_{ts}.txt", "w") as f:
 # wu.rclone_single_sync_models(method="bisync", hostname=hostname, token=token, syncpath=syncpath)
 # # copy our start model to the new training process
 if start_model:
+    print(f"copying startmodel: {start_model} to local directory")
     wu.rclone_single_sync_models(
         method="copyto", hostname=hostname, token=token,
         syncpath=syncpath, file_name=start_model, reversed=True)
@@ -200,10 +182,10 @@ def train_model(trial: optuna.trial.BaseTrial, tune_learning_rate=False):
         callbacks += [pytorch_lightning.callbacks.ModelCheckpoint(
             monitor='address.f1-score',  # or 'accuracy' or 'f1'
             mode='max', save_top_k=3,
-            save_weights_only=True,
+            save_weights_only=False,  # as we 're only saving the top-3 this should work...
             dirpath=settings.MODEL_STORE("text_block").parent,
             auto_insert_metric_name=False,
-            # filename="text_blockclassifier-{epoch:02d}-{address.f1-score:.2f}.ckpt"
+            filename=f"{study_name}" + "-{epoch:02d}-{address.f1-score:.2f}.ckpt"
         )]
     data_config = dict(
         generators={
@@ -228,7 +210,7 @@ def train_model(trial: optuna.trial.BaseTrial, tune_learning_rate=False):
 
     model_config = copy.copy(trial._params)
     model_config.update(dict(
-        learning_rate=0.0005,
+        learning_rate=0.0001,  # 0.00001/8, 0.0005/1
         # embeddings vector size (standard BERT has a vector size of 768 )
         embeddings_dim=trial.suggest_int("embeddings_dim", 1, 128),
         # what length of a word do we assume in terms of tokens?
@@ -249,9 +231,10 @@ def train_model(trial: optuna.trial.BaseTrial, tune_learning_rate=False):
     ))
 
     if start_model:
-        m = classifier.txt_block_classifier.load_from_checkpoint(
-            settings.MODEL_DIR / start_model)
+        start_model_path = settings.MODEL_DIR / start_model
+        m = classifier.txt_block_classifier.load_from_checkpoint(start_model_path)
     else:
+        start_model_path = None
         m = None
 
     if isinstance(trial, optuna.trial.FixedTrial):
@@ -264,13 +247,14 @@ def train_model(trial: optuna.trial.BaseTrial, tune_learning_rate=False):
         model_name=model_name,
         num_workers=4,
         data_config=data_config, model_config=model_config,
+        devices=1 if optimize else num_devices,  # use simple integer to specify number of devices...
         # strategy="ddp_find_unused_parameters_false",
         # strategy="ddp",
         enable_checkpointing=False if optimize else True,
         strategy=None,  # in case of running jupyter notebook
         callbacks=callbacks,
         batch_size=2 ** 12,
-        accelerator="auto", devices=1,  # use simple integer to specify number of devices...
+        accelerator="auto",
         **epoch_config,
     )
 
@@ -308,8 +292,8 @@ def train_model(trial: optuna.trial.BaseTrial, tune_learning_rate=False):
                 train_loader=train_loader, validation_loader=validation_loader,
                 model=model, trainer=trainer,
                 log_hparams=trial.params,
-                old_model=m,
-                save_model=False if optimize else True
+                save_model=False if optimize else True,
+                old_model=m, checkpoint_path=start_model_path if use_checkpoint else None
             )
             metric = trainer.callback_metrics['address.f1-score']  # maximize
         except Exception as ex:
@@ -393,8 +377,8 @@ if optimize:
         study.optimize(train_model, n_jobs=1, n_trials=1000)
 else:
     params = optuna.trial.FixedTrial(dict(
-        embeddings_mode="pre_initialized",
-        embeddings_dim=64,
+        embeddings_mode="fresh",
+        embeddings_dim=0,  # 0 to turn off embeddings
         # embeddings vector size (standard BERT has a vector size of 768 )
         token_seq_length1=10,
         # what length of a word do we assume in terms of tokens?
@@ -406,8 +390,8 @@ else:
         # how many tokens in a row do we want to analyze?
         seq_features2=150,  # how many filters should we run for the analysis?
         dropout2=0.5,  # second layer dropout
-        meanmax_pooling=0,  # whether to use meanmax_pooling at the end
-        fft_pooling=1,  # whether to use fft_pooling at the end
+        # meanmax_pooling=1,  # whether to use meanmax_pooling at the end
+        # fft_pooling=1,  # whether to use fft_pooling at the end
         fft_pool_size=200  # size of the fft_pooling method
     ))
 
