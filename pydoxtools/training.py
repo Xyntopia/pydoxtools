@@ -203,8 +203,8 @@ class BusinessAddressGenerator(GeneratorMixin):
         self._f: "faker.Faker" | None = None
 
     @cached_property
-    def sep1(self):
-        return rand_chars({"\n": 24, ", ": 12, "; ": 6, " | ": 3, "|": 3, "·": 1, " · ": 1})
+    def random_sep_func(self):
+        return rand_chars({"\n": 48, ", ": 12, "; ": 6, " | ": 3, "|": 3, "·": 1, " · ": 1})
 
     @cached_property
     def _rand(self):
@@ -246,7 +246,19 @@ class BusinessAddressGenerator(GeneratorMixin):
             faker.Faker.seed(seed)
             self._rand.seed(seed)
         rc, r = self._rand.choice, self._rand.random
-        self._f = self._fakers[rc(self._available_locales)]
+        # create a bias towards US, GB and DE addresses, as they represent the
+        # majority in our dataset
+        rv = r()
+        if rv < 0.3:
+            flocal = rc(self._available_locales)
+        elif rv < 0.5:
+            flocal = "de_DE"
+        elif rv < 0.7:
+            flocal = "en_GB"
+        else:
+            flocal = "en_US"
+
+        self._f = self._fakers[flocal]
 
     def rand_word(self):
         mean_word_len = 4.5  # ~500 words is one page, 4.5 is the average word length in english, min len+1
@@ -360,7 +372,7 @@ class BusinessAddressGenerator(GeneratorMixin):
     def single(self, seed) -> str:
         self.reset_faker(seed)
         rc, r = self._rand.choice, self._rand.random
-        line_separator = self.sep1()
+        line_separator = self.random_sep_func()  # calling our cached random seperator_generation function
         # next level separators
         s1 = line_separator.strip(" ")
         s2_choices = [s for s in (",", "; ", ";", ", ", "|", " | ", "·", " · ") if (s1 not in s)]
@@ -426,17 +438,24 @@ class BusinessAddressGenerator(GeneratorMixin):
             (0.2, ("tel", "phone", "phone number"), lambda: getattr(self._f, "phone_number", lambda: " ")()),
             (0.1, ("fax", "fax number"), lambda: getattr(self._f, "phone_number", lambda: " ")()),
             (0.2, ("www", "web", "homepage", "webpage"), lambda: self.generate_url(company, self._f.tld())),
-            (0.1, ("email", ""), lambda: self._f.email()),
+            (0.1, ("email", ""), lambda: self._f.company_email()),
             (0.05, ("bank details",), lambda: " ".join(self.rand_word() for i in range(self._rand.randint(1, 5))))
         )
 
-        # select random selection of address parts
+        # generate 50% "perfect" addresses
+        # or a random combination
         parts = set()
-        while len(parts) < 3:  # make sure addresses consist of a min-length
-            for num, (p, _, _) in enumerate(all_parts):
-                if num not in parts:
-                    if r() < p:
-                        parts.add(num)
+        if r() < 0.5:
+            # perfect address consists of:
+            parts.add(3)  # street address
+            parts.add(5)  # city, postcode  etc..
+        else:
+            # select random selection of address parts
+            while len(parts) < 3:  # make sure addresses consist of a min-length
+                for num, (p, _, _) in enumerate(all_parts):
+                    if num not in parts:
+                        if r() < p:
+                            parts.add(num)
 
         # render the actual address
         render_parts = []
@@ -1095,7 +1114,8 @@ def train_text_block_classifier(
         trainer,
         log_hparams: dict = None,
         old_model: txt_block_classifier = None,
-        save_model=False
+        save_model=False,
+        checkpoint_path=None
 ):
     # only importing this here as we don#t want to use this in "inference" mode
 
@@ -1105,7 +1125,10 @@ def train_text_block_classifier(
     # TODO: ho can we set hp_metric to 0 at the start?
     # if we use an already initialized "start_model" we can not log hyperparameters!!
     trainer.logger.log_hyperparams(log_hparams)  # , metrics=dict(hp_metric=0))
-    trainer.fit(model, train_loader, validation_loader)
+    trainer.fit(
+        model, train_loader, validation_loader,
+        ckpt_path=checkpoint_path
+    )
     # trainer.logger.log_hyperparams(log_hparams, metrics=dict(
     #    model.metrics
     # ))
