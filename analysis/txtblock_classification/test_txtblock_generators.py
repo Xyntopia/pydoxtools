@@ -13,7 +13,7 @@
 #     language: python
 #     name: python3
 # ---
-
+import pydoxtools.random_data_generators
 # %% [markdown] tags=[]
 # # Test augmentation and mixing of textblocks
 #
@@ -51,11 +51,11 @@ memory = settings.get_memory_cache()
 nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.cudnn.version()
 
 # %%
-bg = training.TextBlockGenerator(
+bg = pydoxtools.random_data_generators.TextBlockGenerator(
     generators={
-        "address": ((100, training.BusinessAddressGenerator(
+        "address": ((100, pydoxtools.random_data_generators.BusinessAddressGenerator(
             rand_str_perc=0.3, osm_perc=0.5, fieldname_prob=0.05)),),
-        "unknown": ((80, training.RandomTextBlockGenerator()), (20, training.RandomListGenerator()))
+        "unknown": ((80, pydoxtools.random_data_generators.RandomTextBlockGenerator()), (20, pydoxtools.random_data_generators.RandomListGenerator()))
     },
     random_char_prob=0.0025, random_word_prob=0.1, random_upper_prob=0.2, random_line_prob=0.1,
     random_separation_prob=0.2,

@@ -13,7 +13,7 @@
 #     language: python
 #     name: python3
 # ---
-
+import pydoxtools.random_data_generators
 # %% tags=[]
 # %load_ext autoreload
 # %autoreload 2
@@ -70,7 +70,7 @@ if False: #save as binary text file
         f.write(merged_txt.encode('utf-8'))
 
 # %%
-tg = training.RandomTextBlockGenerator()
+tg = pydoxtools.random_data_generators.RandomTextBlockGenerator()
 
 # %%
 #txt = tg([random.random() for i in range(10)])

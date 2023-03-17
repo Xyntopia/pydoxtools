@@ -30,4 +30,9 @@ can be as simple as:
 
     sudo apt install tesseract-ocr
 
+## visualize dependencies
+
+pip install pydeps
+sudo apt install graphviz
+
 ## License TODO

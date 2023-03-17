@@ -25,13 +25,15 @@ import traceback
 import typing
 import warnings
 
+import pydoxtools.random_data_generators
+
 # %%
 # study_params
 # select GPU device: CUDA_VISIBLE_DEVICES=1,2
 # run with:
 # CUDA_VISIBLE_DEVICES=0 python /project/analysis/txtblock_classification/train_txtblock_classifier_hyper.py 1
 
-study_name = "only_programmed_features1"
+study_name = "find_small_baseline1"
 optimize = False
 tune_learning_rate = False
 # if we use a "start_model" we will not have hyperparameters!!
@@ -190,12 +192,12 @@ def train_model(trial: optuna.trial.BaseTrial, tune_learning_rate=False):
     data_config = dict(
         generators={
             "address": (
-                (100, training.BusinessAddressGenerator(
+                (100, pydoxtools.random_data_generators.BusinessAddressGenerator(
                     rand_str_perc=0.5,  # trial.suggest_float("rand_str_perc", 0.1, 0.4),
                     osm_perc=0.5,
                     fieldname_prob=0.05)),
             ),
-            "unknown": ((50, training.RandomTextBlockGenerator()), (50, training.RandomListGenerator()))
+            "unknown": ((50, pydoxtools.random_data_generators.RandomTextBlockGenerator()), (50, pydoxtools.random_data_generators.RandomListGenerator()))
         },
         cache_size=20000,
         renew_num=2000,
@@ -378,21 +380,21 @@ if optimize:
 else:
     params = optuna.trial.FixedTrial(dict(
         embeddings_mode="fresh",
-        embeddings_dim=0,  # 0 to turn off embeddings
-        # embeddings vector size (standard BERT has a vector size of 768 )
-        token_seq_length1=10,
-        # what length of a word do we assume in terms of tokens?
-        seq_features1=400,
-        # how many filters should we run for the analysis = num of generated features?
+        embeddings_dim=1,  # 0 to turn off embeddings
         dropout1=0.5,  # first layer dropout
         cv_layers=2,  # number of cv layers
-        token_seq_length2=30,
+        # what length of a word do we assume in terms of tokens?
+        token_seq_length1=3,
         # how many tokens in a row do we want to analyze?
-        seq_features2=150,  # how many filters should we run for the analysis?
+        token_seq_length2=10,
+        # embeddings vector size (standard BERT has a vector size of 768 )
+        # how many filters should we run for the analysis = num of generated features?
+        seq_features1=20,
+        seq_features2=100,  # how many filters should we run for the analysis?
         dropout2=0.5,  # second layer dropout
         # meanmax_pooling=1,  # whether to use meanmax_pooling at the end
         # fft_pooling=1,  # whether to use fft_pooling at the end
-        fft_pool_size=200  # size of the fft_pooling method
+        fft_pool_size=3  # size of the fft_pooling method
     ))
 
     if tune_learning_rate:

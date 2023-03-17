@@ -28,6 +28,7 @@ import pytorch_lightning
 import torch
 from IPython.display import display, HTML
 
+import pydoxtools.random_data_generators
 # %% tags=[]
 # %load_ext autoreload
 # %autoreload 2
@@ -134,12 +135,12 @@ additional_callbacks = [
 data_config = dict(
     generators={
         "address": (
-            (100, training.BusinessAddressGenerator(
+            (100, pydoxtools.random_data_generators.BusinessAddressGenerator(
                 rand_str_perc=0.5,  # trial.suggest_float("rand_str_perc", 0.1, 0.4),
                 osm_perc=0.5,
                 fieldname_prob=0.05)),
         ),
-        "unknown": ((50, training.RandomTextBlockGenerator()), (50, training.RandomListGenerator()))
+        "unknown": ((50, pydoxtools.random_data_generators.RandomTextBlockGenerator()), (50, pydoxtools.random_data_generators.RandomListGenerator()))
     },
     cache_size=20000,
     renew_num=2000,

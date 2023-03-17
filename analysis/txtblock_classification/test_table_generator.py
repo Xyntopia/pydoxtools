@@ -13,7 +13,7 @@
 #     language: python
 #     name: python3
 # ---
-
+import pydoxtools.random_data_generators
 # %% [markdown] tags=[]
 # # Test business address generation
 
@@ -59,7 +59,7 @@ memory = settings.get_memory_cache()
 nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.cudnn.version()
 
 # %%
-gen =training.RandomListGenerator()
+gen = pydoxtools.random_data_generators.RandomListGenerator()
 
 # %%
 for i in range(100):

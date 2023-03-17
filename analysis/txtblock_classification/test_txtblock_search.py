@@ -26,6 +26,8 @@
 # %autoreload 2
 # from pydoxtools import nlp_utils
 from pathlib import Path
+
+import pydoxtools.random_data_generators
 from pydoxtools import pdf_utils, classifier, nlp_utils, cluster_utils, training
 from pydoxtools import webdav_utils as wu
 from pydoxtools.settings import settings
@@ -161,6 +163,9 @@ df['proba_address'].hist(bins=20)
 # %%
 df[df.label=="address"].proba_address.hist(bins=20)
 
+# %%
+df[df.label!="address"].proba_address.hist(bins=20)
+
 # %% [markdown]
 # true positives?
 
@@ -177,6 +182,27 @@ len(fp)
 
 # %% tags=[]
 pretty_print(fp)
+
+# %% [markdown]
+# measure model operations
+
+# %%
+# #!pip install thop
+
+# %%
+from thop import profile
+inputs = ["""
+XCAM Limited
+2 Stone Circle Road
+Northampton
+NN3 8RF
+Tel: 44 (0)1604 673700
+Fax: 44 (0)1604 671584
+www.xcam.co.uk
+Email: info@xcam.co.uk
+"""]
+macs, params = profile(model, inputs=inputs)
+macs, params
 
 # %% [markdown]
 # which addresses were not recognized?
@@ -217,7 +243,7 @@ Engematten 14
 Telefon: (069) 2 22 22 02 00
 Telefax: (069) 2 22 22 02 01
 E-Mail: info@de.ﬂuke.nl
-Web: www.ﬂ uke.de
+Web: www.ﬂuke.de
 """,
 """
 Fluke GmbH
@@ -257,6 +283,18 @@ Copyright © 2010, Texas Instruments Incorporated
 """,
 """
 Texas Instruments, Post Office Box 655303, Dallas, Texas 75265
+""",
+"""
+TOPCON Positioning Systems, Inc.
+7400 National Drive
+Livermore
+California
+94550
+USA
+""",
+    """
+2400 Ivy Dr
+Dallas, Texas 75265
 """
 ]), model.classmap_
 
@@ -265,7 +303,9 @@ Texas Instruments, Post Office Box 655303, Dallas, Texas 75265
 
 # %% tags=[]
 fn = df[(df.label=="address") & (df.proba_address < 0.5)]
-pretty_print(fn[["txt","proba_address","label"]])
+fn["proba_address_%"]=fn["proba_address"].round(2)
+pretty_print(fn[["txt","proba_address_%","label"]])
+#pretty_print(fn[["txt","proba_address","label"]].style.format(precision=2))
 
 # %% [markdown]
 # ## testing the generator..
@@ -273,10 +313,11 @@ pretty_print(fn[["txt","proba_address","label"]])
 # which textblocks are problematic in the generator?
 
 # %%
-addgen=training.BusinessAddressGenerator()
+addgen= pydoxtools.random_data_generators.BusinessAddressGenerator()
 addr = [addgen(random.random()) for i in range(10000)]
 dfa=pd.DataFrame(model.predict(addr))
 dfa["txt"]=addr
-dfa[dfa[0]!="address"]
+print(dfa[dfa[0]!="address"].shape)
+pretty_print(dfa[dfa[0]!="address"])
 
 # %%
