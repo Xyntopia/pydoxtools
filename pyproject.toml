@@ -31,7 +31,6 @@ stemming = { optional = true, version = ">=1.0.1" }
 Pint = ">=0.16.1"
 # used to "repair" pdfs
 pikepdf = ">=2.10.0"
-fastparquet = { version = "^0.7.2", optional = true }
 # The CPU-only library has to be downloaded manually...
 # torch = { optional = true, url = "https://download.pytorch.org/whl/cu113/torch-1.10.1%2Bcu113-cp38-cp38-linux_x86_64.whl" }
 # torch = { optional = true, version = "1.10.1" }
@@ -46,7 +45,7 @@ spacy = {version = "^3.2.3", optional = true}
 pandas = "^1.4.1"
 hnswlib = {version = "^0.6.2", optional = true}
 networkx = {version = "^2.8.6", optional = true}
-python-magic = {version = "^0.4.27", optional = true}
+python-magic = {version = "^0.4.27", optional = true} # for fil type identification
 
 [tool.poetry.extras]
 # extraction-transformation-load facilities
@@ -55,20 +54,46 @@ etl = ["goose3", "langdetect", "tldextract", "spacy", "pdfminer.six",
     "quantities", "readability-lxml", "pandas", "beautifulsoup4", "hnswlib",
     "networkx"
 ]
+# TODO: rename & regroups extras (e.g. light, medium average or something like that...)
 inference = ["transformers", "scikit-learn", "tqdm", "torch", "pytorch-lightning", "spacy",
     "beautifulsoup4", "pandas", "urlextract", "hnswlib"]
-training = ["Faker", "fastparquet", "matplotlib", "pdfminer.six", "pandas", "spacy",
-    "scikit-learn", "tqdm", "torch", "pytorch-lightning", "transformers", "hnswlib"]
+
+[tool.poetry.group.colab.dependencies]
+pytest = ">=6.0.1"
+yattag = ">=1.13.2" #for html text coloring
+pigeonXT-jupyter = "^0.6.1" # for labeling purposes...
+odfpy = "^1.4.1"
+openpyxl = "^3.0.9"
+optuna = "^3.0.5"
+Faker = { version = "^10.0.0" }
+jupytext = "^1.13.7"
+# TODO:  move to group
+fastparquet = { version = "^0.7.2" }
+
+# TODO: clean up all these groups try to create a group which has all the "basic"
+#       dependencies such as Faker
 # the pytorch-docker option below should be used in combination with the pytorch/pytorch dockerimage
 # we are leaving out torch nd lightning here because we want the GPU support!  or use the
 # already installed version....
-pytorch-docker = ["Faker", "fastparquet", "matplotlib", "pdfminer.six", "pandas", "spacy",
-    "scikit-learn", "tqdm"]
+[tool.poetry.group.docker.dependencies]
+pytest = ">=6.0.1"
+yattag = ">=1.13.2" #for html text coloring
+pigeonXT-jupyter = "^0.6.1" # for labeling purposes...
+odfpy = "^1.4.1"
+openpyxl = "^3.0.9"
+optuna = "^3.0.5"
+Faker = { version = "^10.0.0" }
+jupytext = "^1.13.7"
+# TODO:  move to group
+fastparquet = { version = "^0.7.2" }
+matplotlib = "^3.5.1"
 
 # our dev-dependencies here also include all the
 # libraries required for training and analyzing the training datasets
 # thats why there are so many ;).
 [tool.poetry.group.dev.dependencies]
+# TODO:  move to group
+fastparquet = { version = "^0.7.2", optional = true }
 ipywidgets = "^8.0.3"
 matplotlib = "^3.5.1"
 pytest = ">=6.0.1"
