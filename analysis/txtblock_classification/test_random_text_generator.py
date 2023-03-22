@@ -70,7 +70,7 @@ if False: #save as binary text file
         f.write(merged_txt.encode('utf-8'))
 
 # %%
-tg = pydoxtools.random_data_generators.RandomTextBlockGenerator()
+tg = pydoxtools.random_data_generators.RandomTextBlockGenerator(txt_source=settings.TRAINING_DATA_DIR / "all_text.txt")
 
 # %%
 #txt = tg([random.random() for i in range(10)])

@@ -197,7 +197,10 @@ def train_model(trial: optuna.trial.BaseTrial, tune_learning_rate=False):
                     osm_perc=0.5,
                     fieldname_prob=0.05)),
             ),
-            "unknown": ((50, pydoxtools.random_data_generators.RandomTextBlockGenerator()), (50, pydoxtools.random_data_generators.RandomListGenerator()))
+            "unknown": ((50, pydoxtools.random_data_generators.RandomTextBlockGenerator(
+                txt_source=settings.TRAINING_DATA_DIR / "all_text.txt"
+                        )),
+                        (50, pydoxtools.random_data_generators.RandomListGenerator()))
         },
         cache_size=20000,
         renew_num=2000,

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import abc
 import collections
 import pathlib
@@ -7,12 +9,15 @@ import string
 import time
 import typing
 from functools import cached_property
+from itertools import islice
+from random import randint
 
 import torch
 
-from pydoxtools import settings, list_utils
+from .settings import settings
 
 _asciichars = ''.join(sorted(set(chr(i) for i in range(32, 128)).union(string.printable)))
+
 
 def rand_chars(char_dict: dict) -> typing.Callable[[], str]:
     """create a random function which randomly selects characters from
@@ -78,8 +83,8 @@ class TextResource:
 
 
 class RandomTextBlockGenerator(GeneratorMixin):
-    def __init__(self):
-        self._txt_res = TextResource(settings.TRAINING_DATA_DIR / "all_text.txt")
+    def __init__(self, txt_source: pathlib.Path):
+        self._txt_res = TextResource(txt_source)
         self._separators = {
             " ": 10, ",": 2, "\n": 4, ";": 2, " |": 1,
             ":": 1, "/": 1
@@ -99,7 +104,7 @@ class RandomTextBlockGenerator(GeneratorMixin):
             s2 = self._f.seek(r2)
             txt2 = self._f.read(txt_len).decode('utf-8', errors='ignore')
             randtxt = [rand_seps().join(r) for r in
-                       list_utils.random_chunks(txt.split(), random.gammavariate)]
+                       random_chunks(txt.split(), random.gammavariate)]
 
             rand_seps = rand_chars(separators)
 
@@ -411,7 +416,7 @@ class RandomListGenerator(GeneratorMixin):
         f = self._faker
 
         # define list symbol
-        list_indicators = [""] + list(" -*∙•+~")
+        list_indicators = [""] + list(" -*∙•+~►>") + ['->']
         list_symbol = rand.choice(list_indicators)
         # define symbols to choose from
         a = '??????????###############--|.:?/\\'
@@ -500,6 +505,23 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
         self._cache_size = cache_size
         self._renew_num = renew_num
         self._virtual_size = virtual_size
+
+    @classmethod
+    def std_generator(cls):
+        bg = cls(
+            generators={
+                "address": ((100, BusinessAddressGenerator(
+                    rand_str_perc=0.3, osm_perc=0.5, fieldname_prob=0.05)),),
+                "unknown": ((80, RandomTextBlockGenerator(
+                    txt_source=settings.TRAINING_DATA_DIR / "all_text.txt")),
+                            (20, RandomListGenerator()))
+            },
+            random_char_prob=0.0025, random_word_prob=0.1, random_upper_prob=0.2, random_line_prob=0.1,
+            random_separation_prob=0.2,
+            cache_size=100, renew_num=10, mixed_blocks_generation_prob=0.025, mixed_blocks_label="unknown"
+        )
+
+        return bg
 
     @cached_property
     def rand(self):
@@ -718,3 +740,20 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
 
     def __len__(self):
         return self._virtual_size
+
+
+def random_chunks(li, prob_dist):
+    """splits a list into random chunks with sizes according to prob_func"""
+    it = iter(li)
+    while True:
+        nxt = list(islice(it, prob_dist()))
+        if nxt:
+            yield nxt
+        else:
+            break
+
+
+def random_chunks_uniform(li, min_size=1, max_size=20):
+    """splits a list into random uniformly sized chunks"""
+    prob_dist = lambda: randint(min_size, max_size)
+    return random_chunks(li, prob_dist)
