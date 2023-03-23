@@ -725,6 +725,9 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
 
         return x, torch.tensor(y)
 
+    def __getitem__(self, item):
+        return self.single(seed=item)
+
     def __iter__(self):
         # initialize cache with random samples
         cache = collections.deque(
