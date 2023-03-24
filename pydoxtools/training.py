@@ -225,7 +225,7 @@ def prepare_page_training():
     return train_loader, test_loader, model
 
 
-class PandasDataframeLoader(torch.utils.data.Dataset):
+class PandasDataset(torch.utils.data.Dataset):
     def __init__(self, X: pd.DataFrame, y: pd.Series):
         self._X = X
         self._y = y
@@ -235,6 +235,25 @@ class PandasDataframeLoader(torch.utils.data.Dataset):
 
     def __len__(self):
         return len(self._X)
+
+
+def load_labeled_text_block_data(classmap: dict):
+    """load evaluation data for textblock classification"""
+    # load manually labeled dataset for performance evaluation
+    label_file = settings.TRAINING_DATA_DIR / "labeled_txt_boxes.xlsx"
+    df = pd.read_excel(label_file).fillna(" ")
+    y = df["label"].replace(dict(
+        contact="unknown",
+        directions="unknown",
+        company="unknown",
+        country="unknown",
+        url="unknown",
+        list="unknown",
+        multiaddress="unknown"
+    ))
+    y = y.replace(classmap)
+    assert y.dtype == np.dtype('int64'), f"has to be numeric!! y.unique: {y.unique()}"
+    return df, y
 
 
 def prepare_textblock_training(
@@ -257,21 +276,8 @@ def prepare_textblock_training(
     user_generator_config.update(data_config or {})
     train_dataset = TextBlockGenerator(**user_generator_config)
 
-    # load manually labeled dataset for performance evaluation
-    label_file = settings.TRAINING_DATA_DIR / "labeled_txt_boxes.xlsx"
-    df = pd.read_excel(label_file).fillna(" ")
-    y = df["label"].replace(dict(
-        contact="unknown",
-        directions="unknown",
-        company="unknown",
-        country="unknown",
-        url="unknown",
-        list="unknown",
-        multiaddress="unknown"
-    ))
-    y = y.replace(train_dataset.classmap_inv)
-    assert y.dtype == np.dtype('int64'), f"has to be numeric!! y.unique: {y.unique()}"
-    test_dataset = PandasDataframeLoader(X=df['txt'], y=y)
+    x, y = load_labeled_text_block_data(classmap=train_dataset.classmap_inv)
+    validation_dataset = PandasDataset(X=x['txt'], y=y)
 
     train_loader = torch.utils.data.DataLoader(
         dataset=train_dataset,
@@ -281,8 +287,8 @@ def prepare_textblock_training(
         # sampler=weighted_sampler
     )
     validation_loader = torch.utils.data.DataLoader(
-        dataset=test_dataset,
-        batch_size=len(test_dataset),
+        dataset=validation_dataset,
+        batch_size=len(validation_dataset),
         num_workers=num_workers,
         persistent_workers=True
         # sampler=weighted_sampler
