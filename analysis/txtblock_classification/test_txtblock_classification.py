@@ -15,11 +15,7 @@
 # ---
 
 # %% [markdown]
-# # Search for addresses in all kinds of documents
-#
-# - generate addresses & non-address textblocks
-# - measure quality of algorithm
-# - identify mis-identified addresses
+# # Test the how well pre-trained transformer modles work on zero-shot classification tasks
 
 # %%
 # %load_ext autoreload
@@ -110,12 +106,6 @@ settings.TRAINING_DATA_DIR
 df_labeled.label.unique()
 
 # %%
-model = classifier.load_classifier("text_block")
-
-# %%
-pytorch_lightning.utilities.memory.get_model_size_mb(model)
-
-# %%
 import warnings
 warnings.filterwarnings('ignore')
 label_file = settings.TRAINING_DATA_DIR / "labeled_txt_boxes.xlsx"
@@ -132,9 +122,47 @@ classes = count.index.to_list()
 classes
 
 # %%
+from transformers import AutoTokenizer
+mdir="/home/tom/Sync/comcharax_data/models/txtblock"
+tokenizer = AutoTokenizer.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
+
+# %%
+tokenizer.truncate_sequences
+
+# %%
+from transformers import AutoModelForSequenceClassification
+txtclassmodel = AutoModelForSequenceClassification.from_pretrained(mdir)
+
+# %%
+from transformers import pipeline
+tokenizer_kwargs = {'padding':True,'truncation':True,'max_length':512,'return_tensors':'pt'}
+model = pipeline("text-classification",model=txtclassmodel, tokenizer=tokenizer)
+#MoritzLaurer/mDeBERTa-v3-base-mnli-xnli
+#MoritzLaurer/multilingual-MiniLMv2-L6-mnli-xnli
+
+# %%
 # evaluate prediction
 dfl=df.txt.to_list()
-y_pred = model.predict(dfl)
+
+# %%
+res = [model(s, padding=True, truncation=True, return_all_scores=True) for s in tqdm(dfl)]
+
+# %%
+r = res[4]
+r
+
+# %%
+df[['proba_address','pred_ukn']]=[(r[0][0]['score'],r[0][1]['score']) for r in res]
+
+# %%
+y_pred=df.apply(lambda x: "address" if x["proba_address"]>0.5 else "unknown", axis=1)
+
+# %%
+#y_pred[y_pred!="address"]="unknown"
+
+# %%
+#y_pred = model.predict(dfl)
+#target_names = list(model.classmap_.values())
 df["label"] = y_true = df["label"].replace(dict(
     contact="address",
     multiaddress="unknown",
@@ -144,7 +172,6 @@ df["label"] = y_true = df["label"].replace(dict(
     url="unknown",
     list="unknown"
 ))
-target_names = list(model.classmap_.values())
 
 # %%
 from sklearn.metrics import classification_report
@@ -152,10 +179,7 @@ print(classification_report(y_true, y_pred))
 #classifier.make_tensorboard_compatible(classification_report(y_true, y_pred, output_dict=True))
 
 # %%
-model.classmap_,model.predict_proba(dfl).detach().numpy()
-
-# %%
-df['proba_address'] = model.predict_proba(dfl).detach().numpy()[:,model.classmapinv_['address']]
+#classification_report(y_true, y_pred, output_dict=True)
 
 # %%
 df['proba_address'].hist(bins=20)
@@ -189,26 +213,11 @@ pretty_print(fp)
 # %%
 # #!pip install thop
 
-# %%
-from thop import profile
-inputs = ["""
-XCAM Limited
-2 Stone Circle Road
-Northampton
-NN3 8RF
-Tel: 44 (0)1604 673700
-Fax: 44 (0)1604 671584
-www.xcam.co.uk
-Email: info@xcam.co.uk
-"""]
-macs, params = profile(model, inputs=inputs)
-macs, params
-
 # %% [markdown]
 # which addresses were not recognized?
 
 # %%
-model.predict_proba([
+model([
 """
 north
 2234 Circle Road
@@ -295,8 +304,32 @@ USA
     """
 2400 Ivy Dr
 Dallas, Texas 75265
+""",
 """
-]), model.classmap_
+XCAM Limited
+2 Stone Circle Road
+Round Spinney
+Northampton
+NN3 8RF, UK
+
+
+Tel: 44 (0)1604 673700
+Fax: 44 (0)1604 671584
+Web: www.xcam.co.uk
+Email: info@xcam.co.uk
+- 10 -
+""",
+"""
+XCAM Limited
+2 Stone Circle Road
+Round Spinney
+Northampton
+NN3 8RF, UK
+Tel: +44 (0)1604 213124
+Fax: 44 (0)1604 671584
+Web: www.xcam.co.uk
+"""
+])
 
 # %% [markdown]
 # false negatives
@@ -314,8 +347,8 @@ pretty_print(fn[["txt","proba_address_%","label"]])
 
 # %%
 addgen= pydoxtools.random_data_generators.BusinessAddressGenerator()
-addr = [addgen(random.random()) for i in range(10000)]
-dfa=pd.DataFrame(model.predict(addr))
+addr = [addgen(random.random()) for i in range(100)]
+dfa=pd.DataFrame(model(addr))
 dfa["txt"]=addr
 print(dfa[dfa[0]!="address"].shape)
 pretty_print(dfa[dfa[0]!="address"])

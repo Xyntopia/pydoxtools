@@ -570,22 +570,26 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
     def classmap_inv(self):
         return {j: i for i, j in self.classmap.items()}
 
-    def single(self, seed):
+    def single(self, seed, convert_labels=False):
         # TODO: does it really make sense here to keep seed?
         #       only makes sense if EVERY random choice is 100% included in it
         self.rand.seed(seed)
 
         # randomly choose a generator for a certain class
         gen = self.rand.choices(population=self.class_gen, weights=self.weights)[0]
-        cl = self.gen_mapping[gen]
+        cl: str = self.gen_mapping[gen]
         # generate random input data for the class to be predicted
         x: str = gen(seed)
+        # whether we should mix up blocks occasionally
         if self._mixed_blocks_generation_prob > self.rand.random():
             gen = self.rand.choices(population=self.class_gen, weights=self.weights)[0]
             x += "\n" + gen(seed + 1)
-            y = self.classmap_inv[self._mixed_blocks_label]
+            y = self._mixed_blocks_label
         else:
-            y = self.classmap_inv[cl]
+            y = cl
+
+        if convert_labels:
+            y = self.classmap_inv[y]
 
         # TODO: make word & character generation more aware of the "kind" of
         #       characters:  for example replace numbers only with other numbers
@@ -723,7 +727,7 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
                 x = x.replace("\n", self.rand.choice(("\n ", " \n", " \n ")))
             # TODO: replace separation chars with something different!
 
-        return x, torch.tensor(y)
+        return x, y
 
     def __getitem__(self, item):
         return self.single(seed=item)

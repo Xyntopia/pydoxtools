@@ -7,14 +7,16 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.1
+#       jupytext_version: 1.14.5
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
+
+# %%
 import pydoxtools.random_data_generators
-# %% [markdown] tags=[]
+# %% [markdown]
 # # Test augmentation and mixing of textblocks
 #
 # import logging
@@ -23,7 +25,7 @@ import pydoxtools.random_data_generators
 # from IPython.display import display, HTML
 # from tqdm import tqdm
 
-# %% tags=[]
+# %%
 # %load_ext autoreload
 # %autoreload 2
 # from pydoxtools import nlp_utils

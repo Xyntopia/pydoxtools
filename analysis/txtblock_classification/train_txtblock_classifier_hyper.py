@@ -7,9 +7,9 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.1
+#       jupytext_version: 1.14.5
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
@@ -62,7 +62,7 @@ import pytorch_lightning
 import torch
 from IPython.display import display, HTML
 
-# %% tags=[]
+# %%
 # %load_ext autoreload
 # %autoreload 2
 # from pydoxtools import nlp_utils
@@ -72,11 +72,11 @@ from pydoxtools.settings import settings
 from pytorch_lightning.callbacks import EarlyStopping
 
 
-# %% [markdown] tags=[]
+# %% [markdown]
 # # Train the Textblock classifier
 #
 # import datetime
-# %% tags=[]
+# %%
 def pretty_print(df):
     return display(HTML(df.to_html().replace("\\n", "<br>")))
 
@@ -90,7 +90,7 @@ memory = settings.get_memory_cache()
 
 nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.cudnn.version()
 
-# %% tags=[]
+# %%
 # url of nextcloud instance to point to
 hostname = 'https://sync.rosemesh.net'
 # the token is the last part of a sharing link:
@@ -126,7 +126,7 @@ if start_model:
         syncpath=syncpath, file_name=start_model, reversed=True)
 
 
-# %% tags=[]
+# %%
 class WebdavSyncCallback(pytorch_lightning.Callback):
     def __init__(self):
         super().__init__()
@@ -344,12 +344,12 @@ remote_storage
 #       - 3808:3808
 # ```
 
-# %% tags=[]
+# %%
 def constraints(trial: optuna.Trial):
     return trial.user_attrs["constraint"]
 
 
-# %% tags=[]
+# %%
 """
 study.enqueue_trial(dict(
     rand_str_perc=0.1,

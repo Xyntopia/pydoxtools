@@ -237,7 +237,7 @@ class PandasDataset(torch.utils.data.Dataset):
         return len(self._X)
 
 
-def load_labeled_text_block_data(classmap: dict):
+def load_labeled_text_block_data(classmap: dict = None):
     """load evaluation data for textblock classification"""
     # load manually labeled dataset for performance evaluation
     label_file = settings.TRAINING_DATA_DIR / "labeled_txt_boxes.xlsx"
@@ -249,10 +249,12 @@ def load_labeled_text_block_data(classmap: dict):
         country="unknown",
         url="unknown",
         list="unknown",
-        multiaddress="unknown"
+        multiaddress="unknown",
+        phone_number="unknown"
     ))
-    y = y.replace(classmap)
-    assert y.dtype == np.dtype('int64'), f"has to be numeric!! y.unique: {y.unique()}"
+    if classmap:
+        y = y.replace(classmap)
+        assert y.dtype == np.dtype('int64'), f"has to be numeric!! y.unique: {y.unique()}"
     return df, y
 
 
