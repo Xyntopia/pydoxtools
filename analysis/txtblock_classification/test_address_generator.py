@@ -60,7 +60,7 @@ memory = settings.get_memory_cache()
 nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.cudnn.version()
 
 # %%
-gen = pydoxtools.random_data_generators.BusinessAddressGenerator(rand_str_perc=0.5, osm_perc=0.5, fieldname_prob=0.1)
+gen = pydoxtools.random_data_generators.BusinessAddressGenerator(type="address",rand_str_perc=0.5, osm_perc=0.5, fieldname_prob=0.1)
 
 # %%
 print(gen[random.random()])

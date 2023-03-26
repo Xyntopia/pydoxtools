@@ -40,6 +40,14 @@ def rand_chars(char_dict: dict) -> typing.Callable[[], str]:
     return rand_func
 
 
+def rand_exec(r: random.random, func: typing.Callable, prob: float):
+    """randomly executes a function or returns empty string"""
+    if r() < prob:
+        return func()
+    else:
+        return ""
+
+
 class GeneratorMixin:
     def __getitem__(self, ids: list[int] | int):
         return self(ids)
@@ -113,14 +121,15 @@ class RandomTextBlockGenerator(GeneratorMixin):
 
 
 class BusinessAddressGenerator(GeneratorMixin):
-    """TODO: convert this into  aker provider?"""
+    """TODO: convert this into  Faker provider?"""
 
-    def __init__(self, rand_str_perc=0.3, osm_perc=0.5, fieldname_prob=0.05):
+    def __init__(self, type="address", rand_str_perc=0.3, osm_perc=0.5, fieldname_prob=0.05):
         # function which returns some random separation characters
-        self._rand_str_perc = rand_str_perc
-        self._osm_perc = osm_perc
-        self._fieldname_prob = fieldname_prob
+        self._rand_str_perc = rand_str_perc  # probability to use radom strings in certain areas
+        self._osm_perc = osm_perc  # probability to use openstreetmap data
+        self._fieldname_prob = fieldname_prob  # probability to use a fieldname in front of an address line
         self._f: "faker.Faker" | None = None
+        self._type: str = type
 
     @cached_property
     def random_sep_func(self):
@@ -290,6 +299,10 @@ class BusinessAddressGenerator(GeneratorMixin):
         return line
 
     def single(self, seed) -> str:
+        """
+        TODO: we need to make this function vastly more efficient and more
+              readable
+        """
         self.reset_faker(seed)
         rc, r = self._rand.choice, self._rand.random
         line_separator = self.random_sep_func()  # calling our cached random seperator_generation function
@@ -343,44 +356,97 @@ class BusinessAddressGenerator(GeneratorMixin):
                     except IndexError:
                         return ""
 
-        all_parts: tuple[tuple[float, tuple[str, ...], typing.Any], ...] = (
-            # (probability, fieldnames, generation function)
-            (0.05, ("",), lambda: self.line1()),
+        # function definition:
+        all_parts: dict[tuple[tuple[str, ...], typing.Callable]] = {
+            "intro": (("",), lambda: self.line1()),
             # for example an announcement, or company introduction, catch phrase...
-            (0.1, ("name",), lambda: self._f.name()),
-            (0.3, ("company_name", "company"), lambda: company),
-            (0.9, ("address", "mailing address", "mail address"), addr1),  # street
-            (0.05, ("",),  # TODO: find something "nice" for this line in osm data
-             lambda: s2.join([self.rand_word(), str(self._rand.randint(0, 1000))][::rc((1, -1))])),
+            "name": (("name", "Attn"),
+                     lambda: rand_exec(r, lambda: self._f.job() + " ", 0.2) + self._f.name()),
+            "company": (("company name", "company"), lambda: company),
+            "space": (("",), lambda: "\n" * self._rand.randint(0, 5)),
+            "street_address": (("add", "address", "mailing address", "mail address", "street address"), addr1),
+            # street
+            "2nd_line": (("",),  # TODO: find something "nice" for this line in osm data
+                         lambda: s2.join([self.rand_word(), str(self._rand.randint(0, 1000))][::rc((1, -1))])),
             # postbox, building number etc...
-            (0.9, ("",), addr3),  # city, postcode, state
-            (0.1, ("country",), lambda: self.get_country()),
-            (0.2, ("tel", "phone", "phone number"), lambda: getattr(self._f, "phone_number", lambda: " ")()),
-            (0.1, ("fax", "fax number"), lambda: getattr(self._f, "phone_number", lambda: " ")()),
-            (0.2, ("www", "web", "homepage", "webpage"), lambda: self.generate_url(company, self._f.tld())),
-            (0.1, ("email", ""), lambda: self._f.company_email()),
-            (0.05, ("bank details",), lambda: " ".join(self.rand_word() for i in range(self._rand.randint(1, 5))))
-        )
+            "city": (("",), addr3),  # city, postcode, state
+            "country": (("country",), lambda: self.get_country()),
+            "phone": (("tel", "phone", "phone number"), lambda: getattr(self._f, "phone_number", lambda: " ")()),
+            "fax": (("fax", "fax number"), lambda: getattr(self._f, "phone_number", lambda: " ")()),
+            "www": (
+                ("www", "web", "homepage", "webpage", "internet"), lambda: self.generate_url(company, self._f.tld())),
+            "email": (("email", ""), lambda: self._f.company_email()),
+            "bank": (("bank details", "bank"),
+                     lambda: " ".join(self.rand_word() for i in range(self._rand.randint(1, 5)))),
+            "outro": (("©", "Copyright", "Copyright ©"),
+                      lambda: rand_exec(r, lambda: self._f.year() + " ", 0.5) + company)
+        }
+        multi_parts = ["space"]
 
-        # generate 50% "perfect" addresses
+        part_structure: tuple[tuple[str, float], ...]
+        if self._type == "contact":
+            min_parts = 1
+            part_structure = (
+                ("intro", 0.1),
+                ("name", 0.1),
+                ("company", 0.2),
+                ("phone", 0.3),
+                ("fax", 0.1),
+                ("www", 0.3),
+                ("email", 0.3),
+                ("bank", 0.05),
+                ("outro", 0.05)
+            )
+            # choose only a single line in 50% of the time:
+            if r() < 0.5:
+                part_structure = ((rc(part_structure)[0], 1.0),)
+        elif self._type == "address":
+            large_address = 0.0 if r() < 0.3 else 0.3
+            if r() < 0.3:  # make sure we have "short" addresses
+                part_structure = (
+                    ("company", 0.1),
+                    ("street_address", 1.0),
+                    ("city", 1.0),
+                    ("country", 0.1)
+                )
+                min_parts = 2
+            else:
+                min_parts = 3
+                part_structure = (
+                    # (probability, fieldnames, generation function)
+                    ("intro", 0.05),
+                    # for example an announcement, or company introduction, catch phrase...
+                    ("name", 0.1 + large_address),
+                    ("space", 0.05),
+                    ("company", 0.3 + large_address),
+                    ("street_address", 0.95),
+                    ("2nd_line", 0.05),
+                    ("city", 0.95),
+                    ("country", 0.2 + large_address),
+                    ("space", 0.05),
+                    ("phone", 0.2 + large_address),
+                    ("fax", 0.1 + large_address),
+                    ("www", 0.2 + large_address),
+                    ("email", 0.1 + large_address),
+                    ("bank", 0.05 + large_address),
+                    ("outro", 0.1 + large_address)
+                )
+        else:
+            raise NotImplementedError()
+
         # or a random combination
         parts = set()
-        if r() < 0.5:
-            # perfect address consists of:
-            parts.add(3)  # street address
-            parts.add(5)  # city, postcode  etc..
-        else:
-            # select random selection of address parts
-            while len(parts) < 3:  # make sure addresses consist of a min-length
-                for num, (p, _, _) in enumerate(all_parts):
-                    if num not in parts:
-                        if r() < p:
-                            parts.add(num)
+        # select random selection of address parts
+        while len(parts) < min_parts:  # make sure addresses consist of a min-length
+            for part_id, prob in part_structure:
+                if (part_id not in parts) or (part_id in multi_parts):  # make sure every part gets added only once
+                    if r() < prob:
+                        parts.add(part_id)
 
         # render the actual address
         render_parts = []
-        for num, (_, field_names, v) in enumerate(all_parts):
-            if num in parts:
+        for part_id, (field_names, v) in all_parts.items():
+            if part_id in parts:
                 # try:
                 #    v = v()
                 # except:
@@ -394,6 +460,10 @@ class BusinessAddressGenerator(GeneratorMixin):
                         v = field_name + rc((" ", ": ", ":")) + v
 
                 render_parts.append(v)
+
+        if r() < 0.1:  # randomize address line in 10%
+            random.shuffle(render_parts)
+        # if r() < 0.01:  # TODO: duplicate address lines, occasionally
 
         # TODO: make a variation of separators for phone numbers...
         # TODO: discover other ways that addresses for use in our generators...
@@ -511,7 +581,7 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
         bg = cls(
             generators={
                 "address": ((100, BusinessAddressGenerator(
-                    rand_str_perc=0.3, osm_perc=0.5, fieldname_prob=0.05)),),
+                    type="address", rand_str_perc=0.3, osm_perc=0.5, fieldname_prob=0.05)),),
                 "unknown": ((80, RandomTextBlockGenerator(
                     txt_source=settings.TRAINING_DATA_DIR / "all_text.txt")),
                             (20, RandomListGenerator()))
@@ -663,7 +733,7 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
             lenx = len(x)
             for i, c in enumerate(x_list):
                 if self.rand.random() < self._random_char_prob:
-                    selector = self.rand.randint(0, 8)
+                    selector = self.rand.randint(0, 9)
                     if selector == 0:  # substitute
                         t.append(self.rand.choice(_asciichars))
                     elif selector == 1:  # insert before
@@ -692,6 +762,12 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
                         t.append(self.rand.choice(x))
                     elif selector == 8:
                         t.append(c.upper())
+                    elif selector == 9:
+                        t.append(c)
+                        if self.rand.random() < 0.7:
+                            t.append("</s>")
+                        else:
+                            t.append("<s>")
                 else:
                     t.append(c)
 
@@ -715,12 +791,18 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
         # line augmentation
         if self._random_line_prob:
             if self.rand.random() < self._random_line_prob:
-                modified = True
                 # randomly swap lines
                 lines = x.split("\n")
                 a, b = random.randrange(0, len(lines)), random.randrange(0, len(lines))
                 lines[a], lines[b] = lines[b], lines[a]
                 x = "\n".join(lines)
+            # TODO: duplication
+            # if self.rand.random() < self._random_line_prob:
+            # randomly duplicate lines
+            #    lines = x.split("\n")
+            #    a, b = random.randrange(0, len(lines)), random.randrange(0, len(lines))
+            #    lines[a], lines[b] = lines[b], lines[a]
+            #    x = "\n".join(lines)
 
         if self._random_separation_prob:
             if self.rand.random() < self._random_separation_prob:
