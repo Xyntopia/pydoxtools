@@ -123,7 +123,7 @@ classes
 
 # %%
 from transformers import AutoTokenizer
-mdir="/home/tom/Sync/comcharax_data/models/txtblock"
+mdir="/home/tom/Sync/comcharax_data/models/checkpoint-5800"
 tokenizer = AutoTokenizer.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
 
 # %%
@@ -164,7 +164,8 @@ y_pred=df.apply(lambda x: "address" if x["proba_address"]>0.5 else "unknown", ax
 #y_pred = model.predict(dfl)
 #target_names = list(model.classmap_.values())
 df["label"] = y_true = df["label"].replace(dict(
-    contact="address",
+    contact="unknown",
+    phone_number="unknown",
     multiaddress="unknown",
     directions="unknown",
     company="unknown",
@@ -219,93 +220,6 @@ pretty_print(fp)
 # %%
 model([
 """
-north
-2234 Circle Road
-Northhampton
-NN3 8RF
-""",
-"""
-XCAM Limited
-2 Stone Circle Road
-Northampton
-NN3 8RF
-Tel: 44 (0)1604 673700
-Fax: 44 (0)1604 671584
-www.xcam.co.uk
-Email: info@xcam.co.uk
-"""
-,
-"""
-XCAM Limited
-2 Stone Circle Road
-Northampton
-NN3 8RF
-Tel: 44 (0)1604 673700
-Fax: 44 (0)1604 671584
-www.xcam.co.uk
-Email: info@xcam.co.uk
-""",
-"""
-Fluke GmbH
-Engematten 14
-79286 Glottertal
-Telefon: (069) 2 22 22 02 00
-Telefax: (069) 2 22 22 02 01
-E-Mail: info@de.ﬂuke.nl
-Web: www.ﬂuke.de
-""",
-"""
-Fluke GmbH
-Engematten 14
-79286 engen
-069 2 22 22 02 00
-069 2 22 22 02 01
-info@de.ﬂuke.nl
-www.ﬂ uke.de
-""",
-"""
-Astro- und Feinwerktechnik Adlershof GmbH
-Albert Einstein Str. 12
-12489 Berlin
-""",
-"""
-Adlershof GmbH
-Einstein Str. 12
-12489 Berlin
-""",
-"""
-Rosen Str. 12
-12489 Berlin
-""",
-"""
-Neue Str. 12
-Berlin 12489
-""",
-"""
-Astro-und Feinwerktechnik Adlershof GmbH
-Albert-Einstein-Str. 12
-12489 Berlin
-Germany
-""","""
-Texas Instruments, Post Office Box 655303, Dallas, Texas 75265
-Copyright © 2010, Texas Instruments Incorporated
-""",
-"""
-Texas Instruments, Post Office Box 655303, Dallas, Texas 75265
-""",
-"""
-TOPCON Positioning Systems, Inc.
-7400 National Drive
-Livermore
-California
-94550
-USA
-""",
-    """
-2400 Ivy Dr
-Dallas, Texas 75265
-""",
-"""
 XCAM Limited
 2 Stone Circle Road
 Round Spinney
@@ -325,9 +239,23 @@ XCAM Limited
 Round Spinney
 Northampton
 NN3 8RF, UK
-Tel: +44 (0)1604 213124
+
+
+Tel: 44 (0)1604 673700
 Fax: 44 (0)1604 671584
 Web: www.xcam.co.uk
+Email: info@xcam.co.uk
+""",
+"""
+Mailing Address: Texas Instruments, Post Office Box 655303, Dallas, Texas 75265
+Copyright © 2014, Texas Instruments Incorporated
+""",
+"""
+Mailing Address: Texas Instruments, Post Office Box 655303, Dallas, Texas 75265
+2014, Texas Instruments Incorporated
+""",
+"""
+319 Charleigh Ford, Jr. Drive | Columbus, Mississippi 39701 | 662.798.4075 | starkaerospace.com
 """
 ])
 

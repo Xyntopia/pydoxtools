@@ -73,8 +73,14 @@ addr = [next(bgi) for i in range(1000)]
 # - 21.6 ms 100/10
 
 # %%
+bg.classmap
+
+# %%
+next(bgi)
+
+# %%
 for p in [next(bgi) for i in range(100)]:
-    print(f"{p[1]} {bg.classmap[p[1].item()]}:\n{p[0]}\n\n")
+    print(f"{p[1]} {bg.classmap_inv[p[1]]}:\n{p[0]}\n\n")
 
 # %%
 
