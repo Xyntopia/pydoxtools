@@ -582,9 +582,11 @@ class TextBlockGenerator(torch.utils.data.IterableDataset):
             generators={
                 "address": ((100, BusinessAddressGenerator(
                     type="address", rand_str_perc=0.3, osm_perc=0.5, fieldname_prob=0.05)),),
-                "unknown": ((80, RandomTextBlockGenerator(
+                "unknown": ((75, RandomTextBlockGenerator(
                     txt_source=settings.TRAINING_DATA_DIR / "all_text.txt")),
-                            (20, RandomListGenerator()))
+                            (20, RandomListGenerator()),
+                            (5, BusinessAddressGenerator(
+                                type="contact", rand_str_perc=0.0, osm_perc=0.0, fieldname_prob=0.3)),)
             },
             random_char_prob=0.0025, random_word_prob=0.1, random_upper_prob=0.2, random_line_prob=0.1,
             random_separation_prob=0.2,
