@@ -5,7 +5,7 @@ from typing import Dict, List, Tuple
 
 import torch
 
-from pydoxtools.document import Extractor
+from pydoxtools.document_base import Extractor
 from pydoxtools.nlp_utils import tokenize_windows, QandAmodels
 
 logger = logging.getLogger(__name__)

@@ -4,7 +4,7 @@ import hnswlib
 import networkx as nx
 import numpy as np
 
-from pydoxtools.document import Extractor, TokenCollection
+from pydoxtools.document_base import Extractor, TokenCollection
 
 
 class IndexExtractor(Extractor):

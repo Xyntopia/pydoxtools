@@ -458,7 +458,7 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
                 res = extractor_func._mapped_call(self, config_params=params, *args, **kwargs)
 
         except:
-            logger.exception(f"problem with extractor {extract_name}")
+            logger.exception(f"problem with extractor '{extract_name}'")
             raise ExtractorException(f"could not extract {extract_name} from {self} using {extractor_func}!")
 
         return res[extract_name]

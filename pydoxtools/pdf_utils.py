@@ -29,7 +29,7 @@ from pdfminer.layout import LTTextContainer
 from pdfminer.pdfinterp import resolve1
 from pdfminer.pdfparser import PDFParser
 
-from pydoxtools import document, list_utils
+from pydoxtools import document_base, list_utils
 
 logger = logging.getLogger(__name__)
 
@@ -151,7 +151,7 @@ def meta_infos(f: io.IOBase):
     return res
 
 
-class PDFFileLoader(document.Extractor):
+class PDFFileLoader(document_base.Extractor):
     """
     Loads a pdf file and can extract all kinds of information from it.
 
@@ -228,9 +228,9 @@ class PDFFileLoader(document.Extractor):
             # TODO: make sure we adhere to a common schema for all file types here...
             for boxnum, element in enumerate(page_layout):
                 if isinstance(element, LTCurve):  # LTCurve are rectangles AND lines
-                    # docelements should be compatible with document.DocumentElement
+                    # docelements should be compatible with document_base.DocumentElement
                     docelements.append(dict(
-                        type=document.ElementType.Graphic,
+                        type=document_base.ElementType.Graphic,
                         gobj=element,
                         linewidth=element.linewidth,
                         non_stroking_color=element.non_stroking_color,
@@ -253,7 +253,7 @@ class PDFFileLoader(document.Extractor):
                         # TODO: this could be moved somewhere else and probably be made more efficient
                         for character in text_line:
                             if isinstance(character, LTChar):
-                                charfont = document.Font(
+                                charfont = document_base.Font(
                                     character.fontname, character.size,
                                     str(character.graphicstate.ncolor))
                                 fontset.add(charfont)
@@ -262,7 +262,7 @@ class PDFFileLoader(document.Extractor):
                         # TODO: move most of these function to a "feature-generation-function"
                         # which extracts the information directly from the LTTextLine object
                         docelements.append(dict(
-                            type=document.ElementType.Line,
+                            type=document_base.ElementType.Line,
                             lineobj=text_line,
                             rawtext=linetext,
                             font_infos=fontset,
@@ -284,7 +284,7 @@ class PDFFileLoader(document.Extractor):
                     # import pdfminer.converter
                     pass
 
-        # TODO: validate pandas dataframe using document.DocumentElement
+        # TODO: validate pandas dataframe using document_base.DocumentElement
         docelementsframe = pd.DataFrame.from_records(docelements)
 
         return docelementsframe, extracted_page_numbers, pages_bbox

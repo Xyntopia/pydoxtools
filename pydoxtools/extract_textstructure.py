@@ -7,7 +7,7 @@ import pdfminer
 from pdfminer.layout import LTChar, LTTextLineVertical
 from sklearn.ensemble import IsolationForest
 
-from pydoxtools import document
+from pydoxtools import document_base
 
 
 def _line2txt(LTOBJ: typing.Iterable):
@@ -62,10 +62,10 @@ def mime_type(self) -> str:
     return "unknown"
 
 
-class DocumentElementFilter(document.Extractor):
+class DocumentElementFilter(document_base.Extractor):
     """Filter document elements for various criteria"""
 
-    def __init__(self, element_type: document.ElementType):
+    def __init__(self, element_type: document_base.ElementType):
         super().__init__()
         self.element_type = element_type
 
@@ -74,7 +74,7 @@ class DocumentElementFilter(document.Extractor):
         return df
 
 
-class TextBoxElementExtractor(document.Extractor):
+class TextBoxElementExtractor(document_base.Extractor):
     """
     create textboxes and create bounding boxes and aggregated text from
     a pandas dataframe with textlines.
@@ -116,7 +116,7 @@ class TextBoxElementExtractor(document.Extractor):
             return dict(text_box_elements=None)
 
 
-class TitleExtractor(document.Extractor):
+class TitleExtractor(document_base.Extractor):
     """
     This Extractor extracts titels and other interesting text parts
     from a visual document. It does this by characterising parts

@@ -3,7 +3,7 @@ from typing import Any
 import pandas as pd
 
 from pydoxtools import nlp_utils
-from pydoxtools.document import Extractor
+from pydoxtools.document_base import Extractor
 
 
 class EntityExtractor(Extractor):

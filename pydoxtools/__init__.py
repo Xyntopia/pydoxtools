@@ -6,7 +6,7 @@ import langdetect
 import numpy as np
 import pandas as pd
 
-from . import document
+from . import document_base
 from . import extract_textstructure
 from . import models
 from . import pdf_utils
@@ -29,7 +29,7 @@ from .settings import settings
 logger = logging.getLogger(__name__)
 
 
-class Document(document.DocumentBase):
+class Document(document_base.DocumentBase):
     """
     A standard document logic configuration which should work
     on most documents.
@@ -52,9 +52,9 @@ class Document(document.DocumentBase):
             .cache(),
             LambdaExtractor(lambda pages: len(pages))
             .pipe(pages="page_set").out("num_pages").cache(),
-            DocumentElementFilter(element_type=document.ElementType.Line)
+            DocumentElementFilter(element_type=document_base.ElementType.Line)
             .pipe("elements").out("line_elements").cache(),
-            DocumentElementFilter(element_type=document.ElementType.Graphic)
+            DocumentElementFilter(element_type=document_base.ElementType.Graphic)
             .pipe("elements").out("graphic_elements").cache(),
             ListExtractor().cache()
             .pipe("line_elements").out("lists"),

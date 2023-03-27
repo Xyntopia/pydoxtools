@@ -2,10 +2,10 @@ import pathlib
 import typing
 from pathlib import Path
 
-from pydoxtools import document
+from pydoxtools import document_base
 
 
-class FileLoader(document.Extractor):
+class FileLoader(document_base.Extractor):
     def __init__(self, mode="auto"):
         super().__init__()
         self._mode = mode
@@ -29,5 +29,5 @@ class FileLoader(document.Extractor):
         else:
             txt = fobj.read()
         # else:
-        #    raise document.DocumentTypeError("Can not extract text from unknown document")
+        #    raise document_base.DocumentTypeError("Can not extract text from unknown document")
         return txt

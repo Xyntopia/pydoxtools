@@ -1,7 +1,7 @@
 import spacy
 
 from pydoxtools import nlp_utils
-from .document import Extractor, TokenCollection
+from .document_base import Extractor, TokenCollection
 
 
 class SpacyExtractor(Extractor):
