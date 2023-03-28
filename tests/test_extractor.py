@@ -15,8 +15,8 @@ test_files = [
     "./data/PFR-PR23_BAT-110__V1.00_.pdf",
     "./data/Datasheet-Centaur-Charger-DE.6f.pdf",
     # TODO: integrate OCR
-    #"./data/north_american_countries.png",
-    #"./data/north_american_countries.tif", "./data/north_american_countries.jpg",
+    # "./data/north_american_countries.png",
+    # "./data/north_american_countries.tif", "./data/north_american_countries.jpg",
     "./data/List of North American countries by population - Wikipedia.pdf",
     "./data/berrybase_raspberrypi4.html",
     "./data/test.html",
@@ -101,6 +101,16 @@ def test_qam_machine():
     assert answers[1][0][0] == 'The BST BAT - 110'
 
 
+def test_address_extraction():
+    doc = Document(
+        fobj=make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"),
+        config=dict(trf_model_id='distilbert-base-cased-distilled-squad')
+    )
+    addresses = doc.addresses
+    findthis = """F<s>URTHER </s>I<s>NFORMATION   Max-Planck-Str. 3 | 12489 Berlin Germany | info@berlin-space-tech.com | www.berlin-space-tech.com</s>"""
+    assert findthis in addresses
+
+
 def test_multiple_product_extraction():
     pass
 
@@ -120,7 +130,9 @@ if __name__ == "__main__":
 
     doc = Document(fobj=some_string)
     doc.document_type
-    doc.run_all_extractors()
+    doc.addresses
+
+    # doc.run_all_extractors()
 
     # doc.run_all_extractors()
 

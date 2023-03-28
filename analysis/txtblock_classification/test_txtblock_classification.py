@@ -123,11 +123,9 @@ classes
 
 # %%
 from transformers import AutoTokenizer
-mdir="/home/tom/Sync/comcharax_data/models/checkpoint-5800"
-tokenizer = AutoTokenizer.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
-
-# %%
-tokenizer.truncate_sequences
+mdir=settings.MODEL_DIR/"txtblockclassifier"
+#tokenizer = AutoTokenizer.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
+tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
 
 # %%
 from transformers import AutoModelForSequenceClassification

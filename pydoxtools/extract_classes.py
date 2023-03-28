@@ -1,8 +1,9 @@
 import langdetect
 import pandas as pd
+from transformers import AutoModelForSequenceClassification, pipeline, AutoTokenizer
 
-from pydoxtools import classifier
 from pydoxtools.document_base import Extractor
+from pydoxtools.settings import settings
 
 
 class LanguageExtractor(Extractor):
@@ -21,8 +22,15 @@ class TextBlockClassifier(Extractor):
         self._min_prob = min_prob
 
     def __call__(self, text_box_elements: pd.DataFrame):
-        model: classifier.txt_block_classifier = classifier.load_classifier('text_block')
-        classes = model.predict_proba(text_box_elements.text).numpy()
-        txtblocks = text_box_elements[["text"]].copy()
-        txtblocks[["add_prob", "ukn_prob"]] = classes.round(3)
-        return txtblocks[txtblocks['add_prob'] > self._min_prob].text.tolist()
+        tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+        model_name = "txtblockclassifier"
+        model_dir = settings.MODEL_DIR / model_name
+        # tokenizer_kwargs = {'padding': True, 'truncation': True, 'max_length': 512, 'return_tensors': 'pt'}
+        # TODO: optionally enable CUDA...
+        # TODO: only extract "unique" addresses
+        model = AutoModelForSequenceClassification.from_pretrained(model_dir, num_labels=2)  # .to("cuda")
+        model = pipeline("text-classification", model=model, tokenizer=tokenizer)
+        text = text_box_elements["text"].str.strip()
+        res = text.apply(lambda x: model(
+            [x], truncation=True, padding=True)[0]["label"])
+        return text[res == "address"].to_list()

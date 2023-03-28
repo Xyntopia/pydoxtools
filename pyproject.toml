@@ -112,6 +112,8 @@ optuna = "^3.0.5"
 webdavclient3 = { git = "https://github.com/yeus/webdav-client-python-3.git", branch = "master" }
 Faker = { version = "^10.0.0" }
 jupytext = "^1.13.7"
+datasets = "^2.10.1"
+evaluate = "^0.4.0"
 
 [build-system]
 requires = ["poetry>==1.1.1"]
