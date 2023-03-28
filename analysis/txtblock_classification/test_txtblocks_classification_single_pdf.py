@@ -21,6 +21,7 @@ from pathlib import Path
 
 # from pydoxtools import nlp_utils
 import pydoxtools
+import pydoxtools.document
 from pydoxtools import pdf_utils, classifier, nlp_utils, cluster_utils
 from pydoxtools import webdav_utils as wu
 from pydoxtools.settings import settings
@@ -94,10 +95,10 @@ file
 model = classifier.load_classifier("text_block")
 
 # %%
-doc = pydoxtools.Document(file)
+doc = pydoxtools.document.Document(file)
 
 # %%
-txtblocks = pydoxtools.Document(file).text_box_elements[['text']].copy()
+txtblocks = pydoxtools.document.Document(file).text_box_elements[['text']].copy()
 txtblocks
 
 # %%

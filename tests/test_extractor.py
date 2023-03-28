@@ -7,7 +7,7 @@ import io
 import pathlib
 from pathlib import Path
 
-from pydoxtools import Document
+from pydoxtools.document import Document
 
 logger = logging.getLogger(__name__)
 

@@ -28,7 +28,7 @@ import torch
 from IPython.display import display, HTML
 from tqdm import tqdm
 
-from pydoxtools import Document
+from pydoxtools.document import Document
 # from pydoxtools import nlp_utils
 from pydoxtools import pdf_utils, nlp_utils, cluster_utils
 from pydoxtools.settings import settings
