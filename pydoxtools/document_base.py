@@ -132,8 +132,15 @@ class Extractor(ABC):
             **kwargs
     ) -> dict[
         str, typing.Any]:
-        # map objects from document properties to
-        # processing function
+        """
+        map objects from document properties to
+        processing function.
+
+        essentially, This maps the outputs from one element of _extractors
+        to the inputs of another and also makes sure
+        to override certain parameters that were specified in
+        a config when calling the document class
+        """
         mapped_kwargs = {}
         for k, v in self._in_mapping.items():
             # first check if parameter is available as an extractor
@@ -141,7 +148,7 @@ class Extractor(ABC):
                 mapped_kwargs[k] = parent_document.x(v)
             else:  # get "native" member-variables if not found an extractor with that name
                 mapped_kwargs[k] = getattr(parent_document, v)
-        # get potential overriding parameters to override function call
+        # get potential overriding parameters to override function call from _dynamic_config
         if config_params:
             override_parameters = {self._dynamic_config[k]: v for k, v in config_params.items()}
             mapped_kwargs.update(override_parameters)
@@ -192,7 +199,7 @@ class Extractor(ABC):
         return self
 
     def cache(self):
-        """indicate to document that we want this extractor to be cached"""
+        """indicate to document that we want this extractor function to be cached"""
         self._cache = True
         return self
 
@@ -207,9 +214,17 @@ class DocumentTypeError(Exception):
 
 class MetaDocumentClassConfiguration(type):
     """
-    configures derived document classes on construction.
+    configures derived document class logic on construction.
 
-    ALso checks Extractors etc...  for consistency
+    Also checks Extractors etc...  for consistency. It sort of works like
+    a poor-mans compiler or preprocessor.
+
+    It basically takes the definition of the lazy pipeline
+    in the "_extractors" variable
+    and maps it to function calls.
+
+    TODO: can we achieve this in an easier way then using metaclasses?
+          probably difficult ...
     """
 
     # TODO: we can probably refactor this function to make it easir to understand
@@ -228,43 +243,69 @@ class MetaDocumentClassConfiguration(type):
                 # TODO: add checks to make sure we don't have any name-collisions
                 # configure class
                 logger.info(f"configure {new_class} class...")
+
+                # get all parent classes except the two document base definitions which don't
+                # have a logic defined
+                class_hierarchy = new_class.mro()[:-2]
+
+                # first we map all functions of the extraction logic (and configurations)
+                # into a dictionary using their outputs as a key and we do this for every defined filetype and
+                # parent class.
+                # This is similar to how we can access them in the final class, but we will combine them
+                # with fall-back-filetypes at a later stage to create the final extraction logic
+                #
+                # We also combine _extractor definitions from parent class and child class
+                # here. We need to do this here and not use the _x_funcs from parent class as
+                # we need to make sure that new functions that were added to e.g. "*" also get added
+                # to "*.pdf" and other document logic if we use the already calculated _x_funcs this
+                # would not be guaranteed.
+
                 uncombined_extractors: dict[str, dict[str, Extractor]] = {}
-                extractor_combinations: dict[str, list[str]] = {}
+                extractor_combinations: dict[str, list[str]] = {}  # record the extraction hierarchy
                 uncombined_x_configs: dict[str, dict[str, list[str]]] = {}
                 ex: Extractor | str
-                for doc_type, ex_list in new_class._extractors.items():
-                    doc_type_x_funcs = {}  # save function mappings for single doc_type
-                    extractor_combinations[doc_type] = []  # save combination list for single doctype
-                    doc_type_x_config = {}  # save configuration mappings for single doc_type
-                    for ex in ex_list:
-                        # strings indicate that we would like to
-                        # add all the functions from that document type as well but with
-                        # lower priority
-                        if isinstance(ex, str):
-                            extractor_combinations[doc_type].append(ex)
-                        else:
-                            # go through all outputs of an extractor and
-                            # map them o extraction variables inside document
-                            # TODO: we could explicitly add the variables as property functions
-                            #       which refer to the "x"-function in document?
-                            for ex_key, doc_key in ex._out_mapping.items():
-                                # input<->output mapping is already done i the extractor itself
-                                # check out Extractor.pipe and Extractor.map member functions
-                                doc_type_x_funcs[doc_key] = ex
+                # loop through class hierarchy in order to get the logic of parent classes as well,
+                # including the newly defined class
+                for cl in reversed(class_hierarchy):
+                    # loop through doc types
+                    for doc_type, ex_list in cl._extractors.items():
+                        doc_type_x_funcs = {}  # save function mappings for single doc_type
+                        extractor_combinations[doc_type] = []  # save combination list for single doctype
+                        doc_type_x_config = {}  # save configuration mappings for single doc_type
+                        for ex in ex_list:
+                            # strings indicate that we would like to
+                            # add all the functions from that document type as well but with
+                            # lower priority
+                            if isinstance(ex, str):
+                                extractor_combinations[doc_type].append(ex)
+                            else:
+                                # go through all outputs of an extractor and
+                                # map them to extraction variables inside document
+                                # TODO: we could explicitly add the variables as property functions
+                                #       which refer to the "x"-function in document?
+                                for ex_key, doc_key in ex._out_mapping.items():
+                                    # input<->output mapping is already done i the extractor itself
+                                    # check out Extractor.pipe and Extractor.map member functions
+                                    doc_type_x_funcs[doc_key] = ex
 
-                                # build a map of configuration values for each
-                                # parameter. This means when a parameter gets called we know automatically
-                                # how to configure the corresponding Extractor
-                                if ex._dynamic_config:
-                                    doc_type_x_config[doc_key] = list(ex._dynamic_config.keys())
+                                    # build a map of configuration values for each
+                                    # parameter. This means when a parameter gets called we know automatically
+                                    # how to configure the corresponding Extractor
+                                    if ex._dynamic_config:
+                                        doc_type_x_config[doc_key] = list(ex._dynamic_config.keys())
 
-                    uncombined_extractors[doc_type] = doc_type_x_funcs
-                    uncombined_x_configs[doc_type] = doc_type_x_config
+                        uncombined_extractors[doc_type] = uncombined_extractors.get(doc_type, {})
+                        uncombined_extractors[doc_type].update(doc_type_x_funcs)
+                        uncombined_x_configs[doc_type] = uncombined_x_configs.get(doc_type, {})
+                        uncombined_x_configs[doc_type].update(doc_type_x_config)
 
-                # add all extrators by combining the different document types
+                logger.debug("combining... extraction logic")
+                # we need to re-initialize the class logic so that they are not linked
+                # to the logic of the parent classes.
                 new_class._x_funcs = {}
                 new_class._x_config = {}
                 doc_type: str
+                # add all extractors by combining the logic for the different document types
                 for doc_type in uncombined_extractors:
                     # first take our other document type and then add the current document type
                     # itself on top of it because of its higher priority overwriting
@@ -274,19 +315,33 @@ class MetaDocumentClassConfiguration(type):
                     #       document types first, and then subsequently until we are at the bottom
                     #       of the tree.
 
-                    # TODO: add classes recursivly
+                    # TODO: add classes recursively (we can not combine logic blocks using multiple
+                    #       levels right now). We probably need to run this function multiple times
+                    #       in order for this to work.
                     new_class._x_funcs[doc_type] = {}
                     new_class._x_config[doc_type] = {}
 
                     # build class combination in correct order:
-                    # the first one is the least important
-                    doc_type_order = ["*"] + list(
-                        reversed(extractor_combinations[doc_type])) + [doc_type]
+                    # the first one is the least important, because it gets
+                    # overwritten by subsequent classes
+                    doc_type_order = ["*"]  # always use "*" as a fallback
+                    if doc_type != "*":
+                        doc_type_order += list(
+                            reversed(extractor_combinations[doc_type])) + [doc_type]
 
+                    # now save the x-functions/configurations in the _x_funcs dict
+                    # (which might already exist from the parent class) in the correct order.
+                    # already existing functions from the parent class get overwritten by the
+                    # ones defined in the child class in "uncombined_extractors"
                     for ordered_doc_type in doc_type_order:
-                        # add extractors from a potential base document
+                        # add newly defined extractors overriding extractors defined
+                        # in lower hierarchy logic
                         new_class._x_funcs[doc_type].update(uncombined_extractors[ordered_doc_type])
                         new_class._x_config[doc_type].update(uncombined_x_configs[ordered_doc_type])
+
+                        # TODO: how do we add x-functions to
+
+                # TODO: remove "dangling" extractors which lack input mapping
 
         else:
             raise ConfigurationError(f"no extractors defined in class {new_class}")
@@ -355,7 +410,7 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
             - if it is a file object: load document from file object (or bytestream  etc...)
 
         """
-        self._fobj = fobj
+        self._fobj = fobj  # file object
         self._source = source or "unknown"
         self._document_type = document_type
         self._mime_type = mime_type
@@ -407,8 +462,8 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
                 raise DocumentTypeError(f"Could not detect document type for {self._fobj[-100:]} ...")
 
     @cached_property
-    def document_graph(self):
-        if self.document_type in self._extractors:
+    def document_logic_id(self):
+        if self.document_type in self._x_funcs:
             return self.document_type
         else:
             return "*"
@@ -416,9 +471,9 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
     @cached_property
     def x_funcs(self) -> dict[str, Extractor]:
         """
-        get all extractors and their proprety names
+        get all extractors and their property names for this specific file type
         """
-        return self._x_funcs.get(self.document_graph, self._x_funcs["*"])
+        return self._x_funcs.get(self.document_logic_id, self._x_funcs["*"])
 
     def non_interactive_x_funcs(self) -> dict[str, Extractor]:
         """return all non-interactive extractors"""
@@ -426,7 +481,7 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
 
     def x_config_params(self, extract_name: str):
         # TODO: can we cache this somehow? Or re-calculate it when calling "config"?
-        config = self._x_config.get(self.document_graph).get(extract_name, {})
+        config = self._x_config.get(self.document_logic_id).get(extract_name, {})
         config_params = {}
         for config_key in config:
             if v := self._config.get(config_key):
@@ -441,12 +496,12 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         """
         extractor_func: Extractor = self.x_funcs[extract_name]
 
-        # we need to check for "is not None" as we also pandas dataframes in this
-        # which cannot be checked for simple "is there"
-        # check if we executed this function at some point...
         try:
+            # check if we executed this function at some point...
             if extractor_func._cache:
                 key = functools._make_key((extractor_func,) + args, kwargs, typed=False)
+                # we need to check for "is not None" as we also have pandas dataframes in this
+                # which cannot be checked for by simply using "if"
                 if (res := self._x_func_cache.get(key, None)) is not None:
                     self._cache_hits += 1
                 else:
@@ -467,6 +522,11 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         """
         __getattr__ only gets called for non-existing variable names.
         So we can automatically avoid name collisions  here.
+
+        >>> document.addresses
+
+        instead of document.x['addresses']
+
         """
         return self.x(extract_name)
 

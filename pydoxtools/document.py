@@ -28,10 +28,40 @@ class Document(document_base.DocumentBase):
     In order to declare a different logic it is best to take this logic here as a
     starting point.
 
-    It is possible to exchange individual modules such as HTML extractors etc..
+    inherited classes can override any part of the graph.
 
-    One can also change the configuration of individual extractors. For example
+    It is possible to exchange/override/extend or introduce extraction logic for individual file types (including
+    the generic one: "*") such as *.html extractors, *.pdf, *.txt etc..
+
+    TODO: One can also change the configuration of individual extractors. For example
     of the Table Extractor or Space models...
+
+    TODO: add "extension/override" logic for individual file types. The main important thing there is
+          to make sure we don't have any "dangling" functions left over when filetype logics
+          gets overwritten
+
+    strings inside a document class indicate the inclusion of that document type logic but with a lower priority
+    this way a directed extraction graph gets built. This only counts for the current class that is
+    being defined though!!
+
+    Example extension logic for an OCR extractor which converts images into text:
+
+        "image": [
+                OCRExtractor()
+                .pipe(file="raw_content")
+                .out("ocr_pdf_file")
+                .cache(),
+            ],
+            # the first base doc types have priority over the last ones
+            # so here .png > image > .pdf
+            ".png": ["image", ".pdf"],
+            ".jpeg": ["image", ".pdf"],
+            ".jpg": ["image", ".pdf"],
+            ".tif": ["image", ".pdf"],
+            ".tiff": ["image", ".pdf"],
+
+    This logic introduced new "image" code block and searches for filetypes
+    ".png", ".jpeg", ".jpg", ".tif", ".tiff"
     """
     _extractors = {
         ".pdf": [

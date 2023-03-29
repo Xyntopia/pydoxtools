@@ -125,10 +125,10 @@ if __name__ == "__main__":
     # doc = Document(fobj=make_path_absolute("./data/berrybase_raspberrypi4.html"))
     # doc = Document(fobj=make_path_absolute("./data/remo-m_fixed-wing.2f.pdf"))
     # doc = Document(fobj=make_path_absolute("./data/north_american_countries.tif"))
-    with open(make_path_absolute("./data/alan_turing.txt"), "r") as f:
-        some_string = f.read()
+    #with open(make_path_absolute("./data/alan_turing.txt"), "r") as f:
+    #    some_string = f.read()
+    #    doc = Document(fobj=some_string)
 
-    doc = Document(fobj=some_string)
     doc.document_type
     doc.addresses
 
