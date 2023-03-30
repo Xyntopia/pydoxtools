@@ -122,7 +122,7 @@ datasets = "^2.10.1"
 evaluate = "^0.4.0"
 
 [build-system]
-requires = ["poetry>=1.1.1"]
+requires = ["poetry-core>=1.1.8"]
 build-backend = "poetry.masonry.api"
 
 [tool.pytest.ini_options]
