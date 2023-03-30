@@ -6,7 +6,7 @@ authors = ["thomas meschede <yeusblender@gmail.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.11" # python version constraints are caused by scipy
+python = ">=3.10,<4.0" # python version constraints are caused by scipy
 goose3 = { optional = true, version = ">=3.1.6" }
 # we are using this version of readability as the other version has a little bug...
 readability-lxml = { optional = true, version = ">=0.8.1" }
@@ -58,6 +58,9 @@ etl = ["goose3", "langdetect", "tldextract", "spacy", "pdfminer.six",
 inference = ["transformers", "scikit-learn", "tqdm", "torch", "pytorch-lightning", "spacy",
     "beautifulsoup4", "pandas", "urlextract", "hnswlib"]
 
+[tool.poetry.group.colab]
+optional = true
+
 [tool.poetry.group.colab.dependencies]
 pytest = ">=6.0.1"
 yattag = ">=1.13.2" #for html text coloring
@@ -75,7 +78,10 @@ fastparquet = { version = "^0.7.2" }
 # the pytorch-docker option below should be used in combination with the pytorch/pytorch dockerimage
 # we are leaving out torch nd lightning here because we want the GPU support!  or use the
 # already installed version....
-[tool.poetry.group.docker.dependencies]
+[tool.poetry.group.pytorchdocker]
+optional = true
+
+[tool.poetry.group.pytorchdocker.dependencies]
 pytest = ">=6.0.1"
 yattag = ">=1.13.2" #for html text coloring
 pigeonXT-jupyter = "^0.6.1" # for labeling purposes...
