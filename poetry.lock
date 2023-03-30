@@ -5793,7 +5793,7 @@ tests = ["pytest", "pytest-cov"]
 [[package]]
 name = "webdavclient3"
 version = "3.14.6"
-description = "WebDAV client, based on original package https://github.com/designerror/webdav-client-python but uses requests instead of PyCURL"
+description = ""
 category = "dev"
 optional = false
 python-versions = "*"
