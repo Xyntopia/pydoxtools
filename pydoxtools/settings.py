@@ -39,6 +39,9 @@ class _Settings(BaseSettings):
     TRAINING_DATA_DIR: Path = _FILE_DIR.parent / 'training_data'
     MODEL_DIR = CACHE_DIR_BASE / "models"
 
+    # in order to be able to access OPENAI api
+    OPENAI_API_KEY: str = "sk ...."
+
     """
     # model_type == "slow":
         # also very good, but slow:

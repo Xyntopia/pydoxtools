@@ -4,6 +4,7 @@ import pandas as pd
 
 from . import document_base
 from .extract_classes import LanguageExtractor, TextBlockClassifier
+from .extract_nlpchat import OpenAIChat
 from .extract_files import FileLoader
 from .extract_html import HtmlExtractor
 from .extract_index import IndexExtractor, KnnQuery, SimilarityGraph, ExtractKeywords
@@ -178,6 +179,10 @@ class Document(document_base.DocumentBase):
 
             ########### AGGREGATION ##############
             LambdaExtractor(lambda **kwargs: set(flatten(kwargs.values())))
-            .pipe("html_keywords", "textrank_keywords").out("keywords").cache()
+            .pipe("html_keywords", "textrank_keywords").out("keywords").cache(),
+
+            ########### Chat AI ##################
+            OpenAIChat()
+            .pipe(task=,full_text=,model=)
         ]
     }
