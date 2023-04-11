@@ -8,7 +8,7 @@ from pydoxtools import document_base
 logger = logging.getLogger(__name__)
 
 pandoc_version = pandoc._configuration['version']
-if version.parse() < version.parse('2.14.2'):
+if version.parse(pandoc_version) < version.parse('2.14.2'):
     logger.warning(f"installed pandoc version {pandoc_version}, which doesn't support rtf file format!"
                    f"in order to be able to use rtf, you need to install a pandoc version >= 2.14.2")
 

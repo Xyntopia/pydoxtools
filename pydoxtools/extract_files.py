@@ -28,6 +28,14 @@ class FileLoader(document_base.Extractor):
                     txt = file.read()
         else:
             txt = fobj.read()
+
+        # TODO: don't just assume utf-8, but detect the actual encoding
+        if isinstance(txt, bytes):
+            try:
+                txt = txt.decode("utf-8")
+            except UnicodeDecodeError:
+                pass
+
         # else:
         #    raise document_base.DocumentTypeError("Can not extract text from unknown document")
         return txt

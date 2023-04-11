@@ -131,6 +131,7 @@ class QamExtractor(Extractor):
 
 if __name__ == "__main__":
     # short test if NLP functions are working the way the're supposed to...
+    # TODO: move this into tests...
 
     short_test_text = """
     The Eli-2020 is a highly enjoyable therapy gadget. It features four limbs and 

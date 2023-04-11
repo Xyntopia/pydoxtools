@@ -176,8 +176,8 @@ if __name__ == "__main__":
     #    f.write(doc.ocr_pdf_file)
     # doc = Document(fobj=make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"))
     doc = Document(fobj=make_path_absolute("./data/alan_turing.txt"))
-    #TODO: doc = run_single_non_interactive_document_test("./data/alan_turing.txt")
-    graph_string = doc.logic_graph()
+    doc = run_single_non_interactive_document_test("./data/alan_turing.txt")
+    #graph_string = doc.logic_graph()
 
     # doc = Document(fobj=make_path_absolute("./data/north_american_countries.png"))
     # doc = Document(fobj=make_path_absolute("./data/berrybase_raspberrypi4.html"))
