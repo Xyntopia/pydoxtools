@@ -1,7 +1,28 @@
+import logging
+
 import spacy
 
 from pydoxtools import nlp_utils
 from .document_base import Extractor, TokenCollection
+
+logger = logging.getLogger(__name__)
+
+
+def download_space_models():
+    """"""
+    # !/usr/bin/env python3
+    logger.info("downloading some standard spacy models!")
+    model_names = [
+        'xx_ent_wiki_sm', 'en_core_web_md', 'de_core_news_md',
+        'en_core_web_sm', 'de_core_news_sm',
+        # 'en_core_web_lg', 'de_core_news_lg'
+        # 'en_core_web_trf', 'de_dep_news_trf'
+    ]
+    import subprocess
+    for model_id in model_names:
+        # python -m spacy download en_core_web_sm
+        subprocess.call(['python', '-m', 'spacy', 'download', model_id])
+        # spacy.load("en_core_web_sm")
 
 
 class SpacyExtractor(Extractor):
@@ -33,7 +54,6 @@ class SpacyExtractor(Extractor):
             doc=spacy_nlp(full_text),
             nlp=spacy_nlp
         )
-
 
 
 def extract_noun_chunks(spacy_doc) -> list[TokenCollection]:
