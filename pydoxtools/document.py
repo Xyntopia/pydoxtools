@@ -122,21 +122,22 @@ class Document(document_base.DocumentBase):
         ".md": ["pandoc"],
         ".rtf": ["pandoc"],
         ".epub": ["pandoc"],
+        ".markdown": ["pandoc"],
         "pandoc": [
             PandocLoader()
             .pipe(raw_content="raw_content", document_type="document_type")
             .out("pandoc_document").cache(),
             PandocConverter()
-            .pipe(pandoc_document="pandoc_document").out("full_text")
-            .config(output_format="markdown").cache(),
+            .pipe(pandoc_document="pandoc_document").config(output_format="markdown")
+            .out("full_text").cache(),
             PandocBlocks()
             .pipe(pandoc_document="pandoc_document").out("pandoc_blocks").cache(),
             PandocExtractor(method="headers", output_format="markdown")
-            .pipe(pandoc_blocks="pandoc_blocks").out("tables_df").cache(),
+            .pipe(pandoc_blocks="pandoc_blocks").out("headers").cache(),
             PandocExtractor(method="tables_df", output_format="markdown")
             .pipe(pandoc_blocks="pandoc_blocks").out("tables_df").cache(),
             PandocExtractor(method="lists", output_format="markdown")
-            .pipe(pandoc_blocks="pandoc_blocks").out("tables_df").cache(),
+            .pipe(pandoc_blocks="pandoc_blocks").out("lists").cache(),
         ],
         "*": [
             FileLoader(mode="auto")
@@ -147,9 +148,6 @@ class Document(document_base.DocumentBase):
             .pipe(x="full_text").out("text_box_elements").cache(),
             LambdaExtractor(lambda df: df.get("text", None).to_list())
             .pipe(df="text_box_elements").out("text_box_list").cache(),
-            # TODO: make sure we can set the model that we want to use dynamically!
-            QamExtractor(model_id=settings.PDXT_STANDARD_QAM_MODEL)
-            .pipe(text="full_text").out("answers").cache().config(trf_model_id="qam_model_id"),
             LambdaExtractor(lambda tables_df: [df.to_dict('index') for df in tables_df]).cache()
             .pipe("tables_df").out("tables_dict"),
             Alias(tables="tables_dict"),
@@ -203,8 +201,13 @@ class Document(document_base.DocumentBase):
             LambdaExtractor(lambda **kwargs: set(flatten(kwargs.values())))
             .pipe("html_keywords", "textrank_keywords").out("keywords").cache(),
 
+            ########### QaM machine #############
+            # TODO: make sure we can set the model that we want to use dynamically!
+            QamExtractor(model_id=settings.PDXT_STANDARD_QAM_MODEL)
+            .pipe(text="full_text").out("answers").cache().config(trf_model_id="qam_model_id"),
+
             ########### Chat AI ##################
             OpenAIChat()
-            .pipe(full_text="full_text").out("result").cache().config(model="gpt-3.5-turbo"),
+            .pipe(full_text="full_text").out("chat_answers").cache().config(model_id="model_id"),
         ]
     }

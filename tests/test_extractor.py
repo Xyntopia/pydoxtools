@@ -117,7 +117,20 @@ def test_address_extraction():
     assert findthis in addresses
 
 
-# TODO: test chatgpt funcitonality
+def test_chat_gpt():
+    # from pydoxtools.settings import settings
+    # settings.OPENAI_API_KEY = sk-...
+    import openai
+
+    doc = Document(
+        fobj=make_path_absolute("./data/sample.rtf"),
+        config=dict(model_id='gpt-3.5-turbo')
+    )
+    try:
+        ans = doc.chat_answers(["what is the text about?"])
+    except openai.error.AuthenticationError:
+        logger.info("openai chat test omitted, due to lack of API key.")
+
 
 def test_pandoc():
     pandoc_files = [
@@ -139,6 +152,19 @@ def test_pandoc():
         except:
             logger.warning(f"no blocks in the file {f}!")
 
+    doc = Document(fobj=make_path_absolute("./data/sample.rtf"))
+    assert len(doc.tables_df) == 1
+    assert len(doc.headers) == 2
+    # TODO: this one doesn't recognize lists yet...
+
+    doc = Document(fobj=make_path_absolute("./data/demo.md"), document_type=".markdown")
+    assert len(doc.tables) == 5
+    assert len(doc.lists) == 6
+
+    doc = Document(fobj=make_path_absolute("./data/demo.docx"), document_type=".docx")
+    assert len(doc.tables) == 5
+    assert len(doc.lists) == 6
+
 
 if __name__ == "__main__":
     # test if we can actually open the pdf...
@@ -154,12 +180,6 @@ if __name__ == "__main__":
     # with open(make_path_absolute("./data/alan_turing.txt"), "r") as f:
     #    some_string = f.read()
     #    doc = Document(fobj=some_string)
-
-    doc = Document(fobj=make_path_absolute("./data/demo.docx"))
-    doc.tables_df
-
-    doc.document_type
-    doc.addresses
 
     # doc.run_all_extractors()
 

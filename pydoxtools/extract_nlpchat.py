@@ -19,7 +19,7 @@ class OpenAIChat(Extractor):
         """
         super().__init__()
 
-    def __call__(self, full_text: str, model: str):
+    def __call__(self, full_text: str, model_id: str):
         openai.api_key = settings.OPENAI_API_KEY
 
         def task_machine(tasks: list[str]) -> list[str]:

@@ -5564,6 +5564,7 @@ typing-extensions = "*"
 [package.source]
 type = "url"
 url = "https://download.pytorch.org/whl/cpu/torch-1.12.1%2Bcpu-cp310-cp310-linux_x86_64.whl"
+
 [[package]]
 name = "torchmetrics"
 version = "0.11.4"
@@ -6283,4 +6284,4 @@ inference = ["transformers", "scikit-learn", "tqdm", "torch", "pytorch-lightning
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4.0" # python version constraints are caused by scipy
-content-hash = "17b7ddea82f7c0c04cdf9a6e551a28bd43c92b91a3132c3503f69b0ab9d3cf3e"
+content-hash = "3c9de3251df31184d60f4461dd27bd1648a250111b21b373d62d85b0776d61ac"
