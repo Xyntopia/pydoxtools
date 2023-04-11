@@ -19,20 +19,26 @@ class OpenAIChat(Extractor):
         """
         super().__init__()
 
-    def __call__(self, , tasks: str, full_text: str, model: str = "gpt-3.5-turbo"):
+    def __call__(self, full_text: str, model: str):
         openai.api_key = settings.OPENAI_API_KEY
 
-        def task_machine(tasks: list[str]) -> str:
+        def task_machine(tasks: list[str]) -> list[str]:
             if isinstance(tasks, str):
                 tasks = [str]
 
+            results = []
             # create a completion
-            completion = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": f"# Instruction: {task} ## Input for the task: {full_text}"}]
-            )
-            result = completion.choices[0].message
-            return result
+            for task in tasks:
+                completion = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": "You are a helpful assistant that aims to complete the given task"
+                                                      "with as little text as possible."},
+                        {"role": "user", "content": f"# Instruction: {task} ## Input for the task: {full_text}."}]
+                )
+                result = completion.choices[0].message
+                results.append(result)
+            return results
 
         # list models
         # models = openai.Model.list()

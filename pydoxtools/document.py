@@ -4,13 +4,14 @@ import pandas as pd
 
 from . import document_base
 from .extract_classes import LanguageExtractor, TextBlockClassifier
-from .extract_nlpchat import OpenAIChat
 from .extract_files import FileLoader
 from .extract_html import HtmlExtractor
 from .extract_index import IndexExtractor, KnnQuery, SimilarityGraph, ExtractKeywords
 from .extract_logic import Alias, Constant
 from .extract_logic import LambdaExtractor
+from .extract_nlpchat import OpenAIChat
 from .extract_objects import EntityExtractor
+from .extract_pandoc import PandocLoader, PandocExtractor, PandocConverter, PandocBlocks
 from .extract_spacy import SpacyExtractor, extract_spacy_token_vecs, get_spacy_embeddings, extract_noun_chunks
 from .extract_tables import ListExtractor, TableCandidateAreasExtractor
 from .extract_textstructure import DocumentElementFilter, TextBoxElementExtractor, TitleExtractor
@@ -116,6 +117,27 @@ class Document(document_base.DocumentBase):
             LambdaExtractor(lambda x: set(w.strip() for w in x.split(",")))
             .pipe(x="html_keywords_str").out("html_keywords"),  # todo add a generic keywords extraction here
         ],
+        ".docx": ["pandoc"],
+        ".odt": ["pandoc"],
+        ".md": ["pandoc"],
+        ".rtf": ["pandoc"],
+        ".epub": ["pandoc"],
+        "pandoc": [
+            PandocLoader()
+            .pipe(raw_content="raw_content", document_type="document_type")
+            .out("pandoc_document").cache(),
+            PandocConverter()
+            .pipe(pandoc_document="pandoc_document").out("full_text")
+            .config(output_format="markdown").cache(),
+            PandocBlocks()
+            .pipe(pandoc_document="pandoc_document").out("pandoc_blocks").cache(),
+            PandocExtractor(method="headers", output_format="markdown")
+            .pipe(pandoc_blocks="pandoc_blocks").out("tables_df").cache(),
+            PandocExtractor(method="tables_df", output_format="markdown")
+            .pipe(pandoc_blocks="pandoc_blocks").out("tables_df").cache(),
+            PandocExtractor(method="lists", output_format="markdown")
+            .pipe(pandoc_blocks="pandoc_blocks").out("tables_df").cache(),
+        ],
         "*": [
             FileLoader(mode="auto")
             .pipe(fobj="_fobj", document_type="document_type", page_numbers="_page_numbers", max_pages="_max_pages")
@@ -183,6 +205,6 @@ class Document(document_base.DocumentBase):
 
             ########### Chat AI ##################
             OpenAIChat()
-            .pipe(task=,full_text=,model=)
+            .pipe(full_text="full_text").out("result").cache().config(model="gpt-3.5-turbo"),
         ]
     }

@@ -14,14 +14,20 @@ logger = logging.getLogger(__name__)
 test_files = [
     "./data/PFR-PR23_BAT-110__V1.00_.pdf",
     "./data/Datasheet-Centaur-Charger-DE.6f.pdf",
-    # TODO: integrate OCR
-    # "./data/north_american_countries.png",
-    # "./data/north_american_countries.tif", "./data/north_american_countries.jpg",
     "./data/List of North American countries by population - Wikipedia.pdf",
     "./data/berrybase_raspberrypi4.html",
     "./data/test.html",
     "./data/remo-m_fixed-wing.2f.pdf",
-    # TODO: file:///home/tom/git/pydoxtools/tests/data/alan_turing.txt
+    "./data/alan_turing.txt",
+    "./data/demo.docx",
+    # TODO: enable ODP
+    # "./data/Doxcavator.odp",
+    "./data/Doxcavator.pdf",
+    # TODO: enable pptx
+    # "./data/Doxcavator.pptx",
+    "./data/test.odt",
+    "./data/sample.rtf",
+    "./data/basic-v3plus2.epub"
 ]
 
 test_dir_path = pathlib.Path(__file__).parent.absolute()
@@ -111,8 +117,27 @@ def test_address_extraction():
     assert findthis in addresses
 
 
-def test_multiple_product_extraction():
-    pass
+# TODO: test chatgpt funcitonality
+
+def test_pandoc():
+    pandoc_files = [
+        # TODO: add pandoc functionality to ordinary text files
+        # "./data/alan_turing.txt",
+        "./data/demo.docx",
+        "./data/test.odt",
+        "./data/sample.rtf",
+        "./data/basic-v3plus2.epub"
+    ]
+
+    import pandoc.types
+    for f in pandoc_files:
+        logger.info(f"testing pandoc with {f}")
+        doc = Document(fobj=make_path_absolute(f))
+        assert isinstance(doc.pandoc_blocks, list)
+        try:
+            assert isinstance(doc.pandoc_blocks[0], pandoc.types.Block)
+        except:
+            logger.warning(f"no blocks in the file {f}!")
 
 
 if __name__ == "__main__":
@@ -121,13 +146,17 @@ if __name__ == "__main__":
     #    f.write(doc.ocr_pdf_file)
     # doc = Document(fobj=make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"))
     doc = Document(fobj=make_path_absolute("./data/Datasheet-Centaur-Charger-DE.6f.pdf"))
+
     # doc = Document(fobj=make_path_absolute("./data/north_american_countries.png"))
     # doc = Document(fobj=make_path_absolute("./data/berrybase_raspberrypi4.html"))
     # doc = Document(fobj=make_path_absolute("./data/remo-m_fixed-wing.2f.pdf"))
     # doc = Document(fobj=make_path_absolute("./data/north_american_countries.tif"))
-    #with open(make_path_absolute("./data/alan_turing.txt"), "r") as f:
+    # with open(make_path_absolute("./data/alan_turing.txt"), "r") as f:
     #    some_string = f.read()
     #    doc = Document(fobj=some_string)
+
+    doc = Document(fobj=make_path_absolute("./data/demo.docx"))
+    doc.tables_df
 
     doc.document_type
     doc.addresses
