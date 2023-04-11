@@ -4114,6 +4114,17 @@ files = [
 plugins = ["importlib-metadata"]
 
 [[package]]
+name = "pygraphviz"
+version = "1.10"
+description = "Python interface to Graphviz"
+category = "dev"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "pygraphviz-1.10.zip", hash = "sha256:457e093a888128903251a266a8cc16b4ba93f3f6334b3ebfed92c7471a74d867"},
+]
+
+[[package]]
 name = "pyparsing"
 version = "3.0.9"
 description = "pyparsing module - Classes and methods to define and execute parsing grammars"
@@ -6284,4 +6295,4 @@ inference = ["transformers", "scikit-learn", "tqdm", "torch", "pytorch-lightning
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4.0" # python version constraints are caused by scipy
-content-hash = "3c9de3251df31184d60f4461dd27bd1648a250111b21b373d62d85b0776d61ac"
+content-hash = "6798001726772bd8c1dd82fbf74b9c0653ab4e9ac98543b733637721fcc2f7d4"

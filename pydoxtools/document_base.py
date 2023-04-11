@@ -10,6 +10,7 @@ from enum import Enum
 from functools import cached_property
 from pathlib import Path
 from time import time
+import networkx as nx
 from typing import List, Any, IO
 
 import numpy as np
@@ -117,7 +118,7 @@ class Extractor(ABC):
         # try to keep __init__ with no arguments for Extractor..
         self._in_mapping: dict[str, str] = {}
         self._out_mapping: dict[str, str] = {}
-        self._cache = False
+        self._cache = False  # TODO: switch to "True" by default
         self._dynamic_config: dict[str, str] = {}
         self._interactive = False
 
@@ -139,20 +140,32 @@ class Extractor(ABC):
         essentially, This maps the outputs from one element of _extractors
         to the inputs of another and also makes sure
         to override certain parameters that were specified in
-        a config when calling the document class
+        a config when calling the document class.
+
+        argument precedence is as follows:
+
+        extractor graph < config < direct call
+
+        # TODO: maybe we should change precedence and make config the lowest?
         """
         mapped_kwargs = {}
+        # get all required input parameters from _in_mapping which was declared with "pipe"
         for k, v in self._in_mapping.items():
             # first check if parameter is available as an extractor
             if v in parent_document.x_funcs:
+                # then call the function to get the value
                 mapped_kwargs[k] = parent_document.x(v)
-            else:  # get "native" member-variables if not found an extractor with that name
+            else:
+                # get "native" member-variables or other functions
+                # if not found an extractor with that name
                 mapped_kwargs[k] = getattr(parent_document, v)
+
         # get potential overriding parameters to override function call from _dynamic_config
         if config_params:
             override_parameters = {self._dynamic_config[k]: v for k, v in config_params.items()}
             mapped_kwargs.update(override_parameters)
 
+        # override graph args directly with function call params...
         mapped_kwargs.update(kwargs)
         output = self(*args, **mapped_kwargs)
         if isinstance(output, dict):
@@ -168,6 +181,23 @@ class Extractor(ABC):
 
         This function will be passed through to doc.x.config() in a document
         instance in order to make some extractor arguments dynamic and changeable.
+
+        *args and **kwargs specify which function calls should be called from
+        a config file.
+
+        e.g. calling:
+
+            EXTRACTOR.config(trf_model_id="qam_model_id")
+
+        means, that the parameter "trf_model_id" can be specified by initializing the document
+        class with a config aprameter "qam_model_id" which then gets mapped to the
+        function parameter "trf_model_id".
+
+        "document(..., config=dict(trf_model_id='distilbert-base-cased-distilled-squad'))
+
+        This function call can still be overwritten
+        by calling the function through "x" directly using *args or **kwargs.
+
         """
         self._dynamic_config = {v: k for k, v in kwargs.items()}
         self._dynamic_config.update({k: k for k in args})
@@ -201,6 +231,10 @@ class Extractor(ABC):
     def cache(self):
         """indicate to document that we want this extractor function to be cached"""
         self._cache = True
+        return self
+
+    def no_cache(self):
+        self._cache = False
         return self
 
 
@@ -481,6 +515,7 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
 
     def x_config_params(self, extract_name: str):
         # TODO: can we cache this somehow? Or re-calculate it when calling "config"?
+        # get our required config parameters specifically for the function specified by "extract_name"
         config = self._x_config.get(self.document_logic_id).get(extract_name, {})
         config_params = {}
         for config_key in config:
@@ -537,7 +572,7 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         return {self.x(property) for property in self.x_funcs}
 
     def run_all_extractors(self):
-        """can be used for testing purposes"""
+        """can be used for testing or pre-caching purposes"""
         # print(pdfdoc.elements)
         for x in self.non_interactive_x_funcs():
             self.x(x)
@@ -600,3 +635,19 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
     @cached_property
     def uuid(self):
         return uuid.uuid4()
+
+    def logic_graph(self):
+        graph = nx.DiGraph()
+        for name, f in self.x_funcs.items():
+            f_class = f.__class__.__name__ + "\n".join(f._out_mapping.keys())
+            graph.add_node(f_class, shape="none")
+            # out-edges
+            for k, v in f._out_mapping.items():
+                graph.add_node(v)  # , shape="none")
+                graph.add_edge(f_class, v)
+            for k, v in f._in_mapping.items():
+                graph.add_edge(v, f_class)
+            # f._dynamic_config
+
+        dotgraph = nx.nx_agraph.to_agraph(graph).string()
+        return dotgraph
