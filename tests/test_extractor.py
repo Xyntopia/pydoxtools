@@ -78,11 +78,6 @@ def test_string_extraction():
     assert doc.keywords == {"Turing"}
 
 
-def test_installation():
-    from pydoxtools import nlp_utils
-    nlp_utils.download_spacy_nlp_models(["md"])  # "also ["lg","trf"] etc.."
-
-
 def test_all_documents():
     for f in test_files:
         logger.info(f"testing with {f}")
@@ -118,10 +113,7 @@ def test_address_extraction():
 
 
 def test_chat_gpt():
-    # from pydoxtools.settings import settings
-    # settings.OPENAI_API_KEY = sk-...
     import openai
-
     doc = Document(
         fobj=make_path_absolute("./data/sample.rtf"),
         config=dict(model_id='gpt-3.5-turbo')
@@ -170,6 +162,7 @@ def test_logic_graph():
     doc = Document(fobj=make_path_absolute("./data/demo.docx"), document_type=".docx")
     doc.logic_graph()
 
+
 if __name__ == "__main__":
     # test if we can actually open the pdf...
     # with open("ocrpdf", "wb") as f:
@@ -177,7 +170,7 @@ if __name__ == "__main__":
     # doc = Document(fobj=make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"))
     doc = Document(fobj=make_path_absolute("./data/alan_turing.txt"))
     doc = run_single_non_interactive_document_test("./data/alan_turing.txt")
-    #graph_string = doc.logic_graph()
+    # graph_string = doc.logic_graph()
 
     # doc = Document(fobj=make_path_absolute("./data/north_american_countries.png"))
     # doc = Document(fobj=make_path_absolute("./data/berrybase_raspberrypi4.html"))

@@ -13,20 +13,6 @@ from .document_base import Extractor, TokenCollection
 logger = logging.getLogger(__name__)
 
 
-def download_spacy_models():
-    """"""
-    # !/usr/bin/env python3
-    logger.info("downloading some standard spacy models!")
-    model_names = [
-        'xx_ent_wiki_sm', 'en_core_web_md', 'de_core_news_md',
-        'en_core_web_sm', 'de_core_news_sm',
-        # 'en_core_web_lg', 'de_core_news_lg'
-        # 'en_core_web_trf', 'de_dep_news_trf'
-    ]
-    for model_id in model_names:
-        download_model(model_id)
-
-
 def download_model(model_id: str):
     # python -m spacy download en_core_web_sm
     return subprocess.call(['python', '-m', 'spacy', 'download', model_id])
@@ -59,19 +45,36 @@ def get_spacy_embeddings(spacy_nlp):
 
 
 def get_spacy_model_id(model_language, size="sm") -> Optional[str]:
-    """size can be: sm, md, lg or trf where "trf" is transformer """
-    if model_language == 'en':
-        return f'en_core_web_{size}'
-    elif model_language == 'de':
-        return f'de_core_news_{size}'
+    """
+    size can be: sm, md, lg or trf where "trf" is transformer
+
+    TODO: try to list all spacy models systematically
+     """
+    if model_language in ['en', 'zh']:
+        return f'{model_language}_core_web_{size}'
+    elif model_language in ['de', 'fr', 'es', 'ru', 'ja', 'it', 'ca', 'hr', 'da',
+                            'nl', 'fi', 'el', 'ko', 'lt', 'mk', 'nb', 'pl', 'pt',
+                            'ro', 'ru', 'sv', 'uk']:
+        return f'{model_language}_core_news_{size}'
     else:
-        None
+        return f'xx_sent_ud_sm'
 
 
 @functools.lru_cache()
 def load_cached_spacy_model(model_id: str) -> Language:
-    """load spacy nlp model and in case of a transformer model add custom vector pipeline..."""
-    nlp = spacy.load(model_id)
+    """
+    load spacy nlp model and in case of a transformer model add custom vector pipeline...
+
+    we also make sure to cache the model for batch operations on documens.
+    """
+    try:
+        logger.info(f"loading spacy model: {model_id}")
+        nlp = spacy.load(model_id)
+    except OSError:  # model doesn't seem to be present, yet
+        logger.info(f"failed, loading. trying to download spacy model: {model_id}")
+        download_model(model_id)
+        nlp = spacy.load(model_id)
+
     if model_id[-3:] == "trf":
         nlp.add_pipe('trf_vectors')
 
