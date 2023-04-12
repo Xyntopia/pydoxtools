@@ -52,6 +52,7 @@ def run_single_non_interactive_document_test(file_name):
     with open(file_name, "rb") as file:
         doc_str = file.read()
 
+    # TODO: automatically recognize doc_type
     # from bytestream
     doc = Document(fobj=io.BytesIO(doc_str), document_type=doc_type)
     doc.document_type
@@ -90,6 +91,16 @@ def test_table_extraction():
     assert len(metrics) == 2
     assert doc.x("tables_df")[0].shape == (10, 2)
     assert doc.x("tables_df")[1].shape == (14, 2)
+
+    with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:
+        doc_str = file.read()
+    doc = Document(fobj=doc_str, document_type=".pdf")
+    metrics = [t.metrics_X for t in doc.x("table_candidates") if t.is_valid]
+    assert len(metrics) == 2
+    assert doc.x("tables_df")[0].shape == (10, 2)
+    assert doc.x("tables_df")[1].shape == (14, 2)
+
+    # TODO: add test to automatically recognize correct document
 
 
 def test_qam_machine():
@@ -163,13 +174,24 @@ def test_logic_graph():
     doc.logic_graph()
 
 
+def test_url_download():
+    doc = Document(
+        "https://www.raspberrypi.org/app/uploads/2012/12/quick-start-guide-v1.1.pdf",
+        document_type=".pdf"
+    )
+    # doc = Document(fobj=make_path_absolute("./data/alan_turing.txt"))
+    # doc = run_single_non_interactive_document_test("./data/alan_turing.txt")
+    assert doc.x("tables_df")[0].shape == (8, 3)
+
+
 if __name__ == "__main__":
     # test if we can actually open the pdf...
     # with open("ocrpdf", "wb") as f:
     #    f.write(doc.ocr_pdf_file)
-    # doc = Document(fobj=make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"))
-    doc = Document(fobj=make_path_absolute("./data/alan_turing.txt"))
-    doc = run_single_non_interactive_document_test("./data/alan_turing.txt")
+    with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:
+        doc_str = file.read()
+    doc = Document(fobj=doc_str, document_type="pdf")
+
     # graph_string = doc.logic_graph()
 
     # doc = Document(fobj=make_path_absolute("./data/north_american_countries.png"))

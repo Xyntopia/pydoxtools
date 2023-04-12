@@ -10,10 +10,12 @@ from enum import Enum
 from functools import cached_property
 from pathlib import Path
 from time import time
-import networkx as nx
 from typing import List, Any, IO
+from urllib.parse import urlparse
 
+import networkx as nx
 import numpy as np
+import requests
 import spacy.tokens
 
 logger = logging.getLogger(__name__)
@@ -386,6 +388,14 @@ class MetaDocumentClassConfiguration(type):
         return new_class
 
 
+def is_url(url):
+    try:
+        result = urlparse(url)
+        return all([result.scheme, result.netloc])
+    except ValueError:
+        return False
+
+
 class DocumentBase(metaclass=MetaDocumentClassConfiguration):
     """
     This class is the base for all document classes in pydoxtools and
@@ -444,6 +454,15 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
         document_type: directly specify the document type which specifies the extraction
             logic that should be used
         """
+
+        # TODO: move this code into its own little extractor...
+        try:
+            if is_url(fobj):
+                response = requests.get(fobj)
+                with open('file.pdf', 'wb') as file:
+                    fobj = response.content
+        except:
+            pass
 
         self._fobj = fobj  # file object
         self._source = source or "unknown"

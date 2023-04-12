@@ -184,7 +184,8 @@ class Document(document_base.DocumentBase):
             EntityExtractor().cache()
             .pipe("spacy_doc").out("entities"),
             # TODO: try to implement as much as possible from the constants below for all documentypes
-            Constant(summary="", urls=[], main_image=None, html_keywords=[],
+            # TODO: implement an automatic summarizer based on textrank...
+            Constant(summary="unknown", urls=[], main_image=None, html_keywords=[],
                      final_urls=[], pdf_links=[], schemadata={}, tables_df=[]),
             Alias(url="source"),
 

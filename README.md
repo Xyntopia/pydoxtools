@@ -18,11 +18,19 @@ for batch-processing of documents by defining them as a lazily-executed graph.
 
     import pydoxtools as pdx
 
-    # download document using requests
-
     # create a document from a file, string, bytestring, file-like object
     # or even an url:
-    pdx.document("")
+    doc = Document(
+        "https://www.raspberrypi.org/app/uploads/2012/12/quick-start-guide-v1.1.pdf", 
+        document_type=".pdf"
+    )
+    # extract the table as a pandas dataframe:
+    print(doc.tables_df)
+    print(doc.answers(["how much power does it need?"])[0][0][0])
+    print(doc.chat_answers(["who is the target group of this document?"])[0].content)
+    print(doc.chat_answers(["Answer if a 5-year old would be able to follow these instructions?"])[0].content)
+    # ask a question about the document:
+    
 
 ## CLI
 

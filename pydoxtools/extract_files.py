@@ -5,16 +5,6 @@ from pathlib import Path
 from pydoxtools import document_base
 
 
-from urllib.parse import urlparse
-
-def is_url(url):
-    try:
-        result = urlparse(url)
-        return all([result.scheme, result.netloc])
-    except ValueError:
-        return False
-
-
 class FileLoader(document_base.Extractor):
     def __init__(self):
         super().__init__()
