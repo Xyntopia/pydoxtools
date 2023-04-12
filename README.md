@@ -1,34 +1,45 @@
 # pydoxtools
 
-This library provides several functions in order to extract information from
-all kinds of sources. 
+Pydoxtools is a library that provides a sophisticated interface for reading and
+writing documents, designed to work with AI models such as GPT, Alpaca, and
+Huggingface. It offers functionalities such as:
 
-It will analyze documents and do the following operations:
+- Table extraction
+- Document analysis and question-answering
+- Task relation creation
+- Entity, address identification and more
+- List and keyword extraction
+- Data normalization, translation, and cleaning
 
-- extract tables
-- other information (entities, addresses)
-- provides a question & answering mechanism based on NLP
-- extract specifications
-- extract interfaces
-- normalize the data
-- translate the data
-- clean the data
+The library allows for the creation of complex extraction pipelines
+for batch-processing of documents by defining them as a lazily-executed graph.
 
 ## Teaser
 
+    import pydoxtools as pdx
+
+    # create a document from a file, string, bytestring, file-like object
+    # or even an url:
+    pdx.document("")
+
 ## Installation
 
-### OCR
+    pip install
 
-The ocr functionality relies on the Open Source Software
-[tesseract](https://github.com/tesseract-ocr/tesseract) to extract
-pdf files from images and image-based pdfs.
+## Examples
 
-In order to install OCR functionality it's best to follow the instructions on their 
-[webpage](https://tesseract-ocr.github.io/). In most linux distributions it
-can be as simple as:
+- analyze documents using any sort of model from huggingface...
+- analyze documents using a custom model
+- download a pdf from URL
+- generate document keywords
+- extract tables
+- download document from URL "manually" and then feed to document
+- extract addresses
+- extract addresses and use this information for the qam
 
-    sudo apt install tesseract-ocr
+## Development
+
+--> see [](DEVELOPMENT.md)
 
 ## License
 
@@ -39,6 +50,7 @@ setting:
 
     pip install pip-licenses
     pip-licenses | grep -Ev 'MIT License|BSD License|Apache Software License|Python Software Foundation License|Apache 2.0|MIT|Apache License 2.0|hnswlib|Pillow|new BSD|BSD'
-    
-# libraries, that this project is based on:
 
+## list of libraries, that this project is based on:
+
+[list](poetry.lock)
