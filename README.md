@@ -18,9 +18,15 @@ for batch-processing of documents by defining them as a lazily-executed graph.
 
     import pydoxtools as pdx
 
+    # download document using requests
+
     # create a document from a file, string, bytestring, file-like object
     # or even an url:
     pdx.document("")
+
+## CLI
+
+TODO...
 
 ## Installation
 
