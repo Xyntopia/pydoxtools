@@ -1,14 +1,19 @@
+import functools
 import logging
+import subprocess
+from typing import Optional
 
+import numpy as np
 import spacy
+from spacy import Language
+from spacy.tokens import Doc, Token, Span
 
-from pydoxtools import nlp_utils
 from .document_base import Extractor, TokenCollection
 
 logger = logging.getLogger(__name__)
 
 
-def download_space_models():
+def download_spacy_models():
     """"""
     # !/usr/bin/env python3
     logger.info("downloading some standard spacy models!")
@@ -18,42 +23,14 @@ def download_space_models():
         # 'en_core_web_lg', 'de_core_news_lg'
         # 'en_core_web_trf', 'de_dep_news_trf'
     ]
-    import subprocess
     for model_id in model_names:
-        # python -m spacy download en_core_web_sm
-        subprocess.call(['python', '-m', 'spacy', 'download', model_id])
-        # spacy.load("en_core_web_sm")
+        download_model(model_id)
 
 
-class SpacyExtractor(Extractor):
-    def __init__(
-            self,
-            model_size: str = "sm",
-            model_language: str = "auto",
-            spacy_model="xx_ent_wiki_sm"
-    ):
-        """
-        model_size: if model_language=="auto" we also need to set our model_size
-
-        TODO: add a "HuggingfaceExtractor" with similar structure
-
-        """
-        super().__init__()
-        self._spacy_model = spacy_model
-        self._model_size = model_size
-        self._model_language = model_language
-
-    def __call__(self, full_text: str, language: str = "auto") -> spacy.tokens.Doc:
-        if self._model_language == "auto":
-            nlp_modelid = nlp_utils.get_spacy_model_id(language, self._model_size)
-        else:
-            nlp_modelid = self._spacy_model
-
-        spacy_nlp = nlp_utils.load_cached_spacy_model(nlp_modelid)
-        return dict(
-            doc=spacy_nlp(full_text),
-            nlp=spacy_nlp
-        )
+def download_model(model_id: str):
+    # python -m spacy download en_core_web_sm
+    return subprocess.call(['python', '-m', 'spacy', 'download', model_id])
+    # spacy.load("en_core_web_sm")
 
 
 def extract_noun_chunks(spacy_doc) -> list[TokenCollection]:
@@ -79,3 +56,115 @@ def get_spacy_embeddings(spacy_nlp):
     except AttributeError:
         # not sure how to get embeddings from here:      t2v = spacy_nlp.components[0][1]
         return []
+
+
+def get_spacy_model_id(model_language, size="sm") -> Optional[str]:
+    """size can be: sm, md, lg or trf where "trf" is transformer """
+    if model_language == 'en':
+        return f'en_core_web_{size}'
+    elif model_language == 'de':
+        return f'de_core_news_{size}'
+    else:
+        None
+
+
+@functools.lru_cache()
+def load_cached_spacy_model(model_id: str) -> Language:
+    """load spacy nlp model and in case of a transformer model add custom vector pipeline..."""
+    nlp = spacy.load(model_id)
+    if model_id[-3:] == "trf":
+        nlp.add_pipe('trf_vectors')
+
+    return nlp
+
+
+@Language.factory('trf_vectors')
+class TrfContextualVectors:
+    """
+    Spacy pipeline which add transformer vectors to each token based on user hooks.
+
+    https://spacy.io/usage/processing-pipelines#custom-components-user-hooks
+    https://github.com/explosion/spaCy/discussions/6511
+    """
+
+    def __init__(self, nlp: Language, name: str):
+        # TODO: we can configure this class for different pooling methods...
+        self.name = name
+        Doc.set_extension("trf_token_vecs", default=None)
+
+    def __call__(self, sdoc):
+        # inject hooks from this class into the pipeline
+        if type(sdoc) == str:
+            sdoc = self._nlp(sdoc)
+
+        # pre-calculate all vectors for every token:
+
+        # calculate groups for spacy token boundaries in the trf vectors
+        vec_idx_splits = np.cumsum(sdoc._.trf_data.align.lengths)
+        # get transformer vectors and reshape them into one large continous tensor
+        trf_vecs = sdoc._.trf_data.tensors[0].reshape(-1, 768)
+        # calculate mapping groups from spacy tokens to transformer vector indices
+        vec_idxs = np.split(sdoc._.trf_data.align.dataXd, vec_idx_splits)
+
+        # take sum of mapped transformer vector indices for spacy vectors
+        # TOOD: add more pooling methods than just sum...
+        #       if we do this we probabyl need to declare a factory function...
+        vecs = np.stack([trf_vecs[idx].sum(0) for idx in vec_idxs[:-1]])
+        sdoc._.trf_token_vecs = vecs
+
+        sdoc.user_token_hooks["vector"] = self.token_vector
+        sdoc.user_span_hooks["vector"] = self.span_vector
+        sdoc.user_hooks["vector"] = self.doc_vector
+        sdoc.user_token_hooks["has_vector"] = self.has_vector
+        sdoc.user_span_hooks["has_vector"] = self.has_vector
+        sdoc.user_hooks["has_vector"] = self.has_vector
+        # sdoc.user_token_hooks["similarity"] = self.similarity
+        # sdoc.user_span_hooks["similarity"] = self.similarity
+        # sdoc.user_hooks["similarity"] = self.similarity
+        return sdoc
+
+    @functools.lru_cache
+    def token_vector(self, token: Token):
+        return token.doc._.trf_token_vecs[token.i]
+
+    @functools.lru_cache
+    def span_vector(self, span: Span):
+        vecs = span.doc._.trf_token_vecs
+        return vecs[span.start: span.end].sum(0)
+
+    @functools.lru_cache
+    def doc_vector(self, doc: Doc):
+        vecs = doc._.trf_token_vecs
+        return vecs.sum(0)
+
+    def has_vector(self, token):
+        return True
+
+
+class SpacyExtractor(Extractor):
+    def __init__(
+            self,
+            model_size: str = "sm",
+            model_language: str = "auto",
+            spacy_model="xx_ent_wiki_sm"
+    ):
+        """
+        model_size: if model_language=="auto" we also need to set our model_size
+        """
+        # TODO: add a "HuggingfaceExtractor" with similar structure
+        super().__init__()
+        self._spacy_model = spacy_model
+        self._model_size = model_size
+        self._model_language = model_language
+
+    def __call__(self, full_text: str, language: str = "auto") -> spacy.tokens.Doc:
+        if self._model_language == "auto":
+            nlp_modelid = get_spacy_model_id(language, self._model_size)
+        else:
+            nlp_modelid = self._spacy_model
+
+        spacy_nlp = load_cached_spacy_model(nlp_modelid)
+        return dict(
+            doc=spacy_nlp(full_text),
+            nlp=spacy_nlp
+        )

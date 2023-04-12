@@ -18,19 +18,16 @@ TODO: move the inference parts into the "document" class in order to make them d
 import functools
 import logging
 from difflib import SequenceMatcher
-from typing import Optional, List, Any
+from typing import Any
 
 import numpy as np
 import pandas as pd
 import sklearn as sk
 import sklearn.linear_model
-import spacy
 import torch
 import transformers
 from pydantic import BaseModel
 from scipy.spatial.distance import pdist, squareform
-from spacy.language import Language
-from spacy.tokens import Doc, Span, Token
 from tqdm import tqdm
 from transformers import AutoTokenizer, AutoModel, AutoModelForQuestionAnswering
 from urlextract import URLExtract
@@ -313,83 +310,6 @@ def get_bert_vocabulary():
     return model.embeddings.word_embeddings.weight.detach().numpy()
 
 
-def get_spacy_model_id(model_language, size="sm") -> Optional[str]:
-    """size can be: sm, md, lg or trf where "trf" is transformer """
-    if model_language == 'en':
-        return f'en_core_web_{size}'
-    elif model_language == 'de':
-        return f'de_core_news_{size}'
-    else:
-        None
-
-
-@functools.lru_cache()
-def load_cached_spacy_model(model_id: str) -> Language:
-    """load spacy nlp model and in case of a transformer model add custom vector pipeline..."""
-    nlp = spacy.load(model_id)
-    if model_id[-3:] == "trf":
-        nlp.add_pipe('trf_vectors')
-
-    return nlp
-
-
-def generate_spacy_model_id_list(options: List[str] = None):
-    model_names = [
-        'xx_ent_wiki_sm', 'en_core_web_md', 'de_core_news_md',
-        'en_core_web_sm', 'de_core_news_sm'
-    ]
-    if options:
-        if 'lg' in options:
-            model_names += ['en_core_web_lg', 'de_core_news_lg']
-        if 'trf' in options:
-            model_names += ['en_core_web_trf', 'de_dep_news_trf']
-
-    return model_names
-
-
-def download_spacy_nlp_models(options: List[str], dl_path=None):
-    """download models and other necessary stuff
-    if we need more models, we can find them here:
-
-    https://spacy.io/usage/models#download-manual
-
-    we can use this function to pre-download & initialize
-    our models in a dockerfile like this:
-
-        python -c 'from pydoxtools import nlp_utils; nlp_utils.download_nlp_models(["trf","md"])'
-
-    """
-    model_names = generate_spacy_model_id_list(options)
-
-    # https://github.com/explosion/spacy-models/releases/download/xx_ent_wiki_sm-3.4.0/xx_ent_wiki_sm-3.4.0-py3-none-any.whl
-    for model_id in model_names:
-        version = "3.4.0"
-        # spacy.about.__version__  doesn't work ..  probably because models re only availabe with major versions
-        # meaning 3.4.0 instead of 3.4.1
-        model_version = f"{model_id}-{version}"
-        url = f"{spacy.about.__download_url__}/{model_version}/{model_version}-py3-none-any.whl"
-        """
-        try:
-            nlp=spacy.load(model_id)
-            logger.info(f"model {model_id} is already installed!")
-        except IOError:
-            spacy.cli.download(model_id)
-            nlp = spacy.load(model_id)
-        #(settings.MODEL_DIR/"spacy").mkdir(parents=True, exist_ok=True)
-        #nlp.to_disk(settings.MODEL_DIR/"spacy"/model_id)
-        """
-        import subprocess
-        # pip download -d # would lso be an option...
-        # print(subprocess.check_output(['pip', 'install', url]))
-        print(f"dowloading to: {dl_path}")
-        if dl_path:
-            subprocess.call(['pip', 'download', '--no-deps', '-d', dl_path, url])
-        else:
-            subprocess.call(['pip', 'install', '--no-deps', url])
-
-        # pip download --no-deps https://github.com/explosion/spacy-models/releases/download/xx_ent_wiki_sm-3.4.0/xx_ent_wiki_sm-3.4.0-py3-none-any.whl
-
-
 def reset_models():
     """clear models from memory"""
     load_models.cache_clear()
@@ -652,69 +572,6 @@ def extract_entities_spacy(text, nlp):
 def convert_ids_to_string(tokenizer, ids):
     a = tokenizer.convert_ids_to_tokens(ids)
     return tokenizer.convert_tokens_to_string(a)
-
-
-@Language.factory('trf_vectors')
-class TrfContextualVectors:
-    """
-    Spacy pipeline which add transformer vectors to each token based on user hooks.
-
-    https://spacy.io/usage/processing-pipelines#custom-components-user-hooks
-    https://github.com/explosion/spaCy/discussions/6511
-    """
-
-    def __init__(self, nlp: Language, name: str):
-        # TODO: we can configure this class for different pooling methods...
-        self.name = name
-        Doc.set_extension("trf_token_vecs", default=None)
-
-    def __call__(self, sdoc):
-        # inject hooks from this class into the pipeline
-        if type(sdoc) == str:
-            sdoc = self._nlp(sdoc)
-
-        # pre-calculate all vectors for every token:
-
-        # calculate groups for spacy token boundaries in the trf vectors
-        vec_idx_splits = np.cumsum(sdoc._.trf_data.align.lengths)
-        # get transformer vectors and reshape them into one large continous tensor
-        trf_vecs = sdoc._.trf_data.tensors[0].reshape(-1, 768)
-        # calculate mapping groups from spacy tokens to transformer vector indices
-        vec_idxs = np.split(sdoc._.trf_data.align.dataXd, vec_idx_splits)
-
-        # take sum of mapped transformer vector indices for spacy vectors
-        # TOOD: add more pooling methods than just sum...
-        #       if we do this we probabyl need to declare a factory function...
-        vecs = np.stack([trf_vecs[idx].sum(0) for idx in vec_idxs[:-1]])
-        sdoc._.trf_token_vecs = vecs
-
-        sdoc.user_token_hooks["vector"] = self.token_vector
-        sdoc.user_span_hooks["vector"] = self.span_vector
-        sdoc.user_hooks["vector"] = self.doc_vector
-        sdoc.user_token_hooks["has_vector"] = self.has_vector
-        sdoc.user_span_hooks["has_vector"] = self.has_vector
-        sdoc.user_hooks["has_vector"] = self.has_vector
-        # sdoc.user_token_hooks["similarity"] = self.similarity
-        # sdoc.user_span_hooks["similarity"] = self.similarity
-        # sdoc.user_hooks["similarity"] = self.similarity
-        return sdoc
-
-    @functools.lru_cache
-    def token_vector(self, token: Token):
-        return token.doc._.trf_token_vecs[token.i]
-
-    @functools.lru_cache
-    def span_vector(self, span: Span):
-        vecs = span.doc._.trf_token_vecs
-        return vecs[span.start: span.end].sum(0)
-
-    @functools.lru_cache
-    def doc_vector(self, doc: Doc):
-        vecs = doc._.trf_token_vecs
-        return vecs.sum(0)
-
-    def has_vector(self, token):
-        return True
 
 
 # we are creating a factory here as our tranformers vector calculation is stateful
