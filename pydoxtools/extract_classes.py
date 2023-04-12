@@ -1,9 +1,13 @@
+import logging
+
 import langdetect
 import pandas as pd
 from transformers import AutoModelForSequenceClassification, pipeline, AutoTokenizer
 
 from pydoxtools.document_base import Extractor
 from pydoxtools.settings import settings
+
+logger = logging.getLogger(__name__)
 
 
 class LanguageExtractor(Extractor):
@@ -25,6 +29,10 @@ class TextBlockClassifier(Extractor):
         tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
         model_name = "txtblockclassifier"
         model_dir = settings.MODEL_DIR / model_name
+        if not model_dir.exists():
+            # TODO: download "any" model that we want from transformers
+            logger.info(f"model {model_name} not found in pydoxtools models, download directly from transformers!")
+            model_dir = "xyntopia/tb_classifier"
         # tokenizer_kwargs = {'padding': True, 'truncation': True, 'max_length': 512, 'return_tensors': 'pt'}
         # TODO: optionally enable CUDA...
         # TODO: only extract "unique" addresses
