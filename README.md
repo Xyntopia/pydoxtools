@@ -24,7 +24,9 @@ for batch-processing of documents by defining them as a lazily-executed graph.
 
 ## Installation
 
-    pip install
+    pip install pydoxtools[etl, inference]
+
+    # TODO: explain some dependencies (especially pytorch) 
 
 ## Examples
 

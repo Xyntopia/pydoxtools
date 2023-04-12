@@ -5,10 +5,19 @@ from pathlib import Path
 from pydoxtools import document_base
 
 
+from urllib.parse import urlparse
+
+def is_url(url):
+    try:
+        result = urlparse(url)
+        return all([result.scheme, result.netloc])
+    except ValueError:
+        return False
+
+
 class FileLoader(document_base.Extractor):
-    def __init__(self, mode="auto"):
+    def __init__(self):
         super().__init__()
-        self._mode = mode
 
     def __call__(
             self, fobj: bytes | str | Path | typing.IO, document_type=None, page_numbers=None, max_pages=None
@@ -16,15 +25,11 @@ class FileLoader(document_base.Extractor):
         if isinstance(fobj, str | bytes):
             txt = fobj
         elif isinstance(fobj, pathlib.Path):
-            if self._mode == "auto":
-                try:
-                    with open(fobj, "r") as file:
-                        txt = file.read()
-                except:
-                    with open(fobj, "rb") as file:
-                        txt = file.read()
-            else:
-                with open(fobj, mode=self._mode) as file:
+            try:
+                with open(fobj, "r") as file:
+                    txt = file.read()
+            except:
+                with open(fobj, "rb") as file:
                     txt = file.read()
         else:
             txt = fobj.read()

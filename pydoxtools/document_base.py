@@ -144,7 +144,7 @@ class Extractor(ABC):
 
         argument precedence is as follows:
 
-        extractor graph < config < direct call
+        python-class-member < extractor-graph-function < config
 
         # TODO: maybe we should change precedence and make config the lowest?
         """
@@ -420,7 +420,7 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
 
     def __init__(
             self,
-            fobj: str | bytes | Path | IO,
+            fobj: str | bytes | Path | IO = None,
             source: str | Path = None,
             page_numbers: list[int] = None,
             max_pages: int = None,
@@ -431,19 +431,20 @@ class DocumentBase(metaclass=MetaDocumentClassConfiguration):
             # TODO: add "auto" for automatic recognition of the type using python-magic
     ):
         """
-        ner model:
-
-        if a "spacy_model" was specified use that.
-        else if "model_size" was specified, use generic spacy language model
-        else  use generic, multilingual ner model "xx_ent_wiki_sm"
-
-        source: Where does the extracted data come from? (Examples: URL, 'pdfupload', parent-URL, or a path)"
         fobj: a file object which should be loaded.
             - if it is a string or bytes object:   the string itself is the document!
             - if it is a pathlib.Path: load the document from the path
             - if it is a file object: load document from file object (or bytestream  etc...)
-
+        source: Where does the extracted data come from? (Examples: URL, 'pdfupload', parent-URL, or a path)"
+        page_numbers: list of the specific pages that we would like to extract (for example in a pdf)
+        max_pages: maximum number of pages that we want to extract in order to protect resources
+        config: a dict which describes values for variables in the document logic
+        mime_type: optional mimetype for the document
+        filename: optional filename. Helps sometimes helps in determining the purpose of a document
+        document_type: directly specify the document type which specifies the extraction
+            logic that should be used
         """
+
         self._fobj = fobj  # file object
         self._source = source or "unknown"
         self._document_type = document_type

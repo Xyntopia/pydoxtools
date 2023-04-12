@@ -64,10 +64,20 @@ class Document(document_base.DocumentBase):
 
     This logic introduced new "image" code block and searches for filetypes
     ".png", ".jpeg", ".jpg", ".tif", ".tiff"
+
+    Each function (or node) in the extraction logic gets fed its input-parameters
+    by the "pipe" command. These parameters can be configured on document creation
+    if some of them are declared using the "config" command.
+
+    These arguments can be overwritten by new logic in inherited documents or document types
+    that are higher up in the hierarchy. The argument precedence is hereby as follows:
+
+        python-class-member < extractor-graph-function < config
+
     """
     _extractors = {
         ".pdf": [
-            FileLoader(mode="rb")  # pdfs are usually in binary format...
+            FileLoader()  # pdfs are usually in binary format...
             .pipe(fobj="_fobj").out("raw_content").cache(),
             PDFFileLoader()
             .pipe(fobj="raw_content", page_numbers="_page_numbers", max_pages="_max_pages")
@@ -140,7 +150,7 @@ class Document(document_base.DocumentBase):
             .pipe(pandoc_blocks="pandoc_blocks").out("lists").cache(),
         ],
         "*": [
-            FileLoader(mode="auto")
+            FileLoader()
             .pipe(fobj="_fobj", document_type="document_type", page_numbers="_page_numbers", max_pages="_max_pages")
             .out("raw_content").cache(),
             Alias(full_text="raw_content"),
