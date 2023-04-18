@@ -129,7 +129,7 @@ class Extractor(ABC):
         pass
 
     def _mapped_call(
-            self, parent_document: "DocumentBase",
+            self, parent_document: "Pipeline",
             *args,
             config_params: dict[str, Any] = None,
             **kwargs
@@ -271,7 +271,7 @@ class MetaDocumentClassConfiguration(type):
     def __new__(cls, clsname, bases, attrs):
         start_time = time()
         # construct our class
-        new_class: DocumentBase.__class__ = super(MetaDocumentClassConfiguration, cls).__new__(
+        new_class: Pipeline.__class__ = super(MetaDocumentClassConfiguration, cls).__new__(
             cls, clsname, bases, attrs)
 
         if hasattr(new_class, "_extractors"):
@@ -396,7 +396,7 @@ def is_url(url):
         return False
 
 
-class DocumentBase(metaclass=MetaDocumentClassConfiguration):
+class Pipeline(metaclass=MetaDocumentClassConfiguration):
     """
     This class is the base for all document classes in pydoxtools and
     defines a common interface for all.

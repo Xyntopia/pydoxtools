@@ -22,7 +22,7 @@ from .qamachine import QamExtractor
 from .settings import settings
 
 
-class Document(document_base.DocumentBase):
+class Document(document_base.Pipeline):
     """
     A standard document logic configuration which should work
     on most documents.
