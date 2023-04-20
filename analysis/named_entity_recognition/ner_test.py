@@ -44,7 +44,7 @@ TRAINING_DIR = Path("../../../training_data/")
 # +
 # get all pdf files in subdirectory
 
-files = file_utils.get_all_files_in_nested_subdirs(TRAINING_DIR / "pdfs/datasheet", "*.pdf")
+files = file_utils.get_nested_paths(TRAINING_DIR / "pdfs/datasheet", "*.pdf")
 len(files)
 # -
 

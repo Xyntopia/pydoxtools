@@ -399,7 +399,7 @@ def is_url(url):
 class Pipeline(metaclass=MetaDocumentClassConfiguration):
     """
     This class is the base for all document classes in pydoxtools and
-    defines a common interface for all.
+    defines a common pipeline interface for all.
 
     This class also defines a basic extraction schema which derived
     classes can override
@@ -477,6 +477,7 @@ class Pipeline(metaclass=MetaDocumentClassConfiguration):
 
     @cached_property
     def filename(self) -> str | None:
+        """TODO: move this into document"""
         if hasattr(self._fobj, "name"):
             return self._fobj.name
         elif isinstance(self._fobj, Path):

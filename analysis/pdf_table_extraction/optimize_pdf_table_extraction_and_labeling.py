@@ -83,8 +83,8 @@ def isnotebook():
 # %%
 settings.TRAINING_DATA_DIR
 
-files = file_utils.get_all_files_in_nested_subdirs(settings.PDFDIR, "*.pdf")
-files = file_utils.get_all_files_in_nested_subdirs(settings.TRAINING_DATA_DIR / "pdfs/datasheet", "*.pdf")
+files = file_utils.get_nested_paths(settings.PDFDIR, "*.pdf")
+files = file_utils.get_nested_paths(settings.TRAINING_DATA_DIR / "pdfs/datasheet", "*.pdf")
 # create a database so that we can lookup the actual paths fomr jsut the filenames
 pathdb = {f.name: f for f in files}
 len(files)

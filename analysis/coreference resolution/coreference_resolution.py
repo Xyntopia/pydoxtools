@@ -42,7 +42,7 @@ nlp_utils.device, torch.cuda.is_available(), torch.__version__
 # +
 # get all pdf files in subdirectory
 
-files = file_utils.get_all_files_in_nested_subdirs(settings.TRAINING_DATA_DIR / "pdfs/datasheet", "*.pdf")
+files = file_utils.get_nested_paths(settings.TRAINING_DATA_DIR / "pdfs/datasheet", "*.pdf")
 len(files)
 # -
 

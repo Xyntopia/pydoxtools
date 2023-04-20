@@ -19,11 +19,14 @@ def generate_unique_pdf_filename_from_url(source_url: str) -> str:
             f"{source_url}: we can not use this function for documents with non-pdf endings yet...")
 
 
-def get_all_files_in_nested_subdirs(directory: typing.Union[str, Path], file_wildcard: str = None) -> [Path]:
+def get_nested_paths(directory: typing.Union[str, Path], path_wildcard: str = "*", mode="files") -> [Path]:
     """
     get all pdf files in subdirectory
     :param file_ending:
     :return:
     """
-    files = [x for x in Path(directory).rglob(file_wildcard) if x.is_file()]
+    if mode=="file":
+        files = [x for x in Path(directory).rglob(path_wildcard) if x.is_file()]
+    elif mode=="dirs":
+        files = [x for x in Path(directory).rglob(path_wildcard) if x.is_file()]
     return files

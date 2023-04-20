@@ -57,7 +57,7 @@ nlp_utils.device, torch.cuda.is_available(), torch.__version__, torch.backends.c
 # %%
 if False: #merge wet files from common crawl into a single string
     dn ="/home/tom/comcharax/data/raw_text"
-    fs = file_utils.get_all_files_in_nested_subdirs(dn, '*.wet')
+    fs = file_utils.get_nested_paths(dn, '*.wet')
     merged_txt = ""
     for fn in fs:
         with open(fn) as f:

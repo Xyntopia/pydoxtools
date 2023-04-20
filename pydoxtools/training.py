@@ -22,7 +22,7 @@ memory = settings.get_memory_cache()
 
 @functools.lru_cache()
 def load_labeled_webpages():
-    trainingfiles = file_utils.get_all_files_in_nested_subdirs(settings.TRAINING_DATA_DIR, "trainingitem*.parquet")
+    trainingfiles = file_utils.get_nested_paths(settings.TRAINING_DATA_DIR, "trainingitem*.parquet")
 
     df = pd.read_parquet(trainingfiles[0])
     df['file'] = trainingfiles[0]
@@ -64,7 +64,7 @@ def load_labeled_pdf_files(label_subset=None) -> pd.DataFrame:
     """
 
     # TODO: remove settings.trainingdir and movethis to "analysis" or somewhere else...
-    df = file_utils.get_all_files_in_nested_subdirs(settings.TRAINING_DATA_DIR, '*.pdf')
+    df = file_utils.get_nested_paths(settings.TRAINING_DATA_DIR, '*.pdf')
     df = pd.DataFrame([Path(f) for f in df], columns=["path"])
 
     df['name'] = df.path.apply(lambda x: x.name)
