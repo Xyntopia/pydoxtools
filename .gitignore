@@ -8,3 +8,4 @@ __pycache__
 training_data/
 dist/
 build/
+site/

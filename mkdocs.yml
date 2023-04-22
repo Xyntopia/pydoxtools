@@ -1,1 +1,11 @@
 site_name: My Docs
+site_url: https://www.github.com/Xyntopia/pydoxtools
+nav:
+    - Home: index.md
+    - About: about.md
+theme: readthedocs
+
+plugins:
+  - search
+  - mkdocstrings
+

@@ -124,6 +124,7 @@ datasets = "^2.10.1"
 evaluate = "^0.4.0"
 pygraphviz = "^1.10"
 mkdocs = "^1.4.2"
+mkdocstrings = {extras = ["crystal", "python"], version = "^0.21.2"}
 
 [build-system]
 requires = ["poetry>=1.1.8"]
