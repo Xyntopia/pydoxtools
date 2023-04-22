@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="description" content="None" /><link rel="canonical" href="https://www.github.com/Xyntopia/pydoxtools/" />
       <link rel="shortcut icon" href="img/favicon.ico" />
-    <title>My Docs</title>
+    <title>Pydoxtools</title>
     <link rel="stylesheet" href="css/theme.css" />
     <link rel="stylesheet" href="css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
@@ -13,7 +13,7 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Home";
+        var mkdocs_page_name = "Welcome to Pydoxtools Documentation!";
         var mkdocs_page_input_path = "index.md";
         var mkdocs_page_url = "/Xyntopia/pydoxtools/";
       </script>
@@ -32,7 +32,7 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
-          <a href="." class="icon icon-home"> My Docs
+          <a href="." class="icon icon-home"> Pydoxtools
         </a><div role="search">
   <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
       <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
@@ -41,18 +41,8 @@
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul class="current">
-                <li class="toctree-l1 current"><a class="reference internal current" href=".">Home</a>
-    <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#commands">Commands</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#project-layout">Project layout</a>
-    </li>
-    </ul>
-                </li>
-              </ul>
               <ul>
-                <li class="toctree-l1"><a class="" href="about.md">About</a>
+                <li class="toctree-l1"><a class="" href="README.md">Home</a>
                 </li>
               </ul>
       </div>
@@ -62,14 +52,14 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
       <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href=".">My Docs</a>
+          <a href=".">Pydoxtools</a>
         
       </nav>
       <div class="wy-nav-content">
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href="." class="icon icon-home" alt="Docs"></a> &raquo;</li>
-      <li>Home</li>
+      <li>Welcome to Pydoxtools Documentation!</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -78,23 +68,24 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="welcome-to-mkdocs">Welcome to MkDocs</h1>
-<p>For full documentation visit <a href="https://www.mkdocs.org">mkdocs.org</a>.</p>
-<h2 id="commands">Commands</h2>
-<ul>
-<li><code>mkdocs new [dir-name]</code> - Create a new project.</li>
-<li><code>mkdocs serve</code> - Start the live-reloading docs server.</li>
-<li><code>mkdocs build</code> - Build the documentation site.</li>
-<li><code>mkdocs -h</code> - Print help message and exit.</li>
-</ul>
-<h2 id="project-layout">Project layout</h2>
-<pre><code>mkdocs.yml    # The configuration file.
-docs/
-    index.md  # The documentation homepage.
-    ...       # Other markdown pages, images and other files.
+                <h1 id="welcome-to-pydoxtools-documentation">Welcome to Pydoxtools Documentation!</h1>
+<h2 id="readme">Readme</h2>
+<p><a href="../README.md">Readme</a></p>
+<h2 id="visualization-of-the-extraction-logic">Visualization of the Extraction logic</h2>
+<p>The extraction logic for different file types can be visualized bydoing something like this:</p>
+<pre><code>doc = Document(fobj=make_path_absolute("./data/demo.docx"), document_type=".docx")
+# for the currently loaded file type:
+doc.logic_graph(image_path=settings._PYDOXTOOLS_DIR / "docs/images/document_logic_docx.svg")
+# for the 
+doc.logic_graph(image_path=settings._PYDOXTOOLS_DIR / "docs/images/document_logic_png.svg", document_logic_id=".png")
 </code></pre>
-<h1 id="my-module-api-documentation">My Module API Documentation</h1>
-<h2 id="myclass">MyClass</h2>
+<p>This way we can generate the pipelines for different filetypes:</p>
+<ul>
+<li>docx: <a href="images/document_logic_docx.svg"></a></li>
+<li>png: <a href="images/document_logic_png.svg"></a></li>
+</ul>
+<p>This also works for custom pipelines!</p>
+<h2 id="reference">Reference</h2>
 
 
 <div class="doc doc-object doc-class">
@@ -663,5 +654,5 @@ that are higher up in the hierarchy. The argument precedence is hereby as follow
 
 <!--
 MkDocs version : 1.4.2
-Build Date UTC : 2023-04-22 07:09:34.504383+00:00
+Build Date UTC : 2023-04-22 19:37:36.213743+00:00
 -->
