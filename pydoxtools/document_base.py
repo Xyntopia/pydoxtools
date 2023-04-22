@@ -664,6 +664,7 @@ class Pipeline(metaclass=MetaDocumentClassConfiguration):
 
         image_path:  file path for a generated image
         """
+        # TODO: change into a static method
         graph = nx.DiGraph()
         if document_logic_id == "current":
             logic = self.x_funcs
