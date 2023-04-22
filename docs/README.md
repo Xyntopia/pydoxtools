@@ -16,6 +16,8 @@ for batch-processing of documents by defining them as a lazily-executed graph.
 
 ## Teaser
 
+When using pydoxtools with chatgpt, we need to make sure that you are using a 
+
     import pydoxtools as pdx
 
     # create a document from a file, string, bytestring, file-like object

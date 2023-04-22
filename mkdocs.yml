@@ -1,11 +1,14 @@
-site_name: My Docs
+site_name: Pydoxtools
 site_url: https://www.github.com/Xyntopia/pydoxtools
+repo_url: https://www.github.com/Xyntopia/pydoxtools
 nav:
-    - Home: index.md
-    - About: about.md
+    - Home: README.md
 theme: readthedocs
 
 plugins:
   - search
   - mkdocstrings
+
+extra:
+  readme: ./README.md
 
