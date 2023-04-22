@@ -2,6 +2,7 @@ import abc
 import functools
 import logging
 import mimetypes
+import pathlib
 import typing
 import uuid
 from abc import ABC
@@ -657,9 +658,19 @@ class Pipeline(metaclass=MetaDocumentClassConfiguration):
     def uuid(self):
         return uuid.uuid4()
 
-    def logic_graph(self):
+    def logic_graph(self, image_path: str | pathlib.Path = None, document_logic_id="current"):
+        """
+        Generate a visualization of the defined pipelines
+
+        image_path:  file path for a generated image
+        """
         graph = nx.DiGraph()
-        for name, f in self.x_funcs.items():
+        if document_logic_id == "current":
+            logic = self.x_funcs
+        else:
+            logic = self._x_funcs[document_logic_id]
+
+        for name, f in logic.items():
             f_class = f.__class__.__name__ + "\n".join(f._out_mapping.keys())
             graph.add_node(f_class, shape="none")
             # out-edges
@@ -670,5 +681,10 @@ class Pipeline(metaclass=MetaDocumentClassConfiguration):
                 graph.add_edge(v, f_class)
             # f._dynamic_config
 
-        dotgraph = nx.nx_agraph.to_agraph(graph).string()
+        dotgraph = nx.nx_agraph.to_agraph(graph)
+        if image_path:
+            dotgraph.layout('dot')  # Use the 'dot' layout engine from Graphviz
+            # Save the graph as an image
+            dotgraph.draw(str(image_path.absolute()))
+
         return dotgraph

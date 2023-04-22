@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 # from base64 import b64encode
 
 _FILE_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
+_PYDOXTOOLS_DIR = _FILE_DIR.parent
 _HOME = Path.home()
 
 appname = "pydoxtools"
@@ -36,7 +37,7 @@ appauthor = "pydoxtools"
 
 class _Settings(BaseSettings):
     CACHE_DIR_BASE: Path = Path(appdirs.user_cache_dir(appname, appauthor))
-    TRAINING_DATA_DIR: Path = _FILE_DIR.parent / 'training_data'
+    TRAINING_DATA_DIR: Path = _PYDOXTOOLS_DIR / 'training_data'
     MODEL_DIR = CACHE_DIR_BASE / "models"
 
     # in order to be able to access OPENAI api
