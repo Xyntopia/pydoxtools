@@ -11,6 +11,7 @@ from .extract_logic import Alias, Constant
 from .extract_logic import LambdaExtractor
 from .extract_nlpchat import OpenAIChat
 from .extract_objects import EntityExtractor
+from .extract_ocr import OCRExtractor
 from .extract_pandoc import PandocLoader, PandocExtractor, PandocConverter, PandocBlocks
 from .extract_spacy import SpacyExtractor, extract_spacy_token_vecs, get_spacy_embeddings, extract_noun_chunks
 from .extract_tables import ListExtractor, TableCandidateAreasExtractor
@@ -149,6 +150,30 @@ class Document(document_base.Pipeline):
             PandocExtractor(method="lists", output_format="markdown")
             .pipe(pandoc_blocks="pandoc_blocks").out("lists").cache(),
         ],
+        "image": [
+            # add a "base-document" type (.pdf) images get converted into pdfs
+            # and then further processed from there
+            ".pdf",  # as we are extracting a pdf we would like to use the pdf functions...
+            OCRExtractor()
+            .pipe(file="raw_content")
+            .out("ocr_pdf_file")
+            .config("ocr_lang", ocr="ocr_on")  # TODO move this into BilledDocument and make sure
+            .cache(),
+            # we need to do overwrite the pdf loading for images we inherited from
+            # the ".pdf" logic as we are
+            # now taking the pdf from a different variable
+            PDFFileLoader()
+            .pipe(fobj="ocr_pdf_file")
+            .out("pages_bbox", "elements", "meta", pages="page_set")
+            .cache(),
+        ],
+        # the first base doc types have priority over the last ones
+        # so here .png > image > .pdf
+        ".png": ["image", ".pdf"],
+        ".jpeg": ["image", ".pdf"],
+        ".jpg": ["image", ".pdf"],
+        ".tif": ["image", ".pdf"],
+        ".tiff": ["image", ".pdf"],
         "*": [
             FileLoader()
             .pipe(fobj="_fobj", document_type="document_type", page_numbers="_page_numbers", max_pages="_max_pages")
