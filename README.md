@@ -1,5 +1,7 @@
 # pydoxtools
 
+[Documentation](xyntopia.github.io/pydoxtools)
+
 Pydoxtools is a library that provides a sophisticated interface for reading and
 writing documents, designed to work with AI models such as GPT, Alpaca, and
 Huggingface. It offers functionalities such as:

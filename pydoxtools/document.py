@@ -24,84 +24,82 @@ from .settings import settings
 
 
 class Document(document_base.Pipeline):
-    """
-    A standard document configuration which should work
-    for most documents.
+    """Standard document class for document analysis, data extraction and transformation.
 
-    ***
+This class implements an extensive pipeline using the [][document_base.Pipeline] class
+for information extraction from documents.
 
-    In order to load a document, simply
-    open it with the document class:
+***
 
+In order to load a document, simply
+open it with the document class::
 
-        from pydoxtools import Document
-        doc = Document(fobj=./data/demo.docx)
+    from pydoxtools import Document
+    doc = Document(fobj=./data/demo.docx)
 
+You can then access any extracted data by
+calling x with the specified member::
 
-    You can then access any extracted data by
-    calling x with the specified member:
+    doc.x("addresses")
+    doc.x("entities")
+    doc.x("full_text")
+    # etc...
 
-        doc.x("addresses")
-        doc.x("entities")
-        doc.x("full_text")
-        # etc...
+Most members are also callable like a n
+ormal class member in roder to make the code easier to read::
 
-    Most members are also callable like a n
-    ormal class member in roder to make the code easier to read:
+    doc.addresses
 
-        doc.addresses
+A list of all available extraction data
+can be called like this::
 
-    A list of all available extraction data
-    can be called like this:
+    doc.x_funcs()
 
-        doc.x_funcs()
+***
 
-    ***
+The document class is backed by a *pipeline* class with a pre-defined pipeline focusing on
+document extraction tasks. This extraction pipeline can be overwritten partially or completly replaced.
+In order to customize the pipeline it is usually best to take the pipeline for
+basic documents defined in pydoxtools.Document as a starting point and
+only overwrite the parts that should be customized.
 
-    The document class is backed by a *pipeline* class with a pre-defined pipeline focusing on
-    document extraction tasks. This extraction pipeline can be overwritten partially or completly replaced.
-    In order to customize the pipeline it is usually best to take the pipeline for
-    basic documents defined in pydoxtools.Document as a starting point and
-    only overwrite the parts that should be customized.
+inherited classes can override any part of the graph.
 
-    inherited classes can override any part of the graph.
+It is possible to exchange/override/extend or introduce extraction pipelines for individual file types (including
+the generic one: "*") such as *.html extractors, *.pdf, *.txt etc..
 
-    It is possible to exchange/override/extend or introduce extraction pipelines for individual file types (including
-    the generic one: "*") such as *.html extractors, *.pdf, *.txt etc..
+Strings inside a document class indicate the inclusion of that document type pipeline but with a lower priority
+this way a directed extraction graph gets built. This only counts for the current class that is
+being defined though!!
 
-    strings inside a document class indicate the inclusion of that document type pipeline but with a lower priority
-    this way a directed extraction graph gets built. This only counts for the current class that is
-    being defined though!!
+Example extension pipeline for an OCR extractor which converts images into text
+"image" code block and supports filetypes: ".png", ".jpeg", ".jpg", ".tif", ".tiff"::
 
-    Example extension pipeline for an OCR extractor which converts images into text
-    "image" code block and supports filetypes: ".png", ".jpeg", ".jpg", ".tif", ".tiff":
+    "image": [
+            OCRExtractor()
+            .pipe(file="raw_content")
+            .out("ocr_pdf_file")
+            .cache(),
+        ],
+    # the first base doc types have priority over the last ones
+    # so here .png > image > .pdf
+    ".png": ["image", ".pdf"],
+    ".jpeg": ["image", ".pdf"],
+    ".jpg": ["image", ".pdf"],
+    ".tif": ["image", ".pdf"],
+    ".tiff": ["image", ".pdf"],
+    # the "*" gets overwritten by functions above
+    "*": [...]
 
-        "image": [
-                OCRExtractor()
-                .pipe(file="raw_content")
-                .out("ocr_pdf_file")
-                .cache(),
-            ],
-        # the first base doc types have priority over the last ones
-        # so here .png > image > .pdf
-        ".png": ["image", ".pdf"],
-        ".jpeg": ["image", ".pdf"],
-        ".jpg": ["image", ".pdf"],
-        ".tif": ["image", ".pdf"],
-        ".tiff": ["image", ".pdf"],
-        # the "*" gets overwritten by functions above
-        "*": [...]
+Each function (or node) in the extraction pipeline gets fed its input-parameters
+by the "pipe" command. These parameters can be configured on document creation
+if some of them are declared using the "config" command.
 
-    Each function (or node) in the extraction pipeline gets fed its input-parameters
-    by the "pipe" command. These parameters can be configured on document creation
-    if some of them are declared using the "config" command.
+These arguments can be overwritten by a new pipeline in inherited documents or document types
+that are higher up in the hierarchy. The argument precedence is hereby as follows::
 
-    These arguments can be overwritten by a new pipeline in inherited documents or document types
-    that are higher up in the hierarchy. The argument precedence is hereby as follows:
-
-        python-class-member < extractor-graph-function < config
-
-    """
+    python-class-member < extractor-graph-function < config
+"""
 
     """
     TODO: One can also change the configuration of individual extractors. For example

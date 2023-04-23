@@ -1,10 +1,11 @@
 site_name: Pydoxtools
-site_url: https://www.github.com/Xyntopia/pydoxtools
+site_url: https://xyntopia.github.io/pydoxtools
 repo_url: https://www.github.com/Xyntopia/pydoxtools
 nav:
     - Home: index.md
     - Readme: readme_cp.md
-#theme: readthedocs
+    - Reference: reference.md
+theme: readthedocs
 
 plugins:
   - search
