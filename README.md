@@ -1,6 +1,6 @@
 # pydoxtools
 
-[Documentation](xyntopia.github.io/pydoxtools)
+[Documentation](https://xyntopia.github.io/pydoxtools)
 
 Pydoxtools is a library that provides a sophisticated interface for reading and
 writing documents, designed to work with AI models such as GPT, Alpaca, and
@@ -55,11 +55,11 @@ When using pydoxtools with chatgpt, we need to make sure that you are using a
 
 ## Development
 
---> see [](DEVELOPMENT.md)
+--> see [](DEVELOPMENT)
 
 ## License
 
-This project is licensed under the terms of [MIT](./LICENSE) license.
+This project is licensed under the terms of [MIT](LICENSE) license.
 
 You can check the compatibility using the following tool in a venv environment in a production
 setting:

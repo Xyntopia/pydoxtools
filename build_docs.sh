@@ -2,6 +2,7 @@
 
 # copy README.md into docs for easy access
 cp README.md docs/readme_cp.md
+cp LICENSE DEVELOPMENT.md docs/
 
 # build images
 cd tests
