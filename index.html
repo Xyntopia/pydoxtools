@@ -13,7 +13,7 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Welcome to Pydoxtools Documentation!";
+        var mkdocs_page_name = "Home";
         var mkdocs_page_input_path = "index.md";
         var mkdocs_page_url = "/Xyntopia/pydoxtools/";
       </script>
@@ -41,8 +41,30 @@
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href=".">Home</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#readme">Readme</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#visualization-of-the-extraction-logic">Visualization of the Extraction logic</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#reference">Reference</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#pydoxtools.Document">pydoxtools.Document</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#pydoxtools.Document--etc">etc...</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#pydoxtools.Document--the-first-base-doc-types-have-priority-over-the-last-ones">the first base doc types have priority over the last ones</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#pydoxtools.Document--so-here-png-image-pdf">so here .png &gt; image &gt; .pdf</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#pydoxtools.Document--the-gets-overwritten-by-functions-above">the "*" gets overwritten by functions above</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
               <ul>
-                <li class="toctree-l1"><a class="" href="README.md">Home</a>
+                <li class="toctree-l1"><a class="" href="README.md">Readme</a>
                 </li>
               </ul>
       </div>
@@ -59,7 +81,7 @@
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href="." class="icon icon-home" alt="Docs"></a> &raquo;</li>
-      <li>Welcome to Pydoxtools Documentation!</li>
+      <li>Home</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -70,7 +92,7 @@
               
                 <h1 id="welcome-to-pydoxtools-documentation">Welcome to Pydoxtools Documentation!</h1>
 <h2 id="readme">Readme</h2>
-<p><a href="../README.md">Readme</a></p>
+<p><a href="readme_cp">Readme</a></p>
 <h2 id="visualization-of-the-extraction-logic">Visualization of the Extraction logic</h2>
 <p>The extraction logic for different file types can be visualized bydoing something like this:</p>
 <pre><code>doc = Document(fobj=make_path_absolute("./data/demo.docx"), document_type=".docx")
@@ -81,9 +103,10 @@ doc.logic_graph(image_path=settings._PYDOXTOOLS_DIR / "docs/images/document_logi
 </code></pre>
 <p>This way we can generate the pipelines for different filetypes:</p>
 <ul>
-<li>docx: <a href="images/document_logic_docx.svg"></a></li>
-<li>png: <a href="images/document_logic_png.svg"></a></li>
+<li><a href="images/document_logic_docx.svg">docx</a></li>
+<li><a href="images/document_logic_png.svg">png</a></li>
 </ul>
+<p>(click on links to open the images!)</p>
 <p>This also works for custom pipelines!</p>
 <h2 id="reference">Reference</h2>
 
@@ -97,40 +120,49 @@ doc.logic_graph(image_path=settings._PYDOXTOOLS_DIR / "docs/images/document_logi
         Bases: <code><span title="pydoxtools.document_base">document_base</span>.<span title="pydoxtools.document_base.Pipeline">Pipeline</span></code></p>
 
   
-      <p>A standard document logic configuration which should work
-on most documents.</p>
-<p>In order to declare a different logic it is best to take this logic here as a
+      <p>A standard document configuration which should work
+for most documents.</p>
+
+<details class="in-order-to-load-a-document-simply-do-this">
+  <summary>in order to load a document simply do this</summary>
+  <p>from pydoxtools import Document
+doc = Document(fobj=./data/demo.docx, document_type=".docx")</p>
+</details>
+<details class="you-can-then-access-any-extracted-data-by-calling">
+  <summary>You can then access any extracted data by calling</summary>
+  <p>doc.x("addresses")
+doc.x("entities")
+doc.x("full_text")</p>
+<h2 id="pydoxtools.Document--etc">etc...</h2>
+</details>
+<details class="a-list-of-all-available-extraction-data-can-be-called-like-this">
+  <summary>a list of all available extraction data can be called like this</summary>
+  <p>doc.x_funcs()</p>
+</details>      <p>In order to declare a different logic it is best to take this logic for basic documents here as a
 starting point.</p>
 <p>inherited classes can override any part of the graph.</p>
 <p>It is possible to exchange/override/extend or introduce extraction logic for individual file types (including
 the generic one: "<em>") such as </em>.html extractors, <em>.pdf, </em>.txt etc..</p>
-<p>TODO: One can also change the configuration of individual extractors. For example
-of the Table Extractor or Space models...</p>
-
-<details class="todo">
-  <summary>add "extension/override" logic for individual file types. The main important thing there is</summary>
-  <p>to make sure we don't have any "dangling" functions left over when filetype logics
-gets overwritten</p>
-</details>      <p>strings inside a document class indicate the inclusion of that document type logic but with a lower priority
+<p>strings inside a document class indicate the inclusion of that document type logic but with a lower priority
 this way a directed extraction graph gets built. This only counts for the current class that is
 being defined though!!</p>
-
-<details class="example-extension-logic-for-an-ocr-extractor-which-converts-images-into-text">
-  <summary>Example extension logic for an OCR extractor which converts images into text</summary>
-  <p>"image": [
+<p>Example extension logic for an OCR extractor which converts images into text:</p>
+<p>"image": [
         OCRExtractor()
         .pipe(file="raw_content")
         .out("ocr_pdf_file")
         .cache(),
-    ],
-    # the first base doc types have priority over the last ones
-    # so here .png &gt; image &gt; .pdf
-    ".png": ["image", ".pdf"],
-    ".jpeg": ["image", ".pdf"],
-    ".jpg": ["image", ".pdf"],
-    ".tif": ["image", ".pdf"],
-    ".tiff": ["image", ".pdf"],</p>
-</details>      <p>This logic introduced new "image" code block and searches for filetypes
+    ],</p>
+<h2 id="pydoxtools.Document--the-first-base-doc-types-have-priority-over-the-last-ones">the first base doc types have priority over the last ones</h2>
+<h2 id="pydoxtools.Document--so-here-png-image-pdf">so here .png &gt; image &gt; .pdf</h2>
+<p>".png": ["image", ".pdf"],
+".jpeg": ["image", ".pdf"],
+".jpg": ["image", ".pdf"],
+".tif": ["image", ".pdf"],
+".tiff": ["image", ".pdf"],</p>
+<h2 id="pydoxtools.Document--the-gets-overwritten-by-functions-above">the "*" gets overwritten by functions above</h2>
+<p>"*": [...]</p>
+<p>This logic introduced new "image" code block and searches for filetypes
 ".png", ".jpeg", ".jpg", ".tif", ".tiff"</p>
 <p>Each function (or node) in the extraction logic gets fed its input-parameters
 by the "pipe" command. These parameters can be configured on document creation
@@ -141,457 +173,6 @@ that are higher up in the hierarchy. The argument precedence is hereby as follow
 </code></pre>
 
 
-        <details class="quote">
-          <summary>Source code in <code>pydoxtools/document.py</code></summary>
-          <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 26</span>
-<span class="normal"> 27</span>
-<span class="normal"> 28</span>
-<span class="normal"> 29</span>
-<span class="normal"> 30</span>
-<span class="normal"> 31</span>
-<span class="normal"> 32</span>
-<span class="normal"> 33</span>
-<span class="normal"> 34</span>
-<span class="normal"> 35</span>
-<span class="normal"> 36</span>
-<span class="normal"> 37</span>
-<span class="normal"> 38</span>
-<span class="normal"> 39</span>
-<span class="normal"> 40</span>
-<span class="normal"> 41</span>
-<span class="normal"> 42</span>
-<span class="normal"> 43</span>
-<span class="normal"> 44</span>
-<span class="normal"> 45</span>
-<span class="normal"> 46</span>
-<span class="normal"> 47</span>
-<span class="normal"> 48</span>
-<span class="normal"> 49</span>
-<span class="normal"> 50</span>
-<span class="normal"> 51</span>
-<span class="normal"> 52</span>
-<span class="normal"> 53</span>
-<span class="normal"> 54</span>
-<span class="normal"> 55</span>
-<span class="normal"> 56</span>
-<span class="normal"> 57</span>
-<span class="normal"> 58</span>
-<span class="normal"> 59</span>
-<span class="normal"> 60</span>
-<span class="normal"> 61</span>
-<span class="normal"> 62</span>
-<span class="normal"> 63</span>
-<span class="normal"> 64</span>
-<span class="normal"> 65</span>
-<span class="normal"> 66</span>
-<span class="normal"> 67</span>
-<span class="normal"> 68</span>
-<span class="normal"> 69</span>
-<span class="normal"> 70</span>
-<span class="normal"> 71</span>
-<span class="normal"> 72</span>
-<span class="normal"> 73</span>
-<span class="normal"> 74</span>
-<span class="normal"> 75</span>
-<span class="normal"> 76</span>
-<span class="normal"> 77</span>
-<span class="normal"> 78</span>
-<span class="normal"> 79</span>
-<span class="normal"> 80</span>
-<span class="normal"> 81</span>
-<span class="normal"> 82</span>
-<span class="normal"> 83</span>
-<span class="normal"> 84</span>
-<span class="normal"> 85</span>
-<span class="normal"> 86</span>
-<span class="normal"> 87</span>
-<span class="normal"> 88</span>
-<span class="normal"> 89</span>
-<span class="normal"> 90</span>
-<span class="normal"> 91</span>
-<span class="normal"> 92</span>
-<span class="normal"> 93</span>
-<span class="normal"> 94</span>
-<span class="normal"> 95</span>
-<span class="normal"> 96</span>
-<span class="normal"> 97</span>
-<span class="normal"> 98</span>
-<span class="normal"> 99</span>
-<span class="normal">100</span>
-<span class="normal">101</span>
-<span class="normal">102</span>
-<span class="normal">103</span>
-<span class="normal">104</span>
-<span class="normal">105</span>
-<span class="normal">106</span>
-<span class="normal">107</span>
-<span class="normal">108</span>
-<span class="normal">109</span>
-<span class="normal">110</span>
-<span class="normal">111</span>
-<span class="normal">112</span>
-<span class="normal">113</span>
-<span class="normal">114</span>
-<span class="normal">115</span>
-<span class="normal">116</span>
-<span class="normal">117</span>
-<span class="normal">118</span>
-<span class="normal">119</span>
-<span class="normal">120</span>
-<span class="normal">121</span>
-<span class="normal">122</span>
-<span class="normal">123</span>
-<span class="normal">124</span>
-<span class="normal">125</span>
-<span class="normal">126</span>
-<span class="normal">127</span>
-<span class="normal">128</span>
-<span class="normal">129</span>
-<span class="normal">130</span>
-<span class="normal">131</span>
-<span class="normal">132</span>
-<span class="normal">133</span>
-<span class="normal">134</span>
-<span class="normal">135</span>
-<span class="normal">136</span>
-<span class="normal">137</span>
-<span class="normal">138</span>
-<span class="normal">139</span>
-<span class="normal">140</span>
-<span class="normal">141</span>
-<span class="normal">142</span>
-<span class="normal">143</span>
-<span class="normal">144</span>
-<span class="normal">145</span>
-<span class="normal">146</span>
-<span class="normal">147</span>
-<span class="normal">148</span>
-<span class="normal">149</span>
-<span class="normal">150</span>
-<span class="normal">151</span>
-<span class="normal">152</span>
-<span class="normal">153</span>
-<span class="normal">154</span>
-<span class="normal">155</span>
-<span class="normal">156</span>
-<span class="normal">157</span>
-<span class="normal">158</span>
-<span class="normal">159</span>
-<span class="normal">160</span>
-<span class="normal">161</span>
-<span class="normal">162</span>
-<span class="normal">163</span>
-<span class="normal">164</span>
-<span class="normal">165</span>
-<span class="normal">166</span>
-<span class="normal">167</span>
-<span class="normal">168</span>
-<span class="normal">169</span>
-<span class="normal">170</span>
-<span class="normal">171</span>
-<span class="normal">172</span>
-<span class="normal">173</span>
-<span class="normal">174</span>
-<span class="normal">175</span>
-<span class="normal">176</span>
-<span class="normal">177</span>
-<span class="normal">178</span>
-<span class="normal">179</span>
-<span class="normal">180</span>
-<span class="normal">181</span>
-<span class="normal">182</span>
-<span class="normal">183</span>
-<span class="normal">184</span>
-<span class="normal">185</span>
-<span class="normal">186</span>
-<span class="normal">187</span>
-<span class="normal">188</span>
-<span class="normal">189</span>
-<span class="normal">190</span>
-<span class="normal">191</span>
-<span class="normal">192</span>
-<span class="normal">193</span>
-<span class="normal">194</span>
-<span class="normal">195</span>
-<span class="normal">196</span>
-<span class="normal">197</span>
-<span class="normal">198</span>
-<span class="normal">199</span>
-<span class="normal">200</span>
-<span class="normal">201</span>
-<span class="normal">202</span>
-<span class="normal">203</span>
-<span class="normal">204</span>
-<span class="normal">205</span>
-<span class="normal">206</span>
-<span class="normal">207</span>
-<span class="normal">208</span>
-<span class="normal">209</span>
-<span class="normal">210</span>
-<span class="normal">211</span>
-<span class="normal">212</span>
-<span class="normal">213</span>
-<span class="normal">214</span>
-<span class="normal">215</span>
-<span class="normal">216</span>
-<span class="normal">217</span>
-<span class="normal">218</span>
-<span class="normal">219</span>
-<span class="normal">220</span>
-<span class="normal">221</span>
-<span class="normal">222</span>
-<span class="normal">223</span>
-<span class="normal">224</span>
-<span class="normal">225</span>
-<span class="normal">226</span>
-<span class="normal">227</span>
-<span class="normal">228</span>
-<span class="normal">229</span>
-<span class="normal">230</span>
-<span class="normal">231</span>
-<span class="normal">232</span>
-<span class="normal">233</span>
-<span class="normal">234</span>
-<span class="normal">235</span>
-<span class="normal">236</span>
-<span class="normal">237</span>
-<span class="normal">238</span>
-<span class="normal">239</span>
-<span class="normal">240</span>
-<span class="normal">241</span>
-<span class="normal">242</span>
-<span class="normal">243</span>
-<span class="normal">244</span>
-<span class="normal">245</span>
-<span class="normal">246</span>
-<span class="normal">247</span>
-<span class="normal">248</span>
-<span class="normal">249</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">Document</span><span class="p">(</span><span class="n">document_base</span><span class="o">.</span><span class="n">Pipeline</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A standard document logic configuration which should work</span>
-<span class="sd">    on most documents.</span>
-
-<span class="sd">    In order to declare a different logic it is best to take this logic here as a</span>
-<span class="sd">    starting point.</span>
-
-<span class="sd">    inherited classes can override any part of the graph.</span>
-
-<span class="sd">    It is possible to exchange/override/extend or introduce extraction logic for individual file types (including</span>
-<span class="sd">    the generic one: &quot;*&quot;) such as *.html extractors, *.pdf, *.txt etc..</span>
-
-<span class="sd">    TODO: One can also change the configuration of individual extractors. For example</span>
-<span class="sd">    of the Table Extractor or Space models...</span>
-
-<span class="sd">    TODO: add &quot;extension/override&quot; logic for individual file types. The main important thing there is</span>
-<span class="sd">          to make sure we don&#39;t have any &quot;dangling&quot; functions left over when filetype logics</span>
-<span class="sd">          gets overwritten</span>
-
-<span class="sd">    strings inside a document class indicate the inclusion of that document type logic but with a lower priority</span>
-<span class="sd">    this way a directed extraction graph gets built. This only counts for the current class that is</span>
-<span class="sd">    being defined though!!</span>
-
-<span class="sd">    Example extension logic for an OCR extractor which converts images into text:</span>
-
-<span class="sd">        &quot;image&quot;: [</span>
-<span class="sd">                OCRExtractor()</span>
-<span class="sd">                .pipe(file=&quot;raw_content&quot;)</span>
-<span class="sd">                .out(&quot;ocr_pdf_file&quot;)</span>
-<span class="sd">                .cache(),</span>
-<span class="sd">            ],</span>
-<span class="sd">            # the first base doc types have priority over the last ones</span>
-<span class="sd">            # so here .png &gt; image &gt; .pdf</span>
-<span class="sd">            &quot;.png&quot;: [&quot;image&quot;, &quot;.pdf&quot;],</span>
-<span class="sd">            &quot;.jpeg&quot;: [&quot;image&quot;, &quot;.pdf&quot;],</span>
-<span class="sd">            &quot;.jpg&quot;: [&quot;image&quot;, &quot;.pdf&quot;],</span>
-<span class="sd">            &quot;.tif&quot;: [&quot;image&quot;, &quot;.pdf&quot;],</span>
-<span class="sd">            &quot;.tiff&quot;: [&quot;image&quot;, &quot;.pdf&quot;],</span>
-
-<span class="sd">    This logic introduced new &quot;image&quot; code block and searches for filetypes</span>
-<span class="sd">    &quot;.png&quot;, &quot;.jpeg&quot;, &quot;.jpg&quot;, &quot;.tif&quot;, &quot;.tiff&quot;</span>
-
-<span class="sd">    Each function (or node) in the extraction logic gets fed its input-parameters</span>
-<span class="sd">    by the &quot;pipe&quot; command. These parameters can be configured on document creation</span>
-<span class="sd">    if some of them are declared using the &quot;config&quot; command.</span>
-
-<span class="sd">    These arguments can be overwritten by new logic in inherited documents or document types</span>
-<span class="sd">    that are higher up in the hierarchy. The argument precedence is hereby as follows:</span>
-
-<span class="sd">        python-class-member &lt; extractor-graph-function &lt; config</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">_extractors</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;.pdf&quot;</span><span class="p">:</span> <span class="p">[</span>
-            <span class="n">FileLoader</span><span class="p">()</span>  <span class="c1"># pdfs are usually in binary format...</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">fobj</span><span class="o">=</span><span class="s2">&quot;_fobj&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;raw_content&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">PDFFileLoader</span><span class="p">()</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">fobj</span><span class="o">=</span><span class="s2">&quot;raw_content&quot;</span><span class="p">,</span> <span class="n">page_numbers</span><span class="o">=</span><span class="s2">&quot;_page_numbers&quot;</span><span class="p">,</span> <span class="n">max_pages</span><span class="o">=</span><span class="s2">&quot;_max_pages&quot;</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;pages_bbox&quot;</span><span class="p">,</span> <span class="s2">&quot;elements&quot;</span><span class="p">,</span> <span class="s2">&quot;meta&quot;</span><span class="p">,</span> <span class="n">pages</span><span class="o">=</span><span class="s2">&quot;page_set&quot;</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">LambdaExtractor</span><span class="p">(</span><span class="k">lambda</span> <span class="n">pages</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">pages</span><span class="p">))</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">pages</span><span class="o">=</span><span class="s2">&quot;page_set&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;num_pages&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">DocumentElementFilter</span><span class="p">(</span><span class="n">element_type</span><span class="o">=</span><span class="n">document_base</span><span class="o">.</span><span class="n">ElementType</span><span class="o">.</span><span class="n">Line</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="s2">&quot;elements&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;line_elements&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">DocumentElementFilter</span><span class="p">(</span><span class="n">element_type</span><span class="o">=</span><span class="n">document_base</span><span class="o">.</span><span class="n">ElementType</span><span class="o">.</span><span class="n">Graphic</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="s2">&quot;elements&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;graphic_elements&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">ListExtractor</span><span class="p">()</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="s2">&quot;line_elements&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;lists&quot;</span><span class="p">),</span>
-            <span class="n">TableCandidateAreasExtractor</span><span class="p">()</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="s2">&quot;graphic_elements&quot;</span><span class="p">,</span> <span class="s2">&quot;line_elements&quot;</span><span class="p">,</span> <span class="s2">&quot;pages_bbox&quot;</span><span class="p">,</span> <span class="s2">&quot;text_box_elements&quot;</span><span class="p">,</span> <span class="s2">&quot;filename&quot;</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;table_candidates&quot;</span><span class="p">,</span> <span class="n">box_levels</span><span class="o">=</span><span class="s2">&quot;table_box_levels&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">LambdaExtractor</span><span class="p">(</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">df</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">candidates</span> <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">is_valid</span><span class="p">])</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">candidates</span><span class="o">=</span><span class="s2">&quot;table_candidates&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;table_df0&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">LambdaExtractor</span><span class="p">(</span><span class="k">lambda</span> <span class="n">table_df0</span><span class="p">,</span> <span class="n">lists</span><span class="p">:</span> <span class="n">table_df0</span> <span class="o">+</span> <span class="p">[</span><span class="n">lists</span><span class="p">])</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="s2">&quot;table_df0&quot;</span><span class="p">,</span> <span class="s2">&quot;lists&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;tables_df&quot;</span><span class="p">),</span>
-            <span class="n">TextBoxElementExtractor</span><span class="p">()</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="s2">&quot;line_elements&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;text_box_elements&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">LambdaExtractor</span><span class="p">(</span><span class="k">lambda</span> <span class="n">df</span><span class="p">:</span> <span class="n">df</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">to_list</span><span class="p">())</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="s2">&quot;text_box_elements&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;text_box_list&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">LambdaExtractor</span><span class="p">(</span><span class="k">lambda</span> <span class="n">tb</span><span class="p">:</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tb</span><span class="p">))</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">tb</span><span class="o">=</span><span class="s2">&quot;text_box_list&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;full_text&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">TitleExtractor</span><span class="p">()</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="s2">&quot;line_elements&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;titles&quot;</span><span class="p">,</span> <span class="s2">&quot;side_titles&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">LanguageExtractor</span><span class="p">()</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;full_text&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;language&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span>
-        <span class="p">],</span>
-        <span class="s2">&quot;.html&quot;</span><span class="p">:</span> <span class="p">[</span>
-            <span class="n">HtmlExtractor</span><span class="p">()</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">raw_html</span><span class="o">=</span><span class="s2">&quot;raw_content&quot;</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;source&quot;</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;main_content_clean_html&quot;</span><span class="p">,</span> <span class="s2">&quot;summary&quot;</span><span class="p">,</span> <span class="s2">&quot;language&quot;</span><span class="p">,</span> <span class="s2">&quot;goose_article&quot;</span><span class="p">,</span>
-                 <span class="s2">&quot;main_content&quot;</span><span class="p">,</span> <span class="s2">&quot;schemadata&quot;</span><span class="p">,</span> <span class="s2">&quot;final_urls&quot;</span><span class="p">,</span> <span class="s2">&quot;pdf_links&quot;</span><span class="p">,</span> <span class="s2">&quot;title&quot;</span><span class="p">,</span>
-                 <span class="s2">&quot;short_title&quot;</span><span class="p">,</span> <span class="s2">&quot;url&quot;</span><span class="p">,</span> <span class="n">tables</span><span class="o">=</span><span class="s2">&quot;tables_df&quot;</span><span class="p">,</span> <span class="n">html_keywords</span><span class="o">=</span><span class="s2">&quot;html_keywords_str&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">LambdaExtractor</span><span class="p">(</span><span class="k">lambda</span> <span class="n">article</span><span class="p">:</span> <span class="n">article</span><span class="o">.</span><span class="n">links</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">article</span><span class="o">=</span><span class="s2">&quot;goose_article&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;urls&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">LambdaExtractor</span><span class="p">(</span><span class="k">lambda</span> <span class="n">article</span><span class="p">:</span> <span class="n">article</span><span class="o">.</span><span class="n">top_image</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">article</span><span class="o">=</span><span class="s2">&quot;goose_article&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;main_image&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">Alias</span><span class="p">(</span><span class="n">full_text</span><span class="o">=</span><span class="s2">&quot;main_content&quot;</span><span class="p">),</span>
-            <span class="n">LambdaExtractor</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">get_text_only_blocks</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]))</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">&quot;raw_content&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;text_box_elements&quot;</span><span class="p">),</span>
-            <span class="n">LambdaExtractor</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="n">s</span><span class="p">])</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">t</span><span class="o">=</span><span class="s2">&quot;title&quot;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="s2">&quot;short_title&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;titles&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">LambdaExtractor</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">set</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)))</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">&quot;html_keywords_str&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;html_keywords&quot;</span><span class="p">),</span>  <span class="c1"># todo add a generic keywords extraction here</span>
-        <span class="p">],</span>
-        <span class="s2">&quot;.docx&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;pandoc&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;.odt&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;pandoc&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;.md&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;pandoc&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;.rtf&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;pandoc&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;.epub&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;pandoc&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;.markdown&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;pandoc&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;pandoc&quot;</span><span class="p">:</span> <span class="p">[</span>
-            <span class="n">PandocLoader</span><span class="p">()</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">raw_content</span><span class="o">=</span><span class="s2">&quot;raw_content&quot;</span><span class="p">,</span> <span class="n">document_type</span><span class="o">=</span><span class="s2">&quot;document_type&quot;</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;pandoc_document&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">PandocConverter</span><span class="p">()</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">pandoc_document</span><span class="o">=</span><span class="s2">&quot;pandoc_document&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;markdown&quot;</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;full_text&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">PandocBlocks</span><span class="p">()</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">pandoc_document</span><span class="o">=</span><span class="s2">&quot;pandoc_document&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;pandoc_blocks&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">PandocExtractor</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s2">&quot;headers&quot;</span><span class="p">,</span> <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;markdown&quot;</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">pandoc_blocks</span><span class="o">=</span><span class="s2">&quot;pandoc_blocks&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;headers&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">PandocExtractor</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s2">&quot;tables_df&quot;</span><span class="p">,</span> <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;markdown&quot;</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">pandoc_blocks</span><span class="o">=</span><span class="s2">&quot;pandoc_blocks&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;tables_df&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">PandocExtractor</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s2">&quot;lists&quot;</span><span class="p">,</span> <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;markdown&quot;</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">pandoc_blocks</span><span class="o">=</span><span class="s2">&quot;pandoc_blocks&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;lists&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-        <span class="p">],</span>
-        <span class="s2">&quot;image&quot;</span><span class="p">:</span> <span class="p">[</span>
-            <span class="c1"># add a &quot;base-document&quot; type (.pdf) images get converted into pdfs</span>
-            <span class="c1"># and then further processed from there</span>
-            <span class="s2">&quot;.pdf&quot;</span><span class="p">,</span>  <span class="c1"># as we are extracting a pdf we would like to use the pdf functions...</span>
-            <span class="n">OCRExtractor</span><span class="p">()</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="s2">&quot;raw_content&quot;</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;ocr_pdf_file&quot;</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="s2">&quot;ocr_lang&quot;</span><span class="p">,</span> <span class="n">ocr</span><span class="o">=</span><span class="s2">&quot;ocr_on&quot;</span><span class="p">)</span>  <span class="c1"># TODO move this into BilledDocument and make sure</span>
-            <span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="c1"># we need to do overwrite the pdf loading for images we inherited from</span>
-            <span class="c1"># the &quot;.pdf&quot; logic as we are</span>
-            <span class="c1"># now taking the pdf from a different variable</span>
-            <span class="n">PDFFileLoader</span><span class="p">()</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">fobj</span><span class="o">=</span><span class="s2">&quot;ocr_pdf_file&quot;</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;pages_bbox&quot;</span><span class="p">,</span> <span class="s2">&quot;elements&quot;</span><span class="p">,</span> <span class="s2">&quot;meta&quot;</span><span class="p">,</span> <span class="n">pages</span><span class="o">=</span><span class="s2">&quot;page_set&quot;</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-        <span class="p">],</span>
-        <span class="c1"># the first base doc types have priority over the last ones</span>
-        <span class="c1"># so here .png &gt; image &gt; .pdf</span>
-        <span class="s2">&quot;.png&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="s2">&quot;.pdf&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;.jpeg&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="s2">&quot;.pdf&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;.jpg&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="s2">&quot;.pdf&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;.tif&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="s2">&quot;.pdf&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;.tiff&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="s2">&quot;.pdf&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;*&quot;</span><span class="p">:</span> <span class="p">[</span>
-            <span class="n">FileLoader</span><span class="p">()</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">fobj</span><span class="o">=</span><span class="s2">&quot;_fobj&quot;</span><span class="p">,</span> <span class="n">document_type</span><span class="o">=</span><span class="s2">&quot;document_type&quot;</span><span class="p">,</span> <span class="n">page_numbers</span><span class="o">=</span><span class="s2">&quot;_page_numbers&quot;</span><span class="p">,</span> <span class="n">max_pages</span><span class="o">=</span><span class="s2">&quot;_max_pages&quot;</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;raw_content&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">Alias</span><span class="p">(</span><span class="n">full_text</span><span class="o">=</span><span class="s2">&quot;raw_content&quot;</span><span class="p">),</span>
-            <span class="n">LambdaExtractor</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]))</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">&quot;full_text&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;text_box_elements&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">LambdaExtractor</span><span class="p">(</span><span class="k">lambda</span> <span class="n">df</span><span class="p">:</span> <span class="n">df</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">to_list</span><span class="p">())</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="s2">&quot;text_box_elements&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;text_box_list&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">LambdaExtractor</span><span class="p">(</span><span class="k">lambda</span> <span class="n">tables_df</span><span class="p">:</span> <span class="p">[</span><span class="n">df</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="s1">&#39;index&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">df</span> <span class="ow">in</span> <span class="n">tables_df</span><span class="p">])</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="s2">&quot;tables_df&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;tables_dict&quot;</span><span class="p">),</span>
-            <span class="n">Alias</span><span class="p">(</span><span class="n">tables</span><span class="o">=</span><span class="s2">&quot;tables_dict&quot;</span><span class="p">),</span>
-            <span class="n">TextBlockClassifier</span><span class="p">(</span><span class="n">min_prob</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="s2">&quot;text_box_elements&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;addresses&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">LambdaExtractor</span><span class="p">(</span><span class="k">lambda</span> <span class="n">full_text</span><span class="p">:</span> <span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">full_text</span><span class="p">)</span> <span class="o">//</span> <span class="mi">1000</span><span class="p">))</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="s2">&quot;full_text&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;num_pages&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">LambdaExtractor</span><span class="p">(</span><span class="k">lambda</span> <span class="n">full_text</span><span class="p">:</span> <span class="n">langdetect</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="n">full_text</span><span class="p">))</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="s2">&quot;full_text&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;language&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-
-            <span class="c1">#########  SPACY WRAPPERS  #############</span>
-            <span class="n">SpacyExtractor</span><span class="p">(</span><span class="n">model_size</span><span class="o">=</span><span class="s2">&quot;md&quot;</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="s2">&quot;full_text&quot;</span><span class="p">,</span> <span class="s2">&quot;language&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="n">doc</span><span class="o">=</span><span class="s2">&quot;spacy_doc&quot;</span><span class="p">,</span> <span class="n">nlp</span><span class="o">=</span><span class="s2">&quot;spacy_nlp&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">LambdaExtractor</span><span class="p">(</span><span class="n">extract_spacy_token_vecs</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="s2">&quot;spacy_doc&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;spacy_vectors&quot;</span><span class="p">),</span>
-            <span class="n">LambdaExtractor</span><span class="p">(</span><span class="n">get_spacy_embeddings</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="s2">&quot;spacy_nlp&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;spacy_embeddings&quot;</span><span class="p">),</span>
-            <span class="n">LambdaExtractor</span><span class="p">(</span><span class="k">lambda</span> <span class="n">spacy_doc</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">spacy_doc</span><span class="o">.</span><span class="n">sents</span><span class="p">))</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="s2">&quot;spacy_doc&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;spacy_sents&quot;</span><span class="p">),</span>
-            <span class="n">LambdaExtractor</span><span class="p">(</span><span class="n">extract_noun_chunks</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="s2">&quot;spacy_doc&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;spacy_noun_chunks&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="c1">########## END OF SPACY ################</span>
-
-            <span class="n">EntityExtractor</span><span class="p">()</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="s2">&quot;spacy_doc&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;entities&quot;</span><span class="p">),</span>
-            <span class="c1"># TODO: try to implement as much as possible from the constants below for all documentypes</span>
-            <span class="c1"># TODO: implement an automatic summarizer based on textrank...</span>
-            <span class="n">Constant</span><span class="p">(</span><span class="n">summary</span><span class="o">=</span><span class="s2">&quot;unknown&quot;</span><span class="p">,</span> <span class="n">urls</span><span class="o">=</span><span class="p">[],</span> <span class="n">main_image</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">html_keywords</span><span class="o">=</span><span class="p">[],</span>
-                     <span class="n">final_urls</span><span class="o">=</span><span class="p">[],</span> <span class="n">pdf_links</span><span class="o">=</span><span class="p">[],</span> <span class="n">schemadata</span><span class="o">=</span><span class="p">{},</span> <span class="n">tables_df</span><span class="o">=</span><span class="p">[]),</span>
-            <span class="n">Alias</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="s2">&quot;source&quot;</span><span class="p">),</span>
-
-            <span class="c1">########### NOUN_INDEX #############</span>
-            <span class="n">Alias</span><span class="p">(</span><span class="n">noun_chunks</span><span class="o">=</span><span class="s2">&quot;spacy_noun_chunks&quot;</span><span class="p">),</span>
-            <span class="n">LambdaExtractor</span><span class="p">(</span>
-                <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span>
-                    <span class="n">noun_vecs</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">e</span><span class="o">.</span><span class="n">vector</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]),</span>
-                    <span class="n">noun_ids</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))))</span>
-            <span class="p">)</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">&quot;noun_chunks&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;noun_vecs&quot;</span><span class="p">,</span> <span class="s2">&quot;noun_ids&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">IndexExtractor</span><span class="p">()</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">vecs</span><span class="o">=</span><span class="s2">&quot;noun_vecs&quot;</span><span class="p">,</span> <span class="n">ids</span><span class="o">=</span><span class="s2">&quot;noun_ids&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;noun_index&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">LambdaExtractor</span><span class="p">(</span><span class="k">lambda</span> <span class="n">spacy_nlp</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">spacy_nlp</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">vector</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="s2">&quot;spacy_nlp&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;vectorizer&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">KnnQuery</span><span class="p">()</span><span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="s2">&quot;noun_index&quot;</span><span class="p">,</span> <span class="n">idx_values</span><span class="o">=</span><span class="s2">&quot;noun_chunks&quot;</span><span class="p">,</span> <span class="n">vectorizer</span><span class="o">=</span><span class="s2">&quot;vectorizer&quot;</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;noun_query&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">SimilarityGraph</span><span class="p">()</span><span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">index_query_func</span><span class="o">=</span><span class="s2">&quot;noun_query&quot;</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;noun_chunks&quot;</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;noun_graph&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="n">ExtractKeywords</span><span class="p">(</span><span class="n">top_k</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">G</span><span class="o">=</span><span class="s2">&quot;noun_graph&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;textrank_keywords&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-            <span class="c1">########### END NOUN_INDEX ###########</span>
-
-            <span class="c1">########### AGGREGATION ##############</span>
-            <span class="n">LambdaExtractor</span><span class="p">(</span><span class="k">lambda</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">set</span><span class="p">(</span><span class="n">flatten</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">values</span><span class="p">())))</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="s2">&quot;html_keywords&quot;</span><span class="p">,</span> <span class="s2">&quot;textrank_keywords&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;keywords&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">(),</span>
-
-            <span class="c1">########### QaM machine #############</span>
-            <span class="c1"># TODO: make sure we can set the model that we want to use dynamically!</span>
-            <span class="n">QamExtractor</span><span class="p">(</span><span class="n">model_id</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">PDXT_STANDARD_QAM_MODEL</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;full_text&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;answers&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">trf_model_id</span><span class="o">=</span><span class="s2">&quot;qam_model_id&quot;</span><span class="p">),</span>
-
-            <span class="c1">########### Chat AI ##################</span>
-            <span class="n">OpenAIChat</span><span class="p">()</span>
-            <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">full_text</span><span class="o">=</span><span class="s2">&quot;full_text&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s2">&quot;chat_answers&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">model_id</span><span class="o">=</span><span class="s2">&quot;model_id&quot;</span><span class="p">),</span>
-        <span class="p">]</span>
-    <span class="p">}</span>
-</code></pre></div></td></tr></table></div>
-        </details>
 
   
 
@@ -654,5 +235,5 @@ that are higher up in the hierarchy. The argument precedence is hereby as follow
 
 <!--
 MkDocs version : 1.4.2
-Build Date UTC : 2023-04-23 19:21:32.720977+00:00
+Build Date UTC : 2023-04-23 20:24:44.697458+00:00
 -->

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://www.github.com/Xyntopia/pydoxtools/readme_cp/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>pydoxtools - Pydoxtools</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+        <link href="../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "pydoxtools";
+        var mkdocs_page_input_path = "readme_cp.md";
+        var mkdocs_page_url = "/Xyntopia/pydoxtools/readme_cp/";
+      </script>
+    
+    <script src="../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Pydoxtools
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../README.md">Readme</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Pydoxtools</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" alt="Docs"></a> &raquo;</li>
+      <li>pydoxtools</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="pydoxtools">pydoxtools</h1>
+<p>Pydoxtools is a library that provides a sophisticated interface for reading and
+writing documents, designed to work with AI models such as GPT, Alpaca, and
+Huggingface. It offers functionalities such as:</p>
+<ul>
+<li>Table extraction</li>
+<li>Document analysis and question-answering</li>
+<li>Task relation creation</li>
+<li>Entity, address identification and more</li>
+<li>List and keyword extraction</li>
+<li>Data normalization, translation, and cleaning</li>
+</ul>
+<p>The library allows for the creation of complex extraction pipelines
+for batch-processing of documents by defining them as a lazily-executed graph.</p>
+<h2 id="teaser">Teaser</h2>
+<p>When using pydoxtools with chatgpt, we need to make sure that you are using a </p>
+<pre><code>import pydoxtools as pdx
+
+# create a document from a file, string, bytestring, file-like object
+# or even an url:
+doc = Document(
+    "https://www.raspberrypi.org/app/uploads/2012/12/quick-start-guide-v1.1.pdf", 
+    document_type=".pdf"
+)
+# extract the table as a pandas dataframe:
+print(doc.tables_df)
+print(doc.answers(["how much power does it need?"])[0][0][0])
+print(doc.chat_answers(["who is the target group of this document?"])[0].content)
+print(doc.chat_answers(["Answer if a 5-year old would be able to follow these instructions?"])[0].content)
+# ask a question about the document:
+</code></pre>
+<h2 id="cli">CLI</h2>
+<p>TODO...</p>
+<h2 id="installation">Installation</h2>
+<pre><code>pip install pydoxtools[etl, inference]
+
+# TODO: explain some dependencies (especially pytorch)
+</code></pre>
+<h2 id="examples">Examples</h2>
+<ul>
+<li>analyze documents using any sort of model from huggingface...</li>
+<li>analyze documents using a custom model</li>
+<li>download a pdf from URL</li>
+<li>generate document keywords</li>
+<li>extract tables</li>
+<li>download document from URL "manually" and then feed to document</li>
+<li>extract addresses</li>
+<li>extract addresses and use this information for the qam</li>
+</ul>
+<h2 id="development">Development</h2>
+<p>--&gt; see <a href="DEVELOPMENT.md"></a></p>
+<h2 id="license">License</h2>
+<p>This project is licensed under the terms of <a href="./LICENSE">MIT</a> license.</p>
+<p>You can check the compatibility using the following tool in a venv environment in a production
+setting:</p>
+<pre><code>pip install pip-licenses
+pip-licenses | grep -Ev 'MIT License|BSD License|Apache Software License|Python Software Foundation License|Apache 2.0|MIT|Apache License 2.0|hnswlib|Pillow|new BSD|BSD'
+</code></pre>
+<h2 id="list-of-libraries-that-this-project-is-based-on">list of libraries, that this project is based on:</h2>
+<p><a href="poetry.lock">list</a></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme_extra.js" defer></script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>
