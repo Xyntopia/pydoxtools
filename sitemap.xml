@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://www.github.com/Xyntopia/pydoxtools/</loc>
+         <loc>https://xyntopia.github.io/pydoxtools/</loc>
          <lastmod>2023-04-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://www.github.com/Xyntopia/pydoxtools/readme_cp/</loc>
+         <loc>https://xyntopia.github.io/pydoxtools/readme_cp/</loc>
          <lastmod>2023-04-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://www.github.com/Xyntopia/pydoxtools/reference/</loc>
+         <loc>https://xyntopia.github.io/pydoxtools/reference/</loc>
          <lastmod>2023-04-23</lastmod>
          <changefreq>daily</changefreq>
     </url>
