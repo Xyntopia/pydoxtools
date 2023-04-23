@@ -45,8 +45,8 @@ calling x with the specified member::
     doc.x("full_text")
     # etc...
 
-Most members are also callable like a n
-ormal class member in roder to make the code easier to read::
+Most members are also callable like a normal
+class member in order to make the code easier to read::
 
     doc.addresses
 
