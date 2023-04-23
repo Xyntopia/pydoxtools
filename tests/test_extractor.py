@@ -170,11 +170,11 @@ def test_pandoc():
     assert len(doc.lists) == 6
 
 
-def test_logic_graph():
+def test_pipeline_graph():
     doc = Document(fobj=make_path_absolute("./data/demo.docx"), document_type=".docx")
     # TODO: generate graphs for all document types
-    doc.logic_graph(image_path=settings._PYDOXTOOLS_DIR / "docs/images/document_logic_docx.svg")
-    doc.logic_graph(image_path=settings._PYDOXTOOLS_DIR / "docs/images/document_logic_png.svg", document_logic_id=".png")
+    doc.pipeline_graph(image_path=settings._PYDOXTOOLS_DIR / "docs/images/document_logic_docx.svg")
+    doc.pipeline_graph(image_path=settings._PYDOXTOOLS_DIR / "docs/images/document_logic_png.svg", document_logic_id=".png")
 
 
 def test_url_download():

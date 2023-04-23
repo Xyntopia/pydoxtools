@@ -5,6 +5,7 @@ writing documents, designed to work with AI models such as GPT, Alpaca, and
 Huggingface. It offers functionalities such as:
 
 - Table extraction
+- Vector Index Creation
 - Document analysis and question-answering
 - Task relation creation
 - Entity, address identification and more
@@ -16,7 +17,7 @@ for batch-processing of documents by defining them as a lazily-executed graph.
 
 ## Teaser
 
-When using pydoxtools with chatgpt, we need to make sure that you are using a 
+When using pydoxtools with chatgpt, we need to make sure that you are using a
 
     import pydoxtools as pdx
 
@@ -32,11 +33,6 @@ When using pydoxtools with chatgpt, we need to make sure that you are using a
     print(doc.chat_answers(["who is the target group of this document?"])[0].content)
     print(doc.chat_answers(["Answer if a 5-year old would be able to follow these instructions?"])[0].content)
     # ask a question about the document:
-    
-
-## CLI
-
-TODO...
 
 ## Installation
 

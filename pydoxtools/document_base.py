@@ -658,7 +658,7 @@ class Pipeline(metaclass=MetaDocumentClassConfiguration):
     def uuid(self):
         return uuid.uuid4()
 
-    def logic_graph(self, image_path: str | pathlib.Path = None, document_logic_id="current"):
+    def pipeline_graph(self, image_path: str | pathlib.Path = None, document_logic_id="current"):
         """
         Generate a visualization of the defined pipelines
 

@@ -5,7 +5,7 @@ cp README.md docs/README.md
 
 # build images
 cd tests
-python -c "from test_extractor import test_logic_graph; test_logic_graph()"
+python -c "from test_extractor import test_pipeline_graph; test_pipeline_graph()"
 cd ..
 
 # Build the MkDocs project

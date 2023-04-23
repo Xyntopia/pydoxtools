@@ -2,7 +2,7 @@
 
 ## Readme
 
-[Readme](../README.md)
+[Readme](readme_cp)
 
 ## Visualization of the Extraction logic
 
@@ -16,13 +16,13 @@ The extraction logic for different file types can be visualized bydoing somethin
 
 This way we can generate the pipelines for different filetypes:
 
-- docx: [](images/document_logic_docx.svg)
-- png: [](images/document_logic_png.svg)
+- [docx](images/document_logic_docx.svg)
+- [png](images/document_logic_png.svg)
+
+(click on links to open the images!)
 
 This also works for custom pipelines!
 
-## Reference
-
-::: pydoxtools.Document
+In order to learn more continue to: [Reference](reference)
  
 
