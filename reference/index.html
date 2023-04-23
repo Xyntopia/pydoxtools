@@ -55,10 +55,6 @@
     <li class="toctree-l2"><a class="reference internal" href="#pydoxtools.document">pydoxtools.document</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#pydoxtools.document.Document">Document</a>
-        <ul>
-    <li class="toctree-l3"><a class="reference internal" href="#pydoxtools.document.Document--etc">etc...</a>
-    </li>
-        </ul>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#pydoxtools.document_base">pydoxtools.document_base</a>
     </li>
@@ -152,31 +148,27 @@
 <p>This class implements an extensive pipeline using the [][document_base.Pipeline] class
 for information extraction from documents.</p>
 <hr />
-<p>In order to load a document, simply</p>
-
-<details class="open-it-with-the-document-class">
-  <summary>open it with the document class</summary>
-  <p>from pydoxtools import Document
-doc = Document(fobj=./data/demo.docx)</p>
-</details>      <p>You can then access any extracted data by</p>
-
-<details class="calling-x-with-the-specified-member">
-  <summary>calling x with the specified member</summary>
-  <p>doc.x("addresses")
+<p>In order to load a document, simply
+open it with the document class::</p>
+<pre><code>from pydoxtools import Document
+doc = Document(fobj=./data/demo.docx)
+</code></pre>
+<p>You can then access any extracted data by
+calling x with the specified member::</p>
+<pre><code>doc.x("addresses")
 doc.x("entities")
-doc.x("full_text")</p>
-<h3 id="pydoxtools.document.Document--etc">etc...</h3>
-</details>      <p>Most members are also callable like a n</p>
-
-<details class="ormal-class-member-in-roder-to-make-the-code-easier-to-read">
-  <summary>ormal class member in roder to make the code easier to read</summary>
-  <p>doc.addresses</p>
-</details>      <p>A list of all available extraction data</p>
-
-<details class="can-be-called-like-this">
-  <summary>can be called like this</summary>
-  <p>doc.x_funcs()</p>
-</details>      <hr />
+doc.x("full_text")
+# etc...
+</code></pre>
+<p>Most members are also callable like a n
+ormal class member in roder to make the code easier to read::</p>
+<pre><code>doc.addresses
+</code></pre>
+<p>A list of all available extraction data
+can be called like this::</p>
+<pre><code>doc.x_funcs()
+</code></pre>
+<hr />
 <p>The document class is backed by a <em>pipeline</em> class with a pre-defined pipeline focusing on
 document extraction tasks. This extraction pipeline can be overwritten partially or completly replaced.
 In order to customize the pipeline it is usually best to take the pipeline for
@@ -185,11 +177,11 @@ only overwrite the parts that should be customized.</p>
 <p>inherited classes can override any part of the graph.</p>
 <p>It is possible to exchange/override/extend or introduce extraction pipelines for individual file types (including
 the generic one: "<em>") such as </em>.html extractors, <em>.pdf, </em>.txt etc..</p>
-<p>strings inside a document class indicate the inclusion of that document type pipeline but with a lower priority
+<p>Strings inside a document class indicate the inclusion of that document type pipeline but with a lower priority
 this way a directed extraction graph gets built. This only counts for the current class that is
 being defined though!!</p>
 <p>Example extension pipeline for an OCR extractor which converts images into text
-"image" code block and supports filetypes: ".png", ".jpeg", ".jpg", ".tif", ".tiff":</p>
+"image" code block and supports filetypes: ".png", ".jpeg", ".jpg", ".tif", ".tiff"::</p>
 <pre><code>"image": [
         OCRExtractor()
         .pipe(file="raw_content")
@@ -210,7 +202,7 @@ being defined though!!</p>
 by the "pipe" command. These parameters can be configured on document creation
 if some of them are declared using the "config" command.</p>
 <p>These arguments can be overwritten by a new pipeline in inherited documents or document types
-that are higher up in the hierarchy. The argument precedence is hereby as follows:</p>
+that are higher up in the hierarchy. The argument precedence is hereby as follows::</p>
 <pre><code>python-class-member &lt; extractor-graph-function &lt; config
 </code></pre>
 
@@ -301,8 +293,8 @@ classes can override</p>
 <code class="highlight language-python"><span class="n">document_type</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
   </span>
 
 </h3>
@@ -324,8 +316,8 @@ TODO add a doc-type extractor using for example python-magic</p>
 <code class="highlight language-python"><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
   </span>
 
 </h3>
@@ -346,8 +338,8 @@ TODO add a doc-type extractor using for example python-magic</p>
 <code class="highlight language-python"><span class="n">x_funcs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Extractor</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
   </span>
 
 </h3>

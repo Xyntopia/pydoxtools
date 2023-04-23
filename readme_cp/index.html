@@ -50,8 +50,6 @@
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#teaser">Teaser</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#cli">CLI</a>
-    </li>
     <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#examples">Examples</a>
@@ -93,11 +91,13 @@
             <div class="section" itemprop="articleBody">
               
                 <h1 id="pydoxtools">pydoxtools</h1>
+<p><a href="xyntopia.github.io/pydoxtools">Documentation</a></p>
 <p>Pydoxtools is a library that provides a sophisticated interface for reading and
 writing documents, designed to work with AI models such as GPT, Alpaca, and
 Huggingface. It offers functionalities such as:</p>
 <ul>
 <li>Table extraction</li>
+<li>Vector Index Creation</li>
 <li>Document analysis and question-answering</li>
 <li>Task relation creation</li>
 <li>Entity, address identification and more</li>
@@ -107,7 +107,7 @@ Huggingface. It offers functionalities such as:</p>
 <p>The library allows for the creation of complex extraction pipelines
 for batch-processing of documents by defining them as a lazily-executed graph.</p>
 <h2 id="teaser">Teaser</h2>
-<p>When using pydoxtools with chatgpt, we need to make sure that you are using a </p>
+<p>When using pydoxtools with chatgpt, we need to make sure that you are using a</p>
 <pre><code>import pydoxtools as pdx
 
 # create a document from a file, string, bytestring, file-like object
@@ -123,8 +123,6 @@ print(doc.chat_answers(["who is the target group of this document?"])[0].content
 print(doc.chat_answers(["Answer if a 5-year old would be able to follow these instructions?"])[0].content)
 # ask a question about the document:
 </code></pre>
-<h2 id="cli">CLI</h2>
-<p>TODO...</p>
 <h2 id="installation">Installation</h2>
 <pre><code>pip install pydoxtools[etl, inference]
 
