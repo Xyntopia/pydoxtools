@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://www.github.com/Xyntopia/pydoxtools/reference/">
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Reference - Pydoxtools</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css">
+        <link href="../assets/_mkdocstrings.css" rel="stylesheet">
+
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">Pydoxtools</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="navitem">
+                                <a href=".." class="nav-link">Home</a>
+                            </li>
+                            <li class="navitem">
+                                <a href="../readme_cp/" class="nav-link">Readme</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a href="https://www.github.com/Xyntopia/pydoxtools" class="nav-link">Www</a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-light navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-toggle="collapse" data-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-secondary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-level="1"><a href="#reference" class="nav-link">Reference</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-level="2"><a href="#pydoxtools.document" class="nav-link">pydoxtools.document</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#pydoxtools.document.Document" class="nav-link">Document</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#pydoxtools.document_base" class="nav-link">pydoxtools.document_base</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-level="2"><a href="#pydoxtools.document_base.Pipeline" class="nav-link">Pipeline</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="reference">Reference</h1>
+
+
+<div class="doc doc-object doc-module">
+
+
+<a id="pydoxtools.document"></a>
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="pydoxtools.document.Document" class="doc doc-heading">
+        <code>Document</code>
+
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="pydoxtools.document_base" href="#pydoxtools.document_base">document_base</a>.<a class="autorefs autorefs-internal" title="pydoxtools.document_base.Pipeline" href="#pydoxtools.document_base.Pipeline">Pipeline</a></code></p>
+
+  
+      <p>A standard document configuration which should work
+for most documents.</p>
+<hr />
+<p>In order to load a document, simply</p>
+
+<details class="open-it-with-the-document-class">
+  <summary>open it with the document class</summary>
+  <p>from pydoxtools import Document
+doc = Document(fobj=./data/demo.docx)</p>
+</details>      <p>You can then access any extracted data by</p>
+
+<details class="calling-x-with-the-specified-member">
+  <summary>calling x with the specified member</summary>
+  <p>doc.x("addresses")
+doc.x("entities")
+doc.x("full_text")</p>
+<h3 id="pydoxtools.document.Document--etc">etc...</h3>
+</details>      <p>Most members are also callable like a n</p>
+
+<details class="ormal-class-member-in-roder-to-make-the-code-easier-to-read">
+  <summary>ormal class member in roder to make the code easier to read</summary>
+  <p>doc.addresses</p>
+</details>      <p>A list of all available extraction data</p>
+
+<details class="can-be-called-like-this">
+  <summary>can be called like this</summary>
+  <p>doc.x_funcs()</p>
+</details>      <hr />
+<p>The document class is backed by a <em>pipeline</em> class with a pre-defined pipeline focusing on
+document extraction tasks. This extraction pipeline can be overwritten partially or completly replaced.
+In order to customize the pipeline it is usually best to take the pipeline for
+basic documents defined in pydoxtools.Document as a starting point and
+only overwrite the parts that should be customized.</p>
+<p>inherited classes can override any part of the graph.</p>
+<p>It is possible to exchange/override/extend or introduce extraction pipelines for individual file types (including
+the generic one: "<em>") such as </em>.html extractors, <em>.pdf, </em>.txt etc..</p>
+<p>strings inside a document class indicate the inclusion of that document type pipeline but with a lower priority
+this way a directed extraction graph gets built. This only counts for the current class that is
+being defined though!!</p>
+<p>Example extension pipeline for an OCR extractor which converts images into text
+"image" code block and supports filetypes: ".png", ".jpeg", ".jpg", ".tif", ".tiff":</p>
+<pre><code>"image": [
+        OCRExtractor()
+        .pipe(file="raw_content")
+        .out("ocr_pdf_file")
+        .cache(),
+    ],
+# the first base doc types have priority over the last ones
+# so here .png &gt; image &gt; .pdf
+".png": ["image", ".pdf"],
+".jpeg": ["image", ".pdf"],
+".jpg": ["image", ".pdf"],
+".tif": ["image", ".pdf"],
+".tiff": ["image", ".pdf"],
+# the "*" gets overwritten by functions above
+"*": [...]
+</code></pre>
+<p>Each function (or node) in the extraction pipeline gets fed its input-parameters
+by the "pipe" command. These parameters can be configured on document creation
+if some of them are declared using the "config" command.</p>
+<p>These arguments can be overwritten by a new pipeline in inherited documents or document types
+that are higher up in the hierarchy. The argument precedence is hereby as follows:</p>
+<pre><code>python-class-member &lt; extractor-graph-function &lt; config
+</code></pre>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+<a id="pydoxtools.document_base"></a>
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="pydoxtools.document_base.Pipeline" class="doc doc-heading">
+        <code>Pipeline</code>
+
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+
+  
+      <p>This class is the base for all document classes in pydoxtools and
+defines a common pipeline interface for all.</p>
+<p>This class also defines a basic extraction schema which derived
+classes can override</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pydoxtools.document_base.Pipeline.document_type" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">document_type</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
+  </span>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>detect doc type based on file-ending
+TODO add a doc-type extractor using for example python-magic</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pydoxtools.document_base.Pipeline.filename" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
+  </span>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>TODO: move this into document</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pydoxtools.document_base.Pipeline.x_funcs" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">x_funcs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Extractor</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
+  </span>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>get all extractors and their property names for this specific file type</p>
+  </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pydoxtools.document_base.Pipeline.__getattr__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__getattr__</span><span class="p">(</span><span class="n">extract_name</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p><strong>getattr</strong> only gets called for non-existing variable names.
+So we can automatically avoid name collisions  here.</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>document.addresses</p>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>instead of document.x['addresses']</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pydoxtools.document_base.Pipeline.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">fobj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">page_numbers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_pages</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mime_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">document_type</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+
+<details class="fobj">
+  <summary>a file object which should be loaded.</summary>
+  <ul>
+<li>if it is a string or bytes object:   the string itself is the document!</li>
+<li>if it is a pathlib.Path: load the document from the path</li>
+<li>if it is a file object: load document from file object (or bytestream  etc...)</li>
+</ul>
+</details>      <p>source: Where does the extracted data come from? (Examples: URL, 'pdfupload', parent-URL, or a path)"
+page_numbers: list of the specific pages that we would like to extract (for example in a pdf)
+max_pages: maximum number of pages that we want to extract in order to protect resources
+config: a dict which describes values for variables in the document logic
+mime_type: optional mimetype for the document
+filename: optional filename. Helps sometimes helps in determining the purpose of a document</p>
+
+<details class="document_type">
+  <summary>directly specify the document type which specifies the extraction</summary>
+  <p>logic that should be used</p>
+</details>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pydoxtools.document_base.Pipeline.non_interactive_x_funcs" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">non_interactive_x_funcs</span><span class="p">()</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>return all non-interactive extractors</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pydoxtools.document_base.Pipeline.pipeline_graph" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">pipeline_graph</span><span class="p">(</span><span class="n">image_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">document_logic_id</span><span class="o">=</span><span class="s1">&#39;current&#39;</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Generate a visualization of the defined pipelines</p>
+<p>image_path:  file path for a generated image</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pydoxtools.document_base.Pipeline.pre_cache" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">pre_cache</span><span class="p">()</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>in some situations, for example for caching purposes it would be nice
+to pre-cache all calculations this is done here by simply calling all functions...</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pydoxtools.document_base.Pipeline.run_all_extractors" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">run_all_extractors</span><span class="p">()</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>can be used for testing or pre-caching purposes</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pydoxtools.document_base.Pipeline.x" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">x</span><span class="p">(</span><span class="n">extract_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>call an extractor from our definition
+TODO: using <em>args and </em>*kwargs the extractors parameters can be overriden</p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+  </div>
+
+  </div>
+
+</div></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
