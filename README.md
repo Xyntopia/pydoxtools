@@ -1,4 +1,4 @@
-# pydoxtools
+# 🚀 pydoxtools 🚀
 
 [Documentation](https://xyntopia.github.io/pydoxtools)
 
@@ -19,7 +19,7 @@ for batch-processing of documents by defining them as a lazily-executed graph.
 
 ## Teaser
 
-When using pydoxtools with chatgpt, we need to make sure that you are using a
+Experience a new level of convenience and efficiency in handling documents with Pydoxtools, and reimagine your data extraction pipelines! Get started now and watch the magic unfold. 🎩✨📄.
 
     import pydoxtools as pdx
 
@@ -31,20 +31,24 @@ When using pydoxtools with chatgpt, we need to make sure that you are using a
     )
     # extract the table as a pandas dataframe:
     print(doc.tables_df)
+    # ask a question about the document, using Q&A Models (questionas answered locally!):
     print(doc.answers(["how much power does it need?"])[0][0][0])
+    # ask a question about the document, using ChatGPT:
     print(doc.chat_answers(["who is the target group of this document?"])[0].content)
     print(doc.chat_answers(["Answer if a 5-year old would be able to follow these instructions?"])[0].content)
-    # ask a question about the document:
 
+    
 ## Installation
+
+Pydoxtools can be installed through pip:
 
     pip install pydoxtools[etl, inference]
 
-    # TODO: explain some dependencies (especially pytorch) 
+It should automatically download models & dependencies where required.
+    
+## Use Cases
 
-## Examples
-
-- analyze documents using any sort of model from huggingface...
+- analyze documents using any model from huggingface...
 - analyze documents using a custom model
 - download a pdf from URL
 - generate document keywords
@@ -52,6 +56,7 @@ When using pydoxtools with chatgpt, we need to make sure that you are using a
 - download document from URL "manually" and then feed to document
 - extract addresses
 - extract addresses and use this information for the qam
+- ingest documents into a vector db
 
 ## Development
 
