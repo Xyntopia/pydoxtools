@@ -50,9 +50,11 @@
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#teaser">Teaser</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#large-pipelines">Large pipelines</a>
+    </li>
     <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#examples">Examples</a>
+    <li class="toctree-l2"><a class="reference internal" href="#use-cases">Use Cases</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#development">Development</a>
     </li>
@@ -90,8 +92,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="pydoxtools">pydoxtools</h1>
-<p><a href="https://xyntopia.github.io/pydoxtools">Documentation</a></p>
+                <h1 id="pydoxtools">🚀 pydoxtools 🚀</h1>
+<p>(<em>WIP</em>) <a href="https://xyntopia.github.io/pydoxtools">Documentation</a></p>
 <p>Pydoxtools is a library that provides a sophisticated interface for reading and
 writing documents, designed to work with AI models such as GPT, Alpaca, and
 Huggingface. It offers functionalities such as:</p>
@@ -99,7 +101,6 @@ Huggingface. It offers functionalities such as:</p>
 <li>Table extraction</li>
 <li>Vector Index Creation</li>
 <li>Document analysis and question-answering</li>
-<li>Task relation creation</li>
 <li>Entity, address identification and more</li>
 <li>List and keyword extraction</li>
 <li>Data normalization, translation, and cleaning</li>
@@ -107,7 +108,7 @@ Huggingface. It offers functionalities such as:</p>
 <p>The library allows for the creation of complex extraction pipelines
 for batch-processing of documents by defining them as a lazily-executed graph.</p>
 <h2 id="teaser">Teaser</h2>
-<p>When using pydoxtools with chatgpt, we need to make sure that you are using a</p>
+<p>Experience a new level of convenience and efficiency in handling documents with Pydoxtools, and reimagine your data extraction pipelines! 🎩✨📄.</p>
 <pre><code>import pydoxtools as pdx
 
 # create a document from a file, string, bytestring, file-like object
@@ -118,19 +119,30 @@ doc = Document(
 )
 # extract the table as a pandas dataframe:
 print(doc.tables_df)
+# ask a question about the document, using Q&amp;A Models (questionas answered locally!):
 print(doc.answers(["how much power does it need?"])[0][0][0])
+# ask a question about the document, using ChatGPT:
 print(doc.chat_answers(["who is the target group of this document?"])[0].content)
 print(doc.chat_answers(["Answer if a 5-year old would be able to follow these instructions?"])[0].content)
-# ask a question about the document:
 </code></pre>
+<h2 id="large-pipelines">Large pipelines</h2>
+<p>Pydoxtools main feature are large, composable and customizable pipelines. As a teaser
+check out this pipeline for *.png images from the repository:</p>
+<p><img alt="Visualization of the pipeline for *.png images." src="http://pydoxtools.xyntopia.com/images/document_logic_png.svg" /></p>
+<p>Pipelines can be mixed, partially overwritten and extended which gives you a lot of possibilities
+to extend and adapt the functionality for your specific use-case. </p>
+<p>Find out more about it in the <a href="http://pydoxtools.xyntopia.com/reference/#pydoxtools.document.Document">documentation</a></p>
 <h2 id="installation">Installation</h2>
+<p>Pydoxtools can be installed through pip:</p>
 <pre><code>pip install pydoxtools[etl, inference]
-
-# TODO: explain some dependencies (especially pytorch)
 </code></pre>
-<h2 id="examples">Examples</h2>
+<p>It should automatically download models &amp; dependencies where required. In order to get the 
+latest version install it like this:</p>
+<pre><code>pip install git+https://github.com/xyntopia/pydoxtools'
+</code></pre>
+<h2 id="use-cases">Use Cases</h2>
 <ul>
-<li>analyze documents using any sort of model from huggingface...</li>
+<li>analyze documents using any model from huggingface...</li>
 <li>analyze documents using a custom model</li>
 <li>download a pdf from URL</li>
 <li>generate document keywords</li>
@@ -138,6 +150,7 @@ print(doc.chat_answers(["Answer if a 5-year old would be able to follow these in
 <li>download document from URL "manually" and then feed to document</li>
 <li>extract addresses</li>
 <li>extract addresses and use this information for the qam</li>
+<li>ingest documents into a vector db</li>
 </ul>
 <h2 id="development">Development</h2>
 <p>--&gt; see <a href="DEVELOPMENT"></a></p>

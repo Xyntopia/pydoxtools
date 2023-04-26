@@ -55,20 +55,24 @@
     <li class="toctree-l2"><a class="reference internal" href="#pydoxtools.document">pydoxtools.document</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#pydoxtools.document.Document">Document</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#pydoxtools.document.Document.document_type">document_type</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#pydoxtools.document.Document.filename">filename</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#pydoxtools.document.Document.__init__">__init__()</a>
+    </li>
+        </ul>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#pydoxtools.document_base">pydoxtools.document_base</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#pydoxtools.document_base.Pipeline">Pipeline</a>
         <ul>
-    <li class="toctree-l3"><a class="reference internal" href="#pydoxtools.document_base.Pipeline.document_type">document_type</a>
-    </li>
-    <li class="toctree-l3"><a class="reference internal" href="#pydoxtools.document_base.Pipeline.filename">filename</a>
-    </li>
     <li class="toctree-l3"><a class="reference internal" href="#pydoxtools.document_base.Pipeline.x_funcs">x_funcs</a>
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#pydoxtools.document_base.Pipeline.__getattr__">__getattr__()</a>
     </li>
-    <li class="toctree-l3"><a class="reference internal" href="#pydoxtools.document_base.Pipeline.__init__">__init__()</a>
+    <li class="toctree-l3"><a class="reference internal" href="#pydoxtools.document_base.Pipeline.config">config()</a>
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#pydoxtools.document_base.Pipeline.non_interactive_x_funcs">non_interactive_x_funcs()</a>
     </li>
@@ -141,11 +145,10 @@
 
   <div class="doc doc-contents ">
       <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="pydoxtools.document_base" href="#pydoxtools.document_base">document_base</a>.<a class="autorefs autorefs-internal" title="pydoxtools.document_base.Pipeline" href="#pydoxtools.document_base.Pipeline">Pipeline</a></code></p>
+        Bases: <code><a class="autorefs autorefs-internal" title="pydoxtools.document_base.Pipeline" href="#pydoxtools.document_base.Pipeline">Pipeline</a></code></p>
 
   
-      <p>Standard document class for document analysis, data extraction and transformation.</p>
-<p>This class implements an extensive pipeline using the [][document_base.Pipeline] class
+      <p>This class implements an extensive pipeline using the [][document_base.Pipeline] class
 for information extraction from documents.</p>
 <hr />
 <p>In order to load a document, simply
@@ -160,8 +163,8 @@ doc.x("entities")
 doc.x("full_text")
 # etc...
 </code></pre>
-<p>Most members are also callable like a n
-ormal class member in roder to make the code easier to read::</p>
+<p>Most members are also callable like a normal
+class member in order to make the code easier to read::</p>
 <pre><code>doc.addresses
 </code></pre>
 <p>A list of all available extraction data
@@ -218,7 +221,87 @@ that are higher up in the hierarchy. The argument precedence is hereby as follow
 
 
 
+<div class="doc doc-object doc-attribute">
 
+
+
+<h3 id="pydoxtools.document.Document.document_type" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">document_type</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>detect doc type based on file-ending
+TODO add a doc-type extractor using for example python-magic</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pydoxtools.document.Document.filename" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>TODO: move this into document</p>
+  </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pydoxtools.document.Document.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">fobj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">page_numbers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_pages</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mime_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">document_type</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+
+<details class="fobj">
+  <summary>a file object which should be loaded.</summary>
+  <ul>
+<li>if it is a string or bytes object:   the string itself is the document!</li>
+<li>if it is a pathlib.Path: load the document from the path</li>
+<li>if it is a file object: load document from file object (or bytestream  etc...)</li>
+</ul>
+</details>      <p>source: Where does the extracted data come from? (Examples: URL, 'pdfupload', parent-URL, or a path)"
+page_numbers: list of the specific pages that we would like to extract (for example in a pdf)
+max_pages: maximum number of pages that we want to extract in order to protect resources
+config: a dict which describes values for variables in the document logic
+mime_type: optional mimetype for the document
+filename: optional filename. Helps sometimes helps in determining the purpose of a document</p>
+
+<details class="document_type">
+  <summary>directly specify the document type which specifies the extraction</summary>
+  <p>logic that should be used</p>
+</details>
+  </div>
+
+</div>
 
 
 
@@ -289,57 +372,12 @@ classes can override</p>
 
 
 
-<h3 id="pydoxtools.document_base.Pipeline.document_type" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">document_type</span></code>
-  
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
-      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
-  </span>
-
-</h3>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>detect doc type based on file-ending
-TODO add a doc-type extractor using for example python-magic</p>
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-attribute">
-
-
-
-<h3 id="pydoxtools.document_base.Pipeline.filename" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span></code>
-  
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
-      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
-  </span>
-
-</h3>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>TODO: move this into document</p>
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-attribute">
-
-
-
 <h3 id="pydoxtools.document_base.Pipeline.x_funcs" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">x_funcs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Extractor</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-cached"><code>cached</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 </h3>
@@ -385,33 +423,16 @@ So we can automatically avoid name collisions  here.</p>
 
 
 
-<h3 id="pydoxtools.document_base.Pipeline.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">fobj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">page_numbers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_pages</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mime_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">document_type</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<h3 id="pydoxtools.document_base.Pipeline.config" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">config</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 </h3>
 
 
   <div class="doc doc-contents ">
   
+      <p>Set a standard configuration for a pipeline</p>
 
-<details class="fobj">
-  <summary>a file object which should be loaded.</summary>
-  <ul>
-<li>if it is a string or bytes object:   the string itself is the document!</li>
-<li>if it is a pathlib.Path: load the document from the path</li>
-<li>if it is a file object: load document from file object (or bytestream  etc...)</li>
-</ul>
-</details>      <p>source: Where does the extracted data come from? (Examples: URL, 'pdfupload', parent-URL, or a path)"
-page_numbers: list of the specific pages that we would like to extract (for example in a pdf)
-max_pages: maximum number of pages that we want to extract in order to protect resources
-config: a dict which describes values for variables in the document logic
-mime_type: optional mimetype for the document
-filename: optional filename. Helps sometimes helps in determining the purpose of a document</p>
-
-<details class="document_type">
-  <summary>directly specify the document type which specifies the extraction</summary>
-  <p>logic that should be used</p>
-</details>
   </div>
 
 </div>
