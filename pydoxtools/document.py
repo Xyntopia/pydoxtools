@@ -1,7 +1,7 @@
 import mimetypes
 from functools import cached_property
 from pathlib import Path
-from typing import Any, IO
+from typing import IO
 from urllib.parse import urlparse
 
 import langdetect
@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import requests
 
-from .document_base import Extractor, Pipeline, ElementType
+from .document_base import Pipeline, ElementType
 from .extract_classes import LanguageExtractor, TextBlockClassifier
 from .extract_files import FileLoader
 from .extract_html import HtmlExtractor
@@ -189,8 +189,8 @@ that are higher up in the hierarchy. The argument precedence is hereby as follow
             PandocLoader()
             .pipe(raw_content="raw_content", document_type="document_type")
             .out("pandoc_document").cache(),
-            PandocConverter()
-            .pipe(pandoc_document="pandoc_document").config(output_format="markdown")
+            PandocConverter(output_format="markdown")
+            .pipe(pandoc_document="pandoc_document")
             .out("full_text").cache(),
             PandocBlocks()
             .pipe(pandoc_document="pandoc_document").out("pandoc_blocks").cache(),
@@ -208,7 +208,7 @@ that are higher up in the hierarchy. The argument precedence is hereby as follow
             OCRExtractor()
             .pipe(file="raw_content")
             .out("ocr_pdf_file")
-            .config("ocr_lang", ocr="ocr_on")  # TODO move this into BilledDocument and make sure
+            .config("ocr_lang", ocr_on="ocr_on")
             .cache(),
             # we need to do overwrite the pdf loading for images we inherited from
             # the ".pdf" logic as we are
@@ -298,7 +298,7 @@ that are higher up in the hierarchy. The argument precedence is hereby as follow
 
             ########### Chat AI ##################
             OpenAIChat()
-            .pipe(full_text="full_text").out("chat_answers").cache().config(model_id="model_id"),
+            .pipe(full_text="full_text").out("chat_answers").cache().config(model_id="chat_model_id"),
         ]
     }
 
@@ -309,7 +309,6 @@ that are higher up in the hierarchy. The argument precedence is hereby as follow
             source: str | Path = None,
             page_numbers: list[int] = None,
             max_pages: int = None,
-            config: dict[str, Any] = None,
             mime_type: str = None,
             filename: str = None,
             document_type: str = None
@@ -330,6 +329,8 @@ that are higher up in the hierarchy. The argument precedence is hereby as follow
             logic that should be used
         """
 
+        super().__init__()
+
         # TODO: move this code into its own little extractor...
         try:
             if is_url(fobj):
@@ -346,9 +347,6 @@ that are higher up in the hierarchy. The argument precedence is hereby as follow
         self._filename = filename
         self._page_numbers = page_numbers
         self._max_pages = max_pages
-        self._cache_hits = 0
-        self._x_func_cache: dict[Extractor, dict[str, Any]] = {}
-        self._config = config or {}
 
     @cached_property
     def filename(self) -> str | None:

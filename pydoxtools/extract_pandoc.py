@@ -1,8 +1,10 @@
+import logging
+
 import pandas as pd
 import pandoc
 import pandoc.types
-import logging
 from packaging import version
+
 from pydoxtools import document_base
 
 logger = logging.getLogger(__name__)
@@ -65,11 +67,12 @@ class PandocBlocks(document_base.Extractor):
 
 
 class PandocConverter(document_base.Extractor):
-    def __init__(self):
+    def __init__(self, output_format: str = "markdown"):
         super().__init__()
+        self.output_format = output_format
 
-    def __call__(self, pandoc_document: pandoc.types.Pandoc, output_format: str = "markdown") -> str:
-        full_text = pandoc.write(pandoc_document, format=output_format)
+    def __call__(self, pandoc_document: pandoc.types.Pandoc) -> str:
+        full_text = pandoc.write(pandoc_document, format=self.output_format)
         return full_text
 
 

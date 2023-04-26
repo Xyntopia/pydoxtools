@@ -6,8 +6,10 @@ logging.getLogger("pydoxtools.document").setLevel(logging.INFO)
 import io
 import pathlib
 from pathlib import Path
+import pytest
 
 from pydoxtools.document import Document
+from pydoxtools.document_base import ExtractorException
 from pydoxtools import settings
 
 logger = logging.getLogger(__name__)
@@ -29,6 +31,10 @@ test_files = [
     "./data/test.odt",
     "./data/sample.rtf",
     "./data/basic-v3plus2.epub"
+    # images
+    "./data/north_american_countries.png",
+    "./data/north_american_countries.tif",
+    "./data/north_american_countries.jpg"
 ]
 
 test_dir_path = pathlib.Path(__file__).parent.absolute()
@@ -106,9 +112,8 @@ def test_table_extraction():
 
 def test_qam_machine():
     doc = Document(
-        fobj=make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"),
-        config=dict(trf_model_id='distilbert-base-cased-distilled-squad')
-    )
+        fobj=make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf")
+    ).config(qam_model_id='distilbert-base-cased-distilled-squad')
     answers = doc.x('answers')(questions=('what is this the product name?', 'who build the product?'))
     assert answers[0][0][0] == 'BST BAT - 110'
     assert answers[1][0][0] == 'The BST BAT - 110'
@@ -116,20 +121,18 @@ def test_qam_machine():
 
 def test_address_extraction():
     doc = Document(
-        fobj=make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"),
-        config=dict(trf_model_id='distilbert-base-cased-distilled-squad')
-    )
+        fobj=make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf")
+    ).config(qam_model_id='distilbert-base-cased-distilled-squad')
     addresses = doc.addresses
-    findthis = """F<s>URTHER </s>I<s>NFORMATION   Max-Planck-Str. 3 | 12489 Berlin Germany | info@berlin-space-tech.com | www.berlin-space-tech.com</s>"""
+    findthis = """FURTHER INFORMATION   Max-Planck-Str. 3 | 12489 Berlin Germany | info@berlin-space-tech.com | www.berlin-space-tech.com"""
     assert findthis in addresses
 
 
 def test_chat_gpt():
     import openai
     doc = Document(
-        fobj=make_path_absolute("./data/sample.rtf"),
-        config=dict(model_id='gpt-3.5-turbo')
-    )
+        fobj=make_path_absolute("./data/sample.rtf")
+    ).config(qam_model_id='distilbert-base-cased-distilled-squad')
     try:
         ans = doc.chat_answers(["what is the text about?"])
     except openai.error.AuthenticationError:
@@ -174,7 +177,19 @@ def test_pipeline_graph():
     doc = Document(fobj=make_path_absolute("./data/demo.docx"), document_type=".docx")
     # TODO: generate graphs for all document types
     doc.pipeline_graph(image_path=settings._PYDOXTOOLS_DIR / "docs/images/document_logic_docx.svg")
-    doc.pipeline_graph(image_path=settings._PYDOXTOOLS_DIR / "docs/images/document_logic_png.svg", document_logic_id=".png")
+    doc.pipeline_graph(image_path=settings._PYDOXTOOLS_DIR / "docs/images/document_logic_png.svg",
+                       document_logic_id=".png")
+
+
+def test_pipeline_configuration():
+    with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:
+        doc_str = file.read()
+    doc = Document(
+        fobj=doc_str, document_type=".pdf"
+    ).config(qam_model_id='deepset/roberta-base-squad2')
+    ans = doc.x('answers')(questions=('what is the address?',))
+    doc.config(qam_model_id='some_model_that_doesn_t_exist')
+    ans = doc.x('answers')(questions=('what is the address?',))
 
 
 def test_url_download():
@@ -187,15 +202,39 @@ def test_url_download():
     assert doc.x("tables_df")[0].shape == (8, 3)
 
 
+def test_ocr_and_exceptions():
+    with pytest.raises(ExtractorException) as exc_info:
+        doc = Document(
+            fobj=make_path_absolute("./data/north_american_countries.tif"),
+            mime_type="image/tiff"
+        ).config(ocr_on=False)
+        doc.full_text
+        assert exc_info.args == ('could not get ocr_pdf_file!',)
+
+    doc = Document(
+        fobj=make_path_absolute("./data/north_american_countries.tif"),
+        mime_type="image/tiff"
+    ).config(ocr_on=True)
+    doc.full_text
+
+
 if __name__ == "__main__":
     # test if we can actually open the pdf...
     # with open("ocrpdf", "wb") as f:
     #    f.write(doc.ocr_pdf_file)
-    with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:
-        doc_str = file.read()
-    doc = Document(fobj=doc_str, document_type=".pdf")
-    doc.x_funcs
-    doc.addresses
+
+    test_ocr_and_exceptions()
+
+    if False:
+        with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:
+            doc_str = file.read()
+        doc = Document(
+            fobj=doc_str, document_type=".pdf"
+        ).config(qam_model_id='deepset/roberta-base-squad2')
+        ans = doc.x('answers')(questions=('what is the address?',))
+        doc.addresses
+
+    # TODO: load a "wrong" configuration and make sure, this spits out an error :)
 
     # graph_string = doc.logic_graph()
 

@@ -25,8 +25,8 @@ class OCRExtractor(Extractor):
           figures  etc...?
     """
 
-    def __call__(self, file: bytes, ocr: bool = True, ocr_lang="auto"):
-        if not ocr:
+    def __call__(self, file: bytes, ocr_on: bool = True, ocr_lang="auto"):
+        if not ocr_on:
             raise OCRException("OCR is not enabled!!")
         file = Image.open(io.BytesIO(file))
         if ocr_lang == "auto":

@@ -175,11 +175,40 @@ class Extractor(ABC):
             return {next(iter(self._out_mapping)): output}
 
     def config(self, *args, **kwargs):
+        # TODO: list mandatory configuration arguments!
+        # TODO: check for mandatory configuration arguments during pipeline instantiation
         """
-        Send configuration dictionary to the extractor on every call.
+        Function is used to declare parameters of the extractor "configurable".
+        This means on instantiation of a pipeline, this parameter can be changed.
 
-        This function will be passed through to doc.x.config() in a document
-        instance in order to make some extractor arguments dynamic and changeable.
+        If the parameter of the extractor is:
+
+            - not connected using the "pipe" argument
+            - or does not have a "default" value set in the python function
+              parameters
+
+        it HAS to to be specified using the config argumetn during pipeline instantiation
+
+        The Question & Answering part of the pydoxtools.Document class
+        was specified with this config function like this:
+
+            QamExtractor(model_id=settings.PDXT_STANDARD_QAM_MODEL)
+                .pipe(text="full_text").out("answers").cache().config(trf_model_id="qam_model_id"),
+
+        In this case, when calling a document we can dynamically configure the
+        pipeline with the "qam_model_id" parameter:
+
+            doc = Document(
+                fobj=doc_str, document_type=".pdf"
+            ).config(dict(qam_model_id='deepset/roberta-base-squad2'))
+
+        This function gets called during pipeline definition in a document class
+        in order to make some extractor arguments dynamic and changeable.
+
+        The configured parameters for the pipeline will get sent to the extractor
+        function on every call (xecept if its cached).
+
+        Essentially it works similar to functools.partial.
 
         *args and **kwargs specify which function calls should be called from
         a config file.
@@ -189,7 +218,7 @@ class Extractor(ABC):
             EXTRACTOR.config(trf_model_id="qam_model_id")
 
         means, that the parameter "trf_model_id" can be specified by initializing the document
-        class with a config aprameter "qam_model_id" which then gets mapped to the
+        class with a config parameter "qam_model_id" which then gets mapped to the
         function parameter "trf_model_id".
 
         "document(..., config=dict(trf_model_id='distilbert-base-cased-distilled-squad'))
@@ -197,6 +226,11 @@ class Extractor(ABC):
         This function call can still be overwritten
         by calling the function through "x" directly using *args or **kwargs.
 
+        The reason Extractors can be configured this way is, that the Extractors
+        will already be initialized on Class definition in the MetaPipelineClassConfiguration
+        for efficiency reasons. But we would also like to have an easy way to set
+        certain paramaters on Instantiation of a pipeline. This can be done through this config
+        function.
         """
         self._dynamic_config = {v: k for k, v in kwargs.items()}
         self._dynamic_config.update({k: k for k in args})
@@ -353,6 +387,7 @@ class MetaPipelineClassConfiguration(type):
                     # build class combination in correct order:
                     # the first one is the least important, because it gets
                     # overwritten by subsequent classes
+                    # TODO: get rid of the "standard" fallback...  for the pipeline
                     doc_type_order = ["*"]  # always use "*" as a fallback
                     if doc_type != "*":
                         doc_type_order += list(
@@ -413,6 +448,16 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
     # dict which stores function configurations
     _x_config: dict[str, dict[str, dict[str, Any]]] = {}
 
+    def __init__(self):
+        self._cache_hits = 0
+        self._x_func_cache: dict[Extractor, dict[str, Any]] = {}
+        self._config = {}
+
+    def config(self, **kwargs):
+        """Set a standard configuration for a pipeline"""
+        self._config = kwargs
+        return self
+
     @cached_property
     @abstractmethod
     def pipeline_chooser(self) -> str:
@@ -435,7 +480,8 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         config = self._x_config[self.pipeline_chooser].get(extract_name, {})
         config_params = {}
         for config_key in config:
-            if v := self._config.get(config_key):
+            if config_key in self._config:
+                v = self._config.get(config_key)
                 config_params[config_key] = v
         return config_params
 
@@ -462,9 +508,13 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
                 params = self.x_config_params(extract_name)
                 res = extractor_func._mapped_call(self, config_params=params, *args, **kwargs)
 
-        except:
-            logger.exception(f"problem with extractor '{extract_name}'")
-            raise ExtractorException(f"could not extract {extract_name} from {self} using {extractor_func}!")
+        except ExtractorException as e:
+            logger.error(f"Extraction error in '{extract_name}': {e}")
+            raise e
+        except Exception as e:
+            logger.error(f"Extraction error in '{extract_name}': {e}")
+            raise ExtractorException(f"could not get {extract_name}!")
+            # raise e
 
         return res[extract_name]
 
