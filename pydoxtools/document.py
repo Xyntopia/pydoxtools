@@ -1,8 +1,15 @@
+import mimetypes
+from functools import cached_property
+from pathlib import Path
+from typing import Any, IO
+from urllib.parse import urlparse
+
 import langdetect
 import numpy as np
 import pandas as pd
+import requests
 
-from . import document_base
+from .document_base import Extractor, Pipeline, ElementType
 from .extract_classes import LanguageExtractor, TextBlockClassifier
 from .extract_files import FileLoader
 from .extract_html import HtmlExtractor
@@ -23,10 +30,20 @@ from .qamachine import QamExtractor
 from .settings import settings
 
 
-class Document(document_base.Pipeline):
-    """Standard document class for document analysis, data extraction and transformation.
+def is_url(url):
+    try:
+        result = urlparse(url)
+        return all([result.scheme, result.netloc])
+    except ValueError:
+        return False
 
-This class implements an extensive pipeline using the [][document_base.Pipeline] class
+
+class DocumentTypeError(Exception):
+    pass
+
+
+class Document(Pipeline):
+    """This class implements an extensive pipeline using the [][document_base.Pipeline] class
 for information extraction from documents.
 
 ***
@@ -120,9 +137,9 @@ that are higher up in the hierarchy. The argument precedence is hereby as follow
             .cache(),
             LambdaExtractor(lambda pages: len(pages))
             .pipe(pages="page_set").out("num_pages").cache(),
-            DocumentElementFilter(element_type=document_base.ElementType.Line)
+            DocumentElementFilter(element_type=ElementType.Line)
             .pipe("elements").out("line_elements").cache(),
-            DocumentElementFilter(element_type=document_base.ElementType.Graphic)
+            DocumentElementFilter(element_type=ElementType.Graphic)
             .pipe("elements").out("graphic_elements").cache(),
             ListExtractor().cache()
             .pipe("line_elements").out("lists"),
@@ -209,10 +226,13 @@ that are higher up in the hierarchy. The argument precedence is hereby as follow
         ".tif": ["image", ".pdf"],
         ".tiff": ["image", ".pdf"],
         "*": [
+            # Loading text files
             FileLoader()
             .pipe(fobj="_fobj", document_type="document_type", page_numbers="_page_numbers", max_pages="_max_pages")
             .out("raw_content").cache(),
             Alias(full_text="raw_content"),
+
+            ## Standard text splitter for splitting text along lines...
             LambdaExtractor(lambda x: pd.DataFrame(x.split("\n"), columns=["text"]))
             .pipe(x="full_text").out("text_box_elements").cache(),
             LambdaExtractor(lambda df: df.get("text", None).to_list())
@@ -281,3 +301,124 @@ that are higher up in the hierarchy. The argument precedence is hereby as follow
             .pipe(full_text="full_text").out("chat_answers").cache().config(model_id="model_id"),
         ]
     }
+
+    def __init__(
+            self,
+            # TODO: move most of this into document-specific pipeline
+            fobj: str | bytes | Path | IO = None,
+            source: str | Path = None,
+            page_numbers: list[int] = None,
+            max_pages: int = None,
+            config: dict[str, Any] = None,
+            mime_type: str = None,
+            filename: str = None,
+            document_type: str = None
+            # TODO: add "auto" for automatic recognition of the type using python-magic
+    ):
+        """
+        fobj: a file object which should be loaded.
+            - if it is a string or bytes object:   the string itself is the document!
+            - if it is a pathlib.Path: load the document from the path
+            - if it is a file object: load document from file object (or bytestream  etc...)
+        source: Where does the extracted data come from? (Examples: URL, 'pdfupload', parent-URL, or a path)"
+        page_numbers: list of the specific pages that we would like to extract (for example in a pdf)
+        max_pages: maximum number of pages that we want to extract in order to protect resources
+        config: a dict which describes values for variables in the document logic
+        mime_type: optional mimetype for the document
+        filename: optional filename. Helps sometimes helps in determining the purpose of a document
+        document_type: directly specify the document type which specifies the extraction
+            logic that should be used
+        """
+
+        # TODO: move this code into its own little extractor...
+        try:
+            if is_url(fobj):
+                response = requests.get(fobj)
+                with open('file.pdf', 'wb') as file:
+                    fobj = response.content
+        except:
+            pass
+
+        self._fobj = fobj  # file object
+        self._source = source or "unknown"
+        self._document_type = document_type
+        self._mime_type = mime_type
+        self._filename = filename
+        self._page_numbers = page_numbers
+        self._max_pages = max_pages
+        self._cache_hits = 0
+        self._x_func_cache: dict[Extractor, dict[str, Any]] = {}
+        self._config = config or {}
+
+    @cached_property
+    def filename(self) -> str | None:
+        """TODO: move this into document"""
+        if hasattr(self._fobj, "name"):
+            return self._fobj.name
+        elif isinstance(self._fobj, Path):
+            return self._fobj.name
+        elif self._filename:
+            return self._filename
+        else:
+            return None
+
+    @cached_property
+    def document_type(self):
+        """
+        detect doc type based on file-ending
+        TODO add a doc-type extractor using for example python-magic
+        """
+        try:
+            if self._document_type:
+                return self._document_type
+            elif self._mime_type:
+                return mimetypes.guess_extension(self._mime_type)
+            # get type from path suffix
+            elif isinstance(self._fobj, Path):
+                if self._fobj.exists():
+                    return self._fobj.suffix
+                elif hasattr(self._fobj, "name"):
+                    return Path(self._fobj.name).suffix
+            elif isinstance(self._fobj, str) and (self._document_type is None):
+                return "generic"
+
+            # for example if it is a string without a type
+            # TODO: detect type with python-magic here...
+            raise DocumentTypeError(f"Could not find the document type for {self._fobj[-100:]} ...")
+        except:
+            try:
+                raise DocumentTypeError(f"Could not detect document type for {self._fobj} ...")
+            except:
+                raise DocumentTypeError(f"Could not detect document type for {self._fobj[-100:]} ...")
+
+    @cached_property
+    def pipeline_chooser(self):
+        if self.document_type in self._x_funcs:
+            return self.document_type
+        else:
+            return "*"
+
+    @property
+    def source(self) -> str:
+        return self._source
+
+    @property
+    def fobj(self):
+        return self._fobj
+
+    """
+    @property
+    def final_url(self) -> list[str]:
+        ""sometimes, a document points to a url itself (for example a product webpage) and provides
+        a link where this document can be found. And this url does not necessarily have to be the same as the source
+        of the document.""
+        return []
+
+    @property
+    def parent(self) -> list[str]:
+        ""sources that embed this document in some way (for example as a link)
+        (for example a product page which embeds
+        a link to this document (e.g. a datasheet)
+        ""
+        return []
+    """

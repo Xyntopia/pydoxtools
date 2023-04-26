@@ -193,7 +193,9 @@ if __name__ == "__main__":
     #    f.write(doc.ocr_pdf_file)
     with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:
         doc_str = file.read()
-    doc = Document(fobj=doc_str, document_type="pdf")
+    doc = Document(fobj=doc_str, document_type=".pdf")
+    doc.x_funcs
+    doc.addresses
 
     # graph_string = doc.logic_graph()
 
