@@ -53,7 +53,14 @@ class PandocLoader(document_base.Extractor):
     def __call__(
             self, raw_content: bytes | str, document_type: str
     ) -> pandoc.types.Pandoc:
-        pandoc_format = pandoc.read(raw_content, format=document_type.strip("."))
+        type_mapping = dict(
+            md="markdown",
+        )
+        document_type = document_type.strip(".")
+        pandoc_format = pandoc.read(
+            raw_content,
+            format=type_mapping.get(document_type, document_type)
+        )
         return pandoc_format
 
 

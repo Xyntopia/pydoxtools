@@ -233,7 +233,7 @@ that are higher up in the hierarchy. The argument precedence is hereby as follow
             Alias(full_text="raw_content"),
 
             ## Standard text splitter for splitting text along lines...
-            LambdaExtractor(lambda x: pd.DataFrame(x.split("\n"), columns=["text"]))
+            LambdaExtractor(lambda x: pd.DataFrame(x.split("\n\n"), columns=["text"]))
             .pipe(x="full_text").out("text_box_elements").cache(),
             LambdaExtractor(lambda df: df.get("text", None).to_list())
             .pipe(df="text_box_elements").out("text_box_list").cache(),
