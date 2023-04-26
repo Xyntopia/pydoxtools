@@ -25,8 +25,10 @@ def get_nested_paths(directory: typing.Union[str, Path], path_wildcard: str = "*
     :param file_ending:
     :return:
     """
-    if mode=="file":
+    if mode == "file":
         files = [x for x in Path(directory).rglob(path_wildcard) if x.is_file()]
-    elif mode=="dirs":
-        files = [x for x in Path(directory).rglob(path_wildcard) if x.is_file()]
+    elif mode == "dirs":
+        files = [x for x in Path(directory).rglob(path_wildcard) if x.is_dir()]
+    else:
+        files = [x for x in Path(directory).rglob(path_wildcard)]
     return files
