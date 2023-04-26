@@ -102,7 +102,7 @@ class TextBoxElementExtractor(document_base.Extractor):
                 x0=("x0", "min"), y0=("y0", "min"),
                 x1=("x1", "max"), y1=("y1", "max"),
                 text=("lineobj",
-                      lambda x: "".join(_line2txt(obj) for obj in x.values))
+                      lambda x: "".join(_line2txt(obj, size_hints=False) for obj in x.values))
             )
             # remove empty box_groups
             bg = bg[bg.text.str.strip().str.len() > 1].copy()

@@ -4,7 +4,7 @@ import logging
 import pathlib
 import typing
 import uuid
-from abc import ABC, abstractmethod
+from abc import ABC
 from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
@@ -459,9 +459,10 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         return self
 
     @cached_property
-    @abstractmethod
     def pipeline_chooser(self) -> str:
-        pass
+        # TODO: not sure how to do this the "correct" way with @abstractmethod
+        #       as we can not derive from ABC due to our metaclass...
+        raise NotImplementedError("derived pipelines need to override this function!")
 
     @cached_property
     def x_funcs(self) -> dict[str, Extractor]:

@@ -67,7 +67,8 @@ class _Settings(BaseSettings):
         model_name = 'distilbert-base-cased-distilled-squad'
         # model_name = "sshleifer/tiny-distilbert-base-cased-distilled-squad"
     """
-    PDXT_STANDARD_QAM_MODEL = 'distilbert-base-cased-distilled-squad'
+    # PDXT_STANDARD_QAM_MODEL = 'distilbert-base-cased-distilled-squad'
+    PDXT_STANDARD_QAM_MODEL = 'deepset/minilm-uncased-squad2'
     # be careful with this one here!!  we would have to retrain ALL of our
     # own, custom models!!!!
     PDXT_STANDARD_TOKENIZER = 'distilbert-base-multilingual-cased'
