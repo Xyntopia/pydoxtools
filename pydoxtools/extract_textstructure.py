@@ -10,7 +10,7 @@ from sklearn.ensemble import IsolationForest
 from pydoxtools import document_base
 
 
-def _line2txt(LTOBJ: typing.Iterable):
+def _line2txt(LTOBJ: typing.Iterable, size_hints=False):
     """
     extract text from pdfiner.six lineobj including size hints
 
@@ -23,15 +23,15 @@ def _line2txt(LTOBJ: typing.Iterable):
         sizehint = ""
         if isinstance(ch, pdfminer.layout.LTText):
             newtxt = ch.get_text()
-        if isinstance(ch, pdfminer.layout.LTChar):
-            newsize = ch.size
-            if i > 0:
-                # TODO: use an iterative function here...
-                if newsize < last_size:
-                    sizehint = "<s>"
-                elif newsize > last_size:
-                    sizehint = "</s>"
-            last_size = newsize
+        if size_hints:
+            if isinstance(ch, pdfminer.layout.LTChar):
+                newsize = ch.size
+                if i > 0:
+                    if newsize < last_size:
+                        sizehint = "<s>"
+                    elif newsize > last_size:
+                        sizehint = "</s>"
+                last_size = newsize
         txt += sizehint + newtxt
     return txt
 
