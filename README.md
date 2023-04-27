@@ -66,11 +66,14 @@ some extraction operations need input when called:
     # ask a question about the document, using Q&A Models (questionas answered locally!):
     print(doc.answers(["how much power does it need?"])[0][0][0])
 
-others need an API key installed, if it refers to an online service
+others need an API key installed, if it refers to an online service. 
 
     # ask a question about the document, using ChatGPT (we need the API key for ChatGPT!):
-    # load the API key into the environment variable: 
+    # load the API key into an environment variable like this: 
+    #   
     # OPENAI_API_KEY="sk ...."
+    # 
+    # Do **NOT** use the key in your code. This could potentially cost you a lot of money...
     print(doc.chat_answers(["What is the target group of this document?"])[0].content)
     print(doc.chat_answers(["Answer if a 5-year old would be able to follow these instructions?"])[0].content)
 
