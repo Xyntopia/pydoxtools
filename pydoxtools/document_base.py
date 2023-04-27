@@ -15,6 +15,8 @@ import networkx as nx
 import numpy as np
 import spacy.tokens
 
+from .list_utils import deep_str_convert
+
 logger = logging.getLogger(__name__)
 
 
@@ -82,6 +84,7 @@ class ExtractorException(Exception):
     pass
 
 
+# TODO: rename into "Operator"
 class Extractor(ABC):
     """
     Base class to build extraction logic for information extraction from
@@ -430,7 +433,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
     #       https://pandera.readthedocs.io/en/stable/pydantic_integration.html
 
     # TODO: how do we change extraction configuration "on-the-fly" if we have
-    #       for example a structured dcument vs unstructered (PDF: unstructure,
+    #       for example a structured document vs unstructered (PDF: unstructure,
     #       Markdown: structured)
     #       in this case table extraction algorithms for example would have to
     #       behave differently. We would like to use
@@ -471,6 +474,23 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         """
         return self._x_funcs[self.pipeline_chooser]
 
+    def property_dict(self, *args, **kwargs):
+        """
+        return a dictionary which accumulates the properties given
+        in *args or with a mapping in **kwargs where the keys in kwargs are the
+        variable in the returned dictionary, whereas the values are the variable names
+        of the pipeline.
+
+        Right now, this only works for properties that don#t need any arguments,
+        in pipelines such as "full_text". Others, such as "answers" return a function
+        which needs arguments itself and can therefore not be used here.
+        """
+
+        properties = {a: getattr(self, a) for a in args}
+        properties.update({v: getattr(self, k) for k, v in kwargs.items()})
+
+        return deep_str_convert(properties)
+
     def non_interactive_x_funcs(self) -> dict[str, Extractor]:
         """return all non-interactive extractors"""
         return {k: v for k, v in self.x_funcs.items() if (not v._interactive)}
@@ -491,7 +511,8 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         call an extractor from our definition
         TODO: using *args and **kwargs the extractors parameters can be overriden
         """
-        extractor_func: Extractor = self.x_funcs[extract_name]
+        if not (extractor_func := self.x_funcs.get(extract_name, None)):
+            return self.__dict__[extract_name]  # choose the class' own properties as a fallback
 
         try:
             # check if we executed this function at some point...
@@ -514,7 +535,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
             raise e
         except Exception as e:
             logger.error(f"Extraction error in '{extract_name}': {e}")
-            raise ExtractorException(f"could not get {extract_name}!")
+            raise ExtractorException(f"could not get {extract_name} for {self}")
             # raise e
 
         return res[extract_name]

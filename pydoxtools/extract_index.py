@@ -74,7 +74,11 @@ class KnnQuery(Extractor):
                 search_vec = txt
             else:
                 search_vec = txt.vector
-            similar = index.knn_query([search_vec], k=k)
+
+            try:
+                similar = index.knn_query([search_vec], k=k)
+            except RuntimeError:  # text is probably too small
+                return []
 
             if indices:
                 return [(i, idx_values[i], dist) for i, dist in zip(similar[0][0], similar[1][0])]

@@ -35,7 +35,7 @@ test_files = [
     "./data/north_american_countries.png",
     "./data/north_american_countries.tif",
     "./data/north_american_countries.jpg",
-    "./README.md"
+    "../README.md"
 ]
 
 test_dir_path = pathlib.Path(__file__).parent.absolute()
