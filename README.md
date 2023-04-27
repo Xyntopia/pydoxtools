@@ -54,32 +54,51 @@ extraction pipelines! 🎩✨📄.
         "https://www.raspberrypi.org/app/uploads/2012/12/quick-start-guide-v1.1.pdf", 
         document_type=".pdf"
     )
-    # extract the table as a pandas dataframe:
+
+    # extract tables from the pdf as a pandas dataframe:
     print(doc.tables_df)
+
     # ask a question about the document, using Q&A Models (questionas answered locally!):
     print(doc.answers(["how much power does it need?"])[0][0][0])
-    # ask a question about the document, using ChatGPT:
+
+    # ask a question about the document, using ChatGPT (we need the API key for ChatGPT!):
     print(doc.chat_answers(["who is the target group of this document?"])[0].content)
     print(doc.chat_answers(["Answer if a 5-year old would be able to follow these instructions?"])[0].content)
 
-## Large pipelines
+## Features
+
+### Large pipelines
 
 Pydoxtools main feature is the ability to mix LLMs and other
-AI models in large, composable and customizable pipelines. As a teaser,
-check out this pipeline for *.png images from the repository including
-OCR, keyword extraction, vectorization and more.
+AI models in large, composable and customizable pipelines.
+As a teaser, check out this pipeline for *.png images from the repository including
+OCR, keyword extraction, vectorization and more. In this pipeline:
 
 - Every node in an ellipse can be called as an attribute of the document-analysis pipeline.
 - Every execution-path is lazily executed throughout the entire graph.
 - Every node is cached by default (can be turned off).
 - Every piece of this pipeline can be replaced by a customized version.
 
-![Visualization of the pipeline for *.png images.](http://pydoxtools.xyntopia.com/images/document_logic_png.svg)
+<img src="http://pydoxtools.xyntopia.com/images/document_logic_png.svg" width="500">
 
 Pipelines can be mixed, partially overwritten and extended which gives you a lot of possibilities
 to extend and adapt the functionality for your specific use-case.
 
 Find out more about it in the [documentation](http://pydoxtools.xyntopia.com/reference/#pydoxtools.document.Document)
+
+### PDF table extraction algorithms
+
+The library features its own sophisticated Table extraction algorithm which is benchmarked
+against a large pdf table dataset. In contrast to most other table extraction frameworks
+out there it does not require:
+
+- extensive configuration
+- no expensive deep neural networks which need a GPU
+
+This makes it possible to run analysis on PDF files with pydoxtools on CPU with
+very limited resources!
+
+### TODO: Describe more of the features here...
 
 ## Use Cases
 
@@ -105,11 +124,11 @@ https://github.com/jgm/pandoc/releases/tag/2.19.2
 
 ### Image OCR support
 
-Pydoxtools can automatically analyze images as well, makin use of 
+Pydoxtools can automatically analyze images as well, makin use of
 [OCR](https://en.wikipedia.org/wiki/Optical_character_recognition).
 In order to be able to use this, install tesseract on your system:
 
-Under linux this looks like the following: 
+Under linux this looks like the following:
 
     apt-get update && tesseract-ocr
     # install tesseract languages 
