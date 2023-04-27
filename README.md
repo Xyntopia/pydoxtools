@@ -55,14 +55,23 @@ extraction pipelines! 🎩✨📄.
         document_type=".pdf"
     )
 
+easy extraction of a large number of information about your document to get a list
+use `print(doc.x_funcs)`
+
     # extract tables from the pdf as a pandas dataframe:
     print(doc.tables_df)
+
+some extraction operations need input when called:
 
     # ask a question about the document, using Q&A Models (questionas answered locally!):
     print(doc.answers(["how much power does it need?"])[0][0][0])
 
+others need an API key installed, if it refers to an online service
+
     # ask a question about the document, using ChatGPT (we need the API key for ChatGPT!):
-    print(doc.chat_answers(["who is the target group of this document?"])[0].content)
+    # load the API key into the environment variable: 
+    # OPENAI_API_KEY="sk ...."
+    print(doc.chat_answers(["What is the target group of this document?"])[0].content)
     print(doc.chat_answers(["Answer if a 5-year old would be able to follow these instructions?"])[0].content)
 
 ## Features
