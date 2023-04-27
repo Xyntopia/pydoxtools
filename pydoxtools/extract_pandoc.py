@@ -1,18 +1,29 @@
 import logging
 
 import pandas as pd
-import pandoc
-import pandoc.types
 from packaging import version
 
 from pydoxtools import document_base
 
 logger = logging.getLogger(__name__)
 
-pandoc_version = pandoc._configuration['version']
-if version.parse(pandoc_version) < version.parse('2.14.2'):
-    logger.warning(f"installed pandoc version {pandoc_version}, which doesn't support rtf file format!"
-                   f"in order to be able to use rtf, you need to install a pandoc version >= 2.14.2")
+import pandoc
+
+try:
+    import pandoc.types
+
+    pandoc_version = pandoc._configuration['version']
+    if version.parse(pandoc_version) < version.parse('2.14.2'):
+        logger.warning(f"installed pandoc version {pandoc_version}, which doesn't support rtf file format!"
+                       f"in order to be able to use rtf, you need to install a pandoc version >= 2.14.2")
+    pandoc_installed = True
+
+except RuntimeError:
+    logger.warning("""pandoc does not seem to be installed, in order to load some documents
+    such as *.docx, *.rtf this library needs to be installed.
+    """)
+
+    pandoc_installed = False
 
 
 def extract_list(elt):
@@ -52,7 +63,9 @@ class PandocLoader(document_base.Extractor):
 
     def __call__(
             self, raw_content: bytes | str, document_type: str
-    ) -> pandoc.types.Pandoc:
+    ) -> "pandoc.types.Pandoc":
+        if not pandoc_installed:
+            raise RuntimeError("""Pandoc files can not be loaded, as pandoc is not installed""")
         type_mapping = dict(
             md="markdown",
         )
@@ -68,8 +81,8 @@ class PandocBlocks(document_base.Extractor):
     def __init__(self):
         super().__init__()
 
-    def __call__(self, pandoc_document: pandoc.types.Pandoc) -> list[pandoc.types.Block]:
-        txtblocks = [elt for elt in pandoc_document[1] if isinstance(elt, pandoc.types.Block)]
+    def __call__(self, pandoc_document: "pandoc.types.Pandoc") -> list["pandoc.types.Block"]:
+        txtblocks = [elt for elt in pandoc_document[1] if isinstance(elt, "pandoc.types.Block")]
         return txtblocks
 
 
@@ -78,7 +91,7 @@ class PandocConverter(document_base.Extractor):
         super().__init__()
         self.output_format = output_format
 
-    def __call__(self, pandoc_document: pandoc.types.Pandoc) -> str:
+    def __call__(self, pandoc_document: "pandoc.types.Pandoc") -> str:
         full_text = pandoc.write(pandoc_document, format=self.output_format)
         return full_text
 
@@ -100,7 +113,7 @@ class PandocExtractor(document_base.Extractor):
         self._method = method
         self._output_format = output_format
 
-    def __call__(self, pandoc_blocks: list[pandoc.types.Block]) -> str | list[str] | list[pd.DataFrame]:
+    def __call__(self, pandoc_blocks: list["pandoc.types.Block"]) -> str | list[str] | list[pd.DataFrame]:
         if self._method == "headers":
             headers = [pandoc.write(elt[2], format=self._output_format).strip() for elt in pandoc_blocks
                        if isinstance(elt, pandoc.types.Header)]

@@ -25,6 +25,22 @@ Huggingface. It offers functionalities such as:
 The library allows for the creation of complex extraction pipelines
 for batch-processing of documents by defining them as a lazily-executed graph.
 
+## Installation
+
+While pydoxtools can already be installed through pip. Due to the
+many updates coming in right now, it is right now recommended to use
+the latest version from github as follows:
+
+    pip install "pydoxtools[etl,inference] @ git+https://github.com/xyntopia/pydoxtools.git"
+
+Pydoxtools can be also be installed through pip which will become the recommended
+method once it becomes more stable:
+
+    pip install pydoxtools[etl,inference]
+
+For loading additional file formats (docx, odt, epub) and images, checkout
+the additional > [Installation Options](#installation-options) <.
+
 ## Teaser
 
 Experience a new level of convenience and efficiency in handling documents with Pydoxtools, and reimagine your data
@@ -65,18 +81,6 @@ to extend and adapt the functionality for your specific use-case.
 
 Find out more about it in the [documentation](http://pydoxtools.xyntopia.com/reference/#pydoxtools.document.Document)
 
-## Installation
-
-While pydoxtools can already be installed through pip. Due to the
-many updates coming in right now, it is right now recommended to use
-the latest version from github as follows:
-
-    pip install "pydoxtools[etl,inference] @ git+https://github.com/xyntopia/pydoxtools.git"
-
-Pydoxtools can be installed through pip:
-
-    pip install pydoxtools[etl,inference]
-
 ## Use Cases
 
 - analyze documents using any model from huggingface...
@@ -88,6 +92,33 @@ Pydoxtools can be installed through pip:
 - extract addresses
 - extract addresses and use this information for the qam
 - ingest documents into a vector db
+
+## Installation Options
+
+### Supporting *.docx, *.odt, *.epub
+
+In order to be able to load docx, odt and rtf files, you have to install pandoc.
+Right now, the python pandoc library does not work with pandoc version > 3.0.0. It
+is therefore recommended to install a version from here for your OS:
+
+https://github.com/jgm/pandoc/releases/tag/2.19.2
+
+### Image OCR support
+
+Pydoxtools can automatically analyze images as well, makin use of 
+[OCR](https://en.wikipedia.org/wiki/Optical_character_recognition).
+In order to be able to use this, install tesseract on your system:
+
+Under linux this looks like the following: 
+
+    apt-get update && tesseract-ocr
+    # install tesseract languages 
+    # Display a list of all Tesseract language packs:
+    #   apt-cache search tesseract-ocr
+    # install all languages:
+    # sudo apt install tesseract-ocr-*
+    # install only german, french, english, spanish language packs
+    # sudo apt install tesseract-ocr-deu tesseract-ocr-fra tesseract-ocr-eng tesseract-ocr-spa
 
 ## Development
 
