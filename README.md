@@ -1,4 +1,4 @@
-# 🚀 pydoxtools (Python Library) 🚀
+🚀 pydoxtools (Python Library) 🚀
 ================================================================================
 
 ![Python](https://img.shields.io/pypi/pyversions/pydoxtools.svg)
