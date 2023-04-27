@@ -116,10 +116,15 @@ These arguments can be overwritten by a new pipeline in inherited documents or d
 that are higher up in the hierarchy. The argument precedence is hereby as follows::
 
     python-class-member < extractor-graph-function < config
+
+when creating a new pipeline for documentation purposes a general rule is:
+if the operation is too complicated to be self-describing, then use a function or class
+and put the documentation in there. A Lambda function is not the right tool in this case.
+
 """
 
     """
-    TODO: One can also change the configuration of individual extractors. For example
+    TODO: One can also change the configuration of individual operators. For example
     of the Table Extractor or Space models...
 
     TODO: add "extension/override" logic for individual file types. The main important thing there is
@@ -127,6 +132,7 @@ that are higher up in the hierarchy. The argument precedence is hereby as follow
           gets overwritten
     """
 
+    # TODO: rename extractors to operators
     _extractors = {
         ".pdf": [
             FileLoader()  # pdfs are usually in binary format...
@@ -242,8 +248,16 @@ that are higher up in the hierarchy. The argument precedence is hereby as follow
             Alias(tables="tables_dict"),
             TextBlockClassifier(min_prob=0.6)
             .pipe("text_box_elements").out("addresses").cache(),
+
+            ## calculate some metadata values
             LambdaExtractor(lambda full_text: 1 + (len(full_text) // 1000))
             .pipe("full_text").out("num_pages").cache(),
+            LambdaExtractor(lambda full_text: len(full_text.split()))
+            .pipe("full_text").out("num_words").cache(),
+            LambdaExtractor(lambda spacy_sents: len(spacy_sents))
+            .pipe("spacy_sents").out("num_sents"),
+            LambdaExtractor(lambda ft: sum(1 for c in ft if c.isdigit()) / sum(1 for c in ft if c.isalpha()))
+            .pipe(ft="full_text").out("a_d_ratio").cache(),
             LambdaExtractor(lambda full_text: langdetect.detect(full_text))
             .pipe("full_text").out("language").cache(),
 
@@ -350,7 +364,7 @@ that are higher up in the hierarchy. The argument precedence is hereby as follow
 
     @cached_property
     def filename(self) -> str | None:
-        """TODO: move this into document"""
+        """TODO: move this into document pipeline"""
         if hasattr(self._fobj, "name"):
             return self._fobj.name
         elif isinstance(self._fobj, Path):
@@ -359,6 +373,13 @@ that are higher up in the hierarchy. The argument precedence is hereby as follow
             return self._filename
         else:
             return None
+
+    @cached_property
+    def path(self):
+        if isinstance(self._fobj, Path):
+            return self._fobj
+        else:
+            return self.source
 
     @cached_property
     def document_type(self):
