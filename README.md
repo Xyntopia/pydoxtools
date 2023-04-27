@@ -2,8 +2,6 @@
 
 (*WIP*) [Documentation](https://xyntopia.github.io/pydoxtools)
 
-
-
 Pydoxtools is a library that provides a sophisticated interface for reading and
 writing documents, designed to work with AI models such as GPT, Alpaca, and
 Huggingface. It offers functionalities such as:
@@ -20,7 +18,8 @@ for batch-processing of documents by defining them as a lazily-executed graph.
 
 ## Teaser
 
-Experience a new level of convenience and efficiency in handling documents with Pydoxtools, and reimagine your data extraction pipelines! 🎩✨📄.
+Experience a new level of convenience and efficiency in handling documents with Pydoxtools, and reimagine your data
+extraction pipelines! 🎩✨📄.
 
     import pydoxtools as pdx
 
@@ -38,16 +37,17 @@ Experience a new level of convenience and efficiency in handling documents with 
     print(doc.chat_answers(["who is the target group of this document?"])[0].content)
     print(doc.chat_answers(["Answer if a 5-year old would be able to follow these instructions?"])[0].content)
 
-
 ## Large pipelines
 
-Pydoxtools main feature are large, composable and customizable pipelines. As a teaser
-check out this pipeline for *.png images from the repository:
+Pydoxtools main feature is the ability to mix LLMs and other
+AI models in large, composable and customizable pipelines. As a teaser,
+check out this pipeline for *.png images from the repository including
+OCR, keyword extraction, vectorization and more.
 
 ![Visualization of the pipeline for *.png images.](http://pydoxtools.xyntopia.com/images/document_logic_png.svg)
 
 Pipelines can be mixed, partially overwritten and extended which gives you a lot of possibilities
-to extend and adapt the functionality for your specific use-case. 
+to extend and adapt the functionality for your specific use-case.
 
 Find out more about it in the [documentation](http://pydoxtools.xyntopia.com/reference/#pydoxtools.document.Document)
 
@@ -57,11 +57,11 @@ Pydoxtools can be installed through pip:
 
     pip install pydoxtools[etl, inference]
 
-It should automatically download models & dependencies where required. In order to get the 
+It should automatically download models & dependencies where required. In order to get the
 latest version install it like this:
 
     pip install git+https://github.com/xyntopia/pydoxtools'
-    
+
 ## Use Cases
 
 - analyze documents using any model from huggingface...
