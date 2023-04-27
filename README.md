@@ -44,6 +44,11 @@ AI models in large, composable and customizable pipelines. As a teaser,
 check out this pipeline for *.png images from the repository including
 OCR, keyword extraction, vectorization and more.
 
+- Every node in an ellipse can be called as an attribute of the document-analysis pipeline.
+- Every execution-path is lazily executed throughout the entire graph.
+- Every node is cached by default (can be turned off).
+- Every piece of this pipeline can be replaced by a customized version. 
+
 ![Visualization of the pipeline for *.png images.](http://pydoxtools.xyntopia.com/images/document_logic_png.svg)
 
 Pipelines can be mixed, partially overwritten and extended which gives you a lot of possibilities
