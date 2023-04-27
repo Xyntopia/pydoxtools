@@ -62,11 +62,11 @@ While pydoxtools can already be installed through pip. Due to the
 many updates coming in right now, it is right now recommended to use
 the latest version from github as follows:
 
-    pip install "pydoxtools[etf,inference] @ git+https://github.com/xyntopia/pydoxtools.git"
+    pip install "pydoxtools[etl,inference] @ git+https://github.com/xyntopia/pydoxtools.git"
 
 Pydoxtools can be installed through pip:
 
-    pip install pydoxtools[etl, inference]
+    pip install pydoxtools[etl,inference]
 
 ## Use Cases
 
