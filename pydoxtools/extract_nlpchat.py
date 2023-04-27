@@ -20,6 +20,7 @@ class OpenAIChat(Extractor):
         super().__init__()
 
     def __call__(self, full_text: str, model_id: str = None):
+        # TODO: move this into a more generic place...
         openai.api_key = settings.OPENAI_API_KEY
 
         def task_machine(tasks: list[str]) -> list[str]:
@@ -31,9 +32,11 @@ class OpenAIChat(Extractor):
             for task in tasks:
                 completion = openai.ChatCompletion.create(
                     model="gpt-3.5-turbo",
+                    temperature=0.0,
                     messages=[
-                        {"role": "system", "content": "You are a helpful assistant that aims to complete the given task"
-                                                      "with as little text as possible."},
+                        {"role": "system",
+                         "content": "You are a helpful assistant that aims to complete the given task."
+                                    "Do not add any amount of explanatory text."},
                         {"role": "user", "content": f"# Instruction: {task} ## Input for the task: {full_text}."}]
                 )
                 result = completion.choices[0].message
