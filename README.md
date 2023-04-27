@@ -1,4 +1,13 @@
-# 🚀 pydoxtools 🚀
+# 🚀 pydoxtools (Python Library) 🚀
+================================================================================
+
+![Python](https://img.shields.io/pypi/pyversions/pydoxtools.svg)
+[![PyPI version](https://img.shields.io/pypi/v/pydoxtools.svg)](https://pypi.python.org/pypi/pydoxtools)
+[![Mkdocs](https://img.shields.io/badge/doc-mkdocs-845ed7.svg)](https://pydoxtools.xyntopia.com)
+[![GitHub discussions](https://img.shields.io/badge/discuss-online-845ef7)](https://github.com/xyntopia/pydoxtools/discussions)
+[![GitHub stars](https://img.shields.io/github/stars/xyntopia/pydoxtools)](https://github.com/xyntopia/pydoxtools/stargazers)
+
+***
 
 (*WIP*) [Documentation](https://pydoxtools.xyntopia.com)
 
