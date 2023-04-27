@@ -1,6 +1,6 @@
 # 🚀 pydoxtools 🚀
 
-(*WIP*) [Documentation](https://xyntopia.github.io/pydoxtools)
+(*WIP*) [Documentation](https://pydoxtools.xyntopia.com)
 
 Pydoxtools is a library that provides a sophisticated interface for reading and
 writing documents, designed to work with AI models such as GPT, Alpaca, and
@@ -25,7 +25,7 @@ extraction pipelines! 🎩✨📄.
 
     # create a document from a file, string, bytestring, file-like object
     # or even an url:
-    doc = Document(
+    doc = pdx.Document(
         "https://www.raspberrypi.org/app/uploads/2012/12/quick-start-guide-v1.1.pdf", 
         document_type=".pdf"
     )
@@ -47,7 +47,7 @@ OCR, keyword extraction, vectorization and more.
 - Every node in an ellipse can be called as an attribute of the document-analysis pipeline.
 - Every execution-path is lazily executed throughout the entire graph.
 - Every node is cached by default (can be turned off).
-- Every piece of this pipeline can be replaced by a customized version. 
+- Every piece of this pipeline can be replaced by a customized version.
 
 ![Visualization of the pipeline for *.png images.](http://pydoxtools.xyntopia.com/images/document_logic_png.svg)
 
@@ -58,14 +58,16 @@ Find out more about it in the [documentation](http://pydoxtools.xyntopia.com/ref
 
 ## Installation
 
+While pydoxtools can already be installed through pip. Due to the
+many updates coming in right now, it is right now recommended to use
+the latest version from github as follows:
+
+    pip install git+https://github.com/xyntopia/pydoxtools.git
+    pip install "pydoxtools[etf,inference] @ git+https://github.com/xyntopia/pydoxtools.git"
+
 Pydoxtools can be installed through pip:
 
     pip install pydoxtools[etl, inference]
-
-It should automatically download models & dependencies where required. In order to get the
-latest version install it like this:
-
-    pip install git+https://github.com/xyntopia/pydoxtools'
 
 ## Use Cases
 
