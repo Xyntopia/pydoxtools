@@ -33,7 +33,7 @@ ENV PYTHONUNBUFFERED=1 \
     #PATH="${PROJECT_DIR}/LIBS/bin:$PATH"\
     #PYTHONPATH="${PROJECT_DIR}/LIBS:$PYTHONPATH"
 
-# ------------------------- building the app ----------------------------    
+# ------------------------- building the app ----------------------------
 FROM python-base as builder-base
 # install build dependencies
 # g++ is needed for hnswlib compilation
@@ -144,3 +144,17 @@ ENV TOKENIZERS_PARALLELISM=true
 ENTRYPOINT [ "jupyter", "lab", "--allow-root", "--ip", "0.0.0.0", "--no-browser" ]
 #CMD ["uvicorn", "comcharax_restfulapi:app", "--host", "0.0.0.0", "--port", "5000", "--log-level", "info"]
 
+# -------------------------- pip install test --------------------------------------
+
+FROM python:3.11-slim as pip-test
+
+RUN apt-get update && \
+    DEBIAN_FRONTEND="noninteractive" apt-get install --no-install-recommends -y \
+    iputils-ping build-essential \
+    htop byobu \
+    curl g++ wget\
+    git \
+    && pip install -U pip \
+    && apt-get clean autoclean \
+    && apt-get autoremove --yes \
+    && rm -rf /var/lib/{apt,dpkg,cache,log}/
