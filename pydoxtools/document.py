@@ -282,14 +282,24 @@ and put the documentation in there. A Lambda function is not the right tool in t
                      final_urls=[], pdf_links=[], schemadata={}, tables_df=[]),
             Alias(url="source"),
 
-            ########### NOUN_INDEX #############
+            ########### VECTORIZATION ##########
+            Alias(sents="spacy_sents"),
             Alias(noun_chunks="spacy_noun_chunks"),
+
+            LambdaExtractor(lambda x: x.vector)
+            .pipe(x="spacy_doc").out("vector").cache(),
+            LambdaExtractor(
+                lambda x: dict(
+                    sent_vecs=np.array([e.vector for e in x]),
+                    sent_ids=list(range(len(x)))))
+            .pipe(x="sents").out("sent_vecs", "sent_ids").cache(),
             LambdaExtractor(
                 lambda x: dict(
                     noun_vecs=np.array([e.vector for e in x]),
-                    noun_ids=list(range(len(x))))
-            )
+                    noun_ids=list(range(len(x)))))
             .pipe(x="noun_chunks").out("noun_vecs", "noun_ids").cache(),
+
+            ########### NOUN_INDEX #############
             IndexExtractor()
             .pipe(vecs="noun_vecs", ids="noun_ids").out("noun_index").cache(),
             LambdaExtractor(lambda spacy_nlp: lambda x: spacy_nlp(x).vector)

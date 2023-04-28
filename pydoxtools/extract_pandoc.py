@@ -87,7 +87,7 @@ class PandocBlocks(document_base.Extractor):
         super().__init__()
 
     def __call__(self, pandoc_document: "pandoc.types.Pandoc") -> list["pandoc.types.Block"]:
-        txtblocks = [elt for elt in pandoc_document[1] if isinstance(elt, "pandoc.types.Block")]
+        txtblocks = [elt for elt in pandoc_document[1] if isinstance(elt, pandoc.types.Block)]
         return txtblocks
 
 
