@@ -190,7 +190,7 @@ def extract_schema(raw_html, url):
     return data
 
 
-class HtmlExtractor(document_base.Extractor):
+class HtmlExtractor(document_base.Operator):
     def __init__(self, engine="combined"):
         super().__init__()
         self._engine = engine

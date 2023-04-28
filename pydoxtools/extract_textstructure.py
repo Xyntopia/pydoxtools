@@ -62,7 +62,7 @@ def mime_type(self) -> str:
     return "unknown"
 
 
-class DocumentElementFilter(document_base.Extractor):
+class DocumentElementFilter(document_base.Operator):
     """Filter document elements for various criteria"""
 
     def __init__(self, element_type: document_base.ElementType):
@@ -74,7 +74,7 @@ class DocumentElementFilter(document_base.Extractor):
         return df
 
 
-class TextBoxElementExtractor(document_base.Extractor):
+class TextBoxElementExtractor(document_base.Operator):
     """
     create textboxes and create bounding boxes and aggregated text from
     a pandas dataframe with textlines.
@@ -116,9 +116,9 @@ class TextBoxElementExtractor(document_base.Extractor):
             return dict(text_box_elements=None)
 
 
-class TitleExtractor(document_base.Extractor):
+class TitleExtractor(document_base.Operator):
     """
-    This Extractor extracts titels and other interesting text parts
+    This Operator extracts titels and other interesting text parts
     from a visual document. It does this by characterising parts
     of the text being "different" than the rest using an
     Isolation Forest algorithm (anomyla detection).

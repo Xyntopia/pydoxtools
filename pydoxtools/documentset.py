@@ -4,7 +4,7 @@ from pydoxtools import document_base
 from pydoxtools import file_utils
 
 
-class DirectoryLoader(document_base.Extractor):
+class DirectoryLoader(document_base.Operator):
     def __init__(self):
         super().__init__()
 

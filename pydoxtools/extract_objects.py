@@ -3,10 +3,10 @@ from typing import Any
 import pandas as pd
 
 from pydoxtools import nlp_utils
-from pydoxtools.document_base import Extractor
+from pydoxtools.document_base import Operator
 
 
-class EntityExtractor(Extractor):
+class EntityExtractor(Operator):
     def __call__(self, spacy_doc) -> dict[str, list[str]]:
         """TODO: add more entity extraction algorithms (e.g. hugginface)"""
         # TODO: add transformers as ner recognition as well:

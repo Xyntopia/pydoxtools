@@ -4,10 +4,10 @@ import hnswlib
 import networkx as nx
 import numpy as np
 
-from pydoxtools.document_base import Extractor, TokenCollection
+from pydoxtools.document_base import Operator, TokenCollection
 
 
-class IndexExtractor(Extractor):
+class IndexExtractor(Operator):
     """
     Class extracts an index form a document
     TODO: make it flexible which kind of index we can use for this :).
@@ -57,7 +57,7 @@ class IndexExtractor(Extractor):
         return index
 
 
-class KnnQuery(Extractor):
+class KnnQuery(Operator):
     def __init__(self):
         super().__init__()
 
@@ -88,7 +88,7 @@ class KnnQuery(Extractor):
         return knn_query
 
 
-class SimilarityGraph(Extractor):
+class SimilarityGraph(Operator):
     """
      this function buils a "directed similarity graph" by taking the similarity of words in a document
      and connecting tokens which are similar. This can then be used for further analysis
@@ -114,7 +114,7 @@ class SimilarityGraph(Extractor):
         return G
 
 
-class ExtractKeywords(Extractor):
+class ExtractKeywords(Operator):
     def __init__(self, top_k: int):
         super().__init__()
         self.k = top_k

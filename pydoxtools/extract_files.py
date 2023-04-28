@@ -5,7 +5,7 @@ from pathlib import Path
 from pydoxtools import document_base
 
 
-class FileLoader(document_base.Extractor):
+class FileLoader(document_base.Operator):
     def __init__(self):
         super().__init__()
 

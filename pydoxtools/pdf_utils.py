@@ -151,7 +151,7 @@ def meta_infos(f: io.IOBase):
     return res
 
 
-class PDFFileLoader(document_base.Extractor):
+class PDFFileLoader(document_base.Operator):
     """
     Loads a pdf file and can extract all kinds of information from it.
 

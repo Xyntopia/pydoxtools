@@ -15,12 +15,12 @@ from .extract_files import FileLoader
 from .extract_html import HtmlExtractor
 from .extract_index import IndexExtractor, KnnQuery, SimilarityGraph, ExtractKeywords
 from .extract_logic import Alias, Constant
-from .extract_logic import LambdaExtractor
+from .extract_logic import LambdaOperator
 from .extract_nlpchat import OpenAIChat
 from .extract_objects import EntityExtractor
 from .extract_ocr import OCRExtractor
-from .extract_pandoc import PandocLoader, PandocExtractor, PandocConverter, PandocBlocks
-from .extract_spacy import SpacyExtractor, extract_spacy_token_vecs, get_spacy_embeddings, extract_noun_chunks
+from .extract_pandoc import PandocLoader, PandocOperator, PandocConverter, PandocBlocks
+from .extract_spacy import SpacyOperator, extract_spacy_token_vecs, get_spacy_embeddings, extract_noun_chunks
 from .extract_tables import ListExtractor, TableCandidateAreasExtractor
 from .extract_textstructure import DocumentElementFilter, TextBoxElementExtractor, TitleExtractor
 from .html_utils import get_text_only_blocks
@@ -125,7 +125,7 @@ and put the documentation in there. A Lambda function is not the right tool in t
 
     """
     TODO: One can also change the configuration of individual operators. For example
-    of the Table Extractor or Space models...
+    of the Table Operator or Space models...
 
     TODO: add "extension/override" logic for individual file types. The main important thing there is
           to make sure we don't have any "dangling" functions left over when filetype logics
@@ -141,7 +141,7 @@ and put the documentation in there. A Lambda function is not the right tool in t
             .pipe(fobj="raw_content", page_numbers="_page_numbers", max_pages="_max_pages")
             .out("pages_bbox", "elements", "meta", pages="page_set")
             .cache(),
-            LambdaExtractor(lambda pages: len(pages))
+            LambdaOperator(lambda pages: len(pages))
             .pipe(pages="page_set").out("num_pages").cache(),
             DocumentElementFilter(element_type=ElementType.Line)
             .pipe("elements").out("line_elements").cache(),
@@ -152,15 +152,15 @@ and put the documentation in there. A Lambda function is not the right tool in t
             TableCandidateAreasExtractor()
             .pipe("graphic_elements", "line_elements", "pages_bbox", "text_box_elements", "filename")
             .out("table_candidates", box_levels="table_box_levels").cache(),
-            LambdaExtractor(lambda candidates: [t.df for t in candidates if t.is_valid])
+            LambdaOperator(lambda candidates: [t.df for t in candidates if t.is_valid])
             .pipe(candidates="table_candidates").out("table_df0").cache(),
-            LambdaExtractor(lambda table_df0, lists: table_df0 + [lists]).cache()
+            LambdaOperator(lambda table_df0, lists: table_df0 + [lists]).cache()
             .pipe("table_df0", "lists").out("tables_df"),
             TextBoxElementExtractor()
             .pipe("line_elements").out("text_box_elements").cache(),
-            LambdaExtractor(lambda df: df.get("text", None).to_list())
+            LambdaOperator(lambda df: df.get("text", None).to_list())
             .pipe(df="text_box_elements").out("text_box_list").cache(),
-            LambdaExtractor(lambda tb: "\n\n".join(tb))
+            LambdaOperator(lambda tb: "\n\n".join(tb))
             .pipe(tb="text_box_list").out("full_text").cache(),
             TitleExtractor()
             .pipe("line_elements").out("titles", "side_titles").cache(),
@@ -173,16 +173,16 @@ and put the documentation in there. A Lambda function is not the right tool in t
             .out("main_content_clean_html", "summary", "language", "goose_article",
                  "main_content", "schemadata", "final_urls", "pdf_links", "title",
                  "short_title", "url", tables="tables_df", html_keywords="html_keywords_str").cache(),
-            LambdaExtractor(lambda article: article.links)
+            LambdaOperator(lambda article: article.links)
             .pipe(article="goose_article").out("urls").cache(),
-            LambdaExtractor(lambda article: article.top_image)
+            LambdaOperator(lambda article: article.top_image)
             .pipe(article="goose_article").out("main_image").cache(),
             Alias(full_text="main_content"),
-            LambdaExtractor(lambda x: pd.DataFrame(get_text_only_blocks(x), columns=["text"])).cache()
+            LambdaOperator(lambda x: pd.DataFrame(get_text_only_blocks(x), columns=["text"])).cache()
             .pipe(x="raw_content").out("text_box_elements"),
-            LambdaExtractor(lambda t, s: [t, s])
+            LambdaOperator(lambda t, s: [t, s])
             .pipe(t="title", s="short_title").out("titles").cache(),
-            LambdaExtractor(lambda x: set(w.strip() for w in x.split(",")))
+            LambdaOperator(lambda x: set(w.strip() for w in x.split(",")))
             .pipe(x="html_keywords_str").out("html_keywords"),  # todo add a generic keywords extraction here
         ],
         ".docx": ["pandoc"],
@@ -200,11 +200,11 @@ and put the documentation in there. A Lambda function is not the right tool in t
             .out("full_text").cache(),
             PandocBlocks()
             .pipe(pandoc_document="pandoc_document").out("pandoc_blocks").cache(),
-            PandocExtractor(method="headers", output_format="markdown")
+            PandocOperator(method="headers", output_format="markdown")
             .pipe(pandoc_blocks="pandoc_blocks").out("headers").cache(),
-            PandocExtractor(method="tables_df", output_format="markdown")
+            PandocOperator(method="tables_df", output_format="markdown")
             .pipe(pandoc_blocks="pandoc_blocks").out("tables_df").cache(),
-            PandocExtractor(method="lists", output_format="markdown")
+            PandocOperator(method="lists", output_format="markdown")
             .pipe(pandoc_blocks="pandoc_blocks").out("lists").cache(),
         ],
         "image": [
@@ -239,38 +239,38 @@ and put the documentation in there. A Lambda function is not the right tool in t
             Alias(full_text="raw_content"),
 
             ## Standard text splitter for splitting text along lines...
-            LambdaExtractor(lambda x: pd.DataFrame(x.split("\n\n"), columns=["text"]))
+            LambdaOperator(lambda x: pd.DataFrame(x.split("\n\n"), columns=["text"]))
             .pipe(x="full_text").out("text_box_elements").cache(),
-            LambdaExtractor(lambda df: df.get("text", None).to_list())
+            LambdaOperator(lambda df: df.get("text", None).to_list())
             .pipe(df="text_box_elements").out("text_box_list").cache(),
-            LambdaExtractor(lambda tables_df: [df.to_dict('index') for df in tables_df]).cache()
+            LambdaOperator(lambda tables_df: [df.to_dict('index') for df in tables_df]).cache()
             .pipe("tables_df").out("tables_dict"),
             Alias(tables="tables_dict"),
             TextBlockClassifier(min_prob=0.6)
             .pipe("text_box_elements").out("addresses").cache(),
 
             ## calculate some metadata values
-            LambdaExtractor(lambda full_text: 1 + (len(full_text) // 1000))
+            LambdaOperator(lambda full_text: 1 + (len(full_text) // 1000))
             .pipe("full_text").out("num_pages").cache(),
-            LambdaExtractor(lambda full_text: len(full_text.split()))
+            LambdaOperator(lambda full_text: len(full_text.split()))
             .pipe("full_text").out("num_words").cache(),
-            LambdaExtractor(lambda spacy_sents: len(spacy_sents))
+            LambdaOperator(lambda spacy_sents: len(spacy_sents))
             .pipe("spacy_sents").out("num_sents"),
-            LambdaExtractor(lambda ft: sum(1 for c in ft if c.isdigit()) / sum(1 for c in ft if c.isalpha()))
+            LambdaOperator(lambda ft: sum(1 for c in ft if c.isdigit()) / sum(1 for c in ft if c.isalpha()))
             .pipe(ft="full_text").out("a_d_ratio").cache(),
-            LambdaExtractor(lambda full_text: langdetect.detect(full_text))
+            LambdaOperator(lambda full_text: langdetect.detect(full_text))
             .pipe("full_text").out("language").cache(),
 
             #########  SPACY WRAPPERS  #############
-            SpacyExtractor(model_size="md")
+            SpacyOperator(model_size="md")
             .pipe("full_text", "language").out(doc="spacy_doc", nlp="spacy_nlp").cache(),
-            LambdaExtractor(extract_spacy_token_vecs)
+            LambdaOperator(extract_spacy_token_vecs)
             .pipe("spacy_doc").out("spacy_vectors"),
-            LambdaExtractor(get_spacy_embeddings)
+            LambdaOperator(get_spacy_embeddings)
             .pipe("spacy_nlp").out("spacy_embeddings"),
-            LambdaExtractor(lambda spacy_doc: list(spacy_doc.sents))
+            LambdaOperator(lambda spacy_doc: list(spacy_doc.sents))
             .pipe("spacy_doc").out("spacy_sents"),
-            LambdaExtractor(extract_noun_chunks)
+            LambdaOperator(extract_noun_chunks)
             .pipe("spacy_doc").out("spacy_noun_chunks").cache(),
             ########## END OF SPACY ################
 
@@ -286,14 +286,14 @@ and put the documentation in there. A Lambda function is not the right tool in t
             Alias(sents="spacy_sents"),
             Alias(noun_chunks="spacy_noun_chunks"),
 
-            LambdaExtractor(lambda x: x.vector)
+            LambdaOperator(lambda x: x.vector)
             .pipe(x="spacy_doc").out("vector").cache(),
-            LambdaExtractor(
+            LambdaOperator(
                 lambda x: dict(
                     sent_vecs=np.array([e.vector for e in x]),
                     sent_ids=list(range(len(x)))))
             .pipe(x="sents").out("sent_vecs", "sent_ids").cache(),
-            LambdaExtractor(
+            LambdaOperator(
                 lambda x: dict(
                     noun_vecs=np.array([e.vector for e in x]),
                     noun_ids=list(range(len(x)))))
@@ -302,7 +302,7 @@ and put the documentation in there. A Lambda function is not the right tool in t
             ########### NOUN_INDEX #############
             IndexExtractor()
             .pipe(vecs="noun_vecs", ids="noun_ids").out("noun_index").cache(),
-            LambdaExtractor(lambda spacy_nlp: lambda x: spacy_nlp(x).vector)
+            LambdaOperator(lambda spacy_nlp: lambda x: spacy_nlp(x).vector)
             .pipe("spacy_nlp").out("vectorizer").cache(),
             KnnQuery().pipe(index="noun_index", idx_values="noun_chunks", vectorizer="vectorizer")
             .out("noun_query").cache(),
@@ -312,7 +312,7 @@ and put the documentation in there. A Lambda function is not the right tool in t
             ########### END NOUN_INDEX ###########
 
             ########### AGGREGATION ##############
-            LambdaExtractor(lambda **kwargs: set(flatten(kwargs.values())))
+            LambdaOperator(lambda **kwargs: set(flatten(kwargs.values())))
             .pipe("html_keywords", "textrank_keywords").out("keywords").cache(),
 
             ########### QaM machine #############

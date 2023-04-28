@@ -14,7 +14,7 @@ from sklearn.neighbors import KernelDensity
 import pydoxtools
 from pydoxtools import cluster_utils as gu
 from pydoxtools.cluster_utils import pairwise_txtbox_dist, box_cols, y1, x0, x1, boundarybox_intersection_query
-from pydoxtools.document_base import Extractor
+from pydoxtools.document_base import Operator
 from pydoxtools.extract_html import extract_lists, extract_tables
 from pydoxtools.extract_textstructure import _line2txt
 
@@ -191,7 +191,7 @@ def _close_open_cells(open_cells, h_lines, df_le, elem_scan_tol,
     return new_cells, still_open
 
 
-class ListExtractor(Extractor):
+class ListExtractor(Operator):
     """
     Extract lines that might be part of a "list".
     """
@@ -816,7 +816,7 @@ def filter_out_small_graphics_elements(
     return ge_v
 
 
-class TableCandidateAreasExtractor(Extractor):
+class TableCandidateAreasExtractor(Operator):
     """produces a list of potential table objects"""
 
     def __init__(self, table_extraction_params: TableExtractionParameters = None):

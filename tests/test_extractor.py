@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from pydoxtools.document import Document
-from pydoxtools.document_base import ExtractorException
+from pydoxtools.document_base import OperatorException
 from pydoxtools import settings
 
 logger = logging.getLogger(__name__)
@@ -212,7 +212,7 @@ def test_url_download():
 
 
 def test_ocr_and_exceptions():
-    with pytest.raises(ExtractorException) as exc_info:
+    with pytest.raises(OperatorException) as exc_info:
         doc = Document(
             fobj=make_path_absolute("./data/north_american_countries.tif"),
             mime_type="image/tiff"

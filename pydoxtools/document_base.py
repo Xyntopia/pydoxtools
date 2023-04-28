@@ -82,12 +82,12 @@ class TokenCollection:
         return "|".join(t.text for t in self._tokens)
 
 
-class ExtractorException(Exception):
+class OperatorException(Exception):
     pass
 
 
 # TODO: rename into "Operator"
-class Extractor(ABC):
+class Operator(ABC):
     """
     Base class to build extraction logic for information extraction from
     unstructured documents and loading files
@@ -119,7 +119,7 @@ class Extractor(ABC):
     #        maybe turn this into a dataclass?
 
     def __init__(self):
-        # try to keep __init__ with no arguments for Extractor..
+        # try to keep __init__ with no arguments for Operator..
         self._in_mapping: dict[str, str] = {}
         self._out_mapping: dict[str, str] = {}
         self._cache = False  # TODO: switch to "True" by default
@@ -328,10 +328,10 @@ class MetaPipelineClassConfiguration(type):
                 # to "*.pdf" and other document logic if we use the already calculated _x_funcs this
                 # would not be guaranteed.
 
-                uncombined_extractors: dict[str, dict[str, Extractor]] = {}
+                uncombined_extractors: dict[str, dict[str, Operator]] = {}
                 extractor_combinations: dict[str, list[str]] = {}  # record the extraction hierarchy
                 uncombined_x_configs: dict[str, dict[str, list[str]]] = {}
-                ex: Extractor | str
+                ex: Operator | str
                 # loop through class hierarchy in order to get the logic of parent classes as well,
                 # including the newly defined class
                 for cl in reversed(class_hierarchy):
@@ -353,12 +353,12 @@ class MetaPipelineClassConfiguration(type):
                                 #       which refer to the "x"-function in document?
                                 for ex_key, doc_key in ex._out_mapping.items():
                                     # input<->output mapping is already done i the extractor itself
-                                    # check out Extractor.pipe and Extractor.map member functions
+                                    # check out Operator.pipe and Operator.map member functions
                                     doc_type_x_funcs[doc_key] = ex
 
                                     # build a map of configuration values for each
                                     # parameter. This means when a parameter gets called we know automatically
-                                    # how to configure the corresponding Extractor
+                                    # how to configure the corresponding Operator
                                     if ex._dynamic_config:
                                         doc_type_x_config[doc_key] = list(ex._dynamic_config.keys())
 
@@ -444,18 +444,18 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
 
     # stores the extraction graph, a collection of connected functions
     # which extract data from a document
-    _extractors: dict[str, list[Extractor]] = {}
+    _extractors: dict[str, list[Operator]] = {}
 
     # a dict which provides access for all extractor functions by their "out-key"
     # which was defined in _extractors
-    _x_funcs: dict[str, dict[str, Extractor]] = {}
+    _x_funcs: dict[str, dict[str, Operator]] = {}
 
     # dict which stores function configurations
     _x_config: dict[str, dict[str, dict[str, Any]]] = {}
 
     def __init__(self):
         self._cache_hits = 0
-        self._x_func_cache: dict[Extractor, dict[str, Any]] = {}
+        self._x_func_cache: dict[Operator, dict[str, Any]] = {}
         self._config = {}
 
     def config(self, **kwargs):
@@ -470,7 +470,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         raise NotImplementedError("derived pipelines need to override this function!")
 
     @cached_property
-    def x_funcs(self) -> dict[str, Extractor]:
+    def x_funcs(self) -> dict[str, Operator]:
         """
         get all extractors and their property names for this specific file type
         """
@@ -505,7 +505,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         out = json.dumps(out)
         return out
 
-    def non_interactive_x_funcs(self) -> dict[str, Extractor]:
+    def non_interactive_x_funcs(self) -> dict[str, Operator]:
         """return all non-interactive extractors"""
         return {k: v for k, v in self.x_funcs.items() if (not v._interactive)}
 
@@ -544,12 +544,12 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
                 params = self.x_config_params(extract_name)
                 res = extractor_func._mapped_call(self, config_params=params, *args, **kwargs)
 
-        except ExtractorException as e:
+        except OperatorException as e:
             logger.error(f"Extraction error in '{extract_name}': {e}")
             raise e
         except Exception as e:
             logger.error(f"Extraction error in '{extract_name}': {e}")
-            raise ExtractorException(f"could not get {extract_name} for {self}")
+            raise OperatorException(f"could not get {extract_name} for {self}")
             # raise e
 
         return res[extract_name]

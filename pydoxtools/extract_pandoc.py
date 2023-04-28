@@ -58,7 +58,7 @@ def extract_list(elt):
         return output
 
 
-class PandocLoader(document_base.Extractor):
+class PandocLoader(document_base.Operator):
     """
     Converts a string or a raw byte string into pandoc intermediate format.
     """
@@ -82,7 +82,7 @@ class PandocLoader(document_base.Extractor):
         return pandoc_format
 
 
-class PandocBlocks(document_base.Extractor):
+class PandocBlocks(document_base.Operator):
     def __init__(self):
         super().__init__()
 
@@ -91,7 +91,7 @@ class PandocBlocks(document_base.Extractor):
         return txtblocks
 
 
-class PandocConverter(document_base.Extractor):
+class PandocConverter(document_base.Operator):
     def __init__(self, output_format: str = "markdown"):
         super().__init__()
         self.output_format = output_format
@@ -101,7 +101,7 @@ class PandocConverter(document_base.Extractor):
         return full_text
 
 
-class PandocExtractor(document_base.Extractor):
+class PandocOperator(document_base.Operator):
     """
     Extract tables, headers and lists from a pandoc document
     """

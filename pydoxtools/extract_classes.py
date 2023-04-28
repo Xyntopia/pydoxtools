@@ -4,13 +4,13 @@ import langdetect
 import pandas as pd
 from transformers import AutoModelForSequenceClassification, pipeline, AutoTokenizer
 
-from pydoxtools.document_base import Extractor
+from pydoxtools.document_base import Operator
 from pydoxtools.settings import settings
 
 logger = logging.getLogger(__name__)
 
 
-class LanguageExtractor(Extractor):
+class LanguageExtractor(Operator):
     def __call__(self, text) -> str:
         text = text.strip()
         if text:
@@ -20,7 +20,7 @@ class LanguageExtractor(Extractor):
         return lang
 
 
-class TextBlockClassifier(Extractor):
+class TextBlockClassifier(Operator):
     def __init__(self, min_prob=0.5):
         super().__init__()
         self._min_prob = min_prob

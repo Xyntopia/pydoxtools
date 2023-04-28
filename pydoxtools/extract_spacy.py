@@ -8,7 +8,7 @@ import spacy
 from spacy import Language
 from spacy.tokens import Doc, Token, Span
 
-from .document_base import Extractor, TokenCollection
+from .document_base import Operator, TokenCollection
 
 logger = logging.getLogger(__name__)
 
@@ -144,7 +144,7 @@ class TrfContextualVectors:
         return True
 
 
-class SpacyExtractor(Extractor):
+class SpacyOperator(Operator):
     def __init__(
             self,
             model_size: str = "sm",

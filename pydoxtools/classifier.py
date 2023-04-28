@@ -761,6 +761,6 @@ gen_meta_info_cached = memory.cache(gen_meta_info)
 
 
 class CLassificationExtractor():
-    """Extractor which ca classify """
+    """Operator which ca classify """
     # TODO: make this class a lot more configurable ;)
     pass

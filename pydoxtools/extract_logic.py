@@ -1,7 +1,7 @@
 from pydoxtools import document_base
 
 
-class Alias(document_base.Extractor):
+class Alias(document_base.Operator):
     """Connect extractor variables with Aliases"""
 
     def __init__(self, **kwargs):
@@ -13,7 +13,7 @@ class Alias(document_base.Extractor):
         return kwargs
 
 
-class Constant(document_base.Extractor):
+class Constant(document_base.Operator):
     """declare one ore more constant values"""
 
     def __init__(self, **kwargs):
@@ -25,8 +25,8 @@ class Constant(document_base.Extractor):
         return self.const_result
 
 
-class LambdaExtractor(document_base.Extractor):
-    """Wrap an arbitrary function as an Extractor"""
+class LambdaOperator(document_base.Operator):
+    """Wrap an arbitrary function as an Operator"""
 
     def __init__(self, func):
         super().__init__()

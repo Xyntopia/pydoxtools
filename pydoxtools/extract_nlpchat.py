@@ -2,11 +2,11 @@ import openai
 from typing import Callable
 import yaml
 
-from .document_base import Extractor
+from .document_base import Operator
 from .settings import settings
 
 
-class OpenAIChat(Extractor):
+class OpenAIChat(Operator):
     def __init__(
             self,
             # TODO: generalize this in order to support e.g. alpaca

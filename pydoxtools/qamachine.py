@@ -6,7 +6,7 @@ import yaml
 
 import torch
 
-from pydoxtools.document_base import Extractor
+from pydoxtools.document_base import Operator
 from pydoxtools.nlp_utils import tokenize_windows, QandAmodels
 
 logger = logging.getLogger(__name__)
@@ -105,11 +105,11 @@ def question_text_segment(text, question, tokenizer, model, ans_num=1):
     return answers
 
 
-class QamExtractor(Extractor):
+class QamExtractor(Operator):
     """
-    Question Answering Machine Extractor
+    Question Answering Machine Operator
 
-    The Extractor generates a function takes questions and gives back
+    The Operator generates a function takes questions and gives back
     answers on the given text.
 """
 

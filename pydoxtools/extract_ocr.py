@@ -7,7 +7,7 @@ from PIL import Image
 from pdfminer.high_level import extract_text
 
 from pydoxtools import ocr_language_mappings
-from pydoxtools.document_base import Extractor
+from pydoxtools.document_base import Operator
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ class OCRException(Exception):
     pass
 
 
-class OCRExtractor(Extractor):
+class OCRExtractor(Operator):
     """
     Takes an image encoded in bytes and returns a pdf document
     which can be used to extract data.
