@@ -68,6 +68,8 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#pydoxtools.document_base.Pipeline">Pipeline</a>
         <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#pydoxtools.document_base.Pipeline.configuration">configuration</a>
+    </li>
     <li class="toctree-l3"><a class="reference internal" href="#pydoxtools.document_base.Pipeline.x_funcs">x_funcs</a>
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#pydoxtools.document_base.Pipeline.__getattr__">__getattr__()</a>
@@ -207,12 +209,11 @@ being defined though!!</p>
 # the "*" gets overwritten by functions above
 "*": [...]
 </code></pre>
-<p>Each function (or node) in the extraction pipeline gets fed its input-parameters
-by the "pipe" command. These parameters can be configured on document creation
-if some of them are declared using the "config" command.</p>
+<p>Each function (or node) in the extraction pipeline gets connected to other nodes in the pipeline
+by the "pipe" command.</p>
 <p>These arguments can be overwritten by a new pipeline in inherited documents or document types
 that are higher up in the hierarchy. The argument precedence is hereby as follows::</p>
-<pre><code>python-class-member &lt; extractor-graph-function &lt; config
+<pre><code>python-class-member &lt; extractor-graph-function &lt; configuration
 </code></pre>
 <p>when creating a new pipeline for documentation purposes a general rule is:
 if the operation is too complicated to be self-describing, then use a function or class
@@ -238,8 +239,8 @@ and put the documentation in there. A Lambda function is not the right tool in t
 <code class="highlight language-python"><span class="n">document_type</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
   </span>
 
 </h3>
@@ -261,8 +262,8 @@ TODO add a doc-type extractor using for example python-magic</p>
 <code class="highlight language-python"><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
   </span>
 
 </h3>
@@ -300,7 +301,6 @@ TODO add a doc-type extractor using for example python-magic</p>
 </details>      <p>source: Where does the extracted data come from? (Examples: URL, 'pdfupload', parent-URL, or a path)"
 page_numbers: list of the specific pages that we would like to extract (for example in a pdf)
 max_pages: maximum number of pages that we want to extract in order to protect resources
-config: a dict which describes values for variables in the document logic
 mime_type: optional mimetype for the document
 filename: optional filename. Helps sometimes helps in determining the purpose of a document</p>
 
@@ -364,6 +364,10 @@ filename: optional filename. Helps sometimes helps in determining the purpose of
 defines a common pipeline interface for all.</p>
 <p>This class also defines a basic extraction schema which derived
 classes can override</p>
+<p>in order to create a new pipeline, the
+_extractor variable shoud be overwritten with a pipeline definition</p>
+<p>this pipeline will get compiled in a function mappint defined in
+_x_funcs</p>
 
 
 
@@ -381,12 +385,34 @@ classes can override</p>
 
 
 
-<h3 id="pydoxtools.document_base.Pipeline.x_funcs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">x_funcs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Operator</span><span class="p">]</span></code>
+<h3 id="pydoxtools.document_base.Pipeline.configuration" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">configuration</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get all configuration objects of our pipeline and merge them into a
+dict.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="pydoxtools.document_base.Pipeline.x_funcs" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">x_funcs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">operators</span><span class="o">.</span><span class="n">Operator</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
   </span>
 
 </h3>
@@ -433,14 +459,16 @@ So we can automatically avoid name collisions  here.</p>
 
 
 <h3 id="pydoxtools.document_base.Pipeline.config" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">config</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">config</span><span class="p">(</span><span class="o">**</span><span class="n">settings</span><span class="p">)</span></code>
 
 </h3>
 
 
   <div class="doc doc-contents ">
   
-      <p>Set a standard configuration for a pipeline</p>
+      <p>Set configuration parameters for a pipeline</p>
+<p>This function loops through all "operators.Configure" and
+assigns the configuration from **settings to them.</p>
 
   </div>
 
