@@ -236,7 +236,9 @@ if __name__ == "__main__":
 
     #test_qam_machine()
 
-    if True:
+    test_pipeline_graph()
+
+    if False:
         with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:
             doc_str = file.read()
         doc = Document(

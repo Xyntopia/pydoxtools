@@ -448,7 +448,10 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
 
         for name, f in logic.items():
             f_class = f.__class__.__name__ + "\n".join(f._out_mapping.keys())
-            graph.add_node(f_class, shape="none")
+            shape = "none"
+            if isinstance(f, operators.Configuration):
+                shape = "invhouse"
+            graph.add_node(f_class, shape=shape)
             # out-edges
             for k, v in f._out_mapping.items():
                 graph.add_node(v)  # , shape="none")
