@@ -55,18 +55,18 @@ extraction pipelines! 🎩✨📄.
         document_type=".pdf"
     )
 
-easy extraction of a large number of information about your document to get a list
-use `print(doc.x_funcs)`
+You can easily extract a large number of pre-defined information 
+about your document. To get a list of possible operators use `print(doc.x_funcs)`.
 
     # extract tables from the pdf as a pandas dataframe:
     print(doc.tables_df)
 
-some extraction operations need input when called:
+Some extraction operations need input when called:
 
     # ask a question about the document, using Q&A Models (questionas answered locally!):
-    print(doc.answers(["how much power does it need?"])[0][0][0])
+    print(doc.answers(["how much ram does it have?"]))
 
-others need an API key installed, if it refers to an online service. 
+others need an API key installed, if it refers to an online service.
 
     # ask a question about the document, using ChatGPT (we need the API key for ChatGPT!):
     # load the API key into an environment variable like this: 
@@ -97,6 +97,18 @@ Pipelines can be mixed, partially overwritten and extended which gives you a lot
 to extend and adapt the functionality for your specific use-case.
 
 Find out more about it in the [documentation](http://pydoxtools.xyntopia.com/reference/#pydoxtools.document.Document)
+
+#### Pipeline configuration
+
+Pipelines can be configured. For example the local model used for
+question answering can be selected like this:
+
+    doc = Document(fobj="./data/PFR-PR23_BAT-110__V1.00_.pdf"))
+            .config(qam_model_id='bert-large-uncased-whole-word-masking-finetuned-squad')
+
+where "qam_model_id" can be any model from huggingface for question answering.
+
+    TODO: document how to configure a pipeline
 
 ### PDF table extraction algorithms
 
