@@ -48,13 +48,33 @@
               <ul class="current">
                 <li class="toctree-l1 current"><a class="reference internal current" href="./">Readme</a>
     <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#teaser">Teaser</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#large-pipelines">Large pipelines</a>
-    </li>
     <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#teaser">Teaser</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#features">Features</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#large-pipelines">Large pipelines</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#pipeline-configuration">Pipeline configuration</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#pdf-table-extraction-algorithms">PDF table extraction algorithms</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#todo-describe-more-of-the-features-here">TODO: Describe more of the features here...</a>
+    </li>
+        </ul>
+    </li>
     <li class="toctree-l2"><a class="reference internal" href="#use-cases">Use Cases</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#installation-options">Installation Options</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#supporting-docx-odt-epub">Supporting .docx, .odt, *.epub</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#image-ocr-support">Image OCR support</a>
+    </li>
+        </ul>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#development">Development</a>
     </li>
@@ -92,8 +112,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="pydoxtools">🚀 pydoxtools 🚀</h1>
-<p>(<em>WIP</em>) <a href="https://xyntopia.github.io/pydoxtools">Documentation</a></p>
+                <h1 id="pydoxtools-python-library">🚀 pydoxtools (Python Library) 🚀</h1>
+<p><img alt="Python" src="https://img.shields.io/pypi/pyversions/pydoxtools.svg" />
+<a href="https://pypi.python.org/pypi/pydoxtools"><img alt="PyPI version" src="https://img.shields.io/pypi/v/pydoxtools.svg" /></a>
+<a href="https://pydoxtools.xyntopia.com"><img alt="Mkdocs" src="https://img.shields.io/badge/doc-mkdocs-845ed7.svg" /></a>
+<a href="https://github.com/xyntopia/pydoxtools/discussions"><img alt="GitHub discussions" src="https://img.shields.io/badge/discuss-online-845ef7" /></a>
+<a href="https://github.com/xyntopia/pydoxtools/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/xyntopia/pydoxtools" /></a></p>
+<hr />
+<p>(<em>WIP</em>) <a href="https://pydoxtools.xyntopia.com">Documentation</a></p>
 <p>Pydoxtools is a library that provides a sophisticated interface for reading and
 writing documents, designed to work with AI models such as GPT, Alpaca, and
 Huggingface. It offers functionalities such as:</p>
@@ -107,39 +133,85 @@ Huggingface. It offers functionalities such as:</p>
 </ul>
 <p>The library allows for the creation of complex extraction pipelines
 for batch-processing of documents by defining them as a lazily-executed graph.</p>
+<h2 id="installation">Installation</h2>
+<p>While pydoxtools can already be installed through pip. Due to the
+many updates coming in right now, it is right now recommended to use
+the latest version from github as follows:</p>
+<pre><code>pip install -U "pydoxtools[etl,inference] @ git+https://github.com/xyntopia/pydoxtools.git"
+</code></pre>
+<p>Pydoxtools can be also be installed through pip which will become the recommended
+method once it becomes more stable:</p>
+<pre><code>pip install -U pydoxtools[etl,inference]
+</code></pre>
+<p>For loading additional file formats (docx, odt, epub) and images, checkout
+the additional &gt; <a href="#installation-options">Installation Options</a> &lt;.</p>
 <h2 id="teaser">Teaser</h2>
-<p>Experience a new level of convenience and efficiency in handling documents with Pydoxtools, and reimagine your data extraction pipelines! 🎩✨📄.</p>
+<p>Experience a new level of convenience and efficiency in handling documents with Pydoxtools, and reimagine your data
+extraction pipelines! 🎩✨📄.</p>
 <pre><code>import pydoxtools as pdx
 
 # create a document from a file, string, bytestring, file-like object
 # or even an url:
-doc = Document(
+doc = pdx.Document(
     "https://www.raspberrypi.org/app/uploads/2012/12/quick-start-guide-v1.1.pdf", 
     document_type=".pdf"
 )
-# extract the table as a pandas dataframe:
+</code></pre>
+<p>You can easily extract a large number of pre-defined information 
+about your document. To get a list of possible operators use <code>print(doc.x_funcs)</code>.</p>
+<pre><code># extract tables from the pdf as a pandas dataframe:
 print(doc.tables_df)
-# ask a question about the document, using Q&amp;A Models (questionas answered locally!):
-print(doc.answers(["how much power does it need?"])[0][0][0])
-# ask a question about the document, using ChatGPT:
-print(doc.chat_answers(["who is the target group of this document?"])[0].content)
+</code></pre>
+<p>Some extraction operations need input when called:</p>
+<pre><code># ask a question about the document, using Q&amp;A Models (questionas answered locally!):
+print(doc.answers(["how much ram does it have?"]))
+</code></pre>
+<p>others need an API key installed, if it refers to an online service.</p>
+<pre><code># ask a question about the document, using ChatGPT (we need the API key for ChatGPT!):
+# load the API key into an environment variable like this: 
+#   
+# OPENAI_API_KEY="sk ...."
+# 
+# Do **NOT** use the key in your code. This could potentially cost you a lot of money...
+print(doc.chat_answers(["What is the target group of this document?"])[0].content)
 print(doc.chat_answers(["Answer if a 5-year old would be able to follow these instructions?"])[0].content)
 </code></pre>
-<h2 id="large-pipelines">Large pipelines</h2>
-<p>Pydoxtools main feature are large, composable and customizable pipelines. As a teaser
-check out this pipeline for *.png images from the repository:</p>
-<p><img alt="Visualization of the pipeline for *.png images." src="http://pydoxtools.xyntopia.com/images/document_logic_png.svg" /></p>
+<h2 id="features">Features</h2>
+<h3 id="large-pipelines">Large pipelines</h3>
+<p>Pydoxtools main feature is the ability to mix LLMs and other
+AI models in large, composable and customizable pipelines.
+As a teaser, check out this pipeline for *.png images from the repository including
+OCR, keyword extraction, vectorization and more. In this pipeline:</p>
+<ul>
+<li>Every node in an ellipse can be called as an attribute of the document-analysis pipeline.</li>
+<li>Every execution-path is lazily executed throughout the entire graph.</li>
+<li>Every node is cached by default (can be turned off).</li>
+<li>Every piece of this pipeline can be replaced by a customized version.</li>
+</ul>
+<p><img src="http://pydoxtools.xyntopia.com/images/document_logic_png.svg" width="500"></p>
 <p>Pipelines can be mixed, partially overwritten and extended which gives you a lot of possibilities
-to extend and adapt the functionality for your specific use-case. </p>
+to extend and adapt the functionality for your specific use-case.</p>
 <p>Find out more about it in the <a href="http://pydoxtools.xyntopia.com/reference/#pydoxtools.document.Document">documentation</a></p>
-<h2 id="installation">Installation</h2>
-<p>Pydoxtools can be installed through pip:</p>
-<pre><code>pip install pydoxtools[etl, inference]
+<h4 id="pipeline-configuration">Pipeline configuration</h4>
+<p>Pipelines can be configured. For example the local model used for
+question answering can be selected like this:</p>
+<pre><code>doc = Document(fobj="./data/PFR-PR23_BAT-110__V1.00_.pdf"))
+        .config(qam_model_id='bert-large-uncased-whole-word-masking-finetuned-squad')
 </code></pre>
-<p>It should automatically download models &amp; dependencies where required. In order to get the 
-latest version install it like this:</p>
-<pre><code>pip install git+https://github.com/xyntopia/pydoxtools'
+<p>where "qam_model_id" can be any model from huggingface for question answering.</p>
+<pre><code>TODO: document how to configure a pipeline
 </code></pre>
+<h3 id="pdf-table-extraction-algorithms">PDF table extraction algorithms</h3>
+<p>The library features its own sophisticated Table extraction algorithm which is benchmarked
+against a large pdf table dataset. In contrast to most other table extraction frameworks
+out there it does not require:</p>
+<ul>
+<li>extensive configuration</li>
+<li>no expensive deep neural networks which need a GPU</li>
+</ul>
+<p>This makes it possible to run analysis on PDF files with pydoxtools on CPU with
+very limited resources!</p>
+<h3 id="todo-describe-more-of-the-features-here">TODO: Describe more of the features here...</h3>
 <h2 id="use-cases">Use Cases</h2>
 <ul>
 <li>analyze documents using any model from huggingface...</li>
@@ -152,6 +224,26 @@ latest version install it like this:</p>
 <li>extract addresses and use this information for the qam</li>
 <li>ingest documents into a vector db</li>
 </ul>
+<h2 id="installation-options">Installation Options</h2>
+<h3 id="supporting-docx-odt-epub">Supporting <em>.docx, </em>.odt, *.epub</h3>
+<p>In order to be able to load docx, odt and rtf files, you have to install pandoc.
+Right now, the python pandoc library does not work with pandoc version &gt; 3.0.0. It
+is therefore recommended to install a version from here for your OS:</p>
+<p>https://github.com/jgm/pandoc/releases/tag/2.19.2</p>
+<h3 id="image-ocr-support">Image OCR support</h3>
+<p>Pydoxtools can automatically analyze images as well, makin use of
+<a href="https://en.wikipedia.org/wiki/Optical_character_recognition">OCR</a>.
+In order to be able to use this, install tesseract on your system:</p>
+<p>Under linux this looks like the following:</p>
+<pre><code>apt-get update &amp;&amp; tesseract-ocr
+# install tesseract languages 
+# Display a list of all Tesseract language packs:
+#   apt-cache search tesseract-ocr
+# install all languages:
+# sudo apt install tesseract-ocr-*
+# install only german, french, english, spanish language packs
+# sudo apt install tesseract-ocr-deu tesseract-ocr-fra tesseract-ocr-eng tesseract-ocr-spa
+</code></pre>
 <h2 id="development">Development</h2>
 <p>--&gt; see <a href="DEVELOPMENT"></a></p>
 <h2 id="license">License</h2>

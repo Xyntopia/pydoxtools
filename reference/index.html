@@ -74,15 +74,21 @@
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#pydoxtools.document_base.Pipeline.config">config()</a>
     </li>
+    <li class="toctree-l3"><a class="reference internal" href="#pydoxtools.document_base.Pipeline.json">json()</a>
+    </li>
     <li class="toctree-l3"><a class="reference internal" href="#pydoxtools.document_base.Pipeline.non_interactive_x_funcs">non_interactive_x_funcs()</a>
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#pydoxtools.document_base.Pipeline.pipeline_graph">pipeline_graph()</a>
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#pydoxtools.document_base.Pipeline.pre_cache">pre_cache()</a>
     </li>
+    <li class="toctree-l3"><a class="reference internal" href="#pydoxtools.document_base.Pipeline.property_dict">property_dict()</a>
+    </li>
     <li class="toctree-l3"><a class="reference internal" href="#pydoxtools.document_base.Pipeline.run_all_extractors">run_all_extractors()</a>
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#pydoxtools.document_base.Pipeline.x">x()</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#pydoxtools.document_base.Pipeline.yaml">yaml()</a>
     </li>
         </ul>
     </li>
@@ -208,6 +214,9 @@ if some of them are declared using the "config" command.</p>
 that are higher up in the hierarchy. The argument precedence is hereby as follows::</p>
 <pre><code>python-class-member &lt; extractor-graph-function &lt; config
 </code></pre>
+<p>when creating a new pipeline for documentation purposes a general rule is:
+if the operation is too complicated to be self-describing, then use a function or class
+and put the documentation in there. A Lambda function is not the right tool in this case.</p>
 
 
 
@@ -229,8 +238,8 @@ that are higher up in the hierarchy. The argument precedence is hereby as follow
 <code class="highlight language-python"><span class="n">document_type</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-cached"><code>cached</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 </h3>
@@ -252,8 +261,8 @@ TODO add a doc-type extractor using for example python-magic</p>
 <code class="highlight language-python"><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-cached"><code>cached</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 </h3>
@@ -261,7 +270,7 @@ TODO add a doc-type extractor using for example python-magic</p>
 
   <div class="doc doc-contents ">
   
-      <p>TODO: move this into document</p>
+      <p>TODO: move this into document pipeline</p>
   </div>
 
 </div>
@@ -373,11 +382,11 @@ classes can override</p>
 
 
 <h3 id="pydoxtools.document_base.Pipeline.x_funcs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">x_funcs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Extractor</span><span class="p">]</span></code>
+<code class="highlight language-python"><span class="n">x_funcs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Operator</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-cached"><code>cached</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 </h3>
@@ -432,6 +441,24 @@ So we can automatically avoid name collisions  here.</p>
   <div class="doc doc-contents ">
   
       <p>Set a standard configuration for a pipeline</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pydoxtools.document_base.Pipeline.json" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">json</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>same as property_dict, but dumps output as yaml</p>
 
   </div>
 
@@ -497,6 +524,30 @@ to pre-cache all calculations this is done here by simply calling all functions.
 
 
 
+<h3 id="pydoxtools.document_base.Pipeline.property_dict" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">property_dict</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>return a dictionary which accumulates the properties given
+in <em>args or with a mapping in </em>*kwargs where the keys in kwargs are the
+variable in the returned dictionary, whereas the values are the variable names
+of the pipeline.</p>
+<p>Right now, this only works for properties that don#t need any arguments,
+in pipelines such as "full_text". Others, such as "answers" return a function
+which needs arguments itself and can therefore not be used here.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
 <h3 id="pydoxtools.document_base.Pipeline.run_all_extractors" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">run_all_extractors</span><span class="p">()</span></code>
 
@@ -525,6 +576,24 @@ to pre-cache all calculations this is done here by simply calling all functions.
   
       <p>call an extractor from our definition
 TODO: using <em>args and </em>*kwargs the extractors parameters can be overriden</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pydoxtools.document_base.Pipeline.yaml" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">yaml</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>same as property_dict, but dumps output as yaml</p>
 
   </div>
 
