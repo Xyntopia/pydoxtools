@@ -5,6 +5,12 @@ Created on Mon Mar 30 15:29:52 2020
 
 @author: Thomas.Meschede@soprasteria.com
 
+we accumulate most of our NLP functions here for the rest of the library
+as we need to keep models in memory for other functions to use
+thats why there is functools.lru_cache spread around everywhere here.
+Otherwise NLP models would get reloaded everywhere which we
+don't want in our pipelines.
+
 TODO: refactor this... there are a lot of functions and it would
       be great if we could somehow organize them a little better...
 
@@ -25,7 +31,6 @@ import pandas as pd
 import sklearn as sk
 import sklearn.linear_model
 import torch
-import transformers
 from pydantic import BaseModel
 from scipy.spatial.distance import pdist, squareform
 from tqdm import tqdm
@@ -81,6 +86,18 @@ def get_urls_from_text(text):
     # TODO:  add this to
     urls = urlextractor.find_urls(text, only_unique=False, check_dns=True)
     return urls
+
+
+def get_embeddings(txt, tokenizer):
+    """
+    generate word-piece embeddings (pseudo-syllables)
+    using only transformers tokenizer without
+    model.
+    """
+    txttok = tokenizer.tokenize(txt)
+    tok_ids = tokenizer.convert_tokens_to_ids(txttok)
+    tok_vecs = get_vocabulary(tokenizer.name_or_path)[tok_ids]
+    return tok_vecs, txttok
 
 
 def tokenize_windows(txt, tokenizer, win_len=500, overlap=50,
@@ -140,8 +157,6 @@ def transform_to_contextual_embeddings(input_ids_t, model, tokenizer=None, lang=
     return wvecs_out
 
 
-# TODO: prepare for long texts to do the tokenization in batches
-# otherwise well run out of memory :(
 def longtxt_word_embeddings_fullword_only_static_embeddings(txt, tokenizer):
     """
     generate whole-word embeddings (without pseudo-syllables)
@@ -303,13 +318,6 @@ def build_pipe(X, params):
 """
 
 
-@functools.lru_cache()
-def get_bert_vocabulary():
-    model, tokenizer = load_models()
-    # return and transform embeddings into numpy array
-    return model.embeddings.word_embeddings.weight.detach().numpy()
-
-
 def reset_models():
     """clear models from memory"""
     load_models.cache_clear()
@@ -329,23 +337,13 @@ def vecseq_similarity(vs, search_vec):
 
 
 @functools.lru_cache()
-def get_vocabulary(kind="distilbert"):
+def get_vocabulary(model_id: str):
     """make sure the vocabulary only gets loaded once
     TODO: implement more vocabularies"""
-    logger.info("loading BERT vocabulary")
-    return get_bert_vocabulary()
-
-
-def get_embeddings(txt, tokenizer):
-    """
-    generate word-piece embeddings (pseudo-syllables)
-    using only transformers tokenizer without
-    model.
-    """
-    txttok = tokenizer.tokenize(txt)
-    tok_ids = tokenizer.convert_tokens_to_ids(txttok)
-    tok_vecs = get_vocabulary()[tok_ids]
-    return tok_vecs, txttok
+    logger.info(f"loading vocabulary from {model_id}")
+    model, _ = load_models(model_id)
+    # return and transform embeddings into numpy array
+    return model.embeddings.word_embeddings.weight.detach().numpy()
 
 
 def fullword_embeddings(toktxt, vs):
@@ -407,7 +405,7 @@ def top_search_results(toktxt, match, num=10):
 
 
 def get_max_word_similarity(vs, searchstring, model, tokenizer):
-    sv, _ = get_embeddings(searchstring, model, tokenizer)
+    sv, _ = get_embeddings(searchstring, tokenizer)
     match = vecseq_similarity(vs, sv.mean(axis=0))
     return match.max()
 
@@ -456,20 +454,20 @@ example_urls = [
 ]
 
 
-def string_embeddings(text, method="fast"):
+def calculate_string_embeddings(text: str, model_id: str, only_tokenizer: bool):
     """
     this method converts a text of arbitrary length into
     a vector.
     """
-    if method == "fast":
-        tokenizer, _ = load_tokenizer()
+    tokenizer = load_tokenizer(model_id)
+    if only_tokenizer:
         vs, toktxt = get_embeddings(text, tokenizer)
         vs = vs.mean(axis=0)
-    elif method == "slow":
-        model, tokenizer = load_models()
-        vs, toktxt = longtxt_embeddings(
-            text, model, tokenizer, np.mean)
-    return vs
+        return vs
+    else:
+        model = load_models()
+        vs, toktxt = longtxt_embeddings(text, model, tokenizer, np.mean)
+        return vs
 
 
 def page2vec(page_str, url=None, method="slow"):
@@ -501,7 +499,7 @@ def page2vec(page_str, url=None, method="slow"):
         try:
             # TODO: can we somehow move html_utils out of this file?
             text_short = html_utils.get_pure_html_text(page_str)
-            vs = string_embeddings(text_short, method)
+            vs = calculate_string_embeddings(text_short, method)
         except:
             logger.exception(f"can not convert: {url}")
             return None
@@ -529,7 +527,9 @@ def topic_similarity(html, topic, method="slow"):
     """
     vs = page2vec(html, method)
 
-    model, tokenizer = load_models()
+    model_id = settings.PDXT_STANDARD_TOKENIZER
+    tokenizers = load_tokenizer(model_id)
+    model = load_models(model_id)
     sv, _ = longtxt_embeddings(topic, model, tokenizer, np.mean)
     # sv, _ = get_embeddings(searchstring,tokenizer)
 
@@ -594,19 +594,19 @@ class NLPContext(BaseModel):
 
 
 @functools.lru_cache(maxsize=32)
-def load_tokenizer(model_name='distilbert-base-multilingual-cased'):
+def load_tokenizer(model_name):
     logger.info("load_tokenizer")
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-    return tokenizer, get_vocabulary()
+    return tokenizer
 
 
 # TODO: merge this function with
 @functools.lru_cache()
-def load_models(model_name: str = 'distilbert-base-multilingual-cased'):
+def load_models(model_id):
     logger.info(f"load model on device: {device}")
-    tokenizer = transformers.AutoTokenizer.from_pretrained(model_name)
-    # model = AutoModelForQuestionAnswering.from_pretrained(model_name, output_hidden_states=True)
-    model = AutoModel.from_pretrained(model_name, output_hidden_states=True)
+    tokenizer = load_tokenizer(model_id)
+    # model = AutoModelForQuestionAnswering.from_pretrained(model_id, output_hidden_states=True)
+    model = AutoModel.from_pretrained(model_id, output_hidden_states=True)
     model.to(device)
     model.eval()
     return model, tokenizer
@@ -618,7 +618,8 @@ def QandAmodels(model_id: str):
     #        with transformers AutoModel etc...
     logger.info(f"loading Q & A model and tokenizer {model_id}")
     # model, tokenizer = load_models(model_id)
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    # TODO: use load_tokenizer function for this
+    tokenizer = load_tokenizer(model_id)
     model = AutoModelForQuestionAnswering.from_pretrained(model_id)
     logger.info(f"finished loading Q & A models... {model_id}")
     return NLPContext(tokenizer=tokenizer, model=model)

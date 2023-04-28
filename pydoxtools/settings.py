@@ -43,30 +43,6 @@ class _Settings(BaseSettings):
     # in order to be able to access OPENAI api
     OPENAI_API_KEY: str = "sk ...."
 
-    """
-    # model_type == "slow":
-        # also very good, but slow:
-        model_name = 'replydotai/albert-xxlarge-v1-finetuned-squad2'
-    # model_type == "medium":
-        # very good and fast:
-        model_name = 'bert-large-uncased-whole-word-masking-finetuned-squad'
-        # model_name = 'deepset/bert-large-uncased-whole-word-masking-squad2'
-    # model_type == "multi":
-        # 'mrm8488/distilbert-multi-finedtuned-squad-pt'
-        model_name = 'mrm8488/bert-multi-uncased-finetuned-xquadv1'
-    # model_type == 'base':
-        model_name = 'deepset/bert-base-cased-squad2'
-    # model_type == 'large':
-        model_name = "ktrapeznikov/albert-xlarge-v2-squad-v2"
-    # model_type == 't5':
-        model_name = "mrm8488/t5-base-finetuned-question-generation-ap"
-    # model_type == "fast":
-        # not very good at this task, but fast
-        # distilbert-base-cased-distilled-squad
-        # model_name = 'mrm8488/bert-small-finetuned-squadv2'
-        model_name = 'distilbert-base-cased-distilled-squad'
-        # model_name = "sshleifer/tiny-distilbert-base-cased-distilled-squad"
-    """
     # PDXT_STANDARD_QAM_MODEL = 'distilbert-base-cased-distilled-squad'
     PDXT_STANDARD_QAM_MODEL = 'deepset/minilm-uncased-squad2'
     # be careful with this one here!!  we would have to retrain ALL of our

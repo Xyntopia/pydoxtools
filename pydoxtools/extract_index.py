@@ -1,3 +1,4 @@
+import logging
 from typing import Callable
 
 import hnswlib
@@ -5,6 +6,70 @@ import networkx as nx
 import numpy as np
 
 from pydoxtools.document_base import Operator, TokenCollection
+from pydoxtools.nlp_utils import calculate_string_embeddings
+
+logger = logging.getLogger(__name__)
+
+
+class TextPieceSplitter(Operator):
+    """Extract small pieces of text with a few more rules
+    to make them more usable in an index.
+
+    For example, it is a good idea to make text-pieces not too small. Text pieces should
+    also not bee too big. So that they encode not too much information
+    into the vector. This makes queries on an index more precise.
+    Additionally, we should try to segment a piece of text into its
+    logical structure and try to preserve text blocks such as paragraphs,
+    tables etc... as much as possible.
+
+    if we split up large text blocks we will let the individual pieces overlap
+    just a little bit in order to preserve some of the context.
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def __call__(
+            self, full_text: str, min_size: int = 256, max_size: int = 512,
+            large_segment_overlap=0.3
+    ):
+        # TODO: also accept text elements which have bounding boxes for better text box identification.
+        # TODO: identify tables and convert them into a readable format.
+        # TODO: identify other things such as images, plots etc..  and convert them into
+        #       a vector
+        # TODO: use this approach for faster questions-answering!
+        split_text = full_text.split("\n\n")
+
+        # merge text_pieces that are too small:
+        pieces = []
+        new_segment = ""
+        for tp in split_text:
+            if len(new_segment) < min_size:
+                new_segment += tp + "\n\n"
+                continue
+
+            new_segment += tp
+            if len(new_segment) > max_size:
+                new_segments = []
+                for i in range(0, len(new_segment), int((1 - large_segment_overlap) * max_size)):
+                    new_segments.append(new_segment[i:i + max_size].strip())
+                pieces.extend(new_segments)
+            else:
+                pieces.append(new_segment.strip())
+            new_segment = ""
+
+        return pieces
+
+
+class HuggingfaceVectorizer(Operator):
+    """Vectorize text pieces using tokenizers and models from huggingface"""
+
+    def __call__(self, text_segments: list[str], model_id: str, only_tokenizer: bool):
+        # TODO: use contextual embeddings as well!
+        # model = AutoModelForQuestionAnswering.from_pretrained(model_id)
+        vecs = [calculate_string_embeddings(txt, model_id=model_id, only_tokenizer=True)
+                for txt in text_segments]
+        return vecs
 
 
 class IndexExtractor(Operator):

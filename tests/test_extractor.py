@@ -110,6 +110,8 @@ def test_table_extraction():
 
     # TODO: add test to automatically recognize correct document
 
+# TODO: test configuration of our class with dedicated Configuration Operators
+
 # TODO: test property_dict, yaml & json output
 
 # TODO: add questions on tables using chatgpt

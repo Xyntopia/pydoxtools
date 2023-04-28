@@ -13,9 +13,10 @@ from .document_base import Pipeline, ElementType
 from .extract_classes import LanguageExtractor, TextBlockClassifier
 from .extract_files import FileLoader
 from .extract_html import HtmlExtractor
-from .extract_index import IndexExtractor, KnnQuery, SimilarityGraph, ExtractKeywords
-from .extract_logic import Alias, Constant
-from .extract_logic import LambdaOperator
+from .extract_index import IndexExtractor, KnnQuery, \
+    SimilarityGraph, ExtractKeywords, TextPieceSplitter
+from .extract_logic import Alias, Constant, \
+    LambdaOperator, ElementWiseOperator, Configuration
 from .extract_nlpchat import OpenAIChat
 from .extract_objects import EntityExtractor
 from .extract_ocr import OCRExtractor
@@ -25,6 +26,7 @@ from .extract_tables import ListExtractor, TableCandidateAreasExtractor
 from .extract_textstructure import DocumentElementFilter, TextBoxElementExtractor, TitleExtractor
 from .html_utils import get_text_only_blocks
 from .list_utils import flatten
+from .nlp_utils import calculate_string_embeddings
 from .pdf_utils import PDFFileLoader
 from .qamachine import QamExtractor
 from .settings import settings
@@ -298,6 +300,20 @@ and put the documentation in there. A Lambda function is not the right tool in t
                     noun_vecs=np.array([e.vector for e in x]),
                     noun_ids=list(range(len(x)))))
             .pipe(x="noun_chunks").out("noun_vecs", "noun_ids").cache(),
+
+            ########### SEGMENT_INDEX ##########
+            TextPieceSplitter()
+            .pipe(full_text="full_text").out("text_segments").cache(),
+            Configuration(
+                text_segment_model="deepset/minilm-uncased-squad2",
+                text_segment_only_tokenizer=True
+            ),
+            ElementWiseOperator(calculate_string_embeddings, return_iterator=False)
+            .pipe(
+                elements="text_segments",
+                model_id="text_segment_model",
+                only_tokenizer="text_segment_only_tokenizer")
+            .out("text_segment_vectors"),
 
             ########### NOUN_INDEX #############
             IndexExtractor()
