@@ -110,6 +110,7 @@ def test_table_extraction():
 
     # TODO: add test to automatically recognize correct document
 
+# TODO: test property_dict, yaml & json output
 
 def test_qam_machine():
     doc = Document(
