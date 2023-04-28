@@ -10,6 +10,8 @@ from enum import Enum
 from functools import cached_property
 from time import time
 from typing import List, Any
+import yaml
+import json
 
 import networkx as nx
 import numpy as np
@@ -490,6 +492,18 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         properties.update({v: getattr(self, k) for k, v in kwargs.items()})
 
         return deep_str_convert(properties)
+
+    def yaml(self, *args, **kwargs):
+        """same as property_dict, but dumps output as yaml"""
+        out = self.property_dict(*args, **kwargs)
+        out = yaml.safe_dump(out)
+        return out
+
+    def json(self, *args, **kwargs):
+        """same as property_dict, but dumps output as yaml"""
+        out = self.property_dict(*args, **kwargs)
+        out = json.dumps(out)
+        return out
 
     def non_interactive_x_funcs(self) -> dict[str, Extractor]:
         """return all non-interactive extractors"""
