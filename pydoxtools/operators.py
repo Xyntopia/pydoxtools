@@ -208,6 +208,10 @@ class ElementWiseOperator(Operator):
     """
     Take a function and apply it elementwise to
     an iterable. Return a list or iterator.
+
+    the "elements" argument will be evaluated
+    element-wise. You can specify additional arguments for the
+    function using *args and **kwargs.
     """
 
     # TODO: automatically add documentation from self._func

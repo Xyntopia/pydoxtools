@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import functools
 import logging
 from typing import Dict, List, Tuple, Callable
 import yaml
@@ -115,6 +116,7 @@ class QamExtractor(Operator):
     def __call__(self, property_dict: Callable, trf_model_id: str = None):
         nlpc = QandAmodels(trf_model_id)
 
+        @functools.lru_cache
         def qa_machine(
                 questions: list[str] | str,
                 props: list[str] | str = "full_text"

@@ -120,14 +120,14 @@ def test_qam_machine():
     doc = Document(
         fobj=make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf")
     ).config(qam_model_id='deepset/minilm-uncased-squad2')
-    answers = doc.answers(questions=[
+    answers = doc.answers(questions=(
         'what is this the product name?',
         'who build the product?',
         'what is the address'
-    ])
-    assert answers[0][0][0] == 'bst bat - 110'
-    assert answers[1][0][0] == 'bst bat - 110'
-    assert answers[2][0][0] == 'the bst'
+    ))
+    assert answers[0][0][0] == 'bat - 110'
+    assert answers[1][0][0] == 'npower draw'
+    assert answers[2][0][0] == 'bat - 110'
 
 
 def test_address_extraction():

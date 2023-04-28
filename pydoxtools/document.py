@@ -15,8 +15,6 @@ from .extract_files import FileLoader
 from .extract_html import HtmlExtractor
 from .extract_index import IndexExtractor, KnnQuery, \
     SimilarityGraph, ExtractKeywords, TextPieceSplitter
-from .operators import Alias, Constant, \
-    LambdaOperator, ElementWiseOperator, Configuration
 from .extract_nlpchat import OpenAIChat
 from .extract_objects import EntityExtractor
 from .extract_ocr import OCRExtractor
@@ -27,6 +25,8 @@ from .extract_textstructure import DocumentElementFilter, TextBoxElementExtracto
 from .html_utils import get_text_only_blocks
 from .list_utils import flatten
 from .nlp_utils import calculate_string_embeddings
+from .operators import Alias, Constant, \
+    LambdaOperator, ElementWiseOperator, Configuration
 from .pdf_utils import PDFFileLoader
 from .qamachine import QamExtractor
 
@@ -195,16 +195,17 @@ and put the documentation in there. A Lambda function is not the right tool in t
             PandocLoader()
             .pipe(raw_content="raw_content", document_type="document_type")
             .out("pandoc_document").cache(),
-            PandocConverter(output_format="markdown")
-            .pipe(pandoc_document="pandoc_document")
+            Configuration(output_format="markdown"),
+            PandocConverter()
+            .pipe("output_format", pandoc_document="pandoc_document")
             .out("full_text").cache(),
             PandocBlocks()
             .pipe(pandoc_document="pandoc_document").out("pandoc_blocks").cache(),
-            PandocOperator(method="headers", output_format="markdown")
+            PandocOperator(method="headers")
             .pipe(pandoc_blocks="pandoc_blocks").out("headers").cache(),
-            PandocOperator(method="tables_df", output_format="markdown")
+            PandocOperator(method="tables_df")
             .pipe(pandoc_blocks="pandoc_blocks").out("tables_df").cache(),
-            PandocOperator(method="lists", output_format="markdown")
+            PandocOperator(method="lists")
             .pipe(pandoc_blocks="pandoc_blocks").out("lists").cache(),
         ],
         "image": [
@@ -213,8 +214,8 @@ and put the documentation in there. A Lambda function is not the right tool in t
             ".pdf",  # as we are extracting a pdf we would like to use the pdf functions...
             Configuration(ocr_lang="auto", ocr_on=True),
             OCRExtractor()
-            .pipe(file="raw_content")
-            .out("ocr_pdf_file", "ocr_on", "ocr_lang"),
+            .pipe("ocr_on", "ocr_lang", file="raw_content")
+            .out("ocr_pdf_file"),
             # we need to do overwrite the pdf loading for images we inherited from
             # the ".pdf" logic as we are
             # now taking the pdf from a different variable
@@ -245,7 +246,7 @@ and put the documentation in there. A Lambda function is not the right tool in t
             LambdaOperator(lambda tables_df: [df.to_dict('index') for df in tables_df]).cache()
             .pipe("tables_df").out("tables_dict"),
             Alias(tables="tables_dict"),
-            TextBlockClassifier(min_prob=0.6)
+            TextBlockClassifier()
             .pipe("text_box_elements").out("addresses").cache(),
 
             ## calculate some metadata values
@@ -261,8 +262,10 @@ and put the documentation in there. A Lambda function is not the right tool in t
             .pipe("full_text").out("language").cache(),
 
             #########  SPACY WRAPPERS  #############
-            SpacyOperator(model_size="md")
-            .pipe("full_text", "language").out(doc="spacy_doc", nlp="spacy_nlp").cache(),
+            Configuration(spacy_model_size="md", spacy_model="auto"),
+            SpacyOperator()
+            .pipe("full_text", "language", "spacy_model", model_size="spacy_model_size")
+            .out(doc="spacy_doc", nlp="spacy_nlp").cache(),
             LambdaOperator(extract_spacy_token_vecs)
             .pipe("spacy_doc").out("spacy_vectors"),
             LambdaOperator(get_spacy_embeddings)
@@ -321,7 +324,9 @@ and put the documentation in there. A Lambda function is not the right tool in t
             .out("noun_query").cache(),
             SimilarityGraph().pipe(index_query_func="noun_query", source="noun_chunks")
             .out("noun_graph").cache(),
-            ExtractKeywords(top_k=5).pipe(G="noun_graph").out("textrank_keywords").cache(),
+            Configuration(top_k_text_rank_keywords=5),
+            ExtractKeywords()
+            .pipe(top_k="top_k_text_rank_keywords", G="noun_graph").out("textrank_keywords").cache(),
             ########### END NOUN_INDEX ###########
 
             ########### AGGREGATION ##############

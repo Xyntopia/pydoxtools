@@ -21,9 +21,8 @@ class LanguageExtractor(Operator):
 
 
 class TextBlockClassifier(Operator):
-    def __init__(self, min_prob=0.5):
+    def __init__(self):
         super().__init__()
-        self._min_prob = min_prob
 
     def __call__(self, text_box_elements: pd.DataFrame):
         tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")

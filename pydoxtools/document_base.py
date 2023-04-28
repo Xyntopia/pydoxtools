@@ -269,8 +269,13 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         self._cache_hits = 0
         self._x_func_cache: dict[operators.Operator, dict[str, Any]] = {}
 
-    def config(self, **settings: dict[str, Any]):
-        """Set configuration parameters for a pipeline"""
+    def config(self, **settings: dict[str, Any]) -> "Pipeline":
+        """
+        Set configuration parameters for a pipeline
+
+        This function loops through all "operators.Configure" and
+        assigns the configuration from **settings to them.
+        """
         configuration: dict[str, operators.Configuration] = \
             {k: v for k, v in self.x_funcs.items() if isinstance(v, operators.Configuration)}
 

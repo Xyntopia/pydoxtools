@@ -1,7 +1,7 @@
 import functools
 import logging
 import subprocess
-from typing import Optional
+from typing import Optional, Any
 
 import numpy as np
 import spacy
@@ -146,26 +146,18 @@ class TrfContextualVectors:
 
 
 class SpacyOperator(Operator):
-    def __init__(
+    def __call__(
             self,
-            model_size: str = "sm",
-            model_language: str = "auto",
-            spacy_model="xx_ent_wiki_sm"
-    ):
-        """
-        model_size: if model_language=="auto" we also need to set our model_size
-        """
-        # TODO: add a "HuggingfaceExtractor" with similar structure
-        super().__init__()
-        self._spacy_model = spacy_model
-        self._model_size = model_size
-        self._model_language = model_language
-
-    def __call__(self, full_text: str, language: str = "auto") -> spacy.tokens.Doc:
-        if self._model_language == "auto":
-            nlp_modelid = get_spacy_model_id(language, self._model_size)
+            full_text: str,
+            language: str,
+            spacy_model: str,
+            model_size: str
+    ) -> dict[str, Any]:
+        """Load a document using spacy"""
+        if spacy_model == "auto":
+            nlp_modelid = get_spacy_model_id(language, model_size)
         else:
-            nlp_modelid = self._spacy_model
+            nlp_modelid = spacy_model
 
         spacy_nlp = load_cached_spacy_model(nlp_modelid)
         return dict(

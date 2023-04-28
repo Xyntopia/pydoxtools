@@ -92,12 +92,8 @@ class PandocBlocks(pydoxtools.operators.Operator):
 
 
 class PandocConverter(pydoxtools.operators.Operator):
-    def __init__(self, output_format: str = "markdown"):
-        super().__init__()
-        self.output_format = output_format
-
-    def __call__(self, pandoc_document: "pandoc.types.Pandoc") -> str:
-        full_text = pandoc.write(pandoc_document, format=self.output_format)
+    def __call__(self, pandoc_document: "pandoc.types.Pandoc", output_format: str) -> str:
+        full_text = pandoc.write(pandoc_document, output_format)
         return full_text
 
 
@@ -113,14 +109,13 @@ class PandocOperator(pydoxtools.operators.Operator):
     #       now combine consecutive elements into a single list block. Otherwise
     #       we would find every sub-list as a separate entitiy. ...
     # pandoc.types.CodeBlock
-    def __init__(self, method: str, output_format="markdown"):
+    def __init__(self, method: str):
         super().__init__()
         self._method = method
-        self._output_format = output_format
 
     def __call__(self, pandoc_blocks: list["pandoc.types.Block"]) -> str | list[str] | list[pd.DataFrame]:
         if self._method == "headers":
-            headers = [pandoc.write(elt[2], format=self._output_format).strip() for elt in pandoc_blocks
+            headers = [pandoc.write(elt[2], format="markdown").strip() for elt in pandoc_blocks
                        if isinstance(elt, pandoc.types.Header)]
             return headers
         elif self._method == "tables_df":
