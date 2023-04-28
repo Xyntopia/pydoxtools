@@ -112,6 +112,8 @@ def test_table_extraction():
 
 # TODO: test property_dict, yaml & json output
 
+# TODO: add questions on tables using chatgpt
+
 def test_qam_machine():
     doc = Document(
         fobj=make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf")

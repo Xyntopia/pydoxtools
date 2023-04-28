@@ -318,11 +318,13 @@ and put the documentation in there. A Lambda function is not the right tool in t
             ########### QaM machine #############
             # TODO: make sure we can set the model that we want to use dynamically!
             QamExtractor(model_id=settings.PDXT_STANDARD_QAM_MODEL)
-            .pipe(text="full_text").out("answers").cache().config(trf_model_id="qam_model_id"),
+            .pipe("property_dict").out("answers").cache()
+            .config(trf_model_id="qam_model_id"),
 
             ########### Chat AI ##################
             OpenAIChat()
-            .pipe(full_text="full_text").out("chat_answers").cache().config(model_id="chat_model_id"),
+            .pipe("property_dict").out("chat_answers").cache()
+            .config(model_id="openai_chat_model_id"),
         ]
     }
 

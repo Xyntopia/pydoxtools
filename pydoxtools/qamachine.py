@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import logging
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Callable
+import yaml
 
 import torch
 
@@ -106,7 +107,7 @@ def question_text_segment(text, question, tokenizer, model, ans_num=1):
 
 class QamExtractor(Extractor):
     """
-    Question Asnwering Machine Extractor
+    Question Answering Machine Extractor
 
     The Extractor generates a function takes questions and gives back
     answers on the given text.
@@ -116,10 +117,21 @@ class QamExtractor(Extractor):
         super().__init__()
         self._model_id = model_id
 
-    def __call__(self, text: str, trf_model_id: str = None):
+    def __call__(self, property_dict: Callable, trf_model_id: str = None):
         nlpc = QandAmodels(trf_model_id or self._model_id)
 
-        def qa_machine(questions) -> list[list[tuple[str, float]]]:
+        def qa_machine(
+                questions: list[str] | str,
+                props: list[str] | str = "full_text"
+        ) -> list[list[tuple[str, float]]]:
+            # choose the property that we want to ask a question about...
+            if isinstance(props, str):
+                # if we only have a single variable, use the data directly...
+                data = property_dict(props)[props]
+            else:
+                data = property_dict(*props)
+
+            text = yaml.dump(data)
             if isinstance(questions, str):
                 questions = [str]
             allanswers = answer_questions_on_long_text(questions, text, nlpc)
