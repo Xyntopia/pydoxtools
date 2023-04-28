@@ -1,10 +1,11 @@
 from pathlib import Path
 
+import pydoxtools.operators
 from pydoxtools import document_base
 from pydoxtools import file_utils
 
 
-class DirectoryLoader(document_base.Operator):
+class DirectoryLoader(pydoxtools.operators.Operator):
     def __init__(self):
         super().__init__()
 

@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from pydoxtools.document import Document
-from pydoxtools.document_base import OperatorException
+from pydoxtools.operators import OperatorException
 from pydoxtools import settings
 
 logger = logging.getLogger(__name__)
@@ -234,9 +234,9 @@ if __name__ == "__main__":
     # with open("ocrpdf", "wb") as f:
     #    f.write(doc.ocr_pdf_file)
 
-    test_qam_machine()
+    #test_qam_machine()
 
-    if False:
+    if True:
         with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:
             doc_str = file.read()
         doc = Document(

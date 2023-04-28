@@ -1,27 +1,21 @@
-import openai
 from typing import Callable
+
+import openai
 import yaml
 
-from .document_base import Operator
+from .operators import Operator
 from .settings import settings
 
 
 class OpenAIChat(Operator):
-    def __init__(
-            self,
-            # TODO: generalize this in order to support e.g. alpaca
-            # service = "openai"
-            # model = "XXXX"
-    ):
-        """
-        model_size: if model_language=="auto" we also need to set our model_size
+    """
+    Use OpenAIChat on data in our pipeline!
 
-        TODO: add a "HuggingfaceExtractor" with similar structure
+    model_id: if model_language=="auto" we also need to set our model_size
+    """
 
-        """
-        super().__init__()
-
-    def __call__(self, property_dict: Callable, model_id: str = None):
+    # TODO: add a "HuggingfaceExtractor" with similar structure
+    def __call__(self, property_dict: Callable, model_id: str):
         # TODO: move this into a more generic place...
         openai.api_key = settings.OPENAI_API_KEY
 
@@ -45,7 +39,7 @@ class OpenAIChat(Operator):
             # create a completion
             for task in tasks:
                 completion = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
+                    model=model_id,
                     temperature=0.0,
                     messages=[
                         {"role": "system",

@@ -1,22 +1,20 @@
-import abc
 import functools
+import json
 import logging
 import pathlib
-import typing
 import uuid
-from abc import ABC
 from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
 from time import time
 from typing import List, Any
-import yaml
-import json
 
 import networkx as nx
 import numpy as np
 import spacy.tokens
+import yaml
 
+from . import operators
 from .list_utils import deep_str_convert
 
 logger = logging.getLogger(__name__)
@@ -82,198 +80,7 @@ class TokenCollection:
         return "|".join(t.text for t in self._tokens)
 
 
-class OperatorException(Exception):
-    pass
-
-
 # TODO: rename into "Operator"
-class Operator(ABC):
-    """
-    Base class to build extraction logic for information extraction from
-    unstructured documents and loading files
-
-    Extractors should always be stateless! This means one should not save
-    any variables in them that persist over the lifecycle over a single extraction
-    operation.
-
-    - Extractors can be "hooked" into the document pipeline by using:
-        pipe, out and cache calls.
-    - all parameters given in "out" can be accessed through the "x" property
-      (e.g. doc.x("extraction_parameter"))
-
-    dynamic configuration of an extractor parameters can be configured through
-    "config" function which will indicate to the parent document class
-    to set some input parameters to this function manually.
-    If the same parameters are also set in doc.pipe the parameters are
-    optional and will only be taken if explicitly set through doc.config(...).
-
-        doc.dynamic()
-
-    This function can be accessed through:
-
-        doc.config(my_dynamic_parameter="some_new_value")
-
-    """
-
-    # TODO:  how can we anhance the type checking for outputs?
-    #        maybe turn this into a dataclass?
-
-    def __init__(self):
-        # try to keep __init__ with no arguments for Operator..
-        self._in_mapping: dict[str, str] = {}
-        self._out_mapping: dict[str, str] = {}
-        self._cache = False  # TODO: switch to "True" by default
-        self._dynamic_config: dict[str, str] = {}
-        self._interactive = False
-
-    @abc.abstractmethod
-    def __call__(self, *args, **kwargs) -> dict[str, typing.Any] | Any:
-        pass
-
-    def _mapped_call(
-            self, parent_document: "Pipeline",
-            *args,
-            config_params: dict[str, Any] = None,
-            **kwargs
-    ) -> dict[
-        str, typing.Any]:
-        """
-        map objects from document properties to
-        processing function.
-
-        essentially, This maps the outputs from one element of _extractors
-        to the inputs of another and also makes sure
-        to override certain parameters that were specified in
-        a config when calling the document class.
-
-        argument precedence is as follows:
-
-        python-class-member < extractor-graph-function < config
-
-        # TODO: maybe we should change precedence and make config the lowest?
-        """
-        mapped_kwargs = {}
-        # get all required input parameters from _in_mapping which was declared with "pipe"
-        for k, v in self._in_mapping.items():
-            # first check if parameter is available as an extractor
-            if v in parent_document.x_funcs:
-                # then call the function to get the value
-                mapped_kwargs[k] = parent_document.x(v)
-            else:
-                # get "native" member-variables or other functions
-                # if not found an extractor with that name
-                mapped_kwargs[k] = getattr(parent_document, v)
-
-        # get potential overriding parameters to override function call from _dynamic_config
-        if config_params:
-            override_parameters = {self._dynamic_config[k]: v for k, v in config_params.items()}
-            mapped_kwargs.update(override_parameters)
-
-        # override graph args directly with function call params...
-        mapped_kwargs.update(kwargs)
-        output = self(*args, **mapped_kwargs)
-        if isinstance(output, dict):
-            return {self._out_mapping[k]: v for k, v in output.items() if k in self._out_mapping}
-        else:
-            # use first key of out_mapping for output if
-            # we only have a single return value
-            return {next(iter(self._out_mapping)): output}
-
-    def config(self, *args, **kwargs):
-        # TODO: list mandatory configuration arguments!
-        # TODO: check for mandatory configuration arguments during pipeline instantiation
-        """
-        Function is used to declare parameters of the extractor "configurable".
-        This means on instantiation of a pipeline, this parameter can be changed.
-
-        If the parameter of the extractor is:
-
-            - not connected using the "pipe" argument
-            - or does not have a "default" value set in the python function
-              parameters
-
-        it HAS to to be specified using the config argumetn during pipeline instantiation
-
-        The Question & Answering part of the pydoxtools.Document class
-        was specified with this config function like this:
-
-            QamExtractor(model_id=settings.PDXT_STANDARD_QAM_MODEL)
-                .pipe(text="full_text").out("answers").cache().config(trf_model_id="qam_model_id"),
-
-        In this case, when calling a document we can dynamically configure the
-        pipeline with the "qam_model_id" parameter:
-
-            doc = Document(
-                fobj=doc_str, document_type=".pdf"
-            ).config(dict(qam_model_id='deepset/roberta-base-squad2'))
-
-        This function gets called during pipeline definition in a document class
-        in order to make some extractor arguments dynamic and changeable.
-
-        The configured parameters for the pipeline will get sent to the extractor
-        function on every call (xecept if its cached).
-
-        Essentially it works similar to functools.partial.
-
-        *args and **kwargs specify which function calls should be called from
-        a config file.
-
-        e.g. calling:
-
-            EXTRACTOR.config(trf_model_id="qam_model_id")
-
-        means, that the parameter "trf_model_id" can be specified by initializing the document
-        class with a config parameter "qam_model_id" which then gets mapped to the
-        function parameter "trf_model_id".
-
-        "document(..., config=dict(trf_model_id='distilbert-base-cased-distilled-squad'))
-
-        This function call can still be overwritten
-        by calling the function through "x" directly using *args or **kwargs.
-
-        The reason Extractors can be configured this way is, that the Extractors
-        will already be initialized on Class definition in the MetaPipelineClassConfiguration
-        for efficiency reasons. But we would also like to have an easy way to set
-        certain paramaters on Instantiation of a pipeline. This can be done through this config
-        function.
-        """
-        self._dynamic_config = {v: k for k, v in kwargs.items()}
-        self._dynamic_config.update({k: k for k in args})
-
-        return self
-
-    def pipe(self, *args, **kwargs):
-        """
-        configure input parameter mappings to this function
-
-        keys: are the actual function parameters of the extractor function
-        values: are the outside function names
-
-        """
-        self._in_mapping = kwargs
-        self._in_mapping.update({k: k for k in args})
-        return self
-
-    def out(self, *args, **kwargs):
-        """
-        configure output parameter mappings to this function
-
-        keys: are the
-        """
-        # TODO: rename to "name" because this actually represents the
-        #       variable names of the extractor?
-        self._out_mapping = kwargs
-        self._out_mapping.update({k: k for k in args})
-        return self
-
-    def cache(self):
-        """indicate to document that we want this extractor function to be cached"""
-        self._cache = True
-        return self
-
-    def no_cache(self):
-        self._cache = False
-        return self
 
 
 class ConfigurationError(Exception):
@@ -328,10 +135,10 @@ class MetaPipelineClassConfiguration(type):
                 # to "*.pdf" and other document logic if we use the already calculated _x_funcs this
                 # would not be guaranteed.
 
-                uncombined_extractors: dict[str, dict[str, Operator]] = {}
+                uncombined_extractors: dict[str, dict[str, operators.Operator]] = {}
                 extractor_combinations: dict[str, list[str]] = {}  # record the extraction hierarchy
                 uncombined_x_configs: dict[str, dict[str, list[str]]] = {}
-                ex: Operator | str
+                ex: operators.Operator | str
                 # loop through class hierarchy in order to get the logic of parent classes as well,
                 # including the newly defined class
                 for cl in reversed(class_hierarchy):
@@ -428,6 +235,12 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
 
     This class also defines a basic extraction schema which derived
     classes can override
+
+    in order to create a new pipeline, the
+    _extractor variable shoud be overwritten with a pipeline definition
+
+    this pipeline will get compiled in a function mappint defined in
+    _x_funcs
     """
 
     # TODO: use pandera (https://github.com/unionai-oss/pandera)
@@ -444,24 +257,35 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
 
     # stores the extraction graph, a collection of connected functions
     # which extract data from a document
-    _extractors: dict[str, list[Operator]] = {}
+    # TODO: rename into pipeline
+    _extractors: dict[str, list[operators.Operator]] = {}
 
     # a dict which provides access for all extractor functions by their "out-key"
     # which was defined in _extractors
-    _x_funcs: dict[str, dict[str, Operator]] = {}
-
-    # dict which stores function configurations
-    _x_config: dict[str, dict[str, dict[str, Any]]] = {}
+    # TODO: rename into operators
+    _x_funcs: dict[str, dict[str, operators.Operator]] = {}
 
     def __init__(self):
         self._cache_hits = 0
-        self._x_func_cache: dict[Operator, dict[str, Any]] = {}
-        self._config = {}
+        self._x_func_cache: dict[operators.Operator, dict[str, Any]] = {}
 
     def config(self, **kwargs):
         """Set a standard configuration for a pipeline"""
         self._config = kwargs
         return self
+
+    @property
+    def configuration(self):
+        """
+        Get all configuration objects of our pipeline and merge them into a
+        dict.
+        """
+        configuration: dict[str, operators.Configuration] = \
+            {k: v for k, v in self.x_funcs.items() if isinstance(v, operators.Configuration)}
+        configuration_map = {}
+        for c in configuration:
+            configuration_map.update(**configuration[c]._configuration_map)
+        return configuration
 
     @cached_property
     def pipeline_chooser(self) -> str:
@@ -470,7 +294,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         raise NotImplementedError("derived pipelines need to override this function!")
 
     @cached_property
-    def x_funcs(self) -> dict[str, Operator]:
+    def x_funcs(self) -> dict[str, operators.Operator]:
         """
         get all extractors and their property names for this specific file type
         """
@@ -505,20 +329,9 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         out = json.dumps(out)
         return out
 
-    def non_interactive_x_funcs(self) -> dict[str, Operator]:
+    def non_interactive_x_funcs(self) -> dict[str, operators.Operator]:
         """return all non-interactive extractors"""
         return {k: v for k, v in self.x_funcs.items() if (not v._interactive)}
-
-    def x_config_params(self, extract_name: str):
-        # TODO: can we cache this somehow? Or re-calculate it when calling "config"?
-        # get our required config parameters specifically for the function specified by "extract_name"
-        config = self._x_config[self.pipeline_chooser].get(extract_name, {})
-        config_params = {}
-        for config_key in config:
-            if config_key in self._config:
-                v = self._config.get(config_key)
-                config_params[config_key] = v
-        return config_params
 
     def x(self, extract_name: str, *args, **kwargs):
         """
@@ -537,19 +350,17 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
                 if (res := self._x_func_cache.get(key, None)) is not None:
                     self._cache_hits += 1
                 else:
-                    params = self.x_config_params(extract_name)
-                    res = extractor_func._mapped_call(self, *args, config_params=params, **kwargs)
+                    res = extractor_func._mapped_call(self, *args, **kwargs)
                     self._x_func_cache[key] = res
             else:
-                params = self.x_config_params(extract_name)
-                res = extractor_func._mapped_call(self, config_params=params, *args, **kwargs)
+                res = extractor_func._mapped_call(self, *args, **kwargs)
 
-        except OperatorException as e:
+        except operators.OperatorException as e:
             logger.error(f"Extraction error in '{extract_name}': {e}")
             raise e
         except Exception as e:
             logger.error(f"Extraction error in '{extract_name}': {e}")
-            raise OperatorException(f"could not get {extract_name} for {self}")
+            raise operators.OperatorException(f"could not get {extract_name} for {self}")
             # raise e
 
         return res[extract_name]

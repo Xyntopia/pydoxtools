@@ -8,7 +8,8 @@ import spacy
 from spacy import Language
 from spacy.tokens import Doc, Token, Span
 
-from .document_base import Operator, TokenCollection
+from .document_base import TokenCollection
+from .operators import Operator
 
 logger = logging.getLogger(__name__)
 

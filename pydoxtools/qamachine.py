@@ -6,7 +6,7 @@ import yaml
 
 import torch
 
-from pydoxtools.document_base import Operator
+from pydoxtools.operators import Operator
 from pydoxtools.nlp_utils import tokenize_windows, QandAmodels
 
 logger = logging.getLogger(__name__)
@@ -112,13 +112,8 @@ class QamExtractor(Operator):
     The Operator generates a function takes questions and gives back
     answers on the given text.
 """
-
-    def __init__(self, model_id: str):
-        super().__init__()
-        self._model_id = model_id
-
     def __call__(self, property_dict: Callable, trf_model_id: str = None):
-        nlpc = QandAmodels(trf_model_id or self._model_id)
+        nlpc = QandAmodels(trf_model_id)
 
         def qa_machine(
                 questions: list[str] | str,

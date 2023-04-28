@@ -29,6 +29,7 @@ from pdfminer.layout import LTTextContainer
 from pdfminer.pdfinterp import resolve1
 from pdfminer.pdfparser import PDFParser
 
+import pydoxtools.operators
 from pydoxtools import document_base, list_utils
 
 logger = logging.getLogger(__name__)
@@ -151,7 +152,7 @@ def meta_infos(f: io.IOBase):
     return res
 
 
-class PDFFileLoader(document_base.Operator):
+class PDFFileLoader(pydoxtools.operators.Operator):
     """
     Loads a pdf file and can extract all kinds of information from it.
 

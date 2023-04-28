@@ -4,7 +4,7 @@ import langdetect
 import pandas as pd
 from transformers import AutoModelForSequenceClassification, pipeline, AutoTokenizer
 
-from pydoxtools.document_base import Operator
+from pydoxtools.operators import Operator
 from pydoxtools.settings import settings
 
 logger = logging.getLogger(__name__)

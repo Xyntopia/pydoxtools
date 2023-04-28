@@ -2,10 +2,11 @@ import pathlib
 import typing
 from pathlib import Path
 
+import pydoxtools.operators
 from pydoxtools import document_base
 
 
-class FileLoader(document_base.Operator):
+class FileLoader(pydoxtools.operators.Operator):
     def __init__(self):
         super().__init__()
 

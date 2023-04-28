@@ -15,7 +15,7 @@ from .extract_files import FileLoader
 from .extract_html import HtmlExtractor
 from .extract_index import IndexExtractor, KnnQuery, \
     SimilarityGraph, ExtractKeywords, TextPieceSplitter
-from .extract_logic import Alias, Constant, \
+from .operators import Alias, Constant, \
     LambdaOperator, ElementWiseOperator, Configuration
 from .extract_nlpchat import OpenAIChat
 from .extract_objects import EntityExtractor
@@ -29,7 +29,6 @@ from .list_utils import flatten
 from .nlp_utils import calculate_string_embeddings
 from .pdf_utils import PDFFileLoader
 from .qamachine import QamExtractor
-from .settings import settings
 
 
 def is_url(url):
@@ -110,14 +109,13 @@ Example extension pipeline for an OCR extractor which converts images into text
     # the "*" gets overwritten by functions above
     "*": [...]
 
-Each function (or node) in the extraction pipeline gets fed its input-parameters
-by the "pipe" command. These parameters can be configured on document creation
-if some of them are declared using the "config" command.
+Each function (or node) in the extraction pipeline gets connected to other nodes in the pipeline
+by the "pipe" command.
 
 These arguments can be overwritten by a new pipeline in inherited documents or document types
 that are higher up in the hierarchy. The argument precedence is hereby as follows::
 
-    python-class-member < extractor-graph-function < config
+    python-class-member < extractor-graph-function < configuration
 
 when creating a new pipeline for documentation purposes a general rule is:
 if the operation is too complicated to be self-describing, then use a function or class
@@ -213,11 +211,10 @@ and put the documentation in there. A Lambda function is not the right tool in t
             # add a "base-document" type (.pdf) images get converted into pdfs
             # and then further processed from there
             ".pdf",  # as we are extracting a pdf we would like to use the pdf functions...
+            Configuration(ocr_lang="auto", ocr_on=True),
             OCRExtractor()
             .pipe(file="raw_content")
-            .out("ocr_pdf_file")
-            .config("ocr_lang", ocr_on="ocr_on")
-            .cache(),
+            .out("ocr_pdf_file", "ocr_on", "ocr_lang"),
             # we need to do overwrite the pdf loading for images we inherited from
             # the ".pdf" logic as we are
             # now taking the pdf from a different variable
@@ -333,14 +330,14 @@ and put the documentation in there. A Lambda function is not the right tool in t
 
             ########### QaM machine #############
             # TODO: make sure we can set the model that we want to use dynamically!
-            QamExtractor(model_id=settings.PDXT_STANDARD_QAM_MODEL)
-            .pipe("property_dict").out("answers").cache()
-            .config(trf_model_id="qam_model_id"),
+            Configuration(qam_model_id='deepset/minilm-uncased-squad2'),
+            QamExtractor()
+            .pipe("property_dict", trf_model_id="qam_model_id").out("answers").cache(),
 
             ########### Chat AI ##################
-            OpenAIChat()
-            .pipe("property_dict").out("chat_answers").cache()
-            .config(model_id="openai_chat_model_id"),
+            Configuration(openai_chat_model_id="gpt-3.5-turbo"),
+            OpenAIChat().pipe("property_dict", model_id="openai_chat_model_id")
+            .out("chat_answers").cache()
         ]
     }
 
@@ -364,7 +361,6 @@ and put the documentation in there. A Lambda function is not the right tool in t
         source: Where does the extracted data come from? (Examples: URL, 'pdfupload', parent-URL, or a path)"
         page_numbers: list of the specific pages that we would like to extract (for example in a pdf)
         max_pages: maximum number of pages that we want to extract in order to protect resources
-        config: a dict which describes values for variables in the document logic
         mime_type: optional mimetype for the document
         filename: optional filename. Helps sometimes helps in determining the purpose of a document
         document_type: directly specify the document type which specifies the extraction

@@ -7,7 +7,7 @@ from PIL import Image
 from pdfminer.high_level import extract_text
 
 from pydoxtools import ocr_language_mappings
-from pydoxtools.document_base import Operator
+from pydoxtools.operators import Operator
 
 logger = logging.getLogger(__name__)
 
