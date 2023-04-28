@@ -269,9 +269,14 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         self._cache_hits = 0
         self._x_func_cache: dict[operators.Operator, dict[str, Any]] = {}
 
-    def config(self, **kwargs):
-        """Set a standard configuration for a pipeline"""
-        self._config = kwargs
+    def config(self, **settings: dict[str, Any]):
+        """Set configuration parameters for a pipeline"""
+        configuration: dict[str, operators.Configuration] = \
+            {k: v for k, v in self.x_funcs.items() if isinstance(v, operators.Configuration)}
+
+        for k, v in settings.items():
+            configuration[k]._configuration_map[k] = v
+
         return self
 
     @property
@@ -284,8 +289,8 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
             {k: v for k, v in self.x_funcs.items() if isinstance(v, operators.Configuration)}
         configuration_map = {}
         for c in configuration:
-            configuration_map.update(**configuration[c]._configuration_map)
-        return configuration
+            configuration_map.update(**(configuration[c]._configuration_map))
+        return configuration_map
 
     @cached_property
     def pipeline_chooser(self) -> str:
