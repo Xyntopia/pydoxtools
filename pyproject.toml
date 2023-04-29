@@ -48,6 +48,7 @@ pandoc = { version = "^2.3", optional = true }
 packaging = "^23.0"
 torch = { version = ">=1.12.1", optional = true }
 pytesseract = {version = "^0.3.10", optional = true}
+pyyaml = "^6.0"
 
 [tool.poetry.extras]
 # extraction-transformation-load facilities
