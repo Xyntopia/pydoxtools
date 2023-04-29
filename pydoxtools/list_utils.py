@@ -11,6 +11,7 @@ import datetime
 import logging
 import math
 import numbers
+from collections.abc import Iterable
 from itertools import groupby
 from operator import itemgetter
 from typing import List, Tuple, Any, Dict
@@ -18,6 +19,22 @@ from typing import List, Tuple, Any, Dict
 import pandas as pd
 
 logger = logging.getLogger(__name__)
+
+
+def iterablefyer(property):
+    """
+    This function turns everything into an iterable
+    if somthing is a string, it will be turned into list[str]
+    if something is already a list it will stay the same way
+    """
+
+    # TODO: we need to define more special cases here...
+    if isinstance(property, (str, bytes)):
+        return [property]
+    elif isinstance(property, Iterable):
+        return property
+    else:
+        return [property]
 
 
 def isnan(val):

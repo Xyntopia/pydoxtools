@@ -3,12 +3,12 @@
 import functools
 import logging
 from typing import Dict, List, Tuple, Callable
-import yaml
 
 import torch
 
-from pydoxtools.operators import Operator
+from pydoxtools.list_utils import iterablefyer
 from pydoxtools.nlp_utils import tokenize_windows, QandAmodels
+from pydoxtools.operators import Operator
 
 logger = logging.getLogger(__name__)
 
@@ -113,6 +113,7 @@ class QamExtractor(Operator):
     The Operator generates a function takes questions and gives back
     answers on the given text.
 """
+
     def __call__(self, property_dict: Callable, trf_model_id: str = None):
         nlpc = QandAmodels(trf_model_id)
 
@@ -128,9 +129,9 @@ class QamExtractor(Operator):
             else:
                 data = property_dict(*props)
 
-            text = yaml.dump(data)
-            if isinstance(questions, str):
-                questions = [str]
+            # TODO: sort answers regarding threshold
+            text = str(data)
+            questions = iterablefyer(questions)
             allanswers = answer_questions_on_long_text(questions, text, nlpc)
             answers = list(allanswers.values())
             return answers
