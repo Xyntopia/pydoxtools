@@ -24,10 +24,9 @@ from .extract_spacy import SpacyOperator, extract_spacy_token_vecs, get_spacy_em
 from .extract_tables import ListExtractor, TableCandidateAreasExtractor
 from .extract_textstructure import DocumentElementFilter, TextBoxElementExtractor, TitleExtractor
 from .html_utils import get_text_only_blocks
-from .list_utils import flatten, flatten_dict
+from .list_utils import flatten, flatten_dict, deep_str_convert
 from .nlp_utils import calculate_string_embeddings
-from .operators import Alias, Constant, \
-    LambdaOperator, ElementWiseOperator, Configuration
+from .operators import Alias, LambdaOperator, ElementWiseOperator, Configuration
 from .pdf_utils import PDFFileLoader
 from .qamachine import QamExtractor
 
@@ -184,7 +183,11 @@ and put the documentation in there. A Lambda function is not the right tool in t
             LambdaOperator(lambda t, s: [t, s])
             .pipe(t="title", s="short_title").out("titles").cache(),
             LambdaOperator(lambda x: set(w.strip() for w in x.split(",")))
-            .pipe(x="html_keywords_str").out("html_keywords"),  # todo add a generic keywords extraction here
+            .pipe(x="html_keywords_str").out("html_keywords"),
+
+            ########### AGGREGATION ##############
+            LambdaOperator(lambda **kwargs: set(flatten(kwargs.values())))
+            .pipe("html_keywords", "textrank_keywords").out("keywords").cache(),
         ],
         ".docx": ["pandoc"],
         ".odt": ["pandoc"],
@@ -233,15 +236,22 @@ and put the documentation in there. A Lambda function is not the right tool in t
         ".tif": ["image", ".pdf"],
         ".tiff": ["image", ".pdf"],
         ".yaml": [
+            "dict",
+            Alias(full_text="raw_content"),
             LambdaOperator(lambda x: dict(data=yaml.unsafe_load(x)))
-            .pipe(x="full_text").out("data").cache(),
-            LambdaOperator(lambda x: [str(k)+": "+str(v) for k,v in flatten_dict(a.data).items()])
-            .pipe(x="data").out("text_box_elements").cache(),
-            Alias(text_box_list="text_box_elements"),
-            Alias(text_segments="text_box_elements")
-            # TODO: what do we do if we want to pass around dicts???
+            .pipe(x="full_text").out("data").cache()
             # TODO: we might need to have a special "result" message, that we
             #       pass around....
+        ],
+        "dict": [  # pipeline to handle data based documents
+            Alias(raw_content="_fobj"),
+            Alias(data="raw_content"),
+            LambdaOperator(lambda x: yaml.dump(deep_str_convert(x)))
+            .pipe("data").out("full_text"),
+            LambdaOperator(lambda x: [str(k) + ": " + str(v) for k, v in flatten_dict(a.data).items()])
+            .pipe(x="data").out("text_box_elements").cache(),
+            Alias(text_box_list="text_box_elements"),
+            Alias(text_segments="text_box_elements"),
         ],
         # TODO: json, csv etc...
         "*": [
@@ -292,9 +302,8 @@ and put the documentation in there. A Lambda function is not the right tool in t
             EntityExtractor().cache()
             .pipe("spacy_doc").out("entities"),
             # TODO: try to implement as much as possible from the constants below for all documentypes
-            # TODO: implement an automatic summarizer based on textrank...
-            Constant(summary="unknown", urls=[], main_image=None, html_keywords=[],
-                     final_urls=[], pdf_links=[], schemadata={}, tables_df=[]),
+            #       summary, urls, main_image, keywords, final_url, pdf_links, schemadata, tables_df
+            # TODO: implement summarizer based on textrank
             Alias(url="source"),
 
             ########### VECTORIZATION ##########
@@ -342,9 +351,7 @@ and put the documentation in there. A Lambda function is not the right tool in t
             .pipe(top_k="top_k_text_rank_keywords", G="noun_graph").out("textrank_keywords").cache(),
             ########### END NOUN_INDEX ###########
 
-            ########### AGGREGATION ##############
-            LambdaOperator(lambda **kwargs: set(flatten(kwargs.values())))
-            .pipe("html_keywords", "textrank_keywords").out("keywords").cache(),
+            Alias(keywords="textrank_keywords"),
 
             ########### QaM machine #############
             # TODO: make sure we can set the model that we want to use dynamically!

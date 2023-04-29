@@ -110,6 +110,7 @@ def test_table_extraction():
 
     # TODO: add test to automatically recognize correct document
 
+
 # TODO: test configuration of our class with dedicated Configuration Operators
 
 # TODO: test property_dict, yaml & json output
@@ -192,6 +193,8 @@ def test_pipeline_graph():
                        document_logic_id=".png")
     doc.pipeline_graph(image_path=settings._PYDOXTOOLS_DIR / "docs/images/document_logic_yaml.svg",
                        document_logic_id=".yaml")
+    doc.pipeline_graph(image_path=settings._PYDOXTOOLS_DIR / "docs/images/document_logic_dict.svg",
+                       document_logic_id="dict")
 
 
 def test_pipeline_configuration():
@@ -231,14 +234,34 @@ def test_ocr_and_exceptions():
     doc.full_text
 
 
+# TODO: add tests for dict & yaml
+
 if __name__ == "__main__":
     # test if we can actually open the pdf...
     # with open("ocrpdf", "wb") as f:
     #    f.write(doc.ocr_pdf_file)
 
-    #test_qam_machine()
+    # test_qam_machine()
 
     test_pipeline_graph()
+
+    # document chaining
+    doc = Document(fobj=Path("../README.md"))
+    doc.property_dict(
+        "document_type",
+        "num_words",
+        "language",
+        "entities",
+        "keywords"
+    )
+    a = Document(doc.yaml(
+        "document_type",
+        "num_words",
+        "language",
+        "entities",
+        "keywords"
+    ), document_type=".yaml")
+    d = Document(a.data, document_type="dict")
 
     if False:
         with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:
