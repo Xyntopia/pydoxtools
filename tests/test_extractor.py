@@ -190,6 +190,8 @@ def test_pipeline_graph():
     doc.pipeline_graph(image_path=settings._PYDOXTOOLS_DIR / "docs/images/document_logic_docx.svg")
     doc.pipeline_graph(image_path=settings._PYDOXTOOLS_DIR / "docs/images/document_logic_png.svg",
                        document_logic_id=".png")
+    doc.pipeline_graph(image_path=settings._PYDOXTOOLS_DIR / "docs/images/document_logic_yaml.svg",
+                       document_logic_id=".yaml")
 
 
 def test_pipeline_configuration():
