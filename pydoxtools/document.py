@@ -8,6 +8,7 @@ import langdetect
 import numpy as np
 import pandas as pd
 import requests
+import yaml
 
 from .document_base import Pipeline, ElementType
 from .extract_classes import LanguageExtractor, TextBlockClassifier
@@ -231,6 +232,16 @@ and put the documentation in there. A Lambda function is not the right tool in t
         ".jpg": ["image", ".pdf"],
         ".tif": ["image", ".pdf"],
         ".tiff": ["image", ".pdf"],
+        ".yaml": [
+            LambdaOperator(lambda x: dict(data=yaml.unsafe_load(x)))
+            .pipe(x="full_text").out("data").cache(),
+            LambdaOperator(lambda x: flatten(x))
+            .pipe(x="data").out("text_box_elements").cache()
+            # TODO: what do we do if we want to pass around dicts???
+            # TODO: we might need to have a special "result" message, that we
+            #       pass around....
+        ],
+        # TODO: json, csv etc...
         "*": [
             # Loading text files
             FileLoader()
