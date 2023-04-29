@@ -18,7 +18,7 @@ def answer_questions_on_long_text(questions, text, nlp_context) -> Dict[str, Lis
     for q in questions:
         answers = long_text_question(
             q, text, nlp_context.tokenizer, nlp_context.model)
-        all_answers[q] = answers
+        all_answers[q] = sorted(answers, key=lambda x: -x[1])
 
     return all_answers
 
