@@ -24,7 +24,7 @@ from .extract_spacy import SpacyOperator, extract_spacy_token_vecs, get_spacy_em
 from .extract_tables import ListExtractor, TableCandidateAreasExtractor
 from .extract_textstructure import DocumentElementFilter, TextBoxElementExtractor, TitleExtractor
 from .html_utils import get_text_only_blocks
-from .list_utils import flatten
+from .list_utils import flatten, flatten_dict
 from .nlp_utils import calculate_string_embeddings
 from .operators import Alias, Constant, \
     LambdaOperator, ElementWiseOperator, Configuration
@@ -235,8 +235,10 @@ and put the documentation in there. A Lambda function is not the right tool in t
         ".yaml": [
             LambdaOperator(lambda x: dict(data=yaml.unsafe_load(x)))
             .pipe(x="full_text").out("data").cache(),
-            LambdaOperator(lambda x: flatten(x))
-            .pipe(x="data").out("text_box_elements").cache()
+            LambdaOperator(lambda x: [str(k)+": "+str(v) for k,v in flatten_dict(a.data).items()])
+            .pipe(x="data").out("text_box_elements").cache(),
+            Alias(text_box_list="text_box_elements"),
+            Alias(text_segments="text_box_elements")
             # TODO: what do we do if we want to pass around dicts???
             # TODO: we might need to have a special "result" message, that we
             #       pass around....

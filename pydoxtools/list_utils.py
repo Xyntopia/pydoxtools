@@ -11,7 +11,7 @@ import datetime
 import logging
 import math
 import numbers
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, MutableMapping
 from itertools import groupby
 from operator import itemgetter
 from typing import List, Tuple, Any, Dict
@@ -89,6 +89,39 @@ def flatten(
 
 def flatten_unique(x):
     return set(flatten(x))
+
+
+def flatten_dict(
+        dct: Dict[str, Any],
+        prefix: str = '',
+        separator: str = '.'
+) -> Dict[str, Any]:
+    """
+    Flattens a nested dictionary structure into a single-level dictionary.
+
+    This function recursively traverses through the input dictionary structure and creates new keys
+    for nested dictionaries using dot notation. The traversal stops at the specified maximum depth.
+
+    Args:
+        dct (Dict[str, Any]): The input dictionary structure to be flattened.
+        prefix (str, optional): The prefix for the current level's keys. Defaults to ''.
+        separator (str, optional): The separator to use between nested keys. Defaults to '.'.
+
+    Returns:
+        Dict[str, Any]: A dictionary with the flattened structure from the input nested dictionary.
+
+    Example:
+        >>> flatten_dict({'a': {'b': {'c': 1}}, 'd': 2})
+        {'a.b.c': 1, 'd': 2}
+    """
+    result = {}
+    for key, value in dct.items():
+        new_key = f"{prefix}{separator}{key}" if prefix else key
+        if isinstance(value, MutableMapping):
+            result.update(flatten_dict(value, prefix=new_key, separator=separator))
+        else:
+            result[new_key] = value
+    return result
 
 
 def deep_str_convert(obj: Any) -> Any:
