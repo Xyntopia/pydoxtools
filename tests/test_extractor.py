@@ -244,7 +244,7 @@ if __name__ == "__main__":
     test_pipeline_graph()
 
     # document chaining
-    doc = Document(fobj=Path("../README.md"))
+    doc = Document(fobj=Path("../README.md")).config(spacy_model_size='trf')
     doc.property_dict(
         "document_type",
         "num_words",
@@ -252,6 +252,8 @@ if __name__ == "__main__":
         "entities",
         "keywords"
     )
+    doc.textrank_sents
+    doc.keywords
     a = Document(doc.yaml(
         "document_type",
         "num_words",

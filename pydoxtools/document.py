@@ -15,7 +15,7 @@ from .extract_classes import LanguageExtractor, TextBlockClassifier
 from .extract_files import FileLoader
 from .extract_html import HtmlExtractor
 from .extract_index import IndexExtractor, KnnQuery, \
-    SimilarityGraph, ExtractKeywords, TextPieceSplitter
+    SimilarityGraph, TextrankOperator, TextPieceSplitter
 from .extract_nlpchat import OpenAIChat
 from .extract_objects import EntityExtractor
 from .extract_ocr import OCRExtractor
@@ -351,11 +351,25 @@ and put the documentation in there. A Lambda function is not the right tool in t
             SimilarityGraph().pipe(index_query_func="noun_query", source="noun_chunks")
             .out("noun_graph").cache(),
             Configuration(top_k_text_rank_keywords=5),
-            ExtractKeywords()
+            TextrankOperator()
             .pipe(top_k="top_k_text_rank_keywords", G="noun_graph").out("textrank_keywords").cache(),
+            # TODO: we will probably get better keywords if we first get the most important sentences or
+            #       a summary and then exract keywords from there :).
+            Alias(keywords="textrank_keywords"),
             ########### END NOUN_INDEX ###########
 
-            Alias(keywords="textrank_keywords"),
+            ########### SENTENCE_INDEX ###########
+            IndexExtractor()
+            .pipe(vecs="sent_vecs", ids="sent_ids").out("sent_index").cache(),
+            LambdaOperator(lambda spacy_nlp: lambda x: spacy_nlp(x).vector)
+            .pipe("spacy_nlp").out("vectorizer").cache(),
+            KnnQuery().pipe(index="sent_index", idx_values="spacy_sents", vectorizer="vectorizer")
+            .out("sent_query").cache(),
+            SimilarityGraph().pipe(index_query_func="sent_query", source="spacy_sents")
+            .out("sent_graph").cache(),
+            Configuration(top_k_text_rank_sentences=5),
+            TextrankOperator()
+            .pipe(top_k="top_k_text_rank_sentences", G="sent_graph").out("textrank_sents").cache(),
 
             ########### QaM machine #############
             # TODO: make sure we can set the model that we want to use dynamically!

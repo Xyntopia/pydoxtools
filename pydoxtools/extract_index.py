@@ -180,9 +180,11 @@ class SimilarityGraph(Operator):
         return G
 
 
-class ExtractKeywords(Operator):
+class TextrankOperator(Operator):
     def __call__(self, G: nx.Graph, top_k: int) -> set[str]:
         """extract keywords by textrank from a similarity graph of a spacy document"""
-        keywords = ((G.nodes[i]["label"], score) for i, score in nx.pagerank(G, weight='weight').items())
-        top_kw = sorted(keywords, key=lambda x: x[1], reverse=True)[:top_k]
-        return set(kw[0] for kw in top_kw)
+        nodes = ((G.nodes[i]["label"], score) for i, score in nx.pagerank(G, weight='weight').items())
+        top_nodes = sorted(nodes, key=lambda x: x[1], reverse=True)[:top_k]
+        seen = set()  # use set to remove duplicates
+        seen_add = seen.add
+        return [x[0] for x in top_nodes if not (x in seen or seen_add(x))]
