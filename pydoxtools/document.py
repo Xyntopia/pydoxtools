@@ -26,7 +26,7 @@ from .extract_textstructure import DocumentElementFilter, TextBoxElementExtracto
 from .html_utils import get_text_only_blocks
 from .list_utils import flatten, flatten_dict, deep_str_convert
 from .nlp_utils import calculate_string_embeddings
-from .operators import Alias, LambdaOperator, ElementWiseOperator, Configuration
+from .operators import Alias, LambdaOperator, ElementWiseOperator, Configuration, Constant
 from .pdf_utils import PDFFileLoader
 from .qamachine import QamExtractor
 
@@ -254,6 +254,7 @@ and put the documentation in there. A Lambda function is not the right tool in t
             Alias(text_segments="text_box_elements"),
         ],
         # TODO: json, csv etc...
+        # TODO: pptx, odp etc...
         "*": [
             # Loading text files
             FileLoader()
@@ -266,6 +267,9 @@ and put the documentation in there. A Lambda function is not the right tool in t
             .pipe(x="full_text").out("text_box_elements").cache(),
             LambdaOperator(lambda df: df.get("text", None).to_list())
             .pipe(df="text_box_elements").out("text_box_list").cache(),
+            # TODO: replace this with a real, generic table detection
+            #       e.g. running the text through pandoc or scan for html tables
+            Constant(tables_df=[]),
             LambdaOperator(lambda tables_df: [df.to_dict('index') for df in tables_df]).cache()
             .pipe("tables_df").out("tables_dict"),
             Alias(tables="tables_dict"),

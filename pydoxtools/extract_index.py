@@ -6,8 +6,8 @@ import networkx as nx
 import numpy as np
 
 from pydoxtools.document_base import TokenCollection
-from pydoxtools.operators import Operator
 from pydoxtools.nlp_utils import calculate_string_embeddings
+from pydoxtools.operators import Operator
 
 logger = logging.getLogger(__name__)
 
@@ -181,8 +181,8 @@ class SimilarityGraph(Operator):
 
 
 class ExtractKeywords(Operator):
-    def __call__(self, G: nx.Graph, top_k: int):
+    def __call__(self, G: nx.Graph, top_k: int) -> set[str]:
         """extract keywords by textrank from a similarity graph of a spacy document"""
         keywords = ((G.nodes[i]["label"], score) for i, score in nx.pagerank(G, weight='weight').items())
         top_kw = sorted(keywords, key=lambda x: x[1], reverse=True)[:top_k]
-        return [kw[0] for kw in top_kw]
+        return set(kw[0] for kw in top_kw)

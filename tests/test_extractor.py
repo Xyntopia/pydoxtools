@@ -83,7 +83,7 @@ def test_string_extraction():
     doc = Document(fobj=some_string)
     doc.document_type
     doc.run_all_extractors()
-    assert doc._cache_hits >= 0
+    assert doc._cache_hits >= 30
     assert doc.keywords == {"Turing"}
 
 
@@ -188,13 +188,11 @@ def test_pandoc():
 def test_pipeline_graph():
     doc = Document(fobj=make_path_absolute("./data/demo.docx"), document_type=".docx")
     # TODO: generate graphs for all document types
-    doc.pipeline_graph(image_path=settings._PYDOXTOOLS_DIR / "docs/images/document_logic_docx.svg")
-    doc.pipeline_graph(image_path=settings._PYDOXTOOLS_DIR / "docs/images/document_logic_png.svg",
-                       document_logic_id=".png")
-    doc.pipeline_graph(image_path=settings._PYDOXTOOLS_DIR / "docs/images/document_logic_yaml.svg",
-                       document_logic_id=".yaml")
-    doc.pipeline_graph(image_path=settings._PYDOXTOOLS_DIR / "docs/images/document_logic_dict.svg",
-                       document_logic_id="dict")
+    for k in doc._extractors:
+        doc.pipeline_graph(
+            image_path=settings._PYDOXTOOLS_DIR / f"docs/images/document_logic_{k}.svg",
+            document_logic_id=k
+        )
 
 
 def test_pipeline_configuration():
