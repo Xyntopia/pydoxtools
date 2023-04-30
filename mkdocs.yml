@@ -5,7 +5,8 @@ nav:
     - Home: index.md
     - Readme: readme_cp.md
     - Reference: reference.md
-theme: readthedocs
+#theme: readthedocs
+theme: material
 
 plugins:
   - search

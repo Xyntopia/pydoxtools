@@ -46,11 +46,12 @@ class DocumentTypeError(Exception):
 class Document(Pipeline):
     """
     The Document class is designed for information extraction from documents. It inherits from the
-    [][document_base.Pipeline] class and uses a predefined extraction pipeline f
+    {pydoxtools.document_base.Pipeline} class and uses a predefined extraction pipeline f
     ocused on document processing tasks.
 
     Usage:
     ------
+
     To load a document, create an instance of the Document class with a file path, a file object, a string,
     a URL or give it some data directly as a dict:
 
@@ -403,28 +404,45 @@ class Document(Pipeline):
 
     def __init__(
             self,
-            # TODO: move most of this into document-specific pipeline
             fobj: str | bytes | Path | IO = None,
             source: str | Path = None,
             page_numbers: list[int] = None,
             max_pages: int = None,
-            mime_type: str = None,
+            mime_type: str = None,  # TODO: remove this and document type and replace with "type_hint"
             filename: str = None,
-            document_type: str = None
+            document_type: str = None,
             # TODO: add "auto" for automatic recognition of the type using python-magic
     ):
         """
-        fobj: a file object which should be loaded.
-            - if it is a string or bytes object:   the string itself is the document!
-            - if it is a pathlib.Path: load the document from the path
-            - if it is a file object: load document from file object (or bytestream  etc...)
-        source: Where does the extracted data come from? (Examples: URL, 'pdfupload', parent-URL, or a path)"
-        page_numbers: list of the specific pages that we would like to extract (for example in a pdf)
-        max_pages: maximum number of pages that we want to extract in order to protect resources
-        mime_type: optional mimetype for the document
-        filename: optional filename. Helps sometimes helps in determining the purpose of a document
-        document_type: directly specify the document type which specifies the extraction
-            logic that should be used
+        Initialize the Document instance.
+
+        Parameters:
+        -----------
+        fobj: Union[str, bytes, Path, IO], optional
+            The file object to load. Depending on the type of object passed:
+            - If a string or bytes object: the object itself is the document.
+            - If a string representing a URL: the document will be loaded from the URL.
+            - If a pathlib.Path object: load the document from the path.
+            - If a file object: load the document from the file object (e.g., bytestream).
+
+        source: Union[str, Path], optional
+            The source of the extracted data (e.g., URL, 'pdfupload', parent-URL, or a path).
+
+        page_numbers: List[int], optional
+            A list of specific pages to extract from the document (e.g., in a PDF).
+
+        max_pages: int, optional
+            The maximum number of pages to extract to protect resources.
+
+        mime_type: str, optional
+            The MIME type of the document, if available.
+
+        filename: str, optional
+            The filename of the document, which can sometimes help in determining its purpose.
+
+        document_type: str, optional
+            The document type to directly specify the extraction logic to be used.
+
         """
 
         super().__init__()
@@ -433,8 +451,7 @@ class Document(Pipeline):
         try:
             if is_url(fobj):
                 response = requests.get(fobj)
-                with open('file.pdf', 'wb') as file:
-                    fobj = response.content
+                fobj = response.content
         except:
             pass
 
