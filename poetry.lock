@@ -3020,6 +3020,41 @@ Markdown = ">=3.3"
 mkdocs = ">=1.1"
 
 [[package]]
+name = "mkdocs-material"
+version = "9.1.8"
+description = "Documentation that simply works"
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "mkdocs_material-9.1.8-py3-none-any.whl", hash = "sha256:ac76e31bf52b2742c08a9d6629d64878f32dda5c949cd371082e25106c9be7dd"},
+    {file = "mkdocs_material-9.1.8.tar.gz", hash = "sha256:616ef98fc143b3ec8c559e2fec85f32103d2093e9c88333964d93105ea2d670b"},
+]
+
+[package.dependencies]
+colorama = ">=0.4"
+jinja2 = ">=3.0"
+markdown = ">=3.2"
+mkdocs = ">=1.4.2"
+mkdocs-material-extensions = ">=1.1"
+pygments = ">=2.14"
+pymdown-extensions = ">=9.9.1"
+regex = ">=2022.4.24"
+requests = ">=2.26"
+
+[[package]]
+name = "mkdocs-material-extensions"
+version = "1.1.1"
+description = "Extension pack for Python Markdown and MkDocs Material."
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "mkdocs_material_extensions-1.1.1-py3-none-any.whl", hash = "sha256:e41d9f38e4798b6617ad98ca8f7f1157b1e4385ac1459ca1e4ea219b556df945"},
+    {file = "mkdocs_material_extensions-1.1.1.tar.gz", hash = "sha256:9c003da71e2cc2493d910237448c672e00cefc800d3d6ae93d2fc69979e3bd93"},
+]
+
+[[package]]
 name = "mkdocstrings"
 version = "0.21.2"
 description = "Automatic documentation from sources, for MkDocs."
@@ -5038,7 +5073,7 @@ name = "regex"
 version = "2023.3.23"
 description = "Alternative regular expression module, to replace re."
 category = "main"
-optional = true
+optional = false
 python-versions = ">=3.8"
 files = [
     {file = "regex-2023.3.23-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:845a5e2d84389c4ddada1a9b95c055320070f18bb76512608374aca00d22eca8"},
@@ -6888,4 +6923,4 @@ inference = ["beautifulsoup4", "hnswlib", "pandas", "pytorch-lightning", "scikit
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4.0" # python version constraints are caused by scipy
-content-hash = "834e5912da5bfda168ed51c7bc476ba3a14f23b6d6d5b632f2ad55c3717c9105"
+content-hash = "f05ec5a7259c1cf58bd9f24d4c743afef1b689183602c4555d1c278a92f90751"
