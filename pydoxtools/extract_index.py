@@ -187,4 +187,4 @@ class TextrankOperator(Operator):
         top_nodes = sorted(nodes, key=lambda x: x[1], reverse=True)[:top_k]
         seen = set()  # use set to remove duplicates
         seen_add = seen.add
-        return [x[0] for x in top_nodes if not (x in seen or seen_add(x))]
+        return [x[0] for x in top_nodes if not (x[0] in seen or seen_add(x[0]))]
