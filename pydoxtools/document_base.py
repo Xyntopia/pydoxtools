@@ -366,10 +366,10 @@ Can be called using:
     doc.{k}
 
 return type
-: {"".join(str(i) for i in v['output_types'])}
+: {"".join(sorted(str(i) for i in v['output_types']))}
 
 supports pipelines
-: {",".join(v['pipe_types'])}"""
+: {",".join(sorted(v['pipe_types']))}"""
             node_docs.append(single_node_doc)
 
         docs = '\n\n'.join(node_docs)

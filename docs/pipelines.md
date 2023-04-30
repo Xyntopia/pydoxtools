@@ -17,7 +17,7 @@ return type
 : bytes | str
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### full_text
 
@@ -31,7 +31,7 @@ return type
 : <class 'str'>
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### clean_text
 
@@ -45,7 +45,7 @@ return type
 : <class 'str'>
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### text_box_elements
 
@@ -59,7 +59,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### text_box_list
 
@@ -73,7 +73,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### tables_df
 
@@ -87,7 +87,7 @@ return type
 : str | list[str] | list[pandas.core.frame.DataFrame]
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### tables_dict
 
@@ -101,7 +101,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### tables
 
@@ -115,7 +115,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### addresses
 
@@ -129,7 +129,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### num_pages
 
@@ -143,7 +143,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### num_words
 
@@ -157,7 +157,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### num_sents
 
@@ -171,7 +171,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### a_d_ratio
 
@@ -185,7 +185,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### language
 
@@ -199,7 +199,7 @@ return type
 : <class 'str'>
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### spacy_model_size
 
@@ -213,7 +213,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### spacy_model
 
@@ -227,7 +227,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### spacy_doc
 
@@ -241,7 +241,7 @@ return type
 : dict[str, typing.Any]
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### spacy_nlp
 
@@ -255,7 +255,7 @@ return type
 : dict[str, typing.Any]
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### spacy_vectors
 
@@ -269,7 +269,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### spacy_embeddings
 
@@ -283,7 +283,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### spacy_sents
 
@@ -297,7 +297,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### spacy_noun_chunks
 
@@ -311,7 +311,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### entities
 
@@ -325,7 +325,7 @@ return type
 : dict[str, list[str]]
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### url
 
@@ -339,7 +339,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### sents
 
@@ -353,7 +353,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### noun_chunks
 
@@ -367,7 +367,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### vector
 
@@ -381,7 +381,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### sent_vecs
 
@@ -395,7 +395,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### sent_ids
 
@@ -409,7 +409,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### noun_vecs
 
@@ -423,7 +423,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### noun_ids
 
@@ -437,7 +437,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### text_segments
 
@@ -451,7 +451,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### text_segment_model
 
@@ -465,7 +465,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### text_segment_only_tokenizer
 
@@ -479,7 +479,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### text_segment_vectors
 
@@ -493,7 +493,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### noun_index
 
@@ -507,7 +507,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### vectorizer
 
@@ -521,7 +521,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### noun_query
 
@@ -535,7 +535,7 @@ return type
 : typing.Callable
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### noun_graph
 
@@ -549,7 +549,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### top_k_text_rank_keywords
 
@@ -563,7 +563,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### textrank_keywords
 
@@ -577,7 +577,7 @@ return type
 : set[str]
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### keywords
 
@@ -591,7 +591,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### sent_index
 
@@ -605,7 +605,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### sent_query
 
@@ -619,7 +619,7 @@ return type
 : typing.Callable
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### sent_graph
 
@@ -633,7 +633,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### top_k_text_rank_sentences
 
@@ -647,7 +647,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### textrank_sents
 
@@ -661,7 +661,7 @@ return type
 : set[str]
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### summarizer_model
 
@@ -675,7 +675,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### summarizer_token_overlap
 
@@ -689,7 +689,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### summarizer_max_text_len
 
@@ -703,7 +703,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### summary
 
@@ -717,7 +717,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### qam_model_id
 
@@ -731,7 +731,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### answers
 
@@ -745,7 +745,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### openai_chat_model_id
 
@@ -759,7 +759,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### chat_answers
 
@@ -773,7 +773,7 @@ return type
 : typing.Callable[[list[str], list[str] | str], list[str]]
 
 supports pipelines
-: .pdf,.odt,.html,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,.yaml,dict,image,*,.epub,.jpg
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc
 
 ### page_set
 
@@ -787,7 +787,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.jpeg,.tif,.png,.tiff,image,.jpg
+: .jpeg,.jpg,.pdf,.png,.tif,.tiff,image
 
 ### pages_bbox
 
@@ -801,7 +801,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.jpeg,.tif,.png,.tiff,image,.jpg
+: .jpeg,.jpg,.pdf,.png,.tif,.tiff,image
 
 ### elements
 
@@ -815,7 +815,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.jpeg,.tif,.png,.tiff,image,.jpg
+: .jpeg,.jpg,.pdf,.png,.tif,.tiff,image
 
 ### meta
 
@@ -829,7 +829,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.jpeg,.tif,.png,.tiff,image,.jpg
+: .jpeg,.jpg,.pdf,.png,.tif,.tiff,image
 
 ### line_elements
 
@@ -843,7 +843,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.jpeg,.tif,.png,.tiff,image,.jpg
+: .jpeg,.jpg,.pdf,.png,.tif,.tiff,image
 
 ### graphic_elements
 
@@ -857,7 +857,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.jpeg,.tif,.png,.tiff,image,.jpg
+: .jpeg,.jpg,.pdf,.png,.tif,.tiff,image
 
 ### lists
 
@@ -871,7 +871,7 @@ return type
 : str | list[str] | list[pandas.core.frame.DataFrame]
 
 supports pipelines
-: .pdf,.odt,.jpeg,.markdown,.md,.docx,.tif,.rtf,pandoc,.png,.tiff,image,.epub,.jpg
+: .docx,.epub,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,image,pandoc
 
 ### table_box_levels
 
@@ -885,7 +885,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.jpeg,.tif,.png,.tiff,image,.jpg
+: .jpeg,.jpg,.pdf,.png,.tif,.tiff,image
 
 ### table_candidates
 
@@ -899,7 +899,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.jpeg,.tif,.png,.tiff,image,.jpg
+: .jpeg,.jpg,.pdf,.png,.tif,.tiff,image
 
 ### table_df0
 
@@ -913,7 +913,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.jpeg,.tif,.png,.tiff,image,.jpg
+: .jpeg,.jpg,.pdf,.png,.tif,.tiff,image
 
 ### titles
 
@@ -927,7 +927,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.html,.jpeg,.tif,.png,.tiff,image,.jpg
+: .html,.jpeg,.jpg,.pdf,.png,.tif,.tiff,image
 
 ### side_titles
 
@@ -941,7 +941,7 @@ return type
 : 
 
 supports pipelines
-: .pdf,.jpeg,.tif,.png,.tiff,image,.jpg
+: .jpeg,.jpg,.pdf,.png,.tif,.tiff,image
 
 ### html_keywords_str
 
@@ -1123,7 +1123,7 @@ return type
 : Pandoc(Meta, [Block])
 
 supports pipelines
-: .odt,.markdown,.md,.docx,.rtf,pandoc,.epub
+: .docx,.epub,.markdown,.md,.odt,.rtf,pandoc
 
 ### output_format
 
@@ -1137,7 +1137,7 @@ return type
 : 
 
 supports pipelines
-: .odt,.markdown,.md,.docx,.rtf,pandoc,.epub
+: .docx,.epub,.markdown,.md,.odt,.rtf,pandoc
 
 ### clean_format
 
@@ -1151,7 +1151,7 @@ return type
 : 
 
 supports pipelines
-: .odt,.markdown,.md,.docx,.rtf,pandoc,.epub
+: .docx,.epub,.markdown,.md,.odt,.rtf,pandoc
 
 ### pandoc_blocks
 
@@ -1165,7 +1165,7 @@ return type
 : list['pandoc.types.Block']
 
 supports pipelines
-: .odt,.markdown,.md,.docx,.rtf,pandoc,.epub
+: .docx,.epub,.markdown,.md,.odt,.rtf,pandoc
 
 ### headers
 
@@ -1179,7 +1179,7 @@ return type
 : str | list[str] | list[pandas.core.frame.DataFrame]
 
 supports pipelines
-: .odt,.markdown,.md,.docx,.rtf,pandoc,.epub
+: .docx,.epub,.markdown,.md,.odt,.rtf,pandoc
 
 ### ocr_lang
 
@@ -1193,7 +1193,7 @@ return type
 : 
 
 supports pipelines
-: .jpeg,.tif,.png,.tiff,image,.jpg
+: .jpeg,.jpg,.png,.tif,.tiff,image
 
 ### ocr_on
 
@@ -1207,7 +1207,7 @@ return type
 : 
 
 supports pipelines
-: .jpeg,.tif,.png,.tiff,image,.jpg
+: .jpeg,.jpg,.png,.tif,.tiff,image
 
 ### ocr_pdf_file
 
@@ -1221,7 +1221,7 @@ return type
 : 
 
 supports pipelines
-: .jpeg,.tif,.png,.tiff,image,.jpg
+: .jpeg,.jpg,.png,.tif,.tiff,image
 
 ### data
 
