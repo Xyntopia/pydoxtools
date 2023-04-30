@@ -25,8 +25,8 @@ from .extract_tables import ListExtractor, TableCandidateAreasExtractor
 from .extract_textstructure import DocumentElementFilter, TextBoxElementExtractor, TitleExtractor
 from .html_utils import get_text_only_blocks
 from .list_utils import flatten, flatten_dict, deep_str_convert
-from .nlp_utils import calculate_string_embeddings
-from .operator_huggingface import QamExtractor, HuggingfacePipeline
+from .nlp_utils import calculate_string_embeddings, summarize_long_text
+from .operator_huggingface import QamExtractor
 from .operators import Alias, LambdaOperator, ElementWiseOperator, Configuration, Constant
 from .pdf_utils import PDFFileLoader
 
@@ -203,6 +203,10 @@ and put the documentation in there. A Lambda function is not the right tool in t
             PandocConverter()
             .pipe("output_format", pandoc_document="pandoc_document")
             .out("full_text").cache(),
+            Constant(clean_format="plain"),
+            PandocConverter()  # clean for downstram processing tasks
+            .pipe(output_format="clean_format", pandoc_document="pandoc_document")
+            .out("clean_text").cache(),
             PandocBlocks()
             .pipe(pandoc_document="pandoc_document").out("pandoc_blocks").cache(),
             PandocOperator(method="headers")
@@ -210,7 +214,7 @@ and put the documentation in there. A Lambda function is not the right tool in t
             PandocOperator(method="tables_df")
             .pipe(pandoc_blocks="pandoc_blocks").out("tables_df").cache(),
             PandocOperator(method="lists")
-            .pipe(pandoc_blocks="pandoc_blocks").out("lists").cache(),
+            .pipe(pandoc_blocks="pandoc_blocks").out("lists").cache()
         ],
         "image": [
             # add a "base-document" type (.pdf) images get converted into pdfs
@@ -248,7 +252,7 @@ and put the documentation in there. A Lambda function is not the right tool in t
             Alias(data="raw_content"),
             LambdaOperator(lambda x: yaml.dump(deep_str_convert(x)))
             .pipe("data").out("full_text"),
-            LambdaOperator(lambda x: [str(k) + ": " + str(v) for k, v in flatten_dict(a.data).items()])
+            LambdaOperator(lambda x: [str(k) + ": " + str(v) for k, v in flatten_dict(x.data).items()])
             .pipe(x="data").out("text_box_elements").cache(),
             Alias(text_box_list="text_box_elements"),
             Alias(text_segments="text_box_elements"),
@@ -372,12 +376,24 @@ and put the documentation in there. A Lambda function is not the right tool in t
             .pipe(top_k="top_k_text_rank_sentences", G="sent_graph").out("textrank_sents").cache(),
 
             ########### Huggingface Integration #######
-            Configuration(summarizer_model="sshleifer/distilbart-cnn-6-6"),
+            Configuration(
+                summarizer_model="sshleifer/distilbart-cnn-12-6",
+                summarizer_token_overlap=50,
+                summarizer_max_text_len=200,
+            ),
             # Configuration(summarizer_model="sshleifer/distilbart-cnn-12-6"),
-            HuggingfacePipeline(pipeline="summarization")
-            .pipe("property_dict", trf_model_id="summarizer_model").out("summary_func").cache(),
-            LambdaOperator(lambda x, y: x(y))
-            .pipe(x="summary_func", y="full_text").out("summary").cache(),
+            # TODO: discover more "ad-hoc-use-cases" for this
+            # HuggingfacePipeline(pipeline="summarization")
+            # .pipe("property_dict", trf_model_id="summarizer_model").out("summary_func").cache(),
+            # LambdaOperator(lambda x, y: x(y))
+            # .pipe(x="summary_func", y="full_text").out("summary").cache(),
+            LambdaOperator(lambda x, m, to, ml: summarize_long_text(
+                x, m, token_overlap=to, max_len=ml
+            )).pipe(
+                x="clean_text", m="summarizer_model",
+                to="summarizer_token_overlap",
+                ml="summarizer_max_text_len"
+            ).out("summary"),
 
             ########### QaM machine #############
             # TODO: make sure we can set the model that we want to use dynamically!

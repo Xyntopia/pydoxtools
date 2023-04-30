@@ -255,10 +255,15 @@ def test_yaml_dict():
     d = Document(a.data, document_type="dict")
 
 def test_summarization():
-    doc = Document(fobj=make_path_absolute("../README.md"))
+    doc = Document(fobj=make_path_absolute("../README.md")).config(spacy_model_size='trf')
+    doc.keywords
+    from pydoxtools.nlp_utils import summarize_long_text
+    summarize_long_text(doc.full_text, "sshleifer/distilbart-cnn-12-6")
+    #doc.summary_func("test")
+    summary = doc.summary
 
-    doc.summary
-
+    doc = Document(fobj=make_path_absolute("../README.md")).config(spacy_model_size='md')
+    doc.keywords
 
 if __name__ == "__main__":
     # test if we can actually open the pdf...
@@ -268,6 +273,7 @@ if __name__ == "__main__":
     # test_qam_machine()
 
     test_pipeline_graph()
+    test_summarization()
 
     if False:
         with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:

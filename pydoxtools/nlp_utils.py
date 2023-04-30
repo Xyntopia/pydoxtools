@@ -99,6 +99,35 @@ def get_embeddings(txt, tokenizer):
 
 def tokenize_windows(txt, tokenizer, win_len=500, overlap=50,
                      max_len=510, add_special_tokens=True):
+    """
+    Tokenize a given text into a series of overlapping windows with special tokens.
+
+    This function tokenizes a given text into a series of overlapping windows,
+    adds special tokens ([CLS], [SEP]) if required, and converts the tokens into
+    token IDs. The function accepts parameters for the window length, overlap between
+    consecutive windows, maximum tokenization length, and a flag to add special tokens.
+    It returns the tokenized windows with token IDs and the tokenized text without
+    token IDs.
+
+    Args:
+        txt (str): The input text to be tokenized.
+        tokenizer (Tokenizer): The tokenizer instance to be used for tokenization.
+        win_len (int, optional): The length of each token window. Default is 500.
+        overlap (int, optional): The number of overlapping tokens between consecutive windows. Default is 50.
+        max_len (int, optional): The maximum length for tokenization. Default is 510.
+        add_special_tokens (bool, optional): Whether to add special tokens ([CLS], [SEP]) to the tokenized text. Default is True.
+
+    Returns:
+        list: A list of lists containing the tokenized windows with token IDs.
+        list: The tokenized text without token IDs.
+
+    Example:
+
+        tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+        txt = "This is a sample text."
+        tok_wins_ids, toktxt = tokenize_windows(txt, tokenizer)
+
+    """
     # token_ids = tokenizer.encode(txt,add_special_tokens=False)
     toktxt = tokenizer.tokenize(txt)
     # tokenizer.convert_tokens_to_ids(toktxt)
@@ -554,7 +583,40 @@ def QandAmodels(model_id: str):
     return NLPContext(tokenizer=tokenizer, model=model)
 
 
-def summarize_long_text(text, model_id):
-    model_id=
-    tok_wins, toktxt = tokenize_windows(txt, tokenizer=tokenizer,
-                                        overlap=overlap)
+def summarize_long_text(
+        long_text: str,
+        model_id: str,
+        token_overlap=50,
+        max_len=200,
+):
+    pipeline = load_pipeline("summarization", model_id=model_id)
+    model, tokenizer = pipeline.model, pipeline.tokenizer
+    max_input_tokens = pipeline.model.config.max_position_embeddings
+
+    def summarize_chunks(text) -> (str, int):
+        inputs = tokenizer(text, return_tensors="pt").input_ids
+
+        # Split the input into smaller chunks if it's longer than the maximum number of tokens
+        input_chunks = []
+        for i in range(0, inputs.shape[1], max_input_tokens - token_overlap):
+            # Subtracting token_overlap to account for potential token overlap
+            input_chunks.append(inputs[0][i:i + max_input_tokens])
+
+        # Summarize each chunk
+        summarized_chunks = []
+        for chunk in input_chunks:
+            # Convert tensor to list and remove padding tokens
+            chunk = list(filter(lambda x: x != tokenizer.pad_token_id, chunk.tolist()))
+            # Generate summary for the current chunk
+            summary_ids = model.generate(torch.tensor([chunk]), max_new_tokens=max_len, do_sample=False)
+            summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+            summarized_chunks.append(summary)
+
+        # Combine the summarized chunks
+        return " ".join(summarized_chunks), len(input_chunks)
+
+    summary, chunk_num = summarize_chunks(long_text)
+    while chunk_num > 1:
+        summary, chunk_num = summarize_chunks(summary)
+
+    return summary
