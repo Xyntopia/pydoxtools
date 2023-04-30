@@ -34,7 +34,7 @@ class DocumentSet(document_base.Pipeline):
     This class loads an entire set of documents and processes
     it using a pipeline.
     """
-    _extractors = {
+    _operators = {
         "*": [
             # TODO:  add a string filter which can be used to filte paths & db entries
             #        and is simply a bit more generalized ;)

@@ -65,7 +65,7 @@ class Operator(ABC):
         map objects from document properties to
         processing function.
 
-        essentially, This maps the outputs from one element of _extractors
+        essentially, This maps the outputs from one element of _operators
         to the inputs of another and also makes sure
         to override certain parameters that were specified in
         a config when calling the document class.

@@ -95,7 +95,7 @@ class MetaPipelineClassConfiguration(type):
     a poor-mans compiler or preprocessor.
 
     It basically takes the definition of the lazy pipeline
-    in the "_extractors" variable
+    in the "_operators" variable
     and maps it to function calls.
 
     TODO: can we achieve this in an easier way then using metaclasses?
@@ -113,7 +113,7 @@ class MetaPipelineClassConfiguration(type):
         new_class: Pipeline.__class__ = super(MetaPipelineClassConfiguration, cls).__new__(
             cls, clsname, bases, attrs)
 
-        if hasattr(new_class, "_extractors"):
+        if hasattr(new_class, "_operators"):
             if new_class._extractors:
                 # TODO: add checks to make sure we don't have any name-collisions
                 # configure class
@@ -130,9 +130,9 @@ class MetaPipelineClassConfiguration(type):
                 # with fall-back-filetypes at a later stage to create the final extraction logic
                 #
                 # We also combine _extractor definitions from parent class and child class
-                # here. We need to do this here and not use the _x_funcs from parent class as
+                # here. We need to do this here and not use the _pipelines from parent class as
                 # we need to make sure that new functions that were added to e.g. "*" also get added
-                # to "*.pdf" and other document logic if we use the already calculated _x_funcs this
+                # to "*.pdf" and other document logic if we use the already calculated _pipelines this
                 # would not be guaranteed.
 
                 uncombined_extractors: dict[str, dict[str, operators.Operator]] = {}
@@ -205,7 +205,7 @@ class MetaPipelineClassConfiguration(type):
                         doc_type_order += list(
                             reversed(extractor_combinations[doc_type])) + [doc_type]
 
-                    # now save the x-functions/configurations in the _x_funcs dict
+                    # now save the x-functions/configurations in the _pipelines dict
                     # (which might already exist from the parent class) in the correct order.
                     # already existing functions from the parent class get overwritten by the
                     # ones defined in the child class in "uncombined_extractors"
@@ -240,7 +240,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
     _extractor variable shoud be overwritten with a pipeline definition
 
     this pipeline will get compiled in a function mappint defined in
-    _x_funcs
+    _pipelines
     """
 
     # TODO: use pandera (https://github.com/unionai-oss/pandera)
@@ -255,15 +255,15 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
     #       a different extractor configuration in that case...
     #       in other words: each extractor needs to be "conditional"
 
-    # stores the extraction graph, a collection of connected functions
+    # stores the definition of the pipeline graph, a collection of connected
+    # operators/functions
     # which extract data from a document
-    # TODO: rename into pipeline
-    _extractors: dict[str, list[operators.Operator]] = {}
+    _operators: dict[str, list[operators.Operator]] = {}
 
     # a dict which provides access for all extractor functions by their "out-key"
-    # which was defined in _extractors
+    # which was defined in _operators
     # TODO: rename into operators
-    _x_funcs: dict[str, dict[str, operators.Operator]] = {}
+    _pipelines: dict[str, dict[str, operators.Operator]] = {}
 
     def __init__(self):
         self._cache_hits = 0
@@ -333,7 +333,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         get all operators/pipeline nodes and their property names
         for this specific file type/pipeline
         """
-        return self._x_funcs[self.pipeline_chooser]
+        return self._pipelines[self.pipeline_chooser]
 
     def property_dict(self, *args, **kwargs):
         """
@@ -422,7 +422,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         """
         output_infos = {}
         # aggregate information
-        for pipeline_id, ops in cls._x_funcs.items():
+        for pipeline_id, ops in cls._pipelines.items():
             for op_k, op in ops.items():
                 oi: dict[str, set] = output_infos.get(op_k, None) or dict(pipe_types=set(), output_types=set())
                 oi["pipe_types"].add(pipeline_id)
@@ -618,7 +618,7 @@ supports pipelines
         if document_logic_id == "current":
             logic = self.x_funcs
         else:
-            logic = self._x_funcs[document_logic_id]
+            logic = self._pipelines[document_logic_id]
 
         for name, f in logic.items():
             f_class = f.__class__.__name__ + "\n".join(f._out_mapping.keys())

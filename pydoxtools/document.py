@@ -141,7 +141,7 @@ operations and include the documentation there. Lambda functions should not be u
     """
 
     # TODO: rename extractors to operators
-    _extractors = {
+    _operators = {
         ".pdf": [
             FileLoader()  # pdfs are usually in binary format...
             .pipe(fobj="_fobj").out("raw_content").cache(),
@@ -528,7 +528,7 @@ operations and include the documentation there. Lambda functions should not be u
 
     @cached_property
     def pipeline_chooser(self):
-        if self.document_type in self._x_funcs:
+        if self.document_type in self._pipelines:
             return self.document_type
         else:
             return "*"
