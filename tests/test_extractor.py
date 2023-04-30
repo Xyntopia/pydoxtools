@@ -194,6 +194,8 @@ def test_pipeline_graph():
             document_logic_id=k
         )
 
+def test_documentation_generation():
+    doc = Document
 
 def test_pipeline_configuration():
     with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:
@@ -263,7 +265,7 @@ def test_summarization():
     doc = Document(
         fobj=make_path_absolute("../README.md"),
         document_type=".md"
-    ).config(spacy_model_size='trf')
+    ).config(spacy_model_size='md')
     doc.keywords
     doc.textrank_sents
 
