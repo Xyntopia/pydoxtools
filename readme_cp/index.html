@@ -157,12 +157,14 @@ doc = pdx.Document(
     document_type=".pdf"
 )
 </code></pre>
-<p>You can easily extract a large number of pre-defined information 
+<p>You can easily extract a large number of pre-defined information
 about your document. To get a list of possible operators use <code>print(doc.x_funcs)</code>.</p>
 <pre><code># extract tables from the pdf as a pandas dataframe:
 print(doc.tables_df)
 </code></pre>
-<p>Some extraction operations need input when called:</p>
+<p>Some extraction operations need input when called. The model that should be
+used for the question answering can be specified through doc.config() and can be any
+model from huggingface.</p>
 <pre><code># ask a question about the document, using Q&amp;A Models (questionas answered locally!):
 print(doc.answers(["how much ram does it have?"]))
 </code></pre>
