@@ -1,7 +1,7 @@
 import mimetypes
 from functools import cached_property
 from pathlib import Path
-from typing import IO
+from typing import IO, Callable
 from urllib.parse import urlparse
 
 import langdetect
@@ -10,9 +10,11 @@ import pandas as pd
 import requests
 import yaml
 
+import pydoxtools.operators
+from . import document_base
 from .document_base import Pipeline, ElementType
 from .extract_classes import LanguageExtractor, TextBlockClassifier
-from .extract_files import FileLoader
+from .extract_files import FileLoader, PathLoader
 from .extract_html import HtmlExtractor
 from .extract_index import IndexExtractor, KnnQuery, \
     SimilarityGraph, TextrankOperator, TextPieceSplitter
@@ -21,13 +23,13 @@ from .extract_objects import EntityExtractor
 from .extract_ocr import OCRExtractor
 from .extract_pandoc import PandocLoader, PandocOperator, PandocConverter, PandocBlocks
 from .extract_spacy import SpacyOperator, extract_spacy_token_vecs, get_spacy_embeddings, extract_noun_chunks
-from .extract_tables import ListExtractor, TableCandidateAreasExtractor
+from .extract_tables import ListExtractor, TableCandidateAreasExtractor, Iterator2Dataframe
 from .extract_textstructure import DocumentElementFilter, TextBoxElementExtractor, TitleExtractor
 from .html_utils import get_text_only_blocks
-from .list_utils import flatten, flatten_dict, deep_str_convert
+from .list_utils import flatten, flatten_dict, deep_str_convert, iterablefyer
 from .nlp_utils import calculate_string_embeddings, summarize_long_text
 from .operator_huggingface import QamExtractor
-from .operators import Alias, LambdaOperator, ElementWiseOperator, Configuration, Constant
+from .operators import Alias, LambdaOperator, ElementWiseOperator, Configuration, Constant, DataMerger
 from .pdf_utils import PDFFileLoader
 
 
@@ -557,3 +559,126 @@ operations and include the documentation there. Lambda functions should not be u
         ""
         return []
     """
+
+
+class ForgivingExtractIterator(pydoxtools.operators.Operator):
+    """
+    Creates a loop to extract properties from a list of
+    pydoxtools.Document.
+
+    method = "list":
+        Iterator can be configured to output either a list property dictionaries
+
+    method = "single_property"
+        output of the iterator will be a single, flat list of said property
+    """
+
+    def __init__(self, method="list"):
+        super().__init__()
+        self._method = method
+
+    def __call__(self, doc_list: list[Document]) -> Callable:
+        """Define a safe_extract iterator because we want to stay
+        flexible here and not put all this data in our memory...."""
+
+        # TODO: define a more "static" propertylist function which
+        #       could be configured on documentset instantiation
+        if self._method == "list":
+            def safe_extract(properties: list[str] | str) -> list[dict]:
+                properties = iterablefyer(properties)
+                for doc in doc_list:
+                    try:
+                        props = doc.property_dict(*properties)
+                    except pydoxtools.operators.OperatorException:
+                        # we just continue  if an error happened. This is why we are "forgiving"
+                        if len(properties) > 1:
+                            props = {"Error": "OperatorException"}
+                        else:
+                            continue
+
+                    if len(properties) == 1:
+                        yield props[properties[0]]
+                    else:
+                        yield props
+
+            return safe_extract
+
+
+class DocumentSet(document_base.Pipeline):
+    """
+    This class loads an entire set of documents and processes
+    it using a pipeline.
+
+    This class is still experimental. Eventually, the document class
+    and this class might get merged into one.
+    """
+
+    # make sure we can pass configurations to udnerlying documents!
+
+    # TODO: use our pipelines as an "interface" to LLMs. Describing every function
+    #       so that the can choose them as tools!
+
+    # TODO: move more and more things from the "Document" pipeline
+    #       into this class here...
+    #       the reason is we can sort of create an "inception" class
+    #       which can create new documentsets out of itself and
+    #       analyze them with th same methods...  that way we can go deeper
+    #       & deeper & deeper in the analysis. and synthesize new documents...
+
+    # TODO: give this class multi-processing capabilities
+    _operators = {
+        # TODO: add "fast, slow, medium" pipelines..  e.g. with keywords extraction as fast
+        #       etc...
+        # TODO: add a pipeline to add a summarizing description whats in every directory
+        "directory": [
+            # TODO:  add a string filter which can be used to filte paths & db entries
+            #        and is simply a bit more generalized ;)
+            PathLoader(mode="files")
+            .pipe(directory="_directory", exclude="_exclude")
+            .out("file_path_list").cache(),
+            PathLoader(mode="dirs")
+            .pipe(directory="_directory")
+            .out("dir_list").cache(),
+            LambdaOperator(lambda pl: [Document(p) for p in pl])
+            .pipe(pl="file_path_list").out("doc_list").cache(),
+            # it is important here to use no_cache, as we need to re-create the iterator every
+            # time we want to use it...
+            ForgivingExtractIterator(method="list")
+            .pipe("doc_list").out("props_iterator").no_cache(),
+            Iterator2Dataframe()
+            .pipe(iterator="props_iterator").out("props_df").cache(),
+            # LambdaDocumentBuilder(),
+            LambdaOperator(
+                lambda x: x([
+                    "filename",
+                    "keywords",
+                    "document_type",
+                    "url",
+                    "path",
+                    "num_pages",
+                    "num_words",
+                    "num_sents",
+                    "a_d_ratio",
+                    "language"]))
+            .pipe(x="props_iterator").out("meta_data_iterator").no_cache(),
+            LambdaOperator(lambda x: x)
+            .pipe(x="props_iterator").out("file_stats").cache(),
+            DataMerger()
+            .pipe(root_dir="_directory")
+            .out(joint_data="meta_data").cache()
+        ],
+        "*": []
+    }
+
+    def __init__(
+            self,
+            directory: str | Path,
+            exclude: list[str] = None
+    ):
+        super().__init__()
+        self._directory = directory
+        self._exclude = exclude or []
+
+    @cached_property
+    def pipeline_chooser(self) -> str:
+        return "directory"

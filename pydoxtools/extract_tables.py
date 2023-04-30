@@ -12,6 +12,7 @@ from pdfminer.layout import LTChar
 from sklearn.neighbors import KernelDensity
 
 import pydoxtools
+import pydoxtools.operators
 from pydoxtools import cluster_utils as gu
 from pydoxtools.cluster_utils import pairwise_txtbox_dist, box_cols, y1, x0, x1, boundarybox_intersection_query
 from pydoxtools.operators import Operator
@@ -994,3 +995,14 @@ def _filter_boxes(
         boxes = pd.DataFrame()
 
     return boxes
+
+
+class Iterator2Dataframe(pydoxtools.operators.Operator):
+    """convert arbitrary iterators with arguments into pandas dataframes"""
+
+    def __call__(self, iterator):
+        def create_data_frame(*args, **kwargs):
+            df = pd.DataFrame(iterator(*args, **kwargs))
+            return df
+
+        return create_data_frame

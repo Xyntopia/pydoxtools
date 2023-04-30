@@ -238,3 +238,17 @@ class ElementWiseOperator(Operator):
 
 class OperatorException(Exception):
     pass
+
+
+class DataMerger(pydoxtools.operators.Operator):
+    """
+    Merges data from several sources into a single dictionary,
+    it will try to convert everything into strings!
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, **kwargs):
+        out = kwargs
+        return {"joint_data": out}
