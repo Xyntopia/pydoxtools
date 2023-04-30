@@ -53,7 +53,7 @@ def run_single_non_interactive_document_test(file_name):
     logger.info(f"testing: {file_name}")
     # load object from path
     doc = Document(fobj=pathlib.Path(file_name))
-    doc.run_all_extractors()
+    doc.run_pipeline()
     assert doc._cache_hits >= 0
     doc_type = doc.document_type
 
@@ -64,13 +64,13 @@ def run_single_non_interactive_document_test(file_name):
     # from bytestream
     doc = Document(fobj=io.BytesIO(doc_str), document_type=doc_type)
     doc.document_type
-    doc.run_all_extractors()
+    doc.run_pipeline()
     assert doc._cache_hits >= 0
 
     # from bytes
     doc = Document(fobj=doc_str, document_type=doc_type)
     doc.document_type
-    doc.run_all_extractors()
+    doc.run_pipeline()
     assert doc._cache_hits >= 0
 
     return doc
@@ -82,7 +82,7 @@ def test_string_extraction():
 
     doc = Document(fobj=some_string)
     doc.document_type
-    doc.run_all_extractors()
+    doc.run_pipeline()
     assert doc._cache_hits >= 30
     assert doc.keywords == ["Turing"]
 
@@ -126,7 +126,7 @@ def test_qam_machine():
         'who build the product?',
         'what is the address'
     ))
-    assert answers[0][0][0] == 'bat - 110'
+    assert answers[0][0][0] == 'bst bat - 110'
     assert answers[1][0][0] == 'npower draw'
     assert answers[2][0][0] == 'bat - 110'
 
@@ -188,7 +188,7 @@ def test_pandoc():
 def test_pipeline_graph():
     doc = Document(fobj=make_path_absolute("./data/demo.docx"), document_type=".docx")
     # TODO: generate graphs for all document types
-    for k in doc._extractors:
+    for k in doc._operators:
         doc.pipeline_graph(
             image_path=settings._PYDOXTOOLS_DIR / f"docs/images/document_logic_{k}.svg",
             document_logic_id=k
@@ -212,7 +212,7 @@ Pipeline visualizations for every supported file type can be found
 
 {docs}
 """.strip()
-    with open('../docs/pipelines.md', "w") as f:
+    with open(make_path_absolute('../docs/pipelines.md'), "w") as f:
         f.write(pipeline_docs)
 
 
@@ -322,19 +322,19 @@ if __name__ == "__main__":
     #    some_string = f.read()
     #    doc = Document(fobj=some_string)
 
-    # doc.run_all_extractors()
+    # doc.run_all_operators()
 
-    # doc.run_all_extractors()
+    # doc.run_all_operators()
 
     # doc
-    # doc.run_all_extractors()
+    # doc.run_all_operators()
     # index = doc.noun_index
     # keywords = doc.keywords
 
     # test_single_product_extraction()
     # test_qam_machine()
 
-    # doc.run_all_extractors()
+    # doc.run_all_operators()
     # run_single_non_interactive_document_test("./data/berrybase_raspberrypi4.html")
     # test_table_extraction()
     # doc.x('answers', questions=('what is this the product name?', 'who build the product?'))

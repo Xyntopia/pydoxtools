@@ -114,7 +114,7 @@ class MetaPipelineClassConfiguration(type):
             cls, clsname, bases, attrs)
 
         if hasattr(new_class, "_operators"):
-            if new_class._extractors:
+            if new_class._operators:
                 # TODO: add checks to make sure we don't have any name-collisions
                 # configure class
                 logger.info(f"configure {new_class} class...")
@@ -135,7 +135,7 @@ class MetaPipelineClassConfiguration(type):
                 # to "*.pdf" and other document logic if we use the already calculated _pipelines this
                 # would not be guaranteed.
 
-                uncombined_extractors: dict[str, dict[str, operators.Operator]] = {}
+                uncombined_operators: dict[str, dict[str, operators.Operator]] = {}
                 extractor_combinations: dict[str, list[str]] = {}  # record the extraction hierarchy
                 uncombined_x_configs: dict[str, dict[str, list[str]]] = {}
                 ex: operators.Operator | str
@@ -143,8 +143,8 @@ class MetaPipelineClassConfiguration(type):
                 # including the newly defined class
                 for cl in reversed(class_hierarchy):
                     # loop through doc types
-                    for doc_type, ex_list in cl._extractors.items():
-                        doc_type_x_funcs = {}  # save function mappings for single doc_type
+                    for doc_type, ex_list in cl._operators.items():
+                        doc_type_pipeline = {}  # save function mappings for single doc_type
                         extractor_combinations[doc_type] = []  # save combination list for single doctype
                         doc_type_x_config = {}  # save configuration mappings for single doc_type
                         for ex in ex_list:
@@ -161,7 +161,7 @@ class MetaPipelineClassConfiguration(type):
                                 for ex_key, doc_key in ex._out_mapping.items():
                                     # input<->output mapping is already done i the extractor itself
                                     # check out Operator.pipe and Operator.map member functions
-                                    doc_type_x_funcs[doc_key] = ex
+                                    doc_type_pipeline[doc_key] = ex
 
                                     # build a map of configuration values for each
                                     # parameter. This means when a parameter gets called we know automatically
@@ -169,19 +169,19 @@ class MetaPipelineClassConfiguration(type):
                                     if ex._dynamic_config:
                                         doc_type_x_config[doc_key] = list(ex._dynamic_config.keys())
 
-                        uncombined_extractors[doc_type] = uncombined_extractors.get(doc_type, {})
-                        uncombined_extractors[doc_type].update(doc_type_x_funcs)
+                        uncombined_operators[doc_type] = uncombined_operators.get(doc_type, {})
+                        uncombined_operators[doc_type].update(doc_type_pipeline)
                         uncombined_x_configs[doc_type] = uncombined_x_configs.get(doc_type, {})
                         uncombined_x_configs[doc_type].update(doc_type_x_config)
 
                 logger.debug("combining... extraction logic")
                 # we need to re-initialize the class logic so that they are not linked
                 # to the logic of the parent classes.
-                new_class._x_funcs = {}
+                new_class._pipelines = {}
                 new_class._x_config = {}
                 doc_type: str
                 # add all extractors by combining the logic for the different document types
-                for doc_type in uncombined_extractors:
+                for doc_type in uncombined_operators:
                     # first take our other document type and then add the current document type
                     # itself on top of it because of its higher priority overwriting
                     # extractors of the lower priority extractors
@@ -193,7 +193,7 @@ class MetaPipelineClassConfiguration(type):
                     # TODO: add classes recursively (we can not combine logic blocks using multiple
                     #       levels right now). We probably need to run this function multiple times
                     #       in order for this to work.
-                    new_class._x_funcs[doc_type] = {}
+                    new_class._pipelines[doc_type] = {}
                     new_class._x_config[doc_type] = {}
 
                     # build class combination in correct order:
@@ -208,11 +208,11 @@ class MetaPipelineClassConfiguration(type):
                     # now save the x-functions/configurations in the _pipelines dict
                     # (which might already exist from the parent class) in the correct order.
                     # already existing functions from the parent class get overwritten by the
-                    # ones defined in the child class in "uncombined_extractors"
+                    # ones defined in the child class in "uncombined_operators"
                     for ordered_doc_type in doc_type_order:
                         # add newly defined extractors overriding extractors defined
                         # in lower hierarchy logic
-                        new_class._x_funcs[doc_type].update(uncombined_extractors[ordered_doc_type])
+                        new_class._pipelines[doc_type].update(uncombined_operators[ordered_doc_type])
                         new_class._x_config[doc_type].update(uncombined_x_configs[ordered_doc_type])
 
                         # TODO: how do we add x-functions to
@@ -404,7 +404,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         out = json.dumps(out)
         return out
 
-    def non_interactive_x_funcs(self) -> dict[str, operators.Operator]:
+    def non_interactive_pipeline(self) -> dict[str, operators.Operator]:
         """return all non-interactive extractors/pipeline nodes"""
         NotImplementedError("TODO: search for functions that are type hinted as callable")
 
@@ -525,9 +525,12 @@ supports pipelines
         """
         return {property: self.x(property) for property in self.x_funcs}
 
-    def run_all_extractors(self):
+    def run_pipeline(self):
         """
         Runs all extractors defined in the pipeline for testing or pre-caching purposes.
+
+        !!IMPORTANT!!!  This function should normally not be used as the pipeline is lazily executed
+        anyway.
 
         This method iterates through the defined extractors and calls each one, ensuring that the
         extractor logic is functioning correctly and caching the results if required.

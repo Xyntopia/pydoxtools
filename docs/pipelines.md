@@ -3,6 +3,9 @@
 This documents the output values of the nodes of each pipeline that 
 can be accessed through the pipeline interface.
 
+Pipeline visualizations for every supported file type can be found
+[here](https://github.com/Xyntopia/pydoxtools/tree/gh-pages/images).
+
 ## [pydoxtools.Document][]
 
 ### raw_content

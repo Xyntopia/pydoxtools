@@ -240,7 +240,7 @@ class OperatorException(Exception):
     pass
 
 
-class DataMerger(pydoxtools.operators.Operator):
+class DataMerger(Operator):
     """
     Merges data from several sources into a single dictionary,
     it will try to convert everything into strings!
