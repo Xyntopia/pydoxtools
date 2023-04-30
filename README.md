@@ -55,13 +55,15 @@ extraction pipelines! 🎩✨📄.
         document_type=".pdf"
     )
 
-You can easily extract a large number of pre-defined information 
+You can easily extract a large number of pre-defined information
 about your document. To get a list of possible operators use `print(doc.x_funcs)`.
 
     # extract tables from the pdf as a pandas dataframe:
     print(doc.tables_df)
 
-Some extraction operations need input when called:
+Some extraction operations need input when called. The model that should be
+used for the question answering can be specified through doc.config() and can be any
+model from huggingface.
 
     # ask a question about the document, using Q&A Models (questionas answered locally!):
     print(doc.answers(["how much ram does it have?"]))
