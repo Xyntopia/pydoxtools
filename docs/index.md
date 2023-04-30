@@ -10,20 +10,31 @@ The main interface that pydoxtools uses are three classes:
 - [pydoxtools.DocumentSet][]
 - [pydoxtools.Pipeline][]
 
-Document & DocumentSet are both predefined [Pipelines][pydoxtools.Pipeline] and
-define an extensive pipeline to extract data from individual documents or
-a set of documents.
+### Analyzing Document
+
+Document & DocumentSet are both using [pydoxtools.Pipeline][] and
+predefine a complex pipeline to extract data from individual documents or
+a set of documents. A list of all the "out-of-the-box" featurs for each pipelin
+can be found in:
+
+-> [Pipelines](pipelines)
+
+### Building your own Pipelines (for example with LLMs)
 
 the Pipeline class can be used to build complex, custom pipelines which
 have several out-of-the-box features which makes them easy to use in
 modern pipelines involving the use of a lot of AI tools:
 
+- they can be mixed, extended, (partially) overwritten with other pipelines
 - they can export/import their data (yaml, json, python-dict),
 - they can be configured & optimized
 - they can convert their data into [pydoxtools.Document][] and [pydoxtools.DocumentSet][]
 
 Additionally, in order to develop a custom pipeline, pydoxtools has a large
 library of [pydoxtools.operators][] which can be used to build your custom pipeline.
+It usually makes sense to use [pydoxtools.Document][] or [pydoxtools.DocumentSet][]
+as a base for a new pipeline and only replace small parts of them in order to
+get desired custom functionality.
 
 ## Visualization of the Pipelines
 
