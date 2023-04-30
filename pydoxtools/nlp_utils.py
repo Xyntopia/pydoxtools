@@ -16,9 +16,6 @@ TODO: refactor this... there are a lot of functions and it would
 
 TODO: think about how to disribute functions between nlp_utils and
       classifier
-
-TODO: move the inference parts into the "document" class in order to make them document
-      agnostic
 """
 
 import functools
@@ -157,7 +154,7 @@ def transform_to_contextual_embeddings(input_ids_t, model, tokenizer=None, lang=
     return wvecs_out
 
 
-def longtxt_word_embeddings_fullword_only_static_embeddings(txt, tokenizer):
+def longtxt_fullword_embeddings_only_lookup_table(txt, tokenizer):
     """
     generate whole-word embeddings (without pseudo-syllables)
     using only transformers tokenizer without
@@ -176,11 +173,13 @@ def longtxt_embeddings_fullword(txt, model, tokenizer):
     return fullword_embeddings(toktxt, vs)
 
 
-def longtxt_embeddings(txt, model, tokenizer,
-                       pooling=None,
-                       overlap=50,
-                       longtextcap=True,
-                       status_bar=False):
+def longtxt_embeddings(
+        txt, model, tokenizer,
+        pooling=None,
+        overlap=50,
+        longtextcap=True,
+        status_bar=False
+):
     """
     generate wordpiece embeddings (pseudo-syllables) using transformer model
     and text windowing. The individual windows are stitched
@@ -261,61 +260,6 @@ def cos_similarity(a, b):
     ab = (a * b).sum(1)
     d = ab / (IaI * IbI)
     return d
-
-
-"""
-def build_pipe(X, params):
-    classifiers=[
-        sk.linear_model.LogisticRegression(max_iter=200,
-                                            verbose=1,
-                                            n_jobs=-1),
-        sk.linear_model.LogisticRegressionCV(),
-        sk.linear_model.RidgeClassifier(),
-        sk.svm.LinearSVC(),
-        sk.linear_model.SGDClassifier(),
-        sk.linear_model.PassiveAggressiveClassifier(),
-        sk.naive_bayes.BernoulliNB(alpha=.01), 
-        sk.naive_bayes.ComplementNB(alpha=.01), 
-        sk.naive_bayes.MultinomialNB(alpha=.01),
-        sk.neighbors.KNeighborsClassifier(),
-        sk.neighbors.NearestCentroid(),
-        sk.ensemble.RandomForestClassifier(),
-        ]
-    
-    classifier = classifiers[params['classifier']]
-    logger.info(f"using classifier: {classifier}")
-
-    txt_tf = sk.pipeline.make_pipeline(
-            sk.preprocessing.FunctionTransformer(
-                    select_long_description,
-                    validate=False), #has to be "False" to allow strings
-            TfidfVectorizer(
-                tokenizer = nc_tokenizer,
-                max_df = params["maxdf"],
-                max_features=params['maxfeat'],
-                ngram_range=params["ngram_range"],
-                preprocessor=None)
-            )
-
-    #txt_tf.fit(X_train,y_train)
-    #tfidf_vector
-    logger.info("selecting columns")
-    select_cols = select_feature_columns(X,max_unique_cat=params['max_unique_cat'])
-    
-    cat_tf = skl.pipeline.make_pipeline(
-            skl.preprocessing.FunctionTransformer(
-                    select_columns,validate=False,
-                    kw_args={'columns':select_cols}),
-            skl.impute.SimpleImputer(strategy='constant', fill_value='missing'),
-            skl.preprocessing.OneHotEncoder(handle_unknown='ignore'))
-    
-    pipe = skl.pipeline.make_pipeline(
-            skl.pipeline.make_union(txt_tf, cat_tf),
-            #skl.decomposition.TruncatedSVD(n_components=1000),
-            classifier)
-
-    return pipe
-"""
 
 
 def reset_models():
@@ -539,29 +483,6 @@ def topic_similarity(html, topic, method="slow"):
     return similarity
 
 
-def extract_entities_spacy(text, nlp):
-    """extract entitis from text
-    
-    "nlp" can either be a spacy nlp object or a transformers pipeline
-
-    # TODO: move this into our "doc" class
-    """
-    # TODO: also enable transformers pipelines like this:
-
-    # from transformers import pipeline
-
-    # ner_pipe = pipeline("ner")
-    # good results = "xlm-roberta-large-finetuned-conll03-english" # large but good
-    # name = "sshleifer/tiny-dbmdz-bert-large-cased-finetuned-conll03-english" #small and bad
-    # name = "Davlan/distilbert-base-multilingual-cased-ner-hrl"
-    # model = name
-    # tokenizer= name
-    # ner_pipe = pipeline(task="ner", model=model, tokenizer=tokenizer)
-
-    doc = nlp(text)
-    return [(ent.text, ent.label_) for ent in doc.ents]
-
-
 # TODO: we need to move this into the nlp_context class
 #      and provide the use of the models with a timeout
 #      or a "with" context or something similar...
@@ -574,6 +495,7 @@ def convert_ids_to_string(tokenizer, ids):
     return tokenizer.convert_tokens_to_string(a)
 
 
+# TODO: get rid of this...
 # we are creating a factory here as our tranformers vector calculation is stateful
 # and we need a specific class for this..
 # @Language.factory("my_component", default_config={"some_setting": True})
@@ -602,7 +524,7 @@ def load_tokenizer(model_name):
 
 # TODO: merge this function with
 @functools.lru_cache()
-def load_models(model_id):
+def load_models(model_id: str):
     logger.info(f"load model on device: {device}")
     tokenizer = load_tokenizer(model_id)
     # model = AutoModelForQuestionAnswering.from_pretrained(model_id, output_hidden_states=True)
@@ -610,6 +532,13 @@ def load_models(model_id):
     model.to(device)
     model.eval()
     return model, tokenizer
+
+
+@functools.lru_cache()
+def load_pipeline(pipeline_type: str, model_id: str):
+    from transformers import pipeline
+    pipeline_instance = pipeline(pipeline_type, model=model_id)
+    return pipeline_instance
 
 
 @functools.lru_cache()
@@ -623,3 +552,9 @@ def QandAmodels(model_id: str):
     model = AutoModelForQuestionAnswering.from_pretrained(model_id)
     logger.info(f"finished loading Q & A models... {model_id}")
     return NLPContext(tokenizer=tokenizer, model=model)
+
+
+def summarize_long_text(text, model_id):
+    model_id=
+    tok_wins, toktxt = tokenize_windows(txt, tokenizer=tokenizer,
+                                        overlap=overlap)

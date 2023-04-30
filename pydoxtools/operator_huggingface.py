@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Huggingface related code
+
+Enables loading of mdoels from huggingface for all kinds of purposes
+"""
+
 import functools
 import logging
 from typing import Dict, List, Tuple, Callable
 
 import torch
 
+from pydoxtools import nlp_utils
 from pydoxtools.list_utils import iterablefyer
 from pydoxtools.nlp_utils import tokenize_windows, QandAmodels
 from pydoxtools.operators import Operator
@@ -104,6 +111,42 @@ def question_text_segment(text, question, tokenizer, model, ans_num=1):
     input_ids = inputs["input_ids"].tolist()[0]
     answers = get_topk_answers(*model(**inputs), input_ids, 5)
     return answers
+
+
+class HuggingfacePipeline(Operator):
+    """
+    Configurable Operator to load models from huggingface for various
+    tasks:  Summarization, Question answering etc..
+
+    We can run this on every property in a document.
+    """
+
+    def __init__(self, pipeline: str):
+        super().__init__()
+        self._pipeline = pipeline
+
+    def __call__(self, property_dict: Callable, trf_model_id: str):
+        pipeline = nlp_utils.load_pipeline(self._pipeline, model_id=trf_model_id)
+
+        @functools.lru_cache
+        def inference(
+                input: list[str] | str,
+                props: list[str] | str = "full_text"
+        ) -> list[list[tuple[str, float]]]:
+            # choose the property that we want to ask a question about...
+            if isinstance(props, str):
+                # if we only have a single variable, use the data directly...
+                data = property_dict(props)[props]
+            else:
+                data = property_dict(*props)
+
+            text = str(data)
+            input = iterablefyer(input)
+
+            res = pipeline(input, context=text)
+            return res
+
+        return inference
 
 
 class QamExtractor(Operator):

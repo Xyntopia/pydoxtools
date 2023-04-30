@@ -233,18 +233,9 @@ def test_ocr_and_exceptions():
 
 
 # TODO: add tests for dict & yaml
-
-if __name__ == "__main__":
-    # test if we can actually open the pdf...
-    # with open("ocrpdf", "wb") as f:
-    #    f.write(doc.ocr_pdf_file)
-
-    # test_qam_machine()
-
-    test_pipeline_graph()
-
+def test_yaml_dict():
     # document chaining
-    doc = Document(fobj=Path("../README.md")).config(spacy_model_size='trf')
+    doc = Document(fobj=make_path_absolute("../README.md")).config(spacy_model_size='trf')
     doc.property_dict(
         "document_type",
         "num_words",
@@ -262,6 +253,21 @@ if __name__ == "__main__":
         "keywords"
     ), document_type=".yaml")
     d = Document(a.data, document_type="dict")
+
+def test_summarization():
+    doc = Document(fobj=make_path_absolute("../README.md"))
+
+    doc.summary
+
+
+if __name__ == "__main__":
+    # test if we can actually open the pdf...
+    # with open("ocrpdf", "wb") as f:
+    #    f.write(doc.ocr_pdf_file)
+
+    # test_qam_machine()
+
+    test_pipeline_graph()
 
     if False:
         with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:

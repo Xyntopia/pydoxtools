@@ -26,9 +26,9 @@ from .extract_textstructure import DocumentElementFilter, TextBoxElementExtracto
 from .html_utils import get_text_only_blocks
 from .list_utils import flatten, flatten_dict, deep_str_convert
 from .nlp_utils import calculate_string_embeddings
+from .operator_huggingface import QamExtractor, HuggingfacePipeline
 from .operators import Alias, LambdaOperator, ElementWiseOperator, Configuration, Constant
 from .pdf_utils import PDFFileLoader
-from .operator_huggingface import QamExtractor
 
 
 def is_url(url):
@@ -370,6 +370,14 @@ and put the documentation in there. A Lambda function is not the right tool in t
             Configuration(top_k_text_rank_sentences=5),
             TextrankOperator()
             .pipe(top_k="top_k_text_rank_sentences", G="sent_graph").out("textrank_sents").cache(),
+
+            ########### Huggingface Integration #######
+            Configuration(summarizer_model="sshleifer/distilbart-cnn-6-6"),
+            # Configuration(summarizer_model="sshleifer/distilbart-cnn-12-6"),
+            HuggingfacePipeline(pipeline="summarization")
+            .pipe("property_dict", trf_model_id="summarizer_model").out("summary_func").cache(),
+            LambdaOperator(lambda x, y: x(y))
+            .pipe(x="summary_func", y="full_text").out("summary").cache(),
 
             ########### QaM machine #############
             # TODO: make sure we can set the model that we want to use dynamically!
