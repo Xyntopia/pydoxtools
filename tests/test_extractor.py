@@ -84,7 +84,7 @@ def test_string_extraction():
     doc.document_type
     doc.run_all_extractors()
     assert doc._cache_hits >= 30
-    assert doc.keywords == {"Turing"}
+    assert doc.keywords == ["Turing"]
 
 
 def test_all_documents():
