@@ -44,84 +44,74 @@ class DocumentTypeError(Exception):
 
 
 class Document(Pipeline):
-    """This class implements an extensive pipeline using the [][document_base.Pipeline] class
-for information extraction from documents.
+    """
+    The Document class is designed for information extraction from documents. It inherits from the
+    [][document_base.Pipeline] class and uses a predefined extraction pipeline f
+    ocused on document processing tasks.
 
-***
+    Usage:
+    ------
+    To load a document, create an instance of the Document class with a file path, a file object, a string,
+    a URL or give it some data directly as a dict:
 
-In order to load a document, simply
-open it with the document class::
+        from pydoxtools import Document
+        doc = Document(fobj=Path('./data/demo.docx'))
 
-    from pydoxtools import Document
-    doc = Document(fobj=./data/demo.docx)
+    Extracted data can be accessed by calling the `x` method with the specified
+    output in the pipeline:
 
-You can then access any extracted data by
-calling x with the specified member::
+        doc.x("addresses")
+        doc.x("entities")
+        doc.x("full_text")
+        # etc...
 
-    doc.x("addresses")
-    doc.x("entities")
-    doc.x("full_text")
-    # etc...
+    Most members can also be called as normal class attributes for easier readability:
 
-Most members are also callable like a normal
-class member in order to make the code easier to read::
+        doc.addresses
 
-    doc.addresses
+    To retrieve a list of all available extraction data methods, call the `x_funcs()` method:
 
-A list of all available extraction data
-can be called like this::
+        doc.x_funcs()
 
-    doc.x_funcs()
+    Customizing the Pipeline:
+    -------------------------
+    The extraction pipeline can be partially overwritten or completely replaced to customize the
+    document processing. To customize the pipeline, it's recommended to use the basic document
+    pipeline defined in `pydoxtools.Document` as a starting point and only overwrite parts as needed.
 
-***
+    Inherited classes can override any part of the graph. To exchange, override, extend or introduce
+    extraction pipelines for specific file types (including the generic one: "*"), such as *.html,
+    *.pdf, *.txt, etc., follow the example below.
 
-The document class is backed by a *pipeline* class with a pre-defined pipeline focusing on
-document extraction tasks. This extraction pipeline can be overwritten partially or completly replaced.
-In order to customize the pipeline it is usually best to take the pipeline for
-basic documents defined in pydoxtools.Document as a starting point and
-only overwrite the parts that should be customized.
+    TODO: provide more information on how to customize the pipeline and override the graph.
 
-inherited classes can override any part of the graph.
+    Example Extension Pipeline:
+    ---------------------------
+    The following is an example extension pipeline for an OCR extractor that converts images into
+    text and supports file types: ".png", ".jpeg", ".jpg", ".tif", ".tiff":
 
-It is possible to exchange/override/extend or introduce extraction pipelines for individual file types (including
-the generic one: "*") such as *.html extractors, *.pdf, *.txt etc..
+        "image": [
+                OCRExtractor()
+                .pipe(file="raw_content")
+                .out("ocr_pdf_file")
+                .cache(),
+            ],
+        ".png": ["image", ".pdf"],
+        ".jpeg": ["image", ".pdf"],
+        ".jpg": ["image", ".pdf"],
+        ".tif": ["image", ".pdf"],
+        ".tiff": ["image", ".pdf"],
+        "*": [...]
 
-Strings inside a document class indicate the inclusion of that document type pipeline but with a lower priority
-this way a directed extraction graph gets built. This only counts for the current class that is
-being defined though!!
+    Each function (or node) in the extraction pipeline connects to other nodes in the pipeline
+    through the "pipe" command. Arguments can be overwritten by a new pipeline in inherited
+    documents or document types higher up in the hierarchy. The argument precedence is as follows:
 
-Example extension pipeline for an OCR extractor which converts images into text
-"image" code block and supports filetypes: ".png", ".jpeg", ".jpg", ".tif", ".tiff"::
+        python-class-member < extractor-graph-function < configuration
 
-    "image": [
-            OCRExtractor()
-            .pipe(file="raw_content")
-            .out("ocr_pdf_file")
-            .cache(),
-        ],
-    # the first base doc types have priority over the last ones
-    # so here .png > image > .pdf
-    ".png": ["image", ".pdf"],
-    ".jpeg": ["image", ".pdf"],
-    ".jpg": ["image", ".pdf"],
-    ".tif": ["image", ".pdf"],
-    ".tiff": ["image", ".pdf"],
-    # the "*" gets overwritten by functions above
-    "*": [...]
-
-Each function (or node) in the extraction pipeline gets connected to other nodes in the pipeline
-by the "pipe" command.
-
-These arguments can be overwritten by a new pipeline in inherited documents or document types
-that are higher up in the hierarchy. The argument precedence is hereby as follows::
-
-    python-class-member < extractor-graph-function < configuration
-
-when creating a new pipeline for documentation purposes a general rule is:
-if the operation is too complicated to be self-describing, then use a function or class
-and put the documentation in there. A Lambda function is not the right tool in this case.
-
-"""
+    When creating a new pipeline for documentation purposes, use a function or class for complex
+    operations and include the documentation there. Lambda functions should not be used in this case.
+    """
 
     """
     TODO: One can also change the configuration of individual operators. For example
@@ -284,7 +274,7 @@ and put the documentation in there. A Lambda function is not the right tool in t
             ## calculate some metadata values
             LambdaOperator(lambda full_text: 1 + (len(full_text) // 1000))
             .pipe("full_text").out("num_pages").cache(),
-            LambdaOperator(lambda full_text: len(full_text.split()))
+            LambdaOperator(lambda clean_text: len(clean_text.split()))
             .pipe("clean_text").out("num_words").cache(),
             LambdaOperator(lambda spacy_sents: len(spacy_sents))
             .pipe("spacy_sents").out("num_sents"),
