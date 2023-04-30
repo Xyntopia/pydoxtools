@@ -2,11 +2,17 @@ site_name: Pydoxtools
 site_url: https://xyntopia.github.io/pydoxtools
 repo_url: https://www.github.com/xyntopia/pydoxtools
 nav:
-    - Home: index.md
-    - Readme: readme_cp.md
-    - Reference: reference.md
-#theme: readthedocs
-theme: material
+  - Home: index.md
+  - Readme: readme_cp.md
+  - Pipelines: pipelines.md
+  - Reference: reference.md
+theme:
+  name: material
+
+watch:
+  - pydoxtools
+  - docs
+
 
 plugins:
   - search
@@ -16,7 +22,13 @@ plugins:
         python:
           options:
             show_source: false
+            docstring_style: google
+          paths: [pydoxtools]  # search packages in the src folder
 
 extra:
   readme: ./README.md
+
+extra_css:
+  - css/mkdocstrings.css
+
 

@@ -44,75 +44,92 @@ class DocumentTypeError(Exception):
 
 
 class Document(Pipeline):
-    """
-    The Document class is designed for information extraction from documents. It inherits from the
-    {pydoxtools.document_base.Pipeline} class and uses a predefined extraction pipeline f
-    ocused on document processing tasks.
+    """Basic document pipeline class to analyze documents from all kinds of formats.
 
-    Usage:
-    ------
+The Document class is designed for information extraction from documents. It inherits from the
+[pydoxtools.document_base.Pipeline][] class and uses a predefined extraction pipeline f
+ocused on document processing tasks.
+To load a document, create an instance of the Document class with a file path, a file object, a string,
+a URL or give it some data directly as a dict:
 
-    To load a document, create an instance of the Document class with a file path, a file object, a string,
-    a URL or give it some data directly as a dict:
+```
+from pydoxtools import Document
+doc = Document(fobj=Path('./data/demo.docx'))
+```
 
-        from pydoxtools import Document
-        doc = Document(fobj=Path('./data/demo.docx'))
+Extracted data can be accessed by calling the `x` method with the specified
+output in the pipeline:
 
-    Extracted data can be accessed by calling the `x` method with the specified
-    output in the pipeline:
+```python
+doc.x("addresses")
+doc.x("entities")
+doc.x("full_text")
+# etc...
+```
 
-        doc.x("addresses")
-        doc.x("entities")
-        doc.x("full_text")
-        # etc...
+Most members can also be called as normal class attributes for easier readability:
 
-    Most members can also be called as normal class attributes for easier readability:
+```python
+doc.addresses
+```
 
-        doc.addresses
+Additionally, it is possible to get the data directly in dict, yaml or json form:
 
-    To retrieve a list of all available extraction data methods, call the `x_funcs()` method:
+```python
+doc.property_dict("addresses","filename","keywords")
+doc.yaml("addresses","filename","keywords")
+doc.json("addresses","filename","keywords")
+```
 
-        doc.x_funcs()
+To retrieve a list of all available extraction data methods, call the `x_funcs()` method:
 
-    Customizing the Pipeline:
-    -------------------------
-    The extraction pipeline can be partially overwritten or completely replaced to customize the
-    document processing. To customize the pipeline, it's recommended to use the basic document
-    pipeline defined in `pydoxtools.Document` as a starting point and only overwrite parts as needed.
+```python
+doc.x_funcs()
+```
 
-    Inherited classes can override any part of the graph. To exchange, override, extend or introduce
-    extraction pipelines for specific file types (including the generic one: "*"), such as *.html,
-    *.pdf, *.txt, etc., follow the example below.
+## Customizing the Pipeline:
 
-    TODO: provide more information on how to customize the pipeline and override the graph.
+The extraction pipeline can be partially overwritten or completely replaced to customize the
+document processing. To customize the pipeline, it's recommended to use the basic document
+pipeline defined in `pydoxtools.Document` as a starting point and only overwrite parts as needed.
 
-    Example Extension Pipeline:
-    ---------------------------
-    The following is an example extension pipeline for an OCR extractor that converts images into
-    text and supports file types: ".png", ".jpeg", ".jpg", ".tif", ".tiff":
+Inherited classes can override any part of the graph. To exchange, override, extend or introduce
+extraction pipelines for specific file types (including the generic one: "*"), such as *.html,
+*.pdf, *.txt, etc., follow the example below.
 
-        "image": [
-                OCRExtractor()
-                .pipe(file="raw_content")
-                .out("ocr_pdf_file")
-                .cache(),
-            ],
-        ".png": ["image", ".pdf"],
-        ".jpeg": ["image", ".pdf"],
-        ".jpg": ["image", ".pdf"],
-        ".tif": ["image", ".pdf"],
-        ".tiff": ["image", ".pdf"],
-        "*": [...]
+TODO: provide more information on how to customize the pipeline and override the graph.
 
-    Each function (or node) in the extraction pipeline connects to other nodes in the pipeline
-    through the "pipe" command. Arguments can be overwritten by a new pipeline in inherited
-    documents or document types higher up in the hierarchy. The argument precedence is as follows:
+## Examples
 
-        python-class-member < extractor-graph-function < configuration
+The following is an example extension pipeline for an OCR extractor that converts images into
+text and supports file types: ".png", ".jpeg", ".jpg", ".tif", ".tiff":
 
-    When creating a new pipeline for documentation purposes, use a function or class for complex
-    operations and include the documentation there. Lambda functions should not be used in this case.
-    """
+```python
+"image": [
+        OCRExtractor()
+        .pipe(file="raw_content")
+        .out("ocr_pdf_file")
+        .cache(),
+    ],
+".png": ["image", ".pdf"],
+".jpeg": ["image", ".pdf"],
+".jpg": ["image", ".pdf"],
+".tif": ["image", ".pdf"],
+".tiff": ["image", ".pdf"],
+"*": [...]
+```
+
+Each function (or node) in the extraction pipeline connects to other nodes in the pipeline
+through the "pipe" command. Arguments can be overwritten by a new pipeline in inherited
+documents or document types higher up in the hierarchy. The argument precedence is as follows:
+
+```
+python-class-member < extractor-graph-function < configuration
+```
+
+When creating a new pipeline for documentation purposes, use a function or class for complex
+operations and include the documentation there. Lambda functions should not be used in this case.
+"""
 
     """
     TODO: One can also change the configuration of individual operators. For example
@@ -413,35 +430,33 @@ class Document(Pipeline):
             document_type: str = None,
             # TODO: add "auto" for automatic recognition of the type using python-magic
     ):
-        """
-        Initialize the Document instance.
+        """Initialize a Document instance.
 
-        Parameters:
-        -----------
-        fobj: Union[str, bytes, Path, IO], optional
-            The file object to load. Depending on the type of object passed:
-            - If a string or bytes object: the object itself is the document.
-            - If a string representing a URL: the document will be loaded from the URL.
-            - If a pathlib.Path object: load the document from the path.
-            - If a file object: load the document from the file object (e.g., bytestream).
+        Args:
+            fobj
+                The file object to load. Depending on the type of object passed:
+                - If a string or bytes object: the object itself is the document.
+                - If a string representing a URL: the document will be loaded from the URL.
+                - If a pathlib.Path object: load the document from the path.
+                - If a file object: load the document from the file object (e.g., bytestream).
 
-        source: Union[str, Path], optional
-            The source of the extracted data (e.g., URL, 'pdfupload', parent-URL, or a path).
+            source:
+                The source of the extracted data (e.g., URL, 'pdfupload', parent-URL, or a path).
 
-        page_numbers: List[int], optional
-            A list of specific pages to extract from the document (e.g., in a PDF).
+            page_numbers:
+                A list of specific pages to extract from the document (e.g., in a PDF).
 
-        max_pages: int, optional
-            The maximum number of pages to extract to protect resources.
+            max_pages:
+                The maximum number of pages to extract to protect resources.
 
-        mime_type: str, optional
-            The MIME type of the document, if available.
+            mime_type:
+                The MIME type of the document, if available.
 
-        filename: str, optional
-            The filename of the document, which can sometimes help in determining its purpose.
+            filename:
+                The filename of the document, which can sometimes help in determining its purpose.
 
-        document_type: str, optional
-            The document type to directly specify the extraction logic to be used.
+            document_type:
+                The document type to directly specify the extraction logic to be used.
 
         """
 

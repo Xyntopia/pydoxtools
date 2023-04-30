@@ -1,3 +1,10 @@
+"""
+The pydoxtools.operators module defines
+a set of generic pipeline operators that can
+be used inside of a pipeline class definition
+to create your own pipelines.
+"""
+
 import abc
 import typing
 from abc import ABC
@@ -5,8 +12,7 @@ from typing import Callable, Iterable, Any
 
 
 class Operator(ABC):
-    """
-    Base class to build extraction logic for information extraction from
+    """Base class to build extraction logic for information extraction from
     unstructured documents and loading files
 
     Extractors should always be stateless! This means one should not save
@@ -24,12 +30,15 @@ class Operator(ABC):
     If the same parameters are also set in doc.pipe the parameters are
     optional and will only be taken if explicitly set through doc.config(...).
 
-        doc.dynamic()
+    ```
+    doc.dynamic()
+    ```
 
     This function can be accessed through:
 
-        doc.config(my_dynamic_parameter="some_new_value")
-
+    ```python
+    doc.config(my_dynamic_parameter="some_new_value")
+    ```
     """
 
     # TODO:  how can we anhance the type checking for outputs?

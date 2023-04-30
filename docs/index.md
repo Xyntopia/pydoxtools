@@ -20,9 +20,8 @@ This way we can generate the pipelines for different filetypes:
 - [png](images/document_logic_png.svg)
   (click on links to open the images!)
 
-Pipelines for every supported file type can be found under this link:
-
-[](https://github.com/Xyntopia/pydoxtools/tree/gh-pages/images)
+Pipelines for every supported file type can be found 
+[here](https://github.com/Xyntopia/pydoxtools/tree/gh-pages/images).
 
 This also works for custom pipelines!
 

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
 from time import time
-from typing import List, Any
+from typing import List, Any, get_type_hints
 
 import networkx as nx
 import numpy as np
@@ -342,6 +342,38 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
     def non_interactive_x_funcs(self) -> dict[str, operators.Operator]:
         """return all non-interactive extractors"""
         return {k: v for k, v in self.x_funcs.items() if (not v._interactive)}
+
+    @classmethod
+    def pipeline_docs(cls):
+        output_infos = {}
+        # aggregate information
+        for pipeline_id, ops in cls._x_funcs.items():
+            for op_k, op in ops.items():
+                oi: dict[str, set] = output_infos.get(op_k, None) or dict(pipe_types=set(), output_types=set())
+                oi["pipe_types"].add(pipeline_id)
+                if return_type := get_type_hints(op.__class__.__call__).get("return", None):
+                    oi["output_types"].add(return_type)
+                output_infos[op_k] = oi
+
+        node_docs = []
+        for k, v in output_infos.items():
+            single_node_doc = f"""### {k}
+
+Can be called using:
+
+    doc.x('{k}')
+    # or
+    doc.{k}
+
+return type
+: {"".join(str(i) for i in v['output_types'])}
+
+supports pipelines
+: {",".join(v['pipe_types'])}"""
+            node_docs.append(single_node_doc)
+
+        docs = '\n\n'.join(node_docs)
+        return docs
 
     def x(self, extract_name: str, *args, **kwargs):
         """

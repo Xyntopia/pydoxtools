@@ -6,6 +6,19 @@ import yaml
 from .operators import Operator
 from .settings import settings
 
+# TODO: add a "normal" prompt
+
+{'prompt': ["Y"],
+ 'model': 'text-davinci-003',
+ 'temperature': 0.0,
+ 'max_tokens': 256,
+ 'top_p': 1,
+ 'frequency_penalty': 0,
+ 'presence_penalty': 0,
+ 'n': 1,
+ 'best_of': 1,
+ 'logit_bias': {}}
+
 
 class OpenAIChat(Operator):
     """
@@ -15,7 +28,9 @@ class OpenAIChat(Operator):
     """
 
     # TODO: add a "HuggingfaceExtractor" with similar structure
-    def __call__(self, property_dict: Callable, model_id: str):
+    def __call__(
+            self, property_dict: Callable, model_id: str
+    ) -> Callable[[list[str], list[str] | str], list[str]]:
         # TODO: move this into a more generic place...
         openai.api_key = settings.OPENAI_API_KEY
 

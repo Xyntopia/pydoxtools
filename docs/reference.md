@@ -14,7 +14,5 @@
 
 ::: pydoxtools.operators
     options:
-        members:
-            - Pipeline
-            - x_funcs
-            - x_all
+        show_root_heading: True
+        heading_level: 2

@@ -194,8 +194,24 @@ def test_pipeline_graph():
             document_logic_id=k
         )
 
+
 def test_documentation_generation():
     doc = Document
+    docs = doc.pipeline_docs()
+
+    pipeline_docs = f"""
+# Pipelines
+
+This documents the output values of the nodes of each pipeline that 
+can be accessed through the pipeline interface.
+
+## [pydoxtools.Document][]
+
+{docs}
+""".strip()
+    with open('../docs/pipelines.md', "w") as f:
+        f.write(pipeline_docs)
+
 
 def test_pipeline_configuration():
     with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:
@@ -235,7 +251,7 @@ def test_ocr_and_exceptions():
 
 
 # TODO: add tests for dict & yaml
-def test_yaml_dict():
+def test_yaml_json_dict_prop_dict():
     # document chaining
     doc = Document(fobj=make_path_absolute("../README.md")).config(spacy_model_size='trf')
     doc.property_dict(
@@ -247,6 +263,9 @@ def test_yaml_dict():
     )
     doc.textrank_sents
     doc.keywords
+    doc.property_dict("addresses", "filename", "keywords")
+    doc.yaml("addresses", "filename", "keywords")
+    doc.json("addresses", "filename", "keywords")
     a = Document(doc.yaml(
         "document_type",
         "num_words",
@@ -276,6 +295,7 @@ if __name__ == "__main__":
     #    f.write(doc.ocr_pdf_file)
 
     # test_qam_machine()
+    test_documentation_generation()
     test_pipeline_graph()
 
     if False:
