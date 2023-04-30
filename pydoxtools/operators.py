@@ -50,7 +50,6 @@ class Operator(ABC):
         self._out_mapping: dict[str, str] = {}
         self._cache = False  # TODO: switch to "True" by default
         self._dynamic_config: dict[str, str] = {}
-        self._interactive = False
 
     @abc.abstractmethod
     def __call__(self, *args, **kwargs) -> dict[str, typing.Any] | Any:

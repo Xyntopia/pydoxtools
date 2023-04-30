@@ -91,7 +91,7 @@ class MetaPipelineClassConfiguration(type):
     """
     configures derived document class logic on construction.
 
-    Also checks Extractors etc...  for consistency. It sort of works like
+    Also checks Operators etc...  for consistency. It sort of works like
     a poor-mans compiler or preprocessor.
 
     It basically takes the definition of the lazy pipeline
@@ -271,24 +271,43 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
 
     def config(self, **settings: dict[str, Any]) -> "Pipeline":
         """
-        Set configuration parameters for a pipeline
+        Set configuration parameters for a pipeline.
 
-        This function loops through all "operators.Configure" and
-        assigns the configuration from **settings to them.
+        This method loops through all "operators.Configure" instances in the pipeline
+        and assigns the provided configuration settings to them.
+
+        Args:
+            **settings: A dictionary of key-value pairs representing the configuration
+                settings for the pipeline. Each key is a string representing the name
+                of the configuration setting, and the value is the corresponding value
+                to be set.
+
+        Returns:
+            self: A reference to the current pipeline instance, allowing for method chaining.
+
+        Example:
+            pipeline = Pipeline()
+            pipeline.config(param1=value1, param2=value2)
         """
+        # Get all configuration objects in the pipeline
         configuration: dict[str, operators.Configuration] = \
             {k: v for k, v in self.x_funcs.items() if isinstance(v, operators.Configuration)}
 
+        # Assign the settings to the corresponding configuration objects
         for k, v in settings.items():
             configuration[k]._configuration_map[k] = v
 
+        # Return the current pipeline instance for method chaining
         return self
 
     @property
-    def configuration(self):
+    def configuration(self) -> dict[str, Any]:
         """
-        Get all configuration objects of our pipeline and merge them into a
-        dict.
+        Gets all configuration objects of the pipeline and merges them into a single dictionary.
+
+        Returns:
+            dict: A dictionary containing the merged configuration objects of the pipeline, with keys as
+                  the configuration names and values as the configuration objects.
         """
         configuration: dict[str, operators.Configuration] = \
             {k: v for k, v in self.x_funcs.items() if isinstance(v, operators.Configuration)}
@@ -299,6 +318,11 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
 
     @cached_property
     def pipeline_chooser(self) -> str:
+        """
+        Must be implemented by derived classes
+        to decide which pipeline they should use.
+        """
+        # TODO: maybe rename this into "head-pipeline" or something like that?
         # TODO: not sure how to do this the "correct" way with @abstractmethod
         #       as we can not derive from ABC due to our metaclass...
         raise NotImplementedError("derived pipelines need to override this function!")
@@ -306,20 +330,28 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
     @cached_property
     def x_funcs(self) -> dict[str, operators.Operator]:
         """
-        get all extractors and their property names for this specific file type
+        get all operators/pipeline nodes and their property names
+        for this specific file type/pipeline
         """
         return self._x_funcs[self.pipeline_chooser]
 
     def property_dict(self, *args, **kwargs):
         """
-        return a dictionary which accumulates the properties given
-        in *args or with a mapping in **kwargs where the keys in kwargs are the
-        variable in the returned dictionary, whereas the values are the variable names
-        of the pipeline.
+        Returns a dictionary that accumulates the properties given in *args or with a mapping in **kwargs.
 
-        Right now, this only works for properties that don#t need any arguments,
-        in pipelines such as "full_text". Others, such as "answers" return a function
-        which needs arguments itself and can therefore not be used here.
+        Args:
+            *args (str): A variable number of strings, each representing a property name.
+            **kwargs (dict): A dictionary mapping property names (values) to custom keys (keys) for the
+                             returned dictionary.
+
+        Note:
+            This function currently only supports properties that do not require any arguments, such as
+            "full_text". Properties like "answers" that return a function requiring arguments cannot be
+            used with this function.
+
+        Returns:
+            dict: A dictionary with the accumulated properties and their values, using either the
+                  property names or custom keys as specified in the input arguments.
         """
 
         properties = {a: getattr(self, a) for a in args}
@@ -328,23 +360,66 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         return deep_str_convert(properties)
 
     def yaml(self, *args, **kwargs):
-        """same as property_dict, but dumps output as yaml"""
+        """
+        Returns a dictionary that accumulates the properties given in *args or with a mapping in **kwargs, and dumps the output as YAML.
+
+        Args:
+            *args (str): A variable number of strings, each representing a property name.
+            **kwargs (dict): A dictionary mapping property names (values) to custom keys (keys) for the
+                             returned dictionary.
+
+        Note:
+            This function currently only supports properties that do not require any arguments, such as
+            "full_text". Properties like "answers" that return a function requiring arguments cannot be
+            used with this function.
+
+        Returns:
+            str: A YAML-formatted string representing the accumulated properties and their values, using
+                 either the property names or custom keys as specified in the input arguments.
+        """
         out = self.property_dict(*args, **kwargs)
         out = yaml.safe_dump(out)
         return out
 
     def json(self, *args, **kwargs):
-        """same as property_dict, but dumps output as yaml"""
+        """
+        Returns a dictionary that accumulates the properties given in *args or with a
+        mapping in **kwargs, and dumps the output as JSON.
+
+        Args:
+            *args (str): A variable number of strings, each representing a property name.
+            **kwargs (dict): A dictionary mapping property names (values) to custom keys (keys) for the
+                             returned dictionary.
+
+        Note:
+            This function currently only supports properties that do not require any arguments, such as
+            "full_text". Properties like "answers" that return a function requiring arguments cannot be
+            used with this function.
+
+        Returns:
+            str: A JSON-formatted string representing the accumulated properties and their values, using
+                 either the property names or custom keys as specified in the input arguments.
+        """
         out = self.property_dict(*args, **kwargs)
         out = json.dumps(out)
         return out
 
     def non_interactive_x_funcs(self) -> dict[str, operators.Operator]:
-        """return all non-interactive extractors"""
-        return {k: v for k, v in self.x_funcs.items() if (not v._interactive)}
+        """return all non-interactive extractors/pipeline nodes"""
+        NotImplementedError("TODO: search for functions that are type hinted as callable")
 
     @classmethod
     def pipeline_docs(cls):
+        """
+        Returns a formatted string containing the documentation for each pipeline operation in the class.
+
+        This class method iterates through the pipeline operations, collects information about their
+        output types and supported pipelines, and formats the documentation accordingly.
+
+        Returns:
+            str: A formatted string containing the documentation for each pipeline operation, including
+                 operation name, usage, return type, and supported pipelines.
+        """
         output_infos = {}
         # aggregate information
         for pipeline_id, ops in cls._x_funcs.items():
@@ -375,10 +450,23 @@ supports pipelines
         docs = '\n\n'.join(node_docs)
         return docs
 
-    def x(self, extract_name: str, *args, **kwargs):
+    def x(self, extract_name: str, *args, **kwargs) -> Any:
         """
-        call an extractor from our definition
-        TODO: using *args and **kwargs the extractors parameters can be overriden
+        Calls an extractor from the defined pipeline and returns the result.
+
+        Args:
+            extract_name (str): The name of the extractor to be called.
+            *args: Variable-length argument list to be passed to the extractor.
+            **kwargs: Arbitrary keyword arguments to be passed to the extractor.
+
+        Returns:
+            Any: The result of the extractor after processing the document.
+
+        Raises:
+            operators.OperatorException: If an error occurs while executing the extractor.
+
+        Notes:
+            The extractor's parameters can be overridden using *args and **kwargs.
         """
         if not (extractor_func := self.x_funcs.get(extract_name, None)):
             return self.__dict__[extract_name]  # choose the class' own properties as a fallback
@@ -407,35 +495,59 @@ supports pipelines
 
         return res[extract_name]
 
-    def __getattr__(self, extract_name):
+    def __getattr__(self, extract_name) -> Any:
         """
-        __getattr__ only gets called for non-existing variable names.
-        So we can automatically avoid name collisions  here.
+        Retrieves an extractor result by directly accessing it as an attribute.
 
-        >>> document.addresses
+        This method is automatically called for attribute names that
+        aren't defined on class level, allowing for a convenient
+        way to access pipeline operator outputs without needing to call the 'x' method.
 
-        instead of document.x['addresses']
+        Example:
+            >>> document.addresses
+            instead of document.x('addresses')
 
+        Args:
+            extract_name (str): The name of the extractor result to be accessed.
+
+        Returns:
+            Any: The result of the extractor after processing the document.
         """
         return self.x(extract_name)
 
     def x_all(self):
+        """
+        Retrieves the results of all extractors defined in the pipeline.
+
+        Returns:
+            dict: A dictionary containing the results of all extractors, with keys as the extractor
+                  names and values as the corresponding results.
+        """
         return {property: self.x(property) for property in self.x_funcs}
 
-    def x_all_cached(self):
-        return {self.x(property) for property in self.x_funcs}
-
     def run_all_extractors(self):
-        """can be used for testing or pre-caching purposes"""
+        """
+        Runs all extractors defined in the pipeline for testing or pre-caching purposes.
+
+        This method iterates through the defined extractors and calls each one, ensuring that the
+        extractor logic is functioning correctly and caching the results if required.
+        """
         # print(pdfdoc.elements)
-        for x in self.non_interactive_x_funcs():
+        for x in self.x_funcs:
             self.x(x)
 
     def pre_cache(self):
-        """in some situations, for example for caching purposes it would be nice
-        to pre-cache all calculations this is done here by simply calling all functions..."""
+        """
+        Pre-caches the results of all extractors that have caching enabled.
 
-        for x, ex in self.x_funcs.items():
+        This method iterates through the defined extractors and calls each one with caching enabled,
+        storing the results for faster access in future calls.
+
+        Returns:
+            self: The instance of the class, allowing for method chaining.
+        """
+
+        for x, ex in self.x_funcs:
             if ex._cache:
                 self.x(x)
 
@@ -446,6 +558,15 @@ supports pipelines
     # nx.write_graphml(G,'test.graphml')
 
     def __repr__(self):
+        """
+        Returns a string representation of the instance.
+
+        This method provides a string representation of the instance, including the module and class
+        names, as well as the file object or string and the source.
+
+        Returns:
+            str: A string representation of the instance.
+        """
         if isinstance(self._fobj, str | bytes):
             return f"{self.__module__}.{self.__class__.__name__}({self._fobj[-10:]},{self.source})>"
         else:
@@ -463,13 +584,34 @@ supports pipelines
 
     @cached_property
     def uuid(self):
+        """
+        Retrieves a universally unique identifier (UUID) for the instance.
+
+        This method generates a new UUID for the instance using Python's `uuid.uuid4()` function. The
+        UUID is then cached as a property, ensuring that the same UUID is returned for subsequent
+        accesses.
+
+        Returns:
+            uuid.UUID: A unique identifier for the instance.
+        """
         return uuid.uuid4()
 
     def pipeline_graph(self, image_path: str | pathlib.Path = None, document_logic_id="current"):
         """
-        Generate a visualization of the defined pipelines
+        Generates a visualization of the defined pipelines and optionally saves it as an image.
 
-        image_path:  file path for a generated image
+        Args:
+            image_path (str | pathlib.Path, optional): File path for the generated image. If provided, the
+                                                       generated graph will be saved as an image.
+            document_logic_id (str, optional): The document logic ID for which the pipeline graph should
+                                               be generated. Defaults to "current".
+
+        Returns:
+            AGraph: A PyGraphviz AGraph object representing the pipeline graph. This object can be
+                    visualized or manipulated using PyGraphviz functions.
+
+        Notes:
+            This method requires the NetworkX and PyGraphviz libraries to be installed.
         """
         # TODO: change into a static method
         graph = nx.DiGraph()
