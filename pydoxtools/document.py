@@ -265,6 +265,7 @@ and put the documentation in there. A Lambda function is not the right tool in t
             .pipe(fobj="_fobj", document_type="document_type", page_numbers="_page_numbers", max_pages="_max_pages")
             .out("raw_content").cache(),
             Alias(full_text="raw_content"),
+            Alias(clean_text="full_text"),
 
             ## Standard text splitter for splitting text along lines...
             LambdaOperator(lambda x: pd.DataFrame(x.split("\n\n"), columns=["text"]))
@@ -284,7 +285,7 @@ and put the documentation in there. A Lambda function is not the right tool in t
             LambdaOperator(lambda full_text: 1 + (len(full_text) // 1000))
             .pipe("full_text").out("num_pages").cache(),
             LambdaOperator(lambda full_text: len(full_text.split()))
-            .pipe("full_text").out("num_words").cache(),
+            .pipe("clean_text").out("num_words").cache(),
             LambdaOperator(lambda spacy_sents: len(spacy_sents))
             .pipe("spacy_sents").out("num_sents"),
             LambdaOperator(lambda ft: sum(1 for c in ft if c.isdigit()) / sum(1 for c in ft if c.isalpha()))
@@ -295,8 +296,10 @@ and put the documentation in there. A Lambda function is not the right tool in t
             #########  SPACY WRAPPERS  #############
             Configuration(spacy_model_size="md", spacy_model="auto"),
             SpacyOperator()
-            .pipe("full_text", "language", "spacy_model", model_size="spacy_model_size")
-            .out(doc="spacy_doc", nlp="spacy_nlp").cache(),
+            .pipe(
+                "language", "spacy_model",
+                full_text="clean_text", model_size="spacy_model_size"
+            ).out(doc="spacy_doc", nlp="spacy_nlp").cache(),
             LambdaOperator(extract_spacy_token_vecs)
             .pipe("spacy_doc").out("spacy_vectors"),
             LambdaOperator(get_spacy_embeddings)

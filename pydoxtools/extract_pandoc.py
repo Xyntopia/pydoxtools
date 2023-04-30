@@ -93,7 +93,7 @@ class PandocBlocks(pydoxtools.operators.Operator):
 
 class PandocConverter(pydoxtools.operators.Operator):
     def __call__(self, pandoc_document: "pandoc.types.Pandoc", output_format: str) -> str:
-        full_text = pandoc.write(pandoc_document, output_format)
+        full_text = pandoc.write(pandoc_document, format=output_format)
         return full_text
 
 
