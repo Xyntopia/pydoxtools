@@ -1,0 +1,2528 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://xyntopia.github.io/pydoxtools/pipelines/">
+      
+      
+        <link rel="prev" href="../readme_cp/">
+      
+      
+        <link rel="next" href="../reference/">
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.8">
+    
+    
+      
+        <title>Pipelines - Pydoxtools</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ded33207.min.css">
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../css/mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#pipelines" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Pydoxtools" class="md-header__button md-logo" aria-label="Pydoxtools" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Pydoxtools
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Pipelines
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://www.github.com/xyntopia/pydoxtools" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Www
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Pydoxtools" class="md-nav__button md-logo" aria-label="Pydoxtools" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    Pydoxtools
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://www.github.com/xyntopia/pydoxtools" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Www
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../readme_cp/" class="md-nav__link">
+        Readme
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Pipelines
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Pipelines
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#pydoxtoolsdocument" class="md-nav__link">
+    pydoxtools.Document
+  </a>
+  
+    <nav class="md-nav" aria-label="pydoxtools.Document">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#raw_content" class="md-nav__link">
+    raw_content
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#full_text" class="md-nav__link">
+    full_text
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clean_text" class="md-nav__link">
+    clean_text
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#text_box_elements" class="md-nav__link">
+    text_box_elements
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#text_box_list" class="md-nav__link">
+    text_box_list
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tables_df" class="md-nav__link">
+    tables_df
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tables_dict" class="md-nav__link">
+    tables_dict
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tables" class="md-nav__link">
+    tables
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#addresses" class="md-nav__link">
+    addresses
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#num_pages" class="md-nav__link">
+    num_pages
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#num_words" class="md-nav__link">
+    num_words
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#num_sents" class="md-nav__link">
+    num_sents
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a_d_ratio" class="md-nav__link">
+    a_d_ratio
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#language" class="md-nav__link">
+    language
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spacy_model_size" class="md-nav__link">
+    spacy_model_size
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spacy_model" class="md-nav__link">
+    spacy_model
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spacy_doc" class="md-nav__link">
+    spacy_doc
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spacy_nlp" class="md-nav__link">
+    spacy_nlp
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spacy_vectors" class="md-nav__link">
+    spacy_vectors
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spacy_embeddings" class="md-nav__link">
+    spacy_embeddings
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spacy_sents" class="md-nav__link">
+    spacy_sents
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spacy_noun_chunks" class="md-nav__link">
+    spacy_noun_chunks
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#entities" class="md-nav__link">
+    entities
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#url" class="md-nav__link">
+    url
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sents" class="md-nav__link">
+    sents
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#noun_chunks" class="md-nav__link">
+    noun_chunks
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vector" class="md-nav__link">
+    vector
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sent_vecs" class="md-nav__link">
+    sent_vecs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sent_ids" class="md-nav__link">
+    sent_ids
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#noun_vecs" class="md-nav__link">
+    noun_vecs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#noun_ids" class="md-nav__link">
+    noun_ids
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#text_segments" class="md-nav__link">
+    text_segments
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#text_segment_model" class="md-nav__link">
+    text_segment_model
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#text_segment_only_tokenizer" class="md-nav__link">
+    text_segment_only_tokenizer
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#text_segment_vectors" class="md-nav__link">
+    text_segment_vectors
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#noun_index" class="md-nav__link">
+    noun_index
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vectorizer" class="md-nav__link">
+    vectorizer
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#noun_query" class="md-nav__link">
+    noun_query
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#noun_graph" class="md-nav__link">
+    noun_graph
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#top_k_text_rank_keywords" class="md-nav__link">
+    top_k_text_rank_keywords
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#textrank_keywords" class="md-nav__link">
+    textrank_keywords
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#keywords" class="md-nav__link">
+    keywords
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sent_index" class="md-nav__link">
+    sent_index
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sent_query" class="md-nav__link">
+    sent_query
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sent_graph" class="md-nav__link">
+    sent_graph
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#top_k_text_rank_sentences" class="md-nav__link">
+    top_k_text_rank_sentences
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#textrank_sents" class="md-nav__link">
+    textrank_sents
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#summarizer_model" class="md-nav__link">
+    summarizer_model
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#summarizer_token_overlap" class="md-nav__link">
+    summarizer_token_overlap
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#summarizer_max_text_len" class="md-nav__link">
+    summarizer_max_text_len
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    summary
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qam_model_id" class="md-nav__link">
+    qam_model_id
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#answers" class="md-nav__link">
+    answers
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openai_chat_model_id" class="md-nav__link">
+    openai_chat_model_id
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chat_answers" class="md-nav__link">
+    chat_answers
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#page_set" class="md-nav__link">
+    page_set
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pages_bbox" class="md-nav__link">
+    pages_bbox
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#elements" class="md-nav__link">
+    elements
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#meta" class="md-nav__link">
+    meta
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#line_elements" class="md-nav__link">
+    line_elements
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphic_elements" class="md-nav__link">
+    graphic_elements
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lists" class="md-nav__link">
+    lists
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#table_box_levels" class="md-nav__link">
+    table_box_levels
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#table_candidates" class="md-nav__link">
+    table_candidates
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#table_df0" class="md-nav__link">
+    table_df0
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#titles" class="md-nav__link">
+    titles
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#side_titles" class="md-nav__link">
+    side_titles
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#html_keywords_str" class="md-nav__link">
+    html_keywords_str
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#main_content_clean_html" class="md-nav__link">
+    main_content_clean_html
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goose_article" class="md-nav__link">
+    goose_article
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#main_content" class="md-nav__link">
+    main_content
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schemadata" class="md-nav__link">
+    schemadata
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#final_urls" class="md-nav__link">
+    final_urls
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pdf_links" class="md-nav__link">
+    pdf_links
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#title" class="md-nav__link">
+    title
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#short_title" class="md-nav__link">
+    short_title
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#urls" class="md-nav__link">
+    urls
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#main_image" class="md-nav__link">
+    main_image
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#html_keywords" class="md-nav__link">
+    html_keywords
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pandoc_document" class="md-nav__link">
+    pandoc_document
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output_format" class="md-nav__link">
+    output_format
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clean_format" class="md-nav__link">
+    clean_format
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pandoc_blocks" class="md-nav__link">
+    pandoc_blocks
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#headers" class="md-nav__link">
+    headers
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ocr_lang" class="md-nav__link">
+    ocr_lang
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ocr_on" class="md-nav__link">
+    ocr_on
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ocr_pdf_file" class="md-nav__link">
+    ocr_pdf_file
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data" class="md-nav__link">
+    data
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/" class="md-nav__link">
+        Reference
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#pydoxtoolsdocument" class="md-nav__link">
+    pydoxtools.Document
+  </a>
+  
+    <nav class="md-nav" aria-label="pydoxtools.Document">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#raw_content" class="md-nav__link">
+    raw_content
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#full_text" class="md-nav__link">
+    full_text
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clean_text" class="md-nav__link">
+    clean_text
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#text_box_elements" class="md-nav__link">
+    text_box_elements
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#text_box_list" class="md-nav__link">
+    text_box_list
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tables_df" class="md-nav__link">
+    tables_df
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tables_dict" class="md-nav__link">
+    tables_dict
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tables" class="md-nav__link">
+    tables
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#addresses" class="md-nav__link">
+    addresses
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#num_pages" class="md-nav__link">
+    num_pages
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#num_words" class="md-nav__link">
+    num_words
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#num_sents" class="md-nav__link">
+    num_sents
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a_d_ratio" class="md-nav__link">
+    a_d_ratio
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#language" class="md-nav__link">
+    language
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spacy_model_size" class="md-nav__link">
+    spacy_model_size
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spacy_model" class="md-nav__link">
+    spacy_model
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spacy_doc" class="md-nav__link">
+    spacy_doc
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spacy_nlp" class="md-nav__link">
+    spacy_nlp
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spacy_vectors" class="md-nav__link">
+    spacy_vectors
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spacy_embeddings" class="md-nav__link">
+    spacy_embeddings
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spacy_sents" class="md-nav__link">
+    spacy_sents
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spacy_noun_chunks" class="md-nav__link">
+    spacy_noun_chunks
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#entities" class="md-nav__link">
+    entities
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#url" class="md-nav__link">
+    url
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sents" class="md-nav__link">
+    sents
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#noun_chunks" class="md-nav__link">
+    noun_chunks
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vector" class="md-nav__link">
+    vector
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sent_vecs" class="md-nav__link">
+    sent_vecs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sent_ids" class="md-nav__link">
+    sent_ids
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#noun_vecs" class="md-nav__link">
+    noun_vecs
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#noun_ids" class="md-nav__link">
+    noun_ids
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#text_segments" class="md-nav__link">
+    text_segments
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#text_segment_model" class="md-nav__link">
+    text_segment_model
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#text_segment_only_tokenizer" class="md-nav__link">
+    text_segment_only_tokenizer
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#text_segment_vectors" class="md-nav__link">
+    text_segment_vectors
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#noun_index" class="md-nav__link">
+    noun_index
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vectorizer" class="md-nav__link">
+    vectorizer
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#noun_query" class="md-nav__link">
+    noun_query
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#noun_graph" class="md-nav__link">
+    noun_graph
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#top_k_text_rank_keywords" class="md-nav__link">
+    top_k_text_rank_keywords
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#textrank_keywords" class="md-nav__link">
+    textrank_keywords
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#keywords" class="md-nav__link">
+    keywords
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sent_index" class="md-nav__link">
+    sent_index
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sent_query" class="md-nav__link">
+    sent_query
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sent_graph" class="md-nav__link">
+    sent_graph
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#top_k_text_rank_sentences" class="md-nav__link">
+    top_k_text_rank_sentences
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#textrank_sents" class="md-nav__link">
+    textrank_sents
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#summarizer_model" class="md-nav__link">
+    summarizer_model
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#summarizer_token_overlap" class="md-nav__link">
+    summarizer_token_overlap
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#summarizer_max_text_len" class="md-nav__link">
+    summarizer_max_text_len
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    summary
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qam_model_id" class="md-nav__link">
+    qam_model_id
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#answers" class="md-nav__link">
+    answers
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#openai_chat_model_id" class="md-nav__link">
+    openai_chat_model_id
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chat_answers" class="md-nav__link">
+    chat_answers
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#page_set" class="md-nav__link">
+    page_set
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pages_bbox" class="md-nav__link">
+    pages_bbox
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#elements" class="md-nav__link">
+    elements
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#meta" class="md-nav__link">
+    meta
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#line_elements" class="md-nav__link">
+    line_elements
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphic_elements" class="md-nav__link">
+    graphic_elements
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lists" class="md-nav__link">
+    lists
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#table_box_levels" class="md-nav__link">
+    table_box_levels
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#table_candidates" class="md-nav__link">
+    table_candidates
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#table_df0" class="md-nav__link">
+    table_df0
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#titles" class="md-nav__link">
+    titles
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#side_titles" class="md-nav__link">
+    side_titles
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#html_keywords_str" class="md-nav__link">
+    html_keywords_str
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#main_content_clean_html" class="md-nav__link">
+    main_content_clean_html
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goose_article" class="md-nav__link">
+    goose_article
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#main_content" class="md-nav__link">
+    main_content
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schemadata" class="md-nav__link">
+    schemadata
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#final_urls" class="md-nav__link">
+    final_urls
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pdf_links" class="md-nav__link">
+    pdf_links
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#title" class="md-nav__link">
+    title
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#short_title" class="md-nav__link">
+    short_title
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#urls" class="md-nav__link">
+    urls
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#main_image" class="md-nav__link">
+    main_image
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#html_keywords" class="md-nav__link">
+    html_keywords
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pandoc_document" class="md-nav__link">
+    pandoc_document
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output_format" class="md-nav__link">
+    output_format
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#clean_format" class="md-nav__link">
+    clean_format
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pandoc_blocks" class="md-nav__link">
+    pandoc_blocks
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#headers" class="md-nav__link">
+    headers
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ocr_lang" class="md-nav__link">
+    ocr_lang
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ocr_on" class="md-nav__link">
+    ocr_on
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ocr_pdf_file" class="md-nav__link">
+    ocr_pdf_file
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data" class="md-nav__link">
+    data
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="pipelines">Pipelines</h1>
+<p>This documents the output values of the nodes of each pipeline that 
+can be accessed through the pipeline interface.</p>
+<h2 id="pydoxtoolsdocument"><a class="autorefs autorefs-internal" href="../reference/#pydoxtools.document.Document">pydoxtools.Document</a></h2>
+<h3 id="raw_content">raw_content</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('raw_content')
+# or
+doc.raw_content
+</code></pre>
+<p>return type
+: bytes | str</p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="full_text">full_text</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('full_text')
+# or
+doc.full_text
+</code></pre>
+<p>return type
+: <class 'str'></p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="clean_text">clean_text</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('clean_text')
+# or
+doc.clean_text
+</code></pre>
+<p>return type
+: <class 'str'></p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="text_box_elements">text_box_elements</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('text_box_elements')
+# or
+doc.text_box_elements
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="text_box_list">text_box_list</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('text_box_list')
+# or
+doc.text_box_list
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="tables_df">tables_df</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('tables_df')
+# or
+doc.tables_df
+</code></pre>
+<p>return type
+: str | list[str] | list[pandas.core.frame.DataFrame]</p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="tables_dict">tables_dict</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('tables_dict')
+# or
+doc.tables_dict
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="tables">tables</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('tables')
+# or
+doc.tables
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="addresses">addresses</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('addresses')
+# or
+doc.addresses
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="num_pages">num_pages</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('num_pages')
+# or
+doc.num_pages
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="num_words">num_words</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('num_words')
+# or
+doc.num_words
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="num_sents">num_sents</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('num_sents')
+# or
+doc.num_sents
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="a_d_ratio">a_d_ratio</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('a_d_ratio')
+# or
+doc.a_d_ratio
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="language">language</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('language')
+# or
+doc.language
+</code></pre>
+<p>return type
+: <class 'str'></p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="spacy_model_size">spacy_model_size</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('spacy_model_size')
+# or
+doc.spacy_model_size
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="spacy_model">spacy_model</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('spacy_model')
+# or
+doc.spacy_model
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="spacy_doc">spacy_doc</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('spacy_doc')
+# or
+doc.spacy_doc
+</code></pre>
+<p>return type
+: dict[str, typing.Any]</p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="spacy_nlp">spacy_nlp</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('spacy_nlp')
+# or
+doc.spacy_nlp
+</code></pre>
+<p>return type
+: dict[str, typing.Any]</p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="spacy_vectors">spacy_vectors</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('spacy_vectors')
+# or
+doc.spacy_vectors
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="spacy_embeddings">spacy_embeddings</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('spacy_embeddings')
+# or
+doc.spacy_embeddings
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="spacy_sents">spacy_sents</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('spacy_sents')
+# or
+doc.spacy_sents
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="spacy_noun_chunks">spacy_noun_chunks</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('spacy_noun_chunks')
+# or
+doc.spacy_noun_chunks
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="entities">entities</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('entities')
+# or
+doc.entities
+</code></pre>
+<p>return type
+: dict[str, list[str]]</p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="url">url</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('url')
+# or
+doc.url
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="sents">sents</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('sents')
+# or
+doc.sents
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="noun_chunks">noun_chunks</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('noun_chunks')
+# or
+doc.noun_chunks
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="vector">vector</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('vector')
+# or
+doc.vector
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="sent_vecs">sent_vecs</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('sent_vecs')
+# or
+doc.sent_vecs
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="sent_ids">sent_ids</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('sent_ids')
+# or
+doc.sent_ids
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="noun_vecs">noun_vecs</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('noun_vecs')
+# or
+doc.noun_vecs
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="noun_ids">noun_ids</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('noun_ids')
+# or
+doc.noun_ids
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="text_segments">text_segments</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('text_segments')
+# or
+doc.text_segments
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="text_segment_model">text_segment_model</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('text_segment_model')
+# or
+doc.text_segment_model
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="text_segment_only_tokenizer">text_segment_only_tokenizer</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('text_segment_only_tokenizer')
+# or
+doc.text_segment_only_tokenizer
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="text_segment_vectors">text_segment_vectors</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('text_segment_vectors')
+# or
+doc.text_segment_vectors
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="noun_index">noun_index</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('noun_index')
+# or
+doc.noun_index
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="vectorizer">vectorizer</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('vectorizer')
+# or
+doc.vectorizer
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="noun_query">noun_query</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('noun_query')
+# or
+doc.noun_query
+</code></pre>
+<p>return type
+: typing.Callable</p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="noun_graph">noun_graph</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('noun_graph')
+# or
+doc.noun_graph
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="top_k_text_rank_keywords">top_k_text_rank_keywords</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('top_k_text_rank_keywords')
+# or
+doc.top_k_text_rank_keywords
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="textrank_keywords">textrank_keywords</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('textrank_keywords')
+# or
+doc.textrank_keywords
+</code></pre>
+<p>return type
+: set[str]</p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="keywords">keywords</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('keywords')
+# or
+doc.keywords
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="sent_index">sent_index</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('sent_index')
+# or
+doc.sent_index
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="sent_query">sent_query</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('sent_query')
+# or
+doc.sent_query
+</code></pre>
+<p>return type
+: typing.Callable</p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="sent_graph">sent_graph</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('sent_graph')
+# or
+doc.sent_graph
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="top_k_text_rank_sentences">top_k_text_rank_sentences</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('top_k_text_rank_sentences')
+# or
+doc.top_k_text_rank_sentences
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="textrank_sents">textrank_sents</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('textrank_sents')
+# or
+doc.textrank_sents
+</code></pre>
+<p>return type
+: set[str]</p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="summarizer_model">summarizer_model</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('summarizer_model')
+# or
+doc.summarizer_model
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="summarizer_token_overlap">summarizer_token_overlap</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('summarizer_token_overlap')
+# or
+doc.summarizer_token_overlap
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="summarizer_max_text_len">summarizer_max_text_len</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('summarizer_max_text_len')
+# or
+doc.summarizer_max_text_len
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="summary">summary</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('summary')
+# or
+doc.summary
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="qam_model_id">qam_model_id</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('qam_model_id')
+# or
+doc.qam_model_id
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="answers">answers</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('answers')
+# or
+doc.answers
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="openai_chat_model_id">openai_chat_model_id</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('openai_chat_model_id')
+# or
+doc.openai_chat_model_id
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="chat_answers">chat_answers</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('chat_answers')
+# or
+doc.chat_answers
+</code></pre>
+<p>return type
+: typing.Callable[[list[str], list[str] | str], list[str]]</p>
+<p>supports pipelines
+: *,.docx,.epub,.html,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,.yaml,dict,image,pandoc</p>
+<h3 id="page_set">page_set</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('page_set')
+# or
+doc.page_set
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .jpeg,.jpg,.pdf,.png,.tif,.tiff,image</p>
+<h3 id="pages_bbox">pages_bbox</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('pages_bbox')
+# or
+doc.pages_bbox
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .jpeg,.jpg,.pdf,.png,.tif,.tiff,image</p>
+<h3 id="elements">elements</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('elements')
+# or
+doc.elements
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .jpeg,.jpg,.pdf,.png,.tif,.tiff,image</p>
+<h3 id="meta">meta</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('meta')
+# or
+doc.meta
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .jpeg,.jpg,.pdf,.png,.tif,.tiff,image</p>
+<h3 id="line_elements">line_elements</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('line_elements')
+# or
+doc.line_elements
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .jpeg,.jpg,.pdf,.png,.tif,.tiff,image</p>
+<h3 id="graphic_elements">graphic_elements</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('graphic_elements')
+# or
+doc.graphic_elements
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .jpeg,.jpg,.pdf,.png,.tif,.tiff,image</p>
+<h3 id="lists">lists</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('lists')
+# or
+doc.lists
+</code></pre>
+<p>return type
+: str | list[str] | list[pandas.core.frame.DataFrame]</p>
+<p>supports pipelines
+: .docx,.epub,.jpeg,.jpg,.markdown,.md,.odt,.pdf,.png,.rtf,.tif,.tiff,image,pandoc</p>
+<h3 id="table_box_levels">table_box_levels</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('table_box_levels')
+# or
+doc.table_box_levels
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .jpeg,.jpg,.pdf,.png,.tif,.tiff,image</p>
+<h3 id="table_candidates">table_candidates</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('table_candidates')
+# or
+doc.table_candidates
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .jpeg,.jpg,.pdf,.png,.tif,.tiff,image</p>
+<h3 id="table_df0">table_df0</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('table_df0')
+# or
+doc.table_df0
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .jpeg,.jpg,.pdf,.png,.tif,.tiff,image</p>
+<h3 id="titles">titles</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('titles')
+# or
+doc.titles
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .html,.jpeg,.jpg,.pdf,.png,.tif,.tiff,image</p>
+<h3 id="side_titles">side_titles</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('side_titles')
+# or
+doc.side_titles
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .jpeg,.jpg,.pdf,.png,.tif,.tiff,image</p>
+<h3 id="html_keywords_str">html_keywords_str</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('html_keywords_str')
+# or
+doc.html_keywords_str
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .html</p>
+<h3 id="main_content_clean_html">main_content_clean_html</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('main_content_clean_html')
+# or
+doc.main_content_clean_html
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .html</p>
+<h3 id="goose_article">goose_article</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('goose_article')
+# or
+doc.goose_article
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .html</p>
+<h3 id="main_content">main_content</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('main_content')
+# or
+doc.main_content
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .html</p>
+<h3 id="schemadata">schemadata</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('schemadata')
+# or
+doc.schemadata
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .html</p>
+<h3 id="final_urls">final_urls</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('final_urls')
+# or
+doc.final_urls
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .html</p>
+<h3 id="pdf_links">pdf_links</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('pdf_links')
+# or
+doc.pdf_links
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .html</p>
+<h3 id="title">title</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('title')
+# or
+doc.title
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .html</p>
+<h3 id="short_title">short_title</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('short_title')
+# or
+doc.short_title
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .html</p>
+<h3 id="urls">urls</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('urls')
+# or
+doc.urls
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .html</p>
+<h3 id="main_image">main_image</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('main_image')
+# or
+doc.main_image
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .html</p>
+<h3 id="html_keywords">html_keywords</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('html_keywords')
+# or
+doc.html_keywords
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .html</p>
+<h3 id="pandoc_document">pandoc_document</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('pandoc_document')
+# or
+doc.pandoc_document
+</code></pre>
+<p>return type
+: Pandoc(Meta, [Block])</p>
+<p>supports pipelines
+: .docx,.epub,.markdown,.md,.odt,.rtf,pandoc</p>
+<h3 id="output_format">output_format</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('output_format')
+# or
+doc.output_format
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .docx,.epub,.markdown,.md,.odt,.rtf,pandoc</p>
+<h3 id="clean_format">clean_format</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('clean_format')
+# or
+doc.clean_format
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .docx,.epub,.markdown,.md,.odt,.rtf,pandoc</p>
+<h3 id="pandoc_blocks">pandoc_blocks</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('pandoc_blocks')
+# or
+doc.pandoc_blocks
+</code></pre>
+<p>return type
+: list['pandoc.types.Block']</p>
+<p>supports pipelines
+: .docx,.epub,.markdown,.md,.odt,.rtf,pandoc</p>
+<h3 id="headers">headers</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('headers')
+# or
+doc.headers
+</code></pre>
+<p>return type
+: str | list[str] | list[pandas.core.frame.DataFrame]</p>
+<p>supports pipelines
+: .docx,.epub,.markdown,.md,.odt,.rtf,pandoc</p>
+<h3 id="ocr_lang">ocr_lang</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('ocr_lang')
+# or
+doc.ocr_lang
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .jpeg,.jpg,.png,.tif,.tiff,image</p>
+<h3 id="ocr_on">ocr_on</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('ocr_on')
+# or
+doc.ocr_on
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .jpeg,.jpg,.png,.tif,.tiff,image</p>
+<h3 id="ocr_pdf_file">ocr_pdf_file</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('ocr_pdf_file')
+# or
+doc.ocr_pdf_file
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .jpeg,.jpg,.png,.tif,.tiff,image</p>
+<h3 id="data">data</h3>
+<p>Can be called using:</p>
+<pre><code>doc.x('data')
+# or
+doc.data
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipelines
+: .yaml,dict</p>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.51198bba.min.js"></script>
+      
+    
+  </body>
+</html>
