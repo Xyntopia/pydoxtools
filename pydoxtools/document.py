@@ -28,7 +28,7 @@ from .list_utils import flatten, flatten_dict, deep_str_convert
 from .nlp_utils import calculate_string_embeddings
 from .operators import Alias, LambdaOperator, ElementWiseOperator, Configuration, Constant
 from .pdf_utils import PDFFileLoader
-from .qamachine import QamExtractor
+from .operator_huggingface import QamExtractor
 
 
 def is_url(url):
