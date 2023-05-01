@@ -8,7 +8,7 @@ readme = "README.md"
 homepage = "https://pydoxtools.xyntopia.com"
 repository = "https://github.com/xyntopia/pydoxtools"
 documentation = "https://pydoxtools.xyntopia.com"
-keywords = "AI, document-analysis, LLM, NLP, ML"
+keywords = ["AI", "document-analysis", "LLM", "NLP", "ML"]
 
 
 [tool.poetry.dependencies]
