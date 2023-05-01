@@ -265,6 +265,26 @@
     Installation
   </a>
   
+    <nav class="md-nav" aria-label="Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#installing-from-github" class="md-nav__link">
+    Installing from GitHub
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installing-from-pypi" class="md-nav__link">
+    Installing from PyPI
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -275,11 +295,11 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#features" class="md-nav__link">
-    Features
+  <a href="#some-features-in-more-detail" class="md-nav__link">
+    Some Features in more Detail
   </a>
   
-    <nav class="md-nav" aria-label="Features">
+    <nav class="md-nav" aria-label="Some Features in more Detail">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -292,7 +312,7 @@
         
           <li class="md-nav__item">
   <a href="#pipeline-configuration" class="md-nav__link">
-    Pipeline configuration
+    Pipeline Configuration
   </a>
   
 </li>
@@ -304,7 +324,7 @@
         
           <li class="md-nav__item">
   <a href="#pdf-table-extraction-algorithms" class="md-nav__link">
-    PDF table extraction algorithms
+    PDF Table Extraction Algorithms
   </a>
   
 </li>
@@ -345,7 +365,7 @@
         
           <li class="md-nav__item">
   <a href="#image-ocr-support" class="md-nav__link">
-    Image OCR support
+    Image OCR Support
   </a>
   
 </li>
@@ -367,12 +387,18 @@
     License
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#list-of-libraries-that-this-project-is-based-on" class="md-nav__link">
-    list of libraries, that this project is based on:
+    <nav class="md-nav" aria-label="License">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dependencies" class="md-nav__link">
+    Dependencies
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -445,6 +471,26 @@
     Installation
   </a>
   
+    <nav class="md-nav" aria-label="Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#installing-from-github" class="md-nav__link">
+    Installing from GitHub
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installing-from-pypi" class="md-nav__link">
+    Installing from PyPI
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -455,11 +501,11 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#features" class="md-nav__link">
-    Features
+  <a href="#some-features-in-more-detail" class="md-nav__link">
+    Some Features in more Detail
   </a>
   
-    <nav class="md-nav" aria-label="Features">
+    <nav class="md-nav" aria-label="Some Features in more Detail">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -472,7 +518,7 @@
         
           <li class="md-nav__item">
   <a href="#pipeline-configuration" class="md-nav__link">
-    Pipeline configuration
+    Pipeline Configuration
   </a>
   
 </li>
@@ -484,7 +530,7 @@
         
           <li class="md-nav__item">
   <a href="#pdf-table-extraction-algorithms" class="md-nav__link">
-    PDF table extraction algorithms
+    PDF Table Extraction Algorithms
   </a>
   
 </li>
@@ -525,7 +571,7 @@
         
           <li class="md-nav__item">
   <a href="#image-ocr-support" class="md-nav__link">
-    Image OCR support
+    Image OCR Support
   </a>
   
 </li>
@@ -547,12 +593,18 @@
     License
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#list-of-libraries-that-this-project-is-based-on" class="md-nav__link">
-    list of libraries, that this project is based on:
+    <nav class="md-nav" aria-label="License">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dependencies" class="md-nav__link">
+    Dependencies
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -583,9 +635,12 @@
 writing documents, designed to work with AI models such as GPT, Alpaca, and
 Huggingface. It offers functionalities such as:</p>
 <ul>
-<li>Table extraction</li>
-<li>Vector Index Creation</li>
+<li>Pipeline management on a new level</li>
+<li>Integration with AI (LLMs and more) models</li>
+<li>(PDF) table extraction without configuration!</li>
 <li>Document analysis and question-answering</li>
+<li>Support for most of todays document formats</li>
+<li>Vector index Creation</li>
 <li>Entity, address identification and more</li>
 <li>List and keyword extraction</li>
 <li>Data normalization, translation, and cleaning</li>
@@ -593,51 +648,52 @@ Huggingface. It offers functionalities such as:</p>
 <p>The library allows for the creation of complex extraction pipelines
 for batch-processing of documents by defining them as a lazily-executed graph.</p>
 <h2 id="installation">Installation</h2>
-<p>While pydoxtools can already be installed through pip. Due to the
-many updates coming in right now, it is right now recommended to use
-the latest version from github as follows:</p>
+<h3 id="installing-from-github">Installing from GitHub</h3>
+<p>While pydoxtools can already be installed through pip, due to the
+many updates coming in right now, it is currently recommended to use
+the latest version from GitHub as follows:</p>
 <pre><code>pip install -U "pydoxtools[etl,inference] @ git+https://github.com/xyntopia/pydoxtools.git"
 </code></pre>
-<p>Pydoxtools can be also be installed through pip which will become the recommended
+<h3 id="installing-from-pypi">Installing from PyPI</h3>
+<p>Pydoxtools can also be installed through pip, which will become the recommended
 method once it becomes more stable:</p>
 <pre><code>pip install -U pydoxtools[etl,inference]
 </code></pre>
-<p>For loading additional file formats (docx, odt, epub) and images, checkout
+<p>For loading additional file formats (docx, odt, epub) and images, check out
 the additional &gt; <a href="#installation-options">Installation Options</a> &lt;.</p>
 <h2 id="teaser">Teaser</h2>
-<p>Experience a new level of convenience and efficiency in handling documents with Pydoxtools, and reimagine your data
-extraction pipelines! 🎩✨📄.</p>
-<pre><code>import pydoxtools as pdx
+<p>Experience a new level of convenience and efficiency in handling
+documents with Pydoxtools, and reimagine your data extraction pipelines! 🎩✨📄.</p>
+<p>In this teaser, we'll demonstrate how to create a document, extract
+tables, and ask questions using AI models:</p>
+<pre><code class="language-python">import pydoxtools as pdx
 
-# create a document from a file, string, bytestring, file-like object
-# or even an url:
+# Create a document from various sources: file, string, bytestring, file-like object, or URL
 doc = pdx.Document(
-    "https://www.raspberrypi.org/app/uploads/2012/12/quick-start-guide-v1.1.pdf", 
-    document_type=".pdf"
+    &quot;https://www.raspberrypi.org/app/uploads/2012/12/quick-start-guide-v1.1.pdf&quot;,
+    document_type=&quot;.pdf&quot;
 )
-</code></pre>
-<p>You can easily extract a large number of pre-defined information
-about your document. To get a list of possible operators use <code>print(doc.x_funcs)</code>.</p>
-<pre><code># extract tables from the pdf as a pandas dataframe:
+
+# List available extraction functions
+print(doc.x_funcs)
+
+# Extract tables from the PDF as a pandas DataFrame
 print(doc.tables_df)
+
+# Ask a question about the documents using a local Q&amp;A model
+print(doc.answers([&quot;how much ram does it have?&quot;]))
+# Or only ask about the documents tables (or any other extracted information):
+print(doc.answers([&quot;how much ram does it have?&quot;], &quot;tables&quot;))
+
+# To use ChatGPT for question-answering, set the API key as an environment variable:
+# OPENAI_API_KEY=&quot;sk ....&quot;
+# Then, ask questions about the document using ChatGPT
+print(doc.chat_answers([&quot;What is the target group of this document?&quot;])[0].content)
+print(doc.chat_answers([&quot;Answer if a 5-year old would be able to follow these instructions?&quot;])[0].content)
 </code></pre>
-<p>Some extraction operations need input when called. The model that should be
-used for the question answering can be specified through doc.config() and can be any
-model from huggingface.</p>
-<pre><code># ask a question about the document, using Q&amp;A Models (questionas answered locally!):
-print(doc.answers(["how much ram does it have?"]))
-</code></pre>
-<p>others need an API key installed, if it refers to an online service.</p>
-<pre><code># ask a question about the document, using ChatGPT (we need the API key for ChatGPT!):
-# load the API key into an environment variable like this: 
-#   
-# OPENAI_API_KEY="sk ...."
-# 
-# Do **NOT** use the key in your code. This could potentially cost you a lot of money...
-print(doc.chat_answers(["What is the target group of this document?"])[0].content)
-print(doc.chat_answers(["Answer if a 5-year old would be able to follow these instructions?"])[0].content)
-</code></pre>
-<h2 id="features">Features</h2>
+<p>With Pydoxtools, you can easily access and process your documents, perform various extractions,
+and utilize AI models for more advanced analysis.</p>
+<h2 id="some-features-in-more-detail">Some Features in more Detail</h2>
 <h3 id="large-pipelines">Large pipelines</h3>
 <p>Pydoxtools main feature is the ability to mix LLMs and other
 AI models in large, composable and customizable pipelines.
@@ -653,7 +709,7 @@ OCR, keyword extraction, vectorization and more. In this pipeline:</p>
 <p>Pipelines can be mixed, partially overwritten and extended which gives you a lot of possibilities
 to extend and adapt the functionality for your specific use-case.</p>
 <p>Find out more about it in the <a href="http://pydoxtools.xyntopia.com/reference/#pydoxtools.document.Document">documentation</a></p>
-<h4 id="pipeline-configuration">Pipeline configuration</h4>
+<h4 id="pipeline-configuration">Pipeline Configuration</h4>
 <p>Pipelines can be configured. For example the local model used for
 question answering can be selected like this:</p>
 <pre><code>doc = Document(fobj="./data/PFR-PR23_BAT-110__V1.00_.pdf"))
@@ -662,7 +718,7 @@ question answering can be selected like this:</p>
 <p>where "qam_model_id" can be any model from huggingface for question answering.</p>
 <pre><code>TODO: document how to configure a pipeline
 </code></pre>
-<h3 id="pdf-table-extraction-algorithms">PDF table extraction algorithms</h3>
+<h3 id="pdf-table-extraction-algorithms">PDF Table Extraction Algorithms</h3>
 <p>The library features its own sophisticated Table extraction algorithm which is benchmarked
 against a large pdf table dataset. In contrast to most other table extraction frameworks
 out there it does not require:</p>
@@ -691,7 +747,7 @@ very limited resources!</p>
 Right now, the python pandoc library does not work with pandoc version &gt; 3.0.0. It
 is therefore recommended to install a version from here for your OS:</p>
 <p>https://github.com/jgm/pandoc/releases/tag/2.19.2</p>
-<h3 id="image-ocr-support">Image OCR support</h3>
+<h3 id="image-ocr-support">Image OCR Support</h3>
 <p>Pydoxtools can automatically analyze images as well, makin use of
 <a href="https://en.wikipedia.org/wiki/Optical_character_recognition">OCR</a>.
 In order to be able to use this, install tesseract on your system:</p>
@@ -714,7 +770,8 @@ setting:</p>
 <pre><code>pip install pip-licenses
 pip-licenses | grep -Ev 'MIT License|BSD License|Apache Software License|Python Software Foundation License|Apache 2.0|MIT|Apache License 2.0|hnswlib|Pillow|new BSD|BSD'
 </code></pre>
-<h2 id="list-of-libraries-that-this-project-is-based-on">list of libraries, that this project is based on:</h2>
+<h3 id="dependencies">Dependencies</h3>
+<p>Here is a list of Libraries, that this project is based on:</p>
 <p><a href="poetry.lock">list</a></p>
 
 
