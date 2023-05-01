@@ -1,7 +1,7 @@
 import mimetypes
 from functools import cached_property
 from pathlib import Path
-from typing import IO, Callable
+from typing import IO
 from urllib.parse import urlparse
 
 import langdetect
@@ -10,8 +10,6 @@ import pandas as pd
 import requests
 import yaml
 
-import pydoxtools.operators
-from . import document_base
 from .document_base import Pipeline, ElementType
 from .extract_classes import LanguageExtractor, TextBlockClassifier
 from .extract_filesystem import FileLoader, PathLoader
@@ -26,10 +24,11 @@ from .extract_spacy import SpacyOperator, extract_spacy_token_vecs, get_spacy_em
 from .extract_tables import ListExtractor, TableCandidateAreasExtractor, Iterator2Dataframe
 from .extract_textstructure import DocumentElementFilter, TextBoxElementExtractor, TitleExtractor
 from .html_utils import get_text_only_blocks
-from .list_utils import flatten, flatten_dict, deep_str_convert, iterablefyer
+from .list_utils import flatten, flatten_dict, deep_str_convert
 from .nlp_utils import calculate_string_embeddings, summarize_long_text
 from .operator_huggingface import QamExtractor
-from .operators import Alias, LambdaOperator, ElementWiseOperator, Configuration, Constant, DataMerger
+from .operators_base import Alias, LambdaOperator, ElementWiseOperator, Configuration, Constant, DataMerger, \
+    ForgivingExtractIterator
 from .pdf_utils import PDFFileLoader
 
 
@@ -435,7 +434,7 @@ operations and include the documentation there. Lambda functions should not be u
         """Initialize a Document instance.
 
         Args:
-            fobj
+            fobj:
                 The file object to load. Depending on the type of object passed:
                 - If a string or bytes object: the object itself is the document.
                 - If a string representing a URL: the document will be loaded from the URL.
@@ -561,56 +560,15 @@ operations and include the documentation there. Lambda functions should not be u
     """
 
 
-class ForgivingExtractIterator(pydoxtools.operators.Operator):
+class DocumentSet(Pipeline):
     """
-    Creates a loop to extract properties from a list of
-    pydoxtools.Document.
+    **This class is WIP use with caution**
 
-    method = "list":
-        Iterator can be configured to output either a list property dictionaries
-
-    method = "single_property"
-        output of the iterator will be a single, flat list of said property
-    """
-
-    def __init__(self, method="list"):
-        super().__init__()
-        self._method = method
-
-    def __call__(self, doc_list: list[Document]) -> Callable:
-        """Define a safe_extract iterator because we want to stay
-        flexible here and not put all this data in our memory...."""
-
-        # TODO: define a more "static" propertylist function which
-        #       could be configured on documentset instantiation
-        if self._method == "list":
-            def safe_extract(properties: list[str] | str) -> list[dict]:
-                properties = iterablefyer(properties)
-                for doc in doc_list:
-                    try:
-                        props = doc.property_dict(*properties)
-                    except pydoxtools.operators.OperatorException:
-                        # we just continue  if an error happened. This is why we are "forgiving"
-                        if len(properties) > 1:
-                            props = {"Error": "OperatorException"}
-                        else:
-                            continue
-
-                    if len(properties) == 1:
-                        yield props[properties[0]]
-                    else:
-                        yield props
-
-            return safe_extract
-
-
-class DocumentSet(document_base.Pipeline):
-    """
     This class loads an entire set of documents and processes
     it using a pipeline.
 
-    This class is still experimental. Eventually, the document class
-    and this class might get merged into one.
+    This class is still experimental. Expect more documentation in
+    the near future.
     """
 
     # make sure we can pass configurations to udnerlying documents!

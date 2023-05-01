@@ -15,7 +15,7 @@ import torch
 from pydoxtools import nlp_utils
 from pydoxtools.list_utils import iterablefyer
 from pydoxtools.nlp_utils import tokenize_windows, QandAmodels
-from pydoxtools.operators import Operator
+from pydoxtools.document_base import Operator
 
 logger = logging.getLogger(__name__)
 

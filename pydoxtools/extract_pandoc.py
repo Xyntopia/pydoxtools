@@ -3,7 +3,8 @@ import logging
 import pandas as pd
 from packaging import version
 
-import pydoxtools.operators
+import pydoxtools.document_base
+import pydoxtools.operators_base
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +59,7 @@ def extract_list(elt):
         return output
 
 
-class PandocLoader(pydoxtools.operators.Operator):
+class PandocLoader(pydoxtools.document_base.Operator):
     """
     Converts a string or a raw byte string into pandoc intermediate format.
     """
@@ -82,7 +83,7 @@ class PandocLoader(pydoxtools.operators.Operator):
         return pandoc_format
 
 
-class PandocBlocks(pydoxtools.operators.Operator):
+class PandocBlocks(pydoxtools.document_base.Operator):
     def __init__(self):
         super().__init__()
 
@@ -91,13 +92,13 @@ class PandocBlocks(pydoxtools.operators.Operator):
         return txtblocks
 
 
-class PandocConverter(pydoxtools.operators.Operator):
+class PandocConverter(pydoxtools.document_base.Operator):
     def __call__(self, pandoc_document: "pandoc.types.Pandoc", output_format: str) -> str:
         full_text = pandoc.write(pandoc_document, format=output_format)
         return full_text
 
 
-class PandocOperator(pydoxtools.operators.Operator):
+class PandocOperator(pydoxtools.document_base.Operator):
     """
     Extract tables, headers and lists from a pandoc document
     """

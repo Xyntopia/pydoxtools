@@ -7,7 +7,8 @@ import pdfminer
 from pdfminer.layout import LTChar, LTTextLineVertical
 from sklearn.ensemble import IsolationForest
 
-import pydoxtools.operators
+import pydoxtools.document_base
+import pydoxtools.operators_base
 from pydoxtools import document_base
 
 
@@ -63,7 +64,7 @@ def mime_type(self) -> str:
     return "unknown"
 
 
-class DocumentElementFilter(pydoxtools.operators.Operator):
+class DocumentElementFilter(pydoxtools.document_base.Operator):
     """Filter document elements for various criteria"""
 
     def __init__(self, element_type: document_base.ElementType):
@@ -75,7 +76,7 @@ class DocumentElementFilter(pydoxtools.operators.Operator):
         return df
 
 
-class TextBoxElementExtractor(pydoxtools.operators.Operator):
+class TextBoxElementExtractor(pydoxtools.document_base.Operator):
     """
     create textboxes and create bounding boxes and aggregated text from
     a pandas dataframe with textlines.
@@ -117,7 +118,7 @@ class TextBoxElementExtractor(pydoxtools.operators.Operator):
             return dict(text_box_elements=None)
 
 
-class TitleExtractor(pydoxtools.operators.Operator):
+class TitleExtractor(pydoxtools.document_base.Operator):
     """
     This Operator extracts titels and other interesting text parts
     from a visual document. It does this by characterising parts

@@ -1,8 +1,11 @@
+import abc
 import functools
 import json
 import logging
 import pathlib
+import typing
 import uuid
+from abc import ABC
 from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
@@ -14,7 +17,7 @@ import numpy as np
 import spacy.tokens
 import yaml
 
-from . import operators
+from . import operators_base
 from .list_utils import deep_str_convert
 
 logger = logging.getLogger(__name__)
@@ -80,7 +83,129 @@ class TokenCollection:
         return "|".join(t.text for t in self._tokens)
 
 
-# TODO: rename into "Operator"
+class Operator(ABC):
+    """Base class to build extraction logic for information extraction from
+    unstructured documents and loading files
+
+    Extractors should always be stateless! This means one should not save
+    any variables in them that persist over the lifecycle over a single extraction
+    operation.
+
+    - Extractors can be "hooked" into the document pipeline by using:
+        pipe, out and cache calls.
+    - all parameters given in "out" can be accessed through the "x" property
+      (e.g. doc.x("extraction_parameter"))
+
+    dynamic configuration of an extractor parameters can be configured through
+    "config" function which will indicate to the parent document class
+    to set some input parameters to this function manually.
+    If the same parameters are also set in doc.pipe the parameters are
+    optional and will only be taken if explicitly set through doc.config(...).
+
+    ```
+    doc.dynamic()
+    ```
+
+    This function can be accessed through:
+
+    ```python
+    doc.config(my_dynamic_parameter="some_new_value")
+    ```
+    """
+
+    # TODO:  how can we anhance the type checking for outputs?
+    #        maybe turn this into a dataclass?
+
+    def __init__(self):
+        # try to keep __init__ with no arguments for Operator..
+        self._in_mapping: dict[str, str] = {}
+        self._out_mapping: dict[str, str] = {}
+        self._cache = False  # TODO: switch to "True" by default
+        self._dynamic_config: dict[str, str] = {}
+
+    @abc.abstractmethod
+    def __call__(self, *args, **kwargs) -> dict[str, typing.Any] | Any:
+        pass
+
+    def _mapped_call(
+            self, parent_document: "document_base.Pipeline",
+            *args,
+            **kwargs
+    ) -> dict[
+        str, typing.Any]:
+        """
+        map objects from document properties to
+        processing function.
+
+        essentially, This maps the outputs from one element of _operators
+        to the inputs of another and also makes sure
+        to override certain parameters that were specified in
+        a config when calling the document class.
+
+        argument precedence is as follows:
+
+        python-class-member < extractor-graph-function < config
+
+        # TODO: maybe we should change precedence and make config the lowest?
+        """
+        mapped_kwargs = {}
+        # get all required input parameters from _in_mapping which was declared with "pipe"
+        for k, v in self._in_mapping.items():
+            # first check if parameter is available as an extractor
+            if v in parent_document.x_funcs:
+                # then call the function to get the value
+                mapped_kwargs[k] = parent_document.x(v)
+            else:
+                # get "native" member-variables or other functions
+                # if not found an extractor with that name
+                mapped_kwargs[k] = getattr(parent_document, v)
+
+        # override graph args directly with function call params...
+        mapped_kwargs.update(kwargs)
+        output = self(*args, **mapped_kwargs)
+        if isinstance(output, dict):
+            return {self._out_mapping[k]: v for k, v in output.items() if k in self._out_mapping}
+        else:
+            # use first key of out_mapping for output if
+            # we only have a single return value
+            return {next(iter(self._out_mapping)): output}
+
+    def pipe(self, *args, **kwargs):
+        """
+        configure input parameter mappings to this function
+
+        keys: are the actual function parameters of the extractor function
+        values: are the outside function names
+
+        """
+        self._in_mapping = kwargs
+        self._in_mapping.update({k: k for k in args})
+        return self
+
+    def out(self, *args, **kwargs):
+        """
+        configure output parameter mappings to this function
+
+        keys: are the
+        """
+        # TODO: rename to "name" because this actually represents the
+        #       variable names of the extractor?
+        self._out_mapping = kwargs
+        self._out_mapping.update({k: k for k in args})
+        return self
+
+    def cache(self):
+        """indicate to document that we want this extractor function to be cached"""
+        self._cache = True
+        return self
+
+    def no_cache(self):
+        self._cache = False
+        return self
+
+
+class OperatorException(Exception):
+    pass
 
 
 class ConfigurationError(Exception):
@@ -135,10 +260,10 @@ class MetaPipelineClassConfiguration(type):
                 # to "*.pdf" and other document logic if we use the already calculated _pipelines this
                 # would not be guaranteed.
 
-                uncombined_operators: dict[str, dict[str, operators.Operator]] = {}
+                uncombined_operators: dict[str, dict[str, Operator]] = {}
                 extractor_combinations: dict[str, list[str]] = {}  # record the extraction hierarchy
                 uncombined_x_configs: dict[str, dict[str, list[str]]] = {}
-                ex: operators.Operator | str
+                ex: Operator | str
                 # loop through class hierarchy in order to get the logic of parent classes as well,
                 # including the newly defined class
                 for cl in reversed(class_hierarchy):
@@ -242,10 +367,10 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
     between file types.
 
     Attributes:
-        _operators (dict[str, list[operators.Operator]]): Stores the definition of the
+        _operators (dict[str, list[pydoxtools.document_base.Operator]]): Stores the definition of the
             pipeline graph, a collection of connected operators/functions that process
             data from a document.
-        _pipelines (dict[str, dict[str, operators.Operator]]): Provides access to all
+        _pipelines (dict[str, dict[str, pydoxtools.document_base.Operator]]): Provides access to all
             operator functions by their "out-key" which was defined in _operators.
 
     Todo:
@@ -254,8 +379,8 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
           (https://pandera.readthedocs.io/en/stable/pydantic_integration.html)
     """
 
-    _operators: dict[str, list[operators.Operator]] = {}
-    _pipelines: dict[str, dict[str, operators.Operator]] = {}
+    _operators: dict[str, list[Operator]] = {}
+    _pipelines: dict[str, dict[str, Operator]] = {}
 
     def __init__(self):
         """
@@ -263,11 +388,11 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
 
         Attributes:
             _cache_hits (int): Number of cache hits during pipeline execution.
-            _x_func_cache (dict[operators.Operator, dict[str, Any]]): Cache for operator
+            _x_func_cache (dict[pydoxtools.document_base.Operator, dict[str, Any]]): Cache for operator
                 functions to store intermediate results.
         """
         self._cache_hits = 0
-        self._x_func_cache: dict[operators.Operator, dict[str, Any]] = {}
+        self._x_func_cache: dict[Operator, dict[str, Any]] = {}
 
     def config(self, **settings: dict[str, Any]) -> "Pipeline":
         """
@@ -328,7 +453,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         raise NotImplementedError("derived pipelines need to override this function!")
 
     @cached_property
-    def x_funcs(self) -> dict[str, operators.Operator]:
+    def x_funcs(self) -> dict[str, Operator]:
         """
         get all operators/pipeline nodes and their property names
         for this specific file type/pipeline
@@ -404,7 +529,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         out = json.dumps(out)
         return out
 
-    def non_interactive_pipeline(self) -> dict[str, operators.Operator]:
+    def non_interactive_pipeline(self) -> dict[str, Operator]:
         """return all non-interactive extractors/pipeline nodes"""
         NotImplementedError("TODO: search for functions that are type hinted as callable")
 
@@ -485,12 +610,12 @@ supports pipelines
             else:
                 res = extractor_func._mapped_call(self, *args, **kwargs)
 
-        except operators.OperatorException as e:
+        except OperatorException as e:
             logger.error(f"Extraction error in '{extract_name}': {e}")
             raise e
         except Exception as e:
             logger.error(f"Extraction error in '{extract_name}': {e}")
-            raise operators.OperatorException(f"could not get {extract_name} for {self}")
+            raise OperatorException(f"could not get {extract_name} for {self}")
             # raise e
 
         return res[extract_name]

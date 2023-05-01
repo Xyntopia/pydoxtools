@@ -3,7 +3,7 @@ from typing import Callable
 import openai
 import yaml
 
-from .operators import Operator
+from .document_base import Operator
 from .settings import settings
 
 # TODO: add a "normal" prompt

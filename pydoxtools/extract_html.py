@@ -16,7 +16,8 @@ import readability
 from bs4 import BeautifulSoup, NavigableString
 from goose3 import Goose
 
-import pydoxtools.operators
+import pydoxtools.document_base
+import pydoxtools.operators_base
 from pydoxtools import document_base
 from pydoxtools import html_utils
 from pydoxtools.html_utils import logger, clean_html
@@ -191,7 +192,7 @@ def extract_schema(raw_html, url):
     return data
 
 
-class HtmlExtractor(pydoxtools.operators.Operator):
+class HtmlExtractor(pydoxtools.document_base.Operator):
     def __init__(self, engine="combined"):
         super().__init__()
         self._engine = engine

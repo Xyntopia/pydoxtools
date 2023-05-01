@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from pydoxtools.document import Document
-from pydoxtools.operators import OperatorException
+from pydoxtools.document_base import OperatorException
 from pydoxtools import settings
 
 logger = logging.getLogger(__name__)
