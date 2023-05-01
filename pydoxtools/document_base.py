@@ -269,11 +269,6 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         self._cache_hits = 0
         self._x_func_cache: dict[operators.Operator, dict[str, Any]] = {}
 
-
-    def __init__(self):
-        self._cache_hits = 0
-        self._x_func_cache: dict[operators.Operator, dict[str, Any]] = {}
-
     def config(self, **settings: dict[str, Any]) -> "Pipeline":
         """
         Set configuration parameters for a pipeline.
