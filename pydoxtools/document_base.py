@@ -17,7 +17,6 @@ import numpy as np
 import spacy.tokens
 import yaml
 
-from . import operators_base
 from .list_utils import deep_str_convert
 
 logger = logging.getLogger(__name__)

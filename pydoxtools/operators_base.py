@@ -7,8 +7,7 @@ to create your own pipelines.
 
 from typing import Callable, Iterable
 
-from pydoxtools import Pipeline
-from pydoxtools.document_base import Operator, OperatorException
+from pydoxtools.document_base import Operator, OperatorException, Pipeline
 from pydoxtools.list_utils import iterablefyer
 
 
