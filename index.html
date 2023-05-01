@@ -259,8 +259,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#building-your-own-pipelines-for-example-with-llms" class="md-nav__link">
-    Building your own Pipelines (for example with LLMs)
+  <a href="#building-your-own-pipelines-with-llms-large-language-models-and-other-types-of-ai" class="md-nav__link">
+    Building your own Pipelines with LLMs (Large Language Models) and other types of AI
   </a>
   
 </li>
@@ -372,8 +372,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#building-your-own-pipelines-for-example-with-llms" class="md-nav__link">
-    Building your own Pipelines (for example with LLMs)
+  <a href="#building-your-own-pipelines-with-llms-large-language-models-and-other-types-of-ai" class="md-nav__link">
+    Building your own Pipelines with LLMs (Large Language Models) and other types of AI
   </a>
   
 </li>
@@ -411,16 +411,20 @@
 <p>The main interface that pydoxtools uses are three classes:</p>
 <ul>
 <li><a class="autorefs autorefs-internal" href="reference/#pydoxtools.document.Document">pydoxtools.Document</a></li>
-<li>[pydoxtools.DocumentSet][]</li>
+<li><a class="autorefs autorefs-internal" href="reference/#pydoxtools.document.DocumentSet">pydoxtools.DocumentSet</a></li>
 <li><a class="autorefs autorefs-internal" href="reference/#pydoxtools.document_base.Pipeline">pydoxtools.Pipeline</a></li>
+</ul>
+<p>And a set of operators:</p>
+<ul>
+<li><a class="autorefs autorefs-internal" href="reference/#pydoxtools.operators">pydoxtools.operators</a></li>
 </ul>
 <h3 id="analyzing-document">Analyzing Document</h3>
 <p>Document &amp; DocumentSet are both using <a class="autorefs autorefs-internal" href="reference/#pydoxtools.document_base.Pipeline">pydoxtools.Pipeline</a> and
 predefine a complex pipeline to extract data from individual documents or
-a set of documents. A list of all the "out-of-the-box" featurs for each pipelin
+a set of documents. A list of all the "out-of-the-box" featurs for each pipeline
 can be found in:</p>
 <p>-&gt; <a href="pipelines">Pipelines</a></p>
-<h3 id="building-your-own-pipelines-for-example-with-llms">Building your own Pipelines (for example with LLMs)</h3>
+<h3 id="building-your-own-pipelines-with-llms-large-language-models-and-other-types-of-ai">Building your own Pipelines with LLMs (Large Language Models) and other types of AI</h3>
 <p>the Pipeline class can be used to build complex, custom pipelines which
 have several out-of-the-box features which makes them easy to use in
 modern pipelines involving the use of a lot of AI tools:</p>
@@ -428,11 +432,11 @@ modern pipelines involving the use of a lot of AI tools:</p>
 <li>they can be mixed, extended, (partially) overwritten with other pipelines</li>
 <li>they can export/import their data (yaml, json, python-dict),</li>
 <li>they can be configured &amp; optimized</li>
-<li>they can convert their data into <a class="autorefs autorefs-internal" href="reference/#pydoxtools.document.Document">pydoxtools.Document</a> and [pydoxtools.DocumentSet][]</li>
+<li>they can convert their data into <a class="autorefs autorefs-internal" href="reference/#pydoxtools.document.Document">pydoxtools.Document</a> and <a class="autorefs autorefs-internal" href="reference/#pydoxtools.document.DocumentSet">pydoxtools.DocumentSet</a></li>
 </ul>
 <p>Additionally, in order to develop a custom pipeline, pydoxtools has a large
 library of <a class="autorefs autorefs-internal" href="reference/#pydoxtools.operators">pydoxtools.operators</a> which can be used to build your custom pipeline.
-It usually makes sense to use <a class="autorefs autorefs-internal" href="reference/#pydoxtools.document.Document">pydoxtools.Document</a> or [pydoxtools.DocumentSet][]
+It usually makes sense to use <a class="autorefs autorefs-internal" href="reference/#pydoxtools.document.Document">pydoxtools.Document</a> or <a class="autorefs autorefs-internal" href="reference/#pydoxtools.document.DocumentSet">pydoxtools.DocumentSet</a>
 as a base for a new pipeline and only replace small parts of them in order to
 get desired custom functionality.</p>
 <h2 id="visualization-of-the-pipelines">Visualization of the Pipelines</h2>
