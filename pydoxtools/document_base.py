@@ -230,40 +230,45 @@ class MetaPipelineClassConfiguration(type):
 
 class Pipeline(metaclass=MetaPipelineClassConfiguration):
     """
-    This class is the base for all document classes in pydoxtools and
-    defines a common pipeline interface for all.
+    Base class for all document classes in pydoxtools, defining a common pipeline
+    interface and establishing a basic pipeline schema that derived classes can override.
 
-    This class also defines a basic extraction schema which derived
-    classes can override
+    The MetaPipelineClassConfiguration acts as a compiler to resolve the pipeline hierarchy,
+    allowing pipelines to inherit, mix, extend, or partially overwrite each other.
+    Each key in the _pipelines dictionary represents a different pipeline version.
 
-    in order to create a new pipeline, the
-    _extractor variable shoud be overwritten with a pipeline definition
+    The [pydoxtools.Document][] class leverages this functionality to build separate pipelines for
+    different file types, as the information processing requirements differ significantly
+    between file types.
 
-    this pipeline will get compiled in a function mappint defined in
-    _pipelines
+    Attributes:
+        _operators (dict[str, list[operators.Operator]]): Stores the definition of the
+            pipeline graph, a collection of connected operators/functions that process
+            data from a document.
+        _pipelines (dict[str, dict[str, operators.Operator]]): Provides access to all
+            operator functions by their "out-key" which was defined in _operators.
+
+    Todo:
+        * Use pandera (https://github.com/unionai-oss/pandera) to validate dataframes
+          exchanged between extractors & loaders
+          (https://pandera.readthedocs.io/en/stable/pydantic_integration.html)
     """
 
-    # TODO: use pandera (https://github.com/unionai-oss/pandera)
-    #       in order to validate dataframes exchanged between extractors & loaders
-    #       https://pandera.readthedocs.io/en/stable/pydantic_integration.html
-
-    # TODO: how do we change extraction configuration "on-the-fly" if we have
-    #       for example a structured document vs unstructered (PDF: unstructure,
-    #       Markdown: structured)
-    #       in this case table extraction algorithms for example would have to
-    #       behave differently. We would like to use
-    #       a different extractor configuration in that case...
-    #       in other words: each extractor needs to be "conditional"
-
-    # stores the definition of the pipeline graph, a collection of connected
-    # operators/functions
-    # which extract data from a document
     _operators: dict[str, list[operators.Operator]] = {}
-
-    # a dict which provides access for all extractor functions by their "out-key"
-    # which was defined in _operators
-    # TODO: rename into operators
     _pipelines: dict[str, dict[str, operators.Operator]] = {}
+
+    def __init__(self):
+        """
+        Initializes the Pipeline instance with cache-related attributes.
+
+        Attributes:
+            _cache_hits (int): Number of cache hits during pipeline execution.
+            _x_func_cache (dict[operators.Operator, dict[str, Any]]): Cache for operator
+                functions to store intermediate results.
+        """
+        self._cache_hits = 0
+        self._x_func_cache: dict[operators.Operator, dict[str, Any]] = {}
+
 
     def __init__(self):
         self._cache_hits = 0
