@@ -47,9 +47,12 @@ class DocumentTypeError(Exception):
 class Document(Pipeline):
     """Basic document pipeline class to analyze documents from all kinds of formats.
 
+A list and documentation of all document analysis related functions can be found
+[->here<-](../pipelines).
+
 The Document class is designed for information extraction from documents. It inherits from the
-[pydoxtools.document_base.Pipeline][] class and uses a predefined extraction pipeline f
-ocused on document processing tasks.
+[pydoxtools.document_base.Pipeline][] class and uses a predefined extraction pipeline
+focused on document processing tasks.
 To load a document, create an instance of the Document class with a file path, a file object, a string,
 a URL or give it some data directly as a dict:
 

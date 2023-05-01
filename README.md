@@ -15,9 +15,12 @@ Pydoxtools is a library that provides a sophisticated interface for reading and
 writing documents, designed to work with AI models such as GPT, Alpaca, and
 Huggingface. It offers functionalities such as:
 
-- Table extraction
-- Vector Index Creation
+- Pipeline management on a new level
+- Integration with AI (LLMs and more) models
+- (PDF) table extraction without configuration!
 - Document analysis and question-answering
+- Support for most of todays document formats
+- Vector index Creation
 - Entity, address identification and more
 - List and keyword extraction
 - Data normalization, translation, and cleaning
@@ -27,59 +30,63 @@ for batch-processing of documents by defining them as a lazily-executed graph.
 
 ## Installation
 
-While pydoxtools can already be installed through pip. Due to the
-many updates coming in right now, it is right now recommended to use
-the latest version from github as follows:
+### Installing from GitHub
+
+While pydoxtools can already be installed through pip, due to the
+many updates coming in right now, it is currently recommended to use
+the latest version from GitHub as follows:
 
     pip install -U "pydoxtools[etl,inference] @ git+https://github.com/xyntopia/pydoxtools.git"
 
-Pydoxtools can be also be installed through pip which will become the recommended
+### Installing from PyPI
+
+Pydoxtools can also be installed through pip, which will become the recommended
 method once it becomes more stable:
 
     pip install -U pydoxtools[etl,inference]
 
-For loading additional file formats (docx, odt, epub) and images, checkout
+For loading additional file formats (docx, odt, epub) and images, check out
 the additional > [Installation Options](#installation-options) <.
 
 ## Teaser
 
-Experience a new level of convenience and efficiency in handling documents with Pydoxtools, and reimagine your data
-extraction pipelines! 🎩✨📄.
+Experience a new level of convenience and efficiency in handling
+documents with Pydoxtools, and reimagine your data extraction pipelines! 🎩✨📄.
 
-    import pydoxtools as pdx
+In this teaser, we'll demonstrate how to create a document, extract
+tables, and ask questions using AI models:
 
-    # create a document from a file, string, bytestring, file-like object
-    # or even an url:
-    doc = pdx.Document(
-        "https://www.raspberrypi.org/app/uploads/2012/12/quick-start-guide-v1.1.pdf", 
-        document_type=".pdf"
-    )
+```python
+import pydoxtools as pdx
 
-You can easily extract a large number of pre-defined information
-about your document. To get a list of possible operators use `print(doc.x_funcs)`.
+# Create a document from various sources: file, string, bytestring, file-like object, or URL
+doc = pdx.Document(
+    "https://www.raspberrypi.org/app/uploads/2012/12/quick-start-guide-v1.1.pdf",
+    document_type=".pdf"
+)
 
-    # extract tables from the pdf as a pandas dataframe:
-    print(doc.tables_df)
+# List available extraction functions
+print(doc.x_funcs)
 
-Some extraction operations need input when called. The model that should be
-used for the question answering can be specified through doc.config() and can be any
-model from huggingface.
+# Extract tables from the PDF as a pandas DataFrame
+print(doc.tables_df)
 
-    # ask a question about the document, using Q&A Models (questionas answered locally!):
-    print(doc.answers(["how much ram does it have?"]))
+# Ask a question about the documents using a local Q&A model
+print(doc.answers(["how much ram does it have?"]))
+# Or only ask about the documents tables (or any other extracted information):
+print(doc.answers(["how much ram does it have?"], "tables"))
 
-others need an API key installed, if it refers to an online service.
+# To use ChatGPT for question-answering, set the API key as an environment variable:
+# OPENAI_API_KEY="sk ...."
+# Then, ask questions about the document using ChatGPT
+print(doc.chat_answers(["What is the target group of this document?"])[0].content)
+print(doc.chat_answers(["Answer if a 5-year old would be able to follow these instructions?"])[0].content)
+```
 
-    # ask a question about the document, using ChatGPT (we need the API key for ChatGPT!):
-    # load the API key into an environment variable like this: 
-    #   
-    # OPENAI_API_KEY="sk ...."
-    # 
-    # Do **NOT** use the key in your code. This could potentially cost you a lot of money...
-    print(doc.chat_answers(["What is the target group of this document?"])[0].content)
-    print(doc.chat_answers(["Answer if a 5-year old would be able to follow these instructions?"])[0].content)
+With Pydoxtools, you can easily access and process your documents, perform various extractions,
+and utilize AI models for more advanced analysis.
 
-## Features
+## Some Features in more Detail
 
 ### Large pipelines
 
@@ -100,7 +107,7 @@ to extend and adapt the functionality for your specific use-case.
 
 Find out more about it in the [documentation](http://pydoxtools.xyntopia.com/reference/#pydoxtools.document.Document)
 
-#### Pipeline configuration
+#### Pipeline Configuration
 
 Pipelines can be configured. For example the local model used for
 question answering can be selected like this:
@@ -112,7 +119,7 @@ where "qam_model_id" can be any model from huggingface for question answering.
 
     TODO: document how to configure a pipeline
 
-### PDF table extraction algorithms
+### PDF Table Extraction Algorithms
 
 The library features its own sophisticated Table extraction algorithm which is benchmarked
 against a large pdf table dataset. In contrast to most other table extraction frameworks
@@ -148,7 +155,7 @@ is therefore recommended to install a version from here for your OS:
 
 https://github.com/jgm/pandoc/releases/tag/2.19.2
 
-### Image OCR support
+### Image OCR Support
 
 Pydoxtools can automatically analyze images as well, makin use of
 [OCR](https://en.wikipedia.org/wiki/Optical_character_recognition).
@@ -179,6 +186,8 @@ setting:
     pip install pip-licenses
     pip-licenses | grep -Ev 'MIT License|BSD License|Apache Software License|Python Software Foundation License|Apache 2.0|MIT|Apache License 2.0|hnswlib|Pillow|new BSD|BSD'
 
-## list of libraries, that this project is based on:
+### Dependencies
+
+Here is a list of Libraries, that this project is based on:
 
 [list](poetry.lock)
