@@ -47,50 +47,6 @@ class LambdaOperator(Operator):
         return self._func(*args, **kwargs)
 
 
-class Configuration(Operator):
-    """
-    This is a special operator which can be used to configure a pipeline.
-
-    Declare some configuration values which can then be used as inputs for
-    other operators.
-
-    It takes a list of key-value pairs where the key
-    is the target variable name and the value is the
-    standard configuration value.
-
-    All "Configuration" values can be changed through the "config"
-    function in a pipeline.
-
-    When using a Configuration, we do not need an "out" mapping, as it will
-    directly be mapped on the configuration keys. We can optionally do this though.
-
-    The Question & Answering part of the pydoxtools.Document class
-    was specified with this config function like this:
-
-        QamExtractor(model_id=settings.PDXT_STANDARD_QAM_MODEL)
-            .pipe(text="full_text").out("answers").cache().config(trf_model_id="qam_model_id"),
-
-    In this case, when calling a document we can dynamically configure the
-    pipeline with the "qam_model_id" parameter:
-
-        doc = Document(
-            fobj=doc_str, document_type=".pdf"
-        ).config(dict(qam_model_id='deepset/roberta-base-squad2'))
-
-
-    """
-
-    def __init__(self, **configuration_map):
-        super().__init__()
-        self._configuration_map = configuration_map
-        self.no_cache()  # we don't need this, as everything is already saved in the _configuration_map
-        # use the configuration map directly as output mapping
-        self.out(*list(configuration_map.keys()))
-
-    def __call__(self):
-        return self._configuration_map
-
-
 class ElementWiseOperator(Operator):
     """
     Take a function and apply it elementwise to

@@ -10,7 +10,7 @@ import pandas as pd
 import requests
 import yaml
 
-from .document_base import Pipeline, ElementType
+from .document_base import Pipeline, ElementType, Configuration
 from .extract_classes import LanguageExtractor, TextBlockClassifier
 from .extract_filesystem import FileLoader, PathLoader
 from .extract_html import HtmlExtractor
@@ -27,7 +27,7 @@ from .html_utils import get_text_only_blocks
 from .list_utils import flatten, flatten_dict, deep_str_convert
 from .nlp_utils import calculate_string_embeddings, summarize_long_text
 from .operator_huggingface import QamExtractor
-from .operators_base import Alias, LambdaOperator, ElementWiseOperator, Configuration, Constant, DataMerger, \
+from .operators_base import Alias, LambdaOperator, ElementWiseOperator, Constant, DataMerger, \
     ForgivingExtractIterator
 from .pdf_utils import PDFFileLoader
 

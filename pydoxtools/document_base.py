@@ -203,6 +203,50 @@ class Operator(ABC):
         return self
 
 
+class Configuration(Operator):
+    """
+    This is a special operator which can be used to configure a pipeline.
+
+    Declare some configuration values which can then be used as inputs for
+    other operators.
+
+    It takes a list of key-value pairs where the key
+    is the target variable name and the value is the
+    standard configuration value.
+
+    All "Configuration" values can be changed through the "config"
+    function in a pipeline.
+
+    When using a Configuration, we do not need an "out" mapping, as it will
+    directly be mapped on the configuration keys. We can optionally do this though.
+
+    The Question & Answering part of the pydoxtools.Document class
+    was specified with this config function like this:
+
+        QamExtractor(model_id=settings.PDXT_STANDARD_QAM_MODEL)
+            .pipe(text="full_text").out("answers").cache().config(trf_model_id="qam_model_id"),
+
+    In this case, when calling a document we can dynamically configure the
+    pipeline with the "qam_model_id" parameter:
+
+        doc = Document(
+            fobj=doc_str, document_type=".pdf"
+        ).config(dict(qam_model_id='deepset/roberta-base-squad2'))
+
+
+    """
+
+    def __init__(self, **configuration_map):
+        super().__init__()
+        self._configuration_map = configuration_map
+        self.no_cache()  # we don't need this, as everything is already saved in the _configuration_map
+        # use the configuration map directly as output mapping
+        self.out(*list(configuration_map.keys()))
+
+    def __call__(self):
+        return self._configuration_map
+
+
 class OperatorException(Exception):
     pass
 
@@ -414,8 +458,8 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
             pipeline.config(param1=value1, param2=value2)
         """
         # Get all configuration objects in the pipeline
-        configuration: dict[str, operators.Configuration] = \
-            {k: v for k, v in self.x_funcs.items() if isinstance(v, operators.Configuration)}
+        configuration: dict[str, Configuration] = \
+            {k: v for k, v in self.x_funcs.items() if isinstance(v, Configuration)}
 
         # Assign the settings to the corresponding configuration objects
         for k, v in settings.items():
@@ -433,8 +477,8 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
             dict: A dictionary containing the merged configuration objects of the pipeline, with keys as
                   the configuration names and values as the configuration objects.
         """
-        configuration: dict[str, operators.Configuration] = \
-            {k: v for k, v in self.x_funcs.items() if isinstance(v, operators.Configuration)}
+        configuration: dict[str, Configuration] = \
+            {k: v for k, v in self.x_funcs.items() if isinstance(v, Configuration)}
         configuration_map = {}
         for c in configuration:
             configuration_map.update(**(configuration[c]._configuration_map))
@@ -750,7 +794,7 @@ supports pipelines
         for name, f in logic.items():
             f_class = f.__class__.__name__ + "\n".join(f._out_mapping.keys())
             shape = "none"
-            if isinstance(f, operators.Configuration):
+            if isinstance(f, Configuration):
                 shape = "invhouse"
             graph.add_node(f_class, shape=shape)
             # out-edges

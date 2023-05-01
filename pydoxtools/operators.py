@@ -4,8 +4,8 @@ access.
 """
 
 from document_base import Operator
-from operators_base import LambdaOperator, ElementWiseOperator, Alias, Configuration,\
-    ForgivingExtractIterator,DataMerger
+from operators_base import LambdaOperator, ElementWiseOperator, Alias, ForgivingExtractIterator,DataMerger
+from pydoxtools.document_base import Configuration
 from operator_huggingface import HuggingfacePipeline, QamExtractor
 from extract_filesystem import FileLoader, PathLoader, Path
 from extract_ocr import OCRExtractor
