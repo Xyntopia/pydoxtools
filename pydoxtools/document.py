@@ -14,7 +14,7 @@ import pydoxtools.operators
 from . import document_base
 from .document_base import Pipeline, ElementType
 from .extract_classes import LanguageExtractor, TextBlockClassifier
-from .extract_files import FileLoader, PathLoader
+from .extract_filesystem import FileLoader, PathLoader
 from .extract_html import HtmlExtractor
 from .extract_index import IndexExtractor, KnnQuery, \
     SimilarityGraph, TextrankOperator, TextPieceSplitter

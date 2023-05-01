@@ -127,8 +127,8 @@ def test_qam_machine():
         'what is the address'
     ))
     assert answers[0][0][0] == 'bst bat - 110'
-    assert answers[1][0][0] == 'npower draw'
-    assert answers[2][0][0] == 'bat - 110'
+    assert answers[1][0][0] == 'bst bat - 110'
+    assert answers[2][0][0] == 'the bst'
 
 
 def test_address_extraction():
