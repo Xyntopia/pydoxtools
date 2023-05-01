@@ -17,7 +17,8 @@ Huggingface. It offers functionalities such as:
 
 - Pipeline management on a new level
 - Integration with AI (LLMs and more) models
-- (PDF) table extraction without configuration!
+- low-resource (PDF) table extraction without configuration and expensive
+  layout detection algorithms!
 - Document analysis and question-answering
 - Support for most of todays document formats
 - Vector index Creation

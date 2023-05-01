@@ -14,7 +14,7 @@ And a set of operators:
 
 - [pydoxtools.operators][]
 
-### Analyzing Document
+### Analyzing Documents
 
 Document & DocumentSet are both using [pydoxtools.Pipeline][] and
 predefine a complex pipeline to extract data from individual documents or
@@ -22,6 +22,16 @@ a set of documents. A list of all the "out-of-the-box" featurs for each pipeline
 can be found in:
 
 -> [Pipelines](pipelines)
+
+In order for this to work, this library has the philosophy that [Document][pydoxtools.Document]
+& [DocumentSet][pydoxtools.DocumentSet]
+should always automatically "know" how to organize information internally in a
+sensible way. Pydoxtools will try to keep memory & CPU footprint
+as low as possible. This makes
+the library much easier to use in automated settings together with AI & LLMs. This is
+why it is not possible to configure *how* documents are loaded with configuration
+parameters. If document data is required to be organized in a
+specific format, this can easily be achieved by chaining them together.
 
 ### Building your own Pipelines with LLMs (Large Language Models) and other types of AI
 
