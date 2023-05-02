@@ -23,6 +23,7 @@ class Alias(Operator):
         return kwargs
 
 
+
 class Constant(Operator):
     """declare one ore more constant values"""
 

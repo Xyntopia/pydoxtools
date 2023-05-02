@@ -683,6 +683,23 @@ supports pipelines
         """
         return self.x(extract_name)
 
+    def __getstate__(self):
+        """
+        return necessary variables for pickling, ensuring that
+        we leave out everything that can potentiall have some sort
+        of a lambda function in it...
+        """
+        state = self.__dict__.copy()
+        del state["_x_func_cache"]
+        del state["x_funcs"]
+        return state
+
+    def __setstate__(self, state: dict):
+        # for k,v in state:
+        self.__dict__.update(state)
+        self._x_func_cache = {}
+        # TODO: restore more cached values to increase speed in a distributed setting.
+
     def x_all(self):
         """
         Retrieves the results of all extractors defined in the pipeline.
