@@ -10,9 +10,10 @@ import pandas as pd
 import requests
 import yaml
 
+from . import dask_operators
+from .dask_operators import SQLTableLoader
 from .document_base import Pipeline, ElementType, Configuration
 from .extract_classes import LanguageExtractor, TextBlockClassifier
-from .extract_db import SQLTableLoader
 from .extract_filesystem import FileLoader, PathLoader
 from .extract_html import HtmlExtractor
 from .extract_index import IndexExtractor, KnnQuery, \
@@ -264,7 +265,7 @@ operations and include the documentation there. Lambda functions should not be u
             Alias(raw_content="_fobj"),
             Alias(data="raw_content"),
             LambdaOperator(lambda x: yaml.dump(deep_str_convert(x)))
-            .pipe("data").out("full_text"),
+            .pipe(x="data").out("full_text"),
             LambdaOperator(lambda x: [str(k) + ": " + str(v) for k, v in flatten_dict(x.data).items()])
             .pipe(x="data").out("text_box_elements").cache(),
             Alias(text_box_list="text_box_elements"),
@@ -476,7 +477,7 @@ operations and include the documentation there. Lambda functions should not be u
             pass
 
         self._fobj = fobj  # file object
-        self._source = source or "unknown"
+        self._source = source or self._fobj
         self._document_type = document_type
         self._mime_type = mime_type
         self._filename = filename
@@ -573,8 +574,14 @@ class DocumentSet(Pipeline):
     This class loads an entire set of documents and processes
     it using a pipeline.
 
-    In order to fit into memory we are making use of dask bags to
+    In order to fit into memory we are making extensive use of dask bags to
     store and make calculations on documents.
+
+    For more information check the documentation for dask bags
+    [->here<-](https://docs.dask.org/en/stable/bag.html).
+
+    This has the added benefit that one can use dask dataframes out of the box
+    for downstream calculations!!
 
     This class is still experimental. Expect more documentation in
     the near future.
@@ -607,8 +614,10 @@ class DocumentSet(Pipeline):
             .pipe("sql", "connection_string", "index_column").out("dataframe"),
             LambdaOperator(lambda x: x.to_bag(index=False, format="dict"))
             .pipe(x="dataframe").out("bag"),
-            LambdaOperator(lambda x: x.map(lambda y: Document(y, document_type="dict")))
-            .pipe(x="bag").out("docs_bag")
+            dask_operators.BagMapOperator(lambda y: Document(y, document_type="dict"))
+            .pipe(dask_bag="bag").out("docs_bag"),
+            dask_operators.BagPropertyExtractor()
+            .pipe(dask_bag="docs_bag").out("props_bag")
         ],
         # TODO: add "fast, slow, medium" pipelines..  e.g. with keywords extraction as fast
         #       etc...

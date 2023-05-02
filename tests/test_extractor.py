@@ -1,13 +1,14 @@
-import logging
 import io
+import logging
 import pathlib
-from pathlib import Path
-import pytest
 import pickle
+from pathlib import Path
 
+import pytest
+
+from pydoxtools import settings
 from pydoxtools.document import Document, DocumentSet
 from pydoxtools.document_base import OperatorException
-from pydoxtools import settings
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("pydoxtools.document").setLevel(logging.INFO)
@@ -307,7 +308,17 @@ def test_document_pickling():
     # Assert that the original and unpickled Document objects are equal
     assert doc.keywords == unpickled_doc.keywords
 
+
 def test_sql_download():
+    # import dask
+    # dask.config.set(scheduler='threads')  # overwrite default with threaded scheduler
+    # dask.config.set(scheduler='processes') # # overwrite default with multiprocessing scheduler
+    # dask.config.set(scheduler='synchronous')  # overwrite default with single-threaded scheduler for debugging
+    # from dask.distributed import Client
+    # client = Client()
+    # or
+    # client = Client(processes=False)
+
     connection_string = "postgresql://tnkaiypekofebmaxuxwlysbu%40psql-mock-database-cloud:" \
                         "yvzhpmjuconioczuiglnfnoq@psql-mock-database-cloud.postgres.database.azure.com:5432" \
                         "/cars1682799488882fyfxytaajychjrer"
@@ -318,8 +329,23 @@ def test_sql_download():
         index_column="id"
     ), pipeline="db", max_documents=1000)
     d = docs.docs_bag.compute()
-    Document(d)
+    d = docs.docs_bag.take(5)
+    d = docs.props_bag(["vector"]).take(3)
+    d = docs.props_bag(["text_segment_vectors"]).take(3)
 
+
+def test_dict():
+    person_document = {'full_name': 'Susan Williamson',
+                       'first_name': 'Susan',
+                       'last_name': 'Williamson',
+                       'username': 'sWilliamson',
+                       'email': 'Kyla_Considine@hotmail.com',
+                       'email_verified': True,
+                       'phone': '808.797.1741',
+                       'twitter_handle': 'sWilliamson',
+                       'bio': 'Friendly music geek. Organizer. Twitter scholar. Creator. General food nerd. Future teen idol. Thinker.'}
+    doc = Document(person_document, document_type="dict")
+    doc.keywords
 
 
 if __name__ == "__main__":
@@ -328,10 +354,11 @@ if __name__ == "__main__":
     #    f.write(doc.ocr_pdf_file)
 
     # test_qam_machine()
+    test_dict()
     test_document_pickling()
     test_documentation_generation()
     test_pipeline_graph()
-    #test_sql_download()
+    # test_sql_download()
 
     if False:
         with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:

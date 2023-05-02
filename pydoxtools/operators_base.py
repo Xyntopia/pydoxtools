@@ -5,7 +5,7 @@ be used inside of a pipeline class definition
 to create your own pipelines.
 """
 
-from typing import Callable, Iterable
+from typing import Callable, Iterable, Any
 
 from pydoxtools.document_base import Operator, OperatorException, Pipeline
 from pydoxtools.list_utils import iterablefyer
@@ -21,7 +21,6 @@ class Alias(Operator):
 
     def __call__(self, **kwargs):
         return kwargs
-
 
 
 class Constant(Operator):
@@ -86,6 +85,15 @@ class DataMerger(Operator):
         return {"joint_data": out}
 
 
+def forgiving_extract(doc: Pipeline, properties: list[str]) -> dict[str, Any]:
+    try:
+        props = doc.property_dict(*properties)
+        return props
+    except OperatorException:
+        # we just continue  if an error happened. This is why we are "forgiving"
+        return {"Error": "OperatorException"}
+
+
 class ForgivingExtractIterator(Operator):
     """
     Creates a loop to extract properties from a list of
@@ -112,14 +120,7 @@ class ForgivingExtractIterator(Operator):
             def safe_extract(properties: list[str] | str) -> list[dict]:
                 properties = iterablefyer(properties)
                 for doc in doc_list:
-                    try:
-                        props = doc.property_dict(*properties)
-                    except OperatorException:
-                        # we just continue  if an error happened. This is why we are "forgiving"
-                        if len(properties) > 1:
-                            props = {"Error": "OperatorException"}
-                        else:
-                            continue
+                    props = forgiving_extract(doc, properties)
 
                     if len(properties) == 1:
                         yield props[properties[0]]
