@@ -8,7 +8,7 @@ import pathlib
 from pathlib import Path
 import pytest
 
-from pydoxtools.document import Document
+from pydoxtools.document import Document, DocumentSet
 from pydoxtools.document_base import OperatorException
 from pydoxtools import settings
 
@@ -292,6 +292,14 @@ def test_summarization():
     doc.textrank_sents
 
 
+def test_sql_download():
+    connection_string = "postgresql://tnkaiypekofebmaxuxwlysbu%40psql-mock-database-cloud:" \
+                        "yvzhpmjuconioczuiglnfnoq@psql-mock-database-cloud.postgres.database.azure.com:5432" \
+                        "/cars1682799488882fyfxytaajychjrer"
+
+    docs = DocumentSet(connection_string, "db")
+
+
 if __name__ == "__main__":
     # test if we can actually open the pdf...
     # with open("ocrpdf", "wb") as f:
@@ -300,6 +308,7 @@ if __name__ == "__main__":
     # test_qam_machine()
     test_documentation_generation()
     test_pipeline_graph()
+    test_sql_download()
 
     if False:
         with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:

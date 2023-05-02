@@ -12,6 +12,7 @@ import yaml
 
 from .document_base import Pipeline, ElementType, Configuration
 from .extract_classes import LanguageExtractor, TextBlockClassifier
+from .extract_db import SQLTableLoader
 from .extract_filesystem import FileLoader, PathLoader
 from .extract_html import HtmlExtractor
 from .extract_index import IndexExtractor, KnnQuery, \
@@ -588,6 +589,10 @@ class DocumentSet(Pipeline):
 
     # TODO: give this class multi-processing capabilities
     _operators = {
+        "db": [
+            SQLTableLoader()
+            .pipe("source").out("table_df")
+        ],
         # TODO: add "fast, slow, medium" pipelines..  e.g. with keywords extraction as fast
         #       etc...
         # TODO: add a pipeline to add a summarizing description whats in every directory
@@ -595,10 +600,10 @@ class DocumentSet(Pipeline):
             # TODO:  add a string filter which can be used to filte paths & db entries
             #        and is simply a bit more generalized ;)
             PathLoader(mode="files")
-            .pipe(directory="_directory", exclude="_exclude")
+            .pipe(directory="_source", exclude="_exclude")
             .out("file_path_list").cache(),
             PathLoader(mode="dirs")
-            .pipe(directory="_directory")
+            .pipe(directory="_source")
             .out("dir_list").cache(),
             LambdaOperator(lambda pl: [Document(p) for p in pl])
             .pipe(pl="file_path_list").out("doc_list").cache(),
@@ -625,7 +630,7 @@ class DocumentSet(Pipeline):
             LambdaOperator(lambda x: x)
             .pipe(x="props_iterator").out("file_stats").cache(),
             DataMerger()
-            .pipe(root_dir="_directory")
+            .pipe(root_dir="_source")
             .out(joint_data="meta_data").cache()
         ],
         "*": []
@@ -633,13 +638,18 @@ class DocumentSet(Pipeline):
 
     def __init__(
             self,
-            directory: str | Path,
+            source: str | Path,
+            pipeline: str = None,
             exclude: list[str] = None
     ):
         super().__init__()
-        self._directory = directory
+        self._source = source
         self._exclude = exclude or []
+        self._pipeline = pipeline or "directory"
+
+        # TODO: detect what kind of information "source" holds.
+        #       is it a db? is it a directory? is it a file?, a URL?
 
     @cached_property
     def pipeline_chooser(self) -> str:
-        return "directory"
+        return self._pipeline

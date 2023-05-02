@@ -55,13 +55,14 @@ packaging = "^23.0"
 torch = { version = ">=1.12.1", optional = true }
 pytesseract = {version = "^0.3.10", optional = true}
 pyyaml = "^6.0"
+dask = {extras = ["complete"], version = "^2023.4.1", optional = true}
 
 [tool.poetry.extras]
 # extraction-transformation-load facilities
 etl = ["goose3", "langdetect", "tldextract", "spacy", "pdfminer.six",
     "extruct", "urlextract", "quantulum3", "stemming",
     "quantities", "readability-lxml", "pandas", "beautifulsoup4", "hnswlib",
-    "networkx", "openai", "textract", "pandoc", "python-pptx"
+    "networkx", "openai", "textract", "pandoc", "python-pptx", "dask-sql"
 ]
 # TODO: rename & regroups extras (e.g. light, medium average or something like that...)
 inference = ["transformers", "scikit-learn", "tqdm", "torch", "pytorch-lightning", "spacy",
