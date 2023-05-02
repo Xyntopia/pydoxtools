@@ -252,8 +252,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#analyzing-document" class="md-nav__link">
-    Analyzing Document
+  <a href="#analyzing-documents" class="md-nav__link">
+    Analyzing Documents
   </a>
   
 </li>
@@ -365,8 +365,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#analyzing-document" class="md-nav__link">
-    Analyzing Document
+  <a href="#analyzing-documents" class="md-nav__link">
+    Analyzing Documents
   </a>
   
 </li>
@@ -418,12 +418,21 @@
 <ul>
 <li><a class="autorefs autorefs-internal" href="reference/#pydoxtools.operators">pydoxtools.operators</a></li>
 </ul>
-<h3 id="analyzing-document">Analyzing Document</h3>
+<h3 id="analyzing-documents">Analyzing Documents</h3>
 <p>Document &amp; DocumentSet are both using <a class="autorefs autorefs-internal" href="reference/#pydoxtools.document_base.Pipeline">pydoxtools.Pipeline</a> and
 predefine a complex pipeline to extract data from individual documents or
 a set of documents. A list of all the "out-of-the-box" featurs for each pipeline
 can be found in:</p>
 <p>-&gt; <a href="pipelines">Pipelines</a></p>
+<p>In order for this to work, this library has the philosophy that <a class="autorefs autorefs-internal" href="reference/#pydoxtools.document.Document">Document</a>
+&amp; <a class="autorefs autorefs-internal" href="reference/#pydoxtools.document.DocumentSet">DocumentSet</a>
+should always automatically "know" how to organize information internally in a
+sensible way. Pydoxtools will try to keep memory &amp; CPU footprint
+as low as possible. This makes
+the library much easier to use in automated settings together with AI &amp; LLMs. This is
+why it is not possible to configure <em>how</em> documents are loaded with configuration
+parameters. If document data is required to be organized in a
+specific format, this can easily be achieved by chaining them together.</p>
 <h3 id="building-your-own-pipelines-with-llms-large-language-models-and-other-types-of-ai">Building your own Pipelines with LLMs (Large Language Models) and other types of AI</h3>
 <p>the Pipeline class can be used to build complex, custom pipelines which
 have several out-of-the-box features which makes them easy to use in
