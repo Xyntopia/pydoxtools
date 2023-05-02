@@ -435,6 +435,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
                 functions to store intermediate results.
         """
         self._cache_hits = 0
+        self._source = "base_pipeline"
         self._x_func_cache: dict[Operator, dict[str, Any]] = {}
 
     def config(self, **settings: dict[str, Any]) -> "Pipeline":
@@ -762,10 +763,10 @@ supports pipelines
         Returns:
             str: A string representation of the instance.
         """
-        if isinstance(self._fobj, str | bytes):
-            return f"{self.__module__}.{self.__class__.__name__}({self._fobj[-10:]},{self.source})>"
+        if isinstance(self._source, str | bytes):
+            return f"{self.__module__}.{self.__class__.__name__}({self._source[:10]})>"
         else:
-            return f"{self.__module__}.{self.__class__.__name__}({self._fobj},{self.source})>"
+            return f"{self.__module__}.{self.__class__.__name__}({self._source})>"
 
     # TODO: more configuration options:
     #       - which nlp models (spacy/transformers) to use

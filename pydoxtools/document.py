@@ -511,6 +511,8 @@ operations and include the documentation there. Lambda functions should not be u
         try:
             if self._document_type:
                 return self._document_type
+            elif isinstance(self._fobj, (dict, list, set)):
+                return type(self._fobj)
             elif self._mime_type:
                 return mimetypes.guess_extension(self._mime_type)
             # get type from path suffix
@@ -571,8 +573,17 @@ class DocumentSet(Pipeline):
     This class loads an entire set of documents and processes
     it using a pipeline.
 
+    In order to fit into memory we are making use of dask bags to
+    store and make calculations on documents.
+
     This class is still experimental. Expect more documentation in
     the near future.
+    
+    This class is developed to do work on larger-than-memory datasets and
+    scale LLM & AI inference to very large workloads.
+
+    This class makes mostly use of iterative dask bags & dataframes
+    to avoid out-of-memory problems.
     """
 
     # make sure we can pass configurations to udnerlying documents!
@@ -590,8 +601,14 @@ class DocumentSet(Pipeline):
     # TODO: give this class multi-processing capabilities
     _operators = {
         "db": [
+            LambdaOperator(lambda x: x)
+            .pipe(x="_source").out("sql", "connection_string", "index_column"),
             SQLTableLoader()
-            .pipe("source").out("table_df")
+            .pipe("sql", "connection_string", "index_column").out("dataframe"),
+            LambdaOperator(lambda x: x.to_bag(index=False, format="dict"))
+            .pipe(x="dataframe").out("bag"),
+            LambdaOperator(lambda x: x.map(lambda y: Document(y, document_type="dict")))
+            .pipe(x="bag").out("docs_bag")
         ],
         # TODO: add "fast, slow, medium" pipelines..  e.g. with keywords extraction as fast
         #       etc...
@@ -599,18 +616,20 @@ class DocumentSet(Pipeline):
         "directory": [
             # TODO:  add a string filter which can be used to filte paths & db entries
             #        and is simply a bit more generalized ;)
+            # TODO: make this all an iterable...  maybe even using dask..
+            Alias(root_path="_source"),
             PathLoader(mode="files")
-            .pipe(directory="_source", exclude="_exclude")
+            .pipe(directory="root_path", exclude="_exclude")
             .out("file_path_list").cache(),
             PathLoader(mode="dirs")
-            .pipe(directory="_source")
+            .pipe(directory="root_path")
             .out("dir_list").cache(),
-            LambdaOperator(lambda pl: [Document(p) for p in pl])
-            .pipe(pl="file_path_list").out("doc_list").cache(),
+            LambdaOperator(lambda x: [Document(d) for d in x])
+            .pipe(data="file_path_list").out("docs").cache(),
             # it is important here to use no_cache, as we need to re-create the iterator every
             # time we want to use it...
             ForgivingExtractIterator(method="list")
-            .pipe("doc_list").out("props_iterator").no_cache(),
+            .pipe("docs").out("props_iterator").no_cache(),
             Iterator2Dataframe()
             .pipe(iterator="props_iterator").out("props_df").cache(),
             # LambdaDocumentBuilder(),
@@ -638,14 +657,16 @@ class DocumentSet(Pipeline):
 
     def __init__(
             self,
-            source: str | Path,
+            source: str | Path,  # can be sql information,
             pipeline: str = None,
-            exclude: list[str] = None
+            exclude: list[str] = None,
+            max_documents: int = None,
     ):
         super().__init__()
         self._source = source
         self._exclude = exclude or []
         self._pipeline = pipeline or "directory"
+        self._max_documents = max_documents
 
         # TODO: detect what kind of information "source" holds.
         #       is it a db? is it a directory? is it a file?, a URL?

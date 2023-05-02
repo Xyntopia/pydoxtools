@@ -1,17 +1,16 @@
 import logging
-
-logging.basicConfig(level=logging.INFO)
-logging.getLogger("pydoxtools.document").setLevel(logging.INFO)
-
 import io
 import pathlib
 from pathlib import Path
 import pytest
+import pickle
 
 from pydoxtools.document import Document, DocumentSet
 from pydoxtools.document_base import OperatorException
 from pydoxtools import settings
 
+logging.basicConfig(level=logging.INFO)
+logging.getLogger("pydoxtools.document").setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 
 test_files = [
@@ -292,12 +291,35 @@ def test_summarization():
     doc.textrank_sents
 
 
+def test_document_pickling():
+    # Create a sample Document object
+    # TODO: add some efficiency checks
+    doc = Document(fobj=make_path_absolute("./data/alan_turing.txt"))
+    doc.keywords
+
+    # Pickle the Document object
+    pickled_doc = pickle.dumps(doc)
+
+    # Unpickle the Document object
+    unpickled_doc = pickle.loads(pickled_doc)
+    unpickled_doc.keywords
+
+    # Assert that the original and unpickled Document objects are equal
+    assert doc.keywords == unpickled_doc.keywords
+
 def test_sql_download():
     connection_string = "postgresql://tnkaiypekofebmaxuxwlysbu%40psql-mock-database-cloud:" \
                         "yvzhpmjuconioczuiglnfnoq@psql-mock-database-cloud.postgres.database.azure.com:5432" \
                         "/cars1682799488882fyfxytaajychjrer"
 
-    docs = DocumentSet(connection_string, "db")
+    docs = DocumentSet(source=dict(
+        connection_string=connection_string,
+        sql="users",
+        index_column="id"
+    ), pipeline="db", max_documents=1000)
+    d = docs.docs_bag.compute()
+    Document(d)
+
 
 
 if __name__ == "__main__":
@@ -306,9 +328,10 @@ if __name__ == "__main__":
     #    f.write(doc.ocr_pdf_file)
 
     # test_qam_machine()
+    test_document_pickling()
     test_documentation_generation()
     test_pipeline_graph()
-    test_sql_download()
+    #test_sql_download()
 
     if False:
         with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:
