@@ -642,6 +642,8 @@ supports pipelines
         try:
             # check if we executed this function at some point...
             if extractor_func._cache:
+                # TODO: implement our own key function in order
+                #       to be able to pickle the document cache!
                 key = functools._make_key((extractor_func,) + args, kwargs, typed=False)
                 # we need to check for "is not None" as we also have pandas dataframes in this
                 # which cannot be checked for by simply using "if"
@@ -690,15 +692,20 @@ supports pipelines
         of a lambda function in it...
         """
         state = self.__dict__.copy()
-        del state["_x_func_cache"]
-        del state["x_funcs"]
+        state.pop("_x_func_cache", None)
+        state.pop("x_funcs", None)
         return state
 
     def __setstate__(self, state: dict):
+        """
+        we need to restore _x_func_cache for pickling to work...
+        """
         # for k,v in state:
         self.__dict__.update(state)
         self._x_func_cache = {}
         # TODO: restore more cached values to increase speed in a distributed setting.
+        #       for this we need to rely on our cache to work with strings as keys
+        #       and not functions...
 
     def x_all(self):
         """
