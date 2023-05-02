@@ -62,7 +62,7 @@ dask = {extras = ["complete"], version = "^2023.4.1", optional = true}
 etl = ["goose3", "langdetect", "tldextract", "spacy", "pdfminer.six",
     "extruct", "urlextract", "quantulum3", "stemming",
     "quantities", "readability-lxml", "pandas", "beautifulsoup4", "hnswlib",
-    "networkx", "openai", "textract", "pandoc", "python-pptx", "dask-sql"
+    "networkx", "openai", "textract", "pandoc", "python-pptx", "dask"
 ]
 # TODO: rename & regroups extras (e.g. light, medium average or something like that...)
 inference = ["transformers", "scikit-learn", "tqdm", "torch", "pytorch-lightning", "spacy",
