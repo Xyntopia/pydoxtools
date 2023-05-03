@@ -532,7 +532,10 @@ operations and include the documentation there. Lambda functions should not be u
     def filename(self) -> str | None:
         """return filename or some other identifier of a file"""
         _, filepath = self.document_type_detection()
-        return filepath.name
+        if filepath:
+            return filepath.name
+        else:
+            return "<unknown>"
 
     @property
     def path(self):
