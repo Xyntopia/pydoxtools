@@ -37,7 +37,8 @@ test_files_w_type = {
     "image/png": "./data/north_american_countries.png",
     "image/tiff": "./data/north_american_countries.tif",
     "image/jpeg": "./data/north_american_countries.jpg",
-    "text/markdown": "../README.md"
+    "text/markdown": [
+        "../README.md", "./data/demo.md"]
 }
 test_files = flatten(test_files_w_type.values())
 test_dir_path = pathlib.Path(__file__).parent.absolute()
@@ -375,6 +376,8 @@ if __name__ == "__main__":
     #    f.write(doc.ocr_pdf_file)
 
     # test_qam_machine()
+    test_document_type_detection()
+    test_pandoc()
     test_document_type_detection()
     test_documentation_generation()
     test_pipeline_graph()

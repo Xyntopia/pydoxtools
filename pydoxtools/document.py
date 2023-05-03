@@ -1,3 +1,4 @@
+import json
 import mimetypes
 from functools import cached_property
 from pathlib import Path
@@ -563,6 +564,14 @@ operations and include the documentation there. Lambda functions should not be u
             fobj = Path(self.fobj)
             if fobj.is_file():
                 mimetype = magic.from_file(self.fobj, mime=True)
+                if mimetype == "application/json":
+                    with open(self.fobj) as f:
+                        # TODO: can we make this "lazy" basically throw anexception later, so that the document_type
+                        #       can change iterativly?
+                        try:
+                            json.load(f)
+                        except json.decoder.JSONDecodeError:
+                            mimetype = "text/plain"
                 if mimetype == "text/plain":
                     # it's hard to check for the actual filetype here with python magic, so we
                     # fall back to using the extension itself

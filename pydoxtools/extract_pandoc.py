@@ -72,10 +72,14 @@ class PandocLoader(pydoxtools.document_base.Operator):
     ) -> "pandoc.types.Pandoc":
         if not pandoc_installed:
             raise RuntimeError("""Pandoc files can not be loaded, as pandoc is not installed""")
-        ext = mimetypes.guess_extension(document_type).strip(".")
-        type_mapping = dict(
-            md="markdown",
-        )
+        if ext := mimetypes.guess_extension(document_type):
+            ext = ext.strip(".")
+        else:
+            ext = document_type
+        type_mapping = {
+            "md": "markdown",
+            'text/rtf': "rtf"
+        }
         pandoc_format = pandoc.read(
             raw_content,
             format=type_mapping.get(ext, ext)
