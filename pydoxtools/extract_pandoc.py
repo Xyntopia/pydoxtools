@@ -1,9 +1,9 @@
 import logging
+import mimetypes
 
 import pandas as pd
 from packaging import version
 
-import pydoxtools.document_base
 import pydoxtools.operators_base
 
 logger = logging.getLogger(__name__)
@@ -72,13 +72,13 @@ class PandocLoader(pydoxtools.document_base.Operator):
     ) -> "pandoc.types.Pandoc":
         if not pandoc_installed:
             raise RuntimeError("""Pandoc files can not be loaded, as pandoc is not installed""")
+        ext = mimetypes.guess_extension(document_type).strip(".")
         type_mapping = dict(
             md="markdown",
         )
-        document_type = document_type.strip(".")
         pandoc_format = pandoc.read(
             raw_content,
-            format=type_mapping.get(document_type, document_type)
+            format=type_mapping.get(ext, ext)
         )
         return pandoc_format
 

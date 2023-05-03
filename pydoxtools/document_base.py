@@ -459,12 +459,12 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
             pipeline.config(param1=value1, param2=value2)
         """
         # Get all configuration objects in the pipeline
-        configuration: dict[str, Configuration] = \
+        configuration_objs: dict[str, Configuration] = \
             {k: v for k, v in self.x_funcs.items() if isinstance(v, Configuration)}
 
         # Assign the settings to the corresponding configuration objects
         for k, v in configuration.items():
-            configuration[k]._configuration_map[k] = v
+            configuration_objs[k]._configuration_map[k] = v
 
         # Return the current pipeline instance for method chaining
         return self

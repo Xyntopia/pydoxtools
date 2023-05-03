@@ -159,7 +159,7 @@ operations and include the documentation there. Lambda functions should not be u
         # .pdf
         "application/pdf": [
             FileLoader()  # pdfs are usually in binary format...
-            .pipe(fobj="_fobj").out("raw_content").cache(),
+            .pipe(fobj="fobj").out("raw_content").cache(),
             PDFFileLoader()
             .pipe(fobj="raw_content", page_numbers="_page_numbers", max_pages="_max_pages")
             .out("pages_bbox", "elements", "meta", pages="page_set")
@@ -228,9 +228,9 @@ operations and include the documentation there. Lambda functions should not be u
             PandocLoader()
             .pipe(raw_content="raw_content", document_type="document_type")
             .out("pandoc_document").cache(),
-            Configuration(output_format="markdown"),
+            Configuration(full_text_format="markdown"),
             PandocConverter()
-            .pipe("output_format", pandoc_document="pandoc_document")
+            .pipe(output_format="full_text_format", pandoc_document="pandoc_document")
             .out("full_text").cache(),
             Constant(clean_format="plain"),
             PandocConverter()  # clean for downstram processing tasks
@@ -277,7 +277,7 @@ operations and include the documentation there. Lambda functions should not be u
         ],
         # simple dictionary with arbitrary data from python
         "<class 'dict'>": [  # pipeline to handle data based documents
-            Alias(raw_content="_fobj"),
+            Alias(raw_content="fobj"),
             Alias(data="raw_content"),
             LambdaOperator(lambda x: yaml.dump(deep_str_convert(x)))
             .pipe(x="data").out("full_text"),
@@ -291,7 +291,7 @@ operations and include the documentation there. Lambda functions should not be u
         "*": [
             # Loading text files
             FileLoader()
-            .pipe(fobj="_fobj", document_type="document_type", page_numbers="_page_numbers", max_pages="_max_pages")
+            .pipe(fobj="fobj", page_numbers="_page_numbers", max_pages="_max_pages")
             .out("raw_content").cache(),
             Alias(full_text="raw_content"),
             Alias(clean_text="full_text"),
@@ -538,10 +538,10 @@ operations and include the documentation there. Lambda functions should not be u
 
     @cached_property
     def path(self):
-        if isinstance(self._fobj, Path):
-            return self._fobj
+        if isinstance(self.fobj, Path):
+            return self.fobj
         else:
-            return self.source
+            return Path(self.source)
 
     @cached_property
     def document_type(self):
@@ -670,7 +670,7 @@ class DocumentSet(Pipeline):
             .pipe("sql", "connection_string", "index_column").out("dataframe"),
             LambdaOperator(lambda x: x.to_bag(index=False, format="dict"))
             .pipe(x="dataframe").out("bag"),
-            dask_operators.BagMapOperator(lambda y: Document(y, document_type="dict"))
+            dask_operators.BagMapOperator(lambda y: Document(y))
             .pipe(dask_bag="bag").out("docs_bag"),
             dask_operators.BagPropertyExtractor()
             .pipe(dask_bag="docs_bag").out("props_bag")

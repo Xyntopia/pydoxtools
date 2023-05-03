@@ -1,5 +1,6 @@
 import io
 import logging
+import mimetypes
 import pathlib
 import pickle
 from pathlib import Path
@@ -51,10 +52,24 @@ test_files = [make_path_absolute(f) for f in test_files]
 
 
 def test_document_type_detection():
-    for t,v in test_files_w_type.items():
+    for t, v in test_files_w_type.items():
         for f in iterablefyer(v):
-            d = Document(f)
-            assert d.document_type==t
+            d = Document(make_path_absolute(f))
+            logger.info(f"testing filetype detection for {f}")
+            assert d.document_type == t
+
+            d = Document(str(make_path_absolute(f)))
+            logger.info(f"testing filetype string path detection for {f}")
+            assert d.document_type == t
+
+
+# TODO: implement a test case where we need to overwrite the document
+#       detection because the document is recognized in some funny way...
+
+# TODO: test loading all kinds of forms of documents:
+#       string, path-string, Path, byte,
+
+# load rtf as string and file and path
 
 
 def run_single_non_interactive_document_test(file_name):
@@ -63,20 +78,19 @@ def run_single_non_interactive_document_test(file_name):
     doc = Document(fobj=pathlib.Path(file_name))
     doc.run_pipeline()
     assert doc._cache_hits >= 0
-    doc_type = doc.document_type
 
     with open(file_name, "rb") as file:
         doc_str = file.read()
 
     # TODO: automatically recognize doc_type
     # from bytestream
-    doc = Document(fobj=io.BytesIO(doc_str), document_type=doc_type)
+    doc = Document(fobj=io.BytesIO(doc_str))
     doc.document_type
     doc.run_pipeline()
     assert doc._cache_hits >= 0
 
     # from bytes
-    doc = Document(fobj=doc_str, document_type=doc_type)
+    doc = Document(fobj=doc_str)
     doc.document_type
     doc.run_pipeline()
     assert doc._cache_hits >= 0
@@ -85,6 +99,11 @@ def run_single_non_interactive_document_test(file_name):
 
 
 def test_string_extraction():
+    doc = Document(source=str(make_path_absolute("./data/alan_turing.txt")))
+    doc.document_type
+    doc.keywords
+    doc.run_pipeline()
+
     with open(make_path_absolute("./data/alan_turing.txt"), "r") as f:
         some_string = f.read()
 
@@ -110,7 +129,7 @@ def test_table_extraction():
 
     with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:
         doc_str = file.read()
-    doc = Document(fobj=doc_str, document_type=".pdf")
+    doc = Document(fobj=doc_str)
     metrics = [t.metrics_X for t in doc.x("table_candidates") if t.is_valid]
     assert len(metrics) == 2
     assert doc.x("tables_df")[0].shape == (10, 2)
@@ -184,21 +203,23 @@ def test_pandoc():
     assert len(doc.headers) == 2
     # TODO: this one doesn't recognize lists yet...
 
-    doc = Document(fobj=make_path_absolute("./data/demo.md"), document_type=".markdown")
+    doc = Document(fobj=make_path_absolute("./data/demo.md"))
     assert len(doc.tables) == 5
     assert len(doc.lists) == 6
 
-    doc = Document(fobj=make_path_absolute("./data/demo.docx"), document_type=".docx")
+    doc = Document(fobj=make_path_absolute("./data/demo.docx"))
     assert len(doc.tables) == 5
     assert len(doc.lists) == 6
 
 
 def test_pipeline_graph():
-    doc = Document(fobj=make_path_absolute("./data/demo.docx"), document_type=".docx")
+    doc = Document(fobj=make_path_absolute("./data/demo.docx"))
     # TODO: generate graphs for all document types
     for k in doc._operators:
+        ending = mimetypes.guess_extension(k, strict=False) or k
+        ending = ending.replace("/", "_")
         doc.pipeline_graph(
-            image_path=settings._PYDOXTOOLS_DIR / f"docs/images/document_logic_{k}.svg",
+            image_path=settings._PYDOXTOOLS_DIR / f"docs/images/document_logic_{ending}.svg",
             document_logic_id=k
         )
 
@@ -227,19 +248,14 @@ Pipeline visualizations for every supported file type can be found
 def test_pipeline_configuration():
     with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:
         doc_str = file.read()
-    doc = Document(
-        fobj=doc_str, document_type=".pdf"
-    ).config(qam_model_id='deepset/roberta-base-squad2')
+    doc = Document(fobj=doc_str).config(qam_model_id='deepset/roberta-base-squad2')
     ans = doc.x('answers')(questions=('what is the address?',))
     # doc.config(qam_model_id='some_model_that_doesn_t_exist')
     # ans = doc.x('answers')(questions=('what is the address?',))
 
 
 def test_url_download():
-    doc = Document(
-        "https://www.raspberrypi.org/app/uploads/2012/12/quick-start-guide-v1.1.pdf",
-        document_type=".pdf"
-    )
+    doc = Document("https://www.raspberrypi.org/app/uploads/2012/12/quick-start-guide-v1.1.pdf")
     # doc = Document(fobj=make_path_absolute("./data/alan_turing.txt"))
     # doc = run_single_non_interactive_document_test("./data/alan_turing.txt")
     assert doc.x("tables_df")[0].shape == (8, 3)
@@ -247,17 +263,11 @@ def test_url_download():
 
 def test_ocr_and_exceptions():
     with pytest.raises(OperatorException) as exc_info:
-        doc = Document(
-            fobj=make_path_absolute("./data/north_american_countries.tif"),
-            mime_type="image/tiff"
-        ).config(ocr_on=False)
+        doc = Document(fobj=make_path_absolute("./data/north_american_countries.tif")).config(ocr_on=False)
         doc.full_text
         assert exc_info.args == ('could not get ocr_pdf_file!',)
 
-    doc = Document(
-        fobj=make_path_absolute("./data/north_american_countries.tif"),
-        mime_type="image/tiff"
-    ).config(ocr_on=True)
+    doc = Document(fobj=make_path_absolute("./data/north_american_countries.tif")).config(ocr_on=True)
     doc.full_text
 
 
@@ -284,18 +294,18 @@ def test_yaml_json_dict_prop_dict():
         "entities",
         "keywords"
     ), document_type=".yaml")
-    d = Document(a.data, document_type="dict")
+    d = Document(a.data)
 
 
 def test_summarization():
     doc = Document(fobj=make_path_absolute("../README.md")).config(spacy_model_size='trf')
+    doc.configuration
+    doc.full_text
     doc.keywords
     summary = doc.summary
+    assert summary == ""
 
-    doc = Document(
-        fobj=make_path_absolute("../README.md"),
-        document_type=".md"
-    ).config(spacy_model_size='md')
+    doc = Document(fobj=make_path_absolute("../README.md")).config(spacy_model_size='md')
     doc.keywords
     doc.textrank_sents
 
@@ -304,14 +314,13 @@ def test_document_pickling():
     # Create a sample Document object
     # TODO: add some efficiency checks
     doc = Document(fobj=make_path_absolute("./data/alan_turing.txt"))
-    doc.keywords
+    assert doc.keywords == ["Turing"]
 
     # Pickle the Document object
     pickled_doc = pickle.dumps(doc)
 
     # Unpickle the Document object
     unpickled_doc = pickle.loads(pickled_doc)
-    unpickled_doc.keywords
 
     # Assert that the original and unpickled Document objects are equal
     assert doc.keywords == unpickled_doc.keywords
@@ -344,6 +353,7 @@ def test_sql_download():
         index_column="id"
     ))
 
+
 def test_dict():
     person_document = {'full_name': 'Susan Williamson',
                        'first_name': 'Susan',
@@ -354,8 +364,9 @@ def test_dict():
                        'phone': '808.797.1741',
                        'twitter_handle': 'sWilliamson',
                        'bio': 'Friendly music geek. Organizer. Twitter scholar. Creator. General food nerd. Future teen idol. Thinker.'}
-    doc = Document(person_document, document_type="dict")
-    doc.keywords
+    doc = Document(person_document)
+    assert doc.keywords == ['Susan full_name', 'Susan Williamson', 'bio', 'Organizer', 'Twitter scholar']
+    assert doc.document_type == "<class 'dict'>"
 
 
 if __name__ == "__main__":
@@ -365,8 +376,6 @@ if __name__ == "__main__":
 
     # test_qam_machine()
     test_document_type_detection()
-    test_dict()
-    test_document_pickling()
     test_documentation_generation()
     test_pipeline_graph()
     # test_sql_download()
@@ -374,9 +383,7 @@ if __name__ == "__main__":
     if False:
         with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:
             doc_str = file.read()
-        doc = Document(
-            fobj=doc_str, document_type=".pdf"
-        ).config(qam_model_id='deepset/roberta-base-squad2')
+        doc = Document(fobj=doc_str).config(qam_model_id='deepset/roberta-base-squad2')
         ans = doc.x('answers')(questions=('what is the address?',))
         doc.addresses
 

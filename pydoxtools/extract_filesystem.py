@@ -7,13 +7,13 @@ import pydoxtools.operators_base
 
 
 class FileLoader(pydoxtools.document_base.Operator):
+    """Load data from path"""
     def __init__(self):
         super().__init__()
 
     def __call__(
-            self, fobj: bytes | str | Path | typing.IO, document_type=None, page_numbers=None, max_pages=None
+            self, fobj: bytes | str | Path | typing.IO, page_numbers=None, max_pages=None
     ) -> bytes | str:
-        # TODO: merge this with document type !!!
         if isinstance(fobj, str | bytes):
             txt = fobj
         elif isinstance(fobj, pathlib.Path):

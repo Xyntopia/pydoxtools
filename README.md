@@ -61,10 +61,7 @@ tables, and ask questions using AI models:
 import pydoxtools as pdx
 
 # Create a document from various sources: file, string, bytestring, file-like object, or URL
-doc = pdx.Document(
-    "https://www.raspberrypi.org/app/uploads/2012/12/quick-start-guide-v1.1.pdf",
-    document_type=".pdf"
-)
+doc = pdx.Document("https://www.raspberrypi.org/app/uploads/2012/12/quick-start-guide-v1.1.pdf")
 
 # List available extraction functions
 print(doc.x_funcs)
@@ -123,11 +120,12 @@ where "qam_model_id" can be any model from huggingface for question answering.
 ### PDF Table Extraction Algorithms
 
 The library features its own sophisticated Table extraction algorithm which is benchmarked
-against a large pdf table dataset. In contrast to most other table extraction frameworks
-out there it does not require:
+against a large pdf table dataset. In contrast to how most "classical" table extraction
+algorithms work, it doesn't require:
 
 - extensive configuration
-- no expensive deep neural networks which need a GPU
+- no expensive deep neural networks for table area recognition which need a GPU and
+  a lot of memory/CPU requirements
 
 This makes it possible to run analysis on PDF files with pydoxtools on CPU with
 very limited resources!
