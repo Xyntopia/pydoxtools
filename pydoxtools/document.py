@@ -5,6 +5,7 @@ from typing import IO
 from urllib.parse import urlparse
 
 import langdetect
+import magic
 import numpy as np
 import pandas as pd
 import requests
@@ -14,7 +15,8 @@ from . import dask_operators
 from .dask_operators import SQLTableLoader
 from .document_base import Pipeline, ElementType, Configuration
 from .extract_classes import LanguageExtractor, TextBlockClassifier
-from .extract_filesystem import FileLoader, PathLoader
+from .extract_filesystem import FileLoader
+from .extract_filesystem import PathLoader
 from .extract_html import HtmlExtractor
 from .extract_index import IndexExtractor, KnnQuery, \
     SimilarityGraph, TextrankOperator, TextPieceSplitter
@@ -23,13 +25,15 @@ from .extract_objects import EntityExtractor
 from .extract_ocr import OCRExtractor
 from .extract_pandoc import PandocLoader, PandocOperator, PandocConverter, PandocBlocks
 from .extract_spacy import SpacyOperator, extract_spacy_token_vecs, get_spacy_embeddings, extract_noun_chunks
-from .extract_tables import ListExtractor, TableCandidateAreasExtractor, Iterator2Dataframe
+from .extract_tables import Iterator2Dataframe
+from .extract_tables import ListExtractor, TableCandidateAreasExtractor
 from .extract_textstructure import DocumentElementFilter, TextBoxElementExtractor, TitleExtractor
 from .html_utils import get_text_only_blocks
 from .list_utils import flatten, flatten_dict, deep_str_convert
 from .nlp_utils import calculate_string_embeddings, summarize_long_text
 from .operator_huggingface import QamExtractor
-from .operators_base import Alias, LambdaOperator, ElementWiseOperator, Constant, DataMerger, \
+from .operators_base import Alias, LambdaOperator, ElementWiseOperator, Constant
+from .operators_base import DataMerger, \
     ForgivingExtractIterator
 from .pdf_utils import PDFFileLoader
 
@@ -43,6 +47,10 @@ def is_url(url):
 
 
 class DocumentTypeError(Exception):
+    pass
+
+
+class DocumentInitializationError(Exception):
     pass
 
 
@@ -148,7 +156,8 @@ operations and include the documentation there. Lambda functions should not be u
 
     # TODO: rename extractors to operators
     _operators = {
-        ".pdf": [
+        # .pdf
+        "application/pdf": [
             FileLoader()  # pdfs are usually in binary format...
             .pipe(fobj="_fobj").out("raw_content").cache(),
             PDFFileLoader()
@@ -181,7 +190,8 @@ operations and include the documentation there. Lambda functions should not be u
             LanguageExtractor().cache()
             .pipe(text="full_text").out("language").cache()
         ],
-        ".html": [
+        # .html
+        "text/html": [
             HtmlExtractor()
             .pipe(raw_html="raw_content", url="source")
             .out("main_content_clean_html", "summary", "language", "goose_article",
@@ -203,12 +213,17 @@ operations and include the documentation there. Lambda functions should not be u
             LambdaOperator(lambda **kwargs: set(flatten(kwargs.values())))
             .pipe("html_keywords", "textrank_keywords").out("keywords").cache(),
         ],
-        ".docx": ["pandoc"],
-        ".odt": ["pandoc"],
-        ".md": ["pandoc"],
-        ".rtf": ["pandoc"],
-        ".epub": ["pandoc"],
-        ".markdown": ["pandoc"],
+        # docx
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ["pandoc"],
+        # odt
+        "application/vnd.oasis.opendocument.text": ["pandoc"],
+        # markdown
+        "text/markdown": ["pandoc"],
+        # .rtf
+        "text/rtf": ["pandoc"],
+        # .epub
+        "application/epub+zip": ["pandoc"],
+        # pandoc document conversion pipeline
         "pandoc": [
             PandocLoader()
             .pipe(raw_content="raw_content", document_type="document_type")
@@ -230,10 +245,11 @@ operations and include the documentation there. Lambda functions should not be u
             PandocOperator(method="lists")
             .pipe(pandoc_blocks="pandoc_blocks").out("lists").cache()
         ],
+        # standard image pipeline
         "image": [
             # add a "base-document" type (.pdf) images get converted into pdfs
             # and then further processed from there
-            ".pdf",  # as we are extracting a pdf we would like to use the pdf functions...
+            "application/pdf",  # as we are extracting a pdf we would like to use the pdf functions...
             Configuration(ocr_lang="auto", ocr_on=True),
             OCRExtractor()
             .pipe("ocr_on", "ocr_lang", file="raw_content")
@@ -248,20 +264,19 @@ operations and include the documentation there. Lambda functions should not be u
         ],
         # the first base doc types have priority over the last ones
         # so here .png > image > .pdf
-        ".png": ["image", ".pdf"],
-        ".jpeg": ["image", ".pdf"],
-        ".jpg": ["image", ".pdf"],
-        ".tif": ["image", ".pdf"],
-        ".tiff": ["image", ".pdf"],
-        ".yaml": [
-            "dict",
+        'image/png': ["image", "application/pdf"],
+        'image/jpeg': ["image", "application/pdf"],
+        'image/tiff': ["image", "application/pdf"],
+        "application/x-yaml": [
+            "<class 'dict'>",
             Alias(full_text="raw_content"),
             LambdaOperator(lambda x: dict(data=yaml.unsafe_load(x)))
             .pipe(x="full_text").out("data").cache()
             # TODO: we might need to have a special "result" message, that we
             #       pass around....
         ],
-        "dict": [  # pipeline to handle data based documents
+        # simple dictionary with arbitrary data from python
+        "<class 'dict'>": [  # pipeline to handle data based documents
             Alias(raw_content="_fobj"),
             Alias(data="raw_content"),
             LambdaOperator(lambda x: yaml.dump(deep_str_convert(x)))
@@ -427,27 +442,47 @@ operations and include the documentation there. Lambda functions should not be u
 
     def __init__(
             self,
-            fobj: str | bytes | Path | IO = None,
+            fobj: str | bytes | Path | IO | dict | list | set = None,
             source: str | Path = None,
+            document_type: str = "auto",
             page_numbers: list[int] = None,
             max_pages: int = None,
-            mime_type: str = None,  # TODO: remove this and document type and replace with "type_hint"
-            filename: str = None,
-            document_type: str = None,
-            # TODO: add "auto" for automatic recognition of the type using python-magic
     ):
         """Initialize a Document instance.
 
+        Either fobj or source are required. They can both be given. If either of them
+        isn't specified the other one is inferred automatically.
+
+        document_type, page_number and max_pages are also not required, but can be used to override
+        the default behaviour. specifically document_type can be used manually specify
+        the pipeline that should be used.
+
         Args:
             fobj:
-                The file object to load. Depending on the type of object passed:
+                The file object or data to load. Depending on the type of object passed:
                 - If a string or bytes object: the object itself is the document.
                 - If a string representing a URL: the document will be loaded from the URL.
                 - If a pathlib.Path object: load the document from the path.
                 - If a file object: load the document from the file object (e.g., bytestream).
+                - If a python dict object: interprete a "dict" as a document
+                - If a python list object: interprete a "list" as a document
 
             source:
                 The source of the extracted data (e.g., URL, 'pdfupload', parent-URL, or a path).
+                source is given in addition to fobj it overrides the automatically inferred source.
+                A special case applies if our document is a dataobject from a database. In that case
+                the index key from the database should be used as source. This facilitates downstream
+                tasks immensely where we have to refer back to where the data came from.
+
+                This also applies for "explode" operations on documents where the newly created documents
+                will all try to trace their origin using the "source" attribute
+
+            document_type:
+                The document type to directly specify the pipeline to be used. If "auto" is given
+                it will try to be inferred automatically. For example in some cases
+                we would like to have a string given in fobj not to be loaded as a file
+                but actually be used as raw "string" data. In this case we can explicitly
+                specify document_type="string"
 
             page_numbers:
                 A list of specific pages to extract from the document (e.g., in a PDF).
@@ -455,20 +490,12 @@ operations and include the documentation there. Lambda functions should not be u
             max_pages:
                 The maximum number of pages to extract to protect resources.
 
-            mime_type:
-                The MIME type of the document, if available.
-
-            filename:
-                The filename of the document, which can sometimes help in determining its purpose.
-
-            document_type:
-                The document type to directly specify the extraction logic to be used.
-
         """
 
         super().__init__()
 
         # TODO: move this code into its own little extractor...
+        #       can also be made better with pydantic ;).
         try:
             if is_url(fobj):
                 response = requests.get(fobj)
@@ -476,23 +503,36 @@ operations and include the documentation there. Lambda functions should not be u
         except:
             pass
 
-        self._fobj = fobj  # file object
-        self._source = source or self._fobj
-        self._document_type = document_type
-        self._mime_type = mime_type
-        self._filename = filename
+        if not (source or fobj):
+            raise DocumentInitializationError(
+                "Either 'source' or 'fobj' are required for initialzation of Document Class")
+
+        self._fobj = fobj  # file or data object
+        self._source = source
+        self._document_type = document_type  # override pipeline selection
         self._page_numbers = page_numbers
         self._max_pages = max_pages
 
     @cached_property
+    def fobj(self) -> bytes | str | Path | IO | dict | list | set:
+        if self._fobj:
+            return self._fobj
+        else:
+            return self._source
+
+    @cached_property
+    def source(self) -> str:
+        if self._source:
+            return self._source
+        else:
+            # an infinite loop can not happen here, as we will always have self._fobj defined
+            # if self._source doesn't exist.
+            return self.filename
+
+    @cached_property
     def filename(self) -> str | None:
-        """TODO: move this into document pipeline"""
-        if hasattr(self._fobj, "name"):
-            return self._fobj.name
-        elif isinstance(self._fobj, Path):
-            return self._fobj.name
-        elif self._filename:
-            return self._filename
+        if hasattr(self.fobj, "name") or isinstance(self._fobj, Path):
+            return self.fobj.name
         else:
             return None
 
@@ -506,33 +546,47 @@ operations and include the documentation there. Lambda functions should not be u
     @cached_property
     def document_type(self):
         """
-        detect doc type based on file-ending
+        This one here is actually important as it detects the
+        type of data that we are going to use for out pipeline.
+        That is also why this is implemented as a member function and can
+        not be pushed in the pipeline itself, because in needs to be run
+        in order to select which pipline we are going to use.
+
+        detect doc type based on various criteria
         TODO add a doc-type extractor using for example python-magic
         """
-        try:
-            if self._document_type:
-                return self._document_type
-            elif isinstance(self._fobj, (dict, list, set)):
-                return type(self._fobj)
-            elif self._mime_type:
-                return mimetypes.guess_extension(self._mime_type)
-            # get type from path suffix
-            elif isinstance(self._fobj, Path):
-                if self._fobj.exists():
-                    return self._fobj.suffix
-                elif hasattr(self._fobj, "name"):
-                    return Path(self._fobj.name).suffix
-            elif isinstance(self._fobj, str) and (self._document_type is None):
-                return "generic"
-
-            # for example if it is a string without a type
-            # TODO: detect type with python-magic here...
-            raise DocumentTypeError(f"Could not find the document type for {self._fobj[-100:]} ...")
-        except:
-            try:
-                raise DocumentTypeError(f"Could not detect document type for {self._fobj} ...")
-            except:
-                raise DocumentTypeError(f"Could not detect document type for {self._fobj[-100:]} ...")
+        # document type was overriden
+        if self._document_type != "auto":
+            return self._document_type
+        # check if we have an actual file here
+        elif isinstance(self.fobj, (Path, str)):
+            fobj = Path(self.fobj)
+            if fobj.is_file():
+                mimetype = magic.from_file(self.fobj, mime=True)
+                if mimetype == "text/plain":
+                    # it's hard to check for the actual filetype here with python magic, so we
+                    # fall back to using the extension itself
+                    mimetype, encoding = mimetypes.guess_type(fobj)
+                    return mimetype
+                    # TODO: implement a logic on what to do if
+                    #       mimetypes and magic don't agree'
+                else:
+                    return mimetype
+            else:
+                # if it's not a file, we take it as a string, but can be overwritten
+                # using the document_type variable during initialization
+                return "string"
+        elif hasattr(self.fobj, "name"):  # might be a streaming object
+            # TODO: there is probably a better way to check for many file io obejcts...
+            mimetype = magic.from_buffer(self.fobj, mime=True)
+            return mimetype
+        # find out ourselfs :)
+        elif isinstance(self.fobj, (dict, list, set)):
+            return str(type(self.fobj))
+        # try to guess filetype.
+        # if no mimetype was guess, check if it is a simple string
+        elif isinstance(self.fobj, str) and (self._document_type is None):
+            return "generic"
 
     @cached_property
     def pipeline_chooser(self):
@@ -540,14 +594,6 @@ operations and include the documentation there. Lambda functions should not be u
             return self.document_type
         else:
             return "*"
-
-    @property
-    def source(self) -> str:
-        return self._source
-
-    @property
-    def fobj(self):
-        return self._fobj
 
     def __repr__(self):
         """
@@ -566,7 +612,7 @@ operations and include the documentation there. Lambda functions should not be u
         a link where this document can be found. And this url does not necessarily have to be the same as the source
         of the document.""
         return []
-
+    
     @property
     def parent(self) -> list[str]:
         ""sources that embed this document in some way (for example as a link)
@@ -595,7 +641,7 @@ class DocumentSet(Pipeline):
 
     This class is still experimental. Expect more documentation in
     the near future.
-    
+
     This class is developed to do work on larger-than-memory datasets and
     scale LLM & AI inference to very large workloads.
 

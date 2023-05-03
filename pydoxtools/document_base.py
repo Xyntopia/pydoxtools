@@ -438,7 +438,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         self._source = "base_pipeline"
         self._x_func_cache: dict[Operator, dict[str, Any]] = {}
 
-    def config(self, **settings: dict[str, Any]) -> "Pipeline":
+    def config(self, **configuration: dict[str, Any]) -> "Pipeline":
         """
         Set configuration parameters for a pipeline.
 
@@ -446,7 +446,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         and assigns the provided configuration settings to them.
 
         Args:
-            **settings: A dictionary of key-value pairs representing the configuration
+            **configuration: A dictionary of key-value pairs representing the configuration
                 settings for the pipeline. Each key is a string representing the name
                 of the configuration setting, and the value is the corresponding value
                 to be set.
@@ -463,7 +463,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
             {k: v for k, v in self.x_funcs.items() if isinstance(v, Configuration)}
 
         # Assign the settings to the corresponding configuration objects
-        for k, v in settings.items():
+        for k, v in configuration.items():
             configuration[k]._configuration_map[k] = v
 
         # Return the current pipeline instance for method chaining
@@ -759,7 +759,6 @@ supports pipelines
             str: A string representation of the instance.
         """
         return f"{self.__module__}.{self.__class__.__name__}>"
-
 
     # TODO: more configuration options:
     #       - which nlp models (spacy/transformers) to use

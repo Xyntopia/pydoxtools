@@ -9,35 +9,36 @@ import pytest
 from pydoxtools import settings
 from pydoxtools.document import Document, DocumentSet
 from pydoxtools.document_base import OperatorException
+from pydoxtools.list_utils import flatten, iterablefyer
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("pydoxtools.document").setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 
-test_files = [
-    "./data/PFR-PR23_BAT-110__V1.00_.pdf",
-    "./data/Datasheet-Centaur-Charger-DE.6f.pdf",
-    "./data/List of North American countries by population - Wikipedia.pdf",
-    "./data/berrybase_raspberrypi4.html",
-    "./data/test.html",
-    "./data/remo-m_fixed-wing.2f.pdf",
-    "./data/alan_turing.txt",
-    "./data/demo.docx",
+test_files_w_type = {
+    "application/pdf": ["./data/PFR-PR23_BAT-110__V1.00_.pdf",
+                        "./data/Datasheet-Centaur-Charger-DE.6f.pdf",
+                        "./data/remo-m_fixed-wing.2f.pdf",
+                        "./data/Doxcavator.pdf",
+                        "./data/List of North American countries by population - Wikipedia.pdf"],
+    "text/html": ["./data/berrybase_raspberrypi4.html",
+                  "./data/test.html"],
+    "text/plain": ["./data/alan_turing.txt"],
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "./data/demo.docx",
     # TODO: enable ODP
     # "./data/Doxcavator.odp",
-    "./data/Doxcavator.pdf",
     # TODO: enable pptx
     # "./data/Doxcavator.pptx",
-    "./data/test.odt",
-    "./data/sample.rtf",
-    "./data/basic-v3plus2.epub",
+    "application/vnd.oasis.opendocument.text": "./data/test.odt",
+    "text/rtf": "./data/sample.rtf",
+    "application/epub+zip": "./data/basic-v3plus2.epub",
     # images
-    "./data/north_american_countries.png",
-    "./data/north_american_countries.tif",
-    "./data/north_american_countries.jpg",
-    "../README.md"
-]
-
+    "image/png": "./data/north_american_countries.png",
+    "image/tiff": "./data/north_american_countries.tif",
+    "image/jpeg": "./data/north_american_countries.jpg",
+    "text/markdown": "../README.md"
+}
+test_files = flatten(test_files_w_type.values())
 test_dir_path = pathlib.Path(__file__).parent.absolute()
 
 
@@ -47,6 +48,13 @@ def make_path_absolute(f: Path | str):
 
 # make directories work in pytest
 test_files = [make_path_absolute(f) for f in test_files]
+
+
+def test_document_type_detection():
+    for t,v in test_files_w_type.items():
+        for f in iterablefyer(v):
+            d = Document(f)
+            assert d.document_type==t
 
 
 def run_single_non_interactive_document_test(file_name):
@@ -328,10 +336,13 @@ def test_sql_download():
         sql="users",
         index_column="id"
     ), pipeline="db", max_documents=1000)
-    #d = docs.props_bag(["vector"]).take(3)
-    d = docs.props_bag(["text_segment_vectors"]).flatten().take(5)
-
-
+    # d = docs.props_bag(["vector"]).take(3)
+    vector_bag = docs.props_bag(["source", "text_segment_vectors"])
+    vector_bag.push_sql(source=dict(
+        connection_string=connection_string,
+        sql="users",
+        index_column="id"
+    ))
 
 def test_dict():
     person_document = {'full_name': 'Susan Williamson',
@@ -353,6 +364,7 @@ if __name__ == "__main__":
     #    f.write(doc.ocr_pdf_file)
 
     # test_qam_machine()
+    test_document_type_detection()
     test_dict()
     test_document_pickling()
     test_documentation_generation()

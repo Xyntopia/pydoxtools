@@ -3,14 +3,6 @@
 """
 Created on Tue Apr 28 21:55:35 2020
 
-general settings for comcharax project.
-scrapy crawler specific settings can be found in
-the the crawler directory and scrapy.cfg.
-
-TODO:
-- adapt this to kubernetes with environment variables or 
-  docker parameters/environmen variables or whatever
-
 @author: tom
 """
 
