@@ -544,8 +544,12 @@ operations and include the documentation there. Lambda functions should not be u
 
     @property
     def document_type(self):
-        doc_type, _ = self.document_type_detection()
-        return doc_type
+        # document type was overriden
+        if self._document_type != "auto":
+            return self._document_type
+        else:
+            doc_type, _ = self.document_type_detection()
+            return doc_type
 
     @functools.cache
     def document_type_detection(self):
@@ -559,10 +563,6 @@ operations and include the documentation there. Lambda functions should not be u
         detect doc type based on various criteria
         TODO add a doc-type extractor using for example python-magic
         """
-        # document type was overriden
-        if self._document_type != "auto":
-            return self._document_type
-
         buffer = None
         detected_filepath: Path | None = None
         # now, check filetype using python-magic

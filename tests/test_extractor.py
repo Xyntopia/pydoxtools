@@ -305,7 +305,7 @@ def test_yaml_json_dict_prop_dict():
         "language",
         "entities",
         "keywords"
-    ), document_type=".yaml")
+    ), document_type="application/x-yaml")
     d = Document(a.data)
 
 
@@ -386,11 +386,7 @@ if __name__ == "__main__":
     # with open("ocrpdf", "wb") as f:
     #    f.write(doc.ocr_pdf_file)
 
-    # test_qam_machine()
-    test_document_type_detection()
-    test_documentation_generation()
-    test_pipeline_graph()
-    # test_sql_download()
+    test_yaml_json_dict_prop_dict()
 
     if False:
         with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:
