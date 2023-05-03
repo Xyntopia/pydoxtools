@@ -755,18 +755,11 @@ supports pipelines
 
     def __repr__(self):
         """
-        Returns a string representation of the instance.
-
-        This method provides a string representation of the instance, including the module and class
-        names, as well as the file object or string and the source.
-
         Returns:
             str: A string representation of the instance.
         """
-        if isinstance(self._source, str | bytes):
-            return f"{self.__module__}.{self.__class__.__name__}({self._source[:10]})>"
-        else:
-            return f"{self.__module__}.{self.__class__.__name__}({self._source})>"
+        return f"{self.__module__}.{self.__class__.__name__}>"
+
 
     # TODO: more configuration options:
     #       - which nlp models (spacy/transformers) to use

@@ -549,6 +549,16 @@ operations and include the documentation there. Lambda functions should not be u
     def fobj(self):
         return self._fobj
 
+    def __repr__(self):
+        """
+        Returns:
+            str: A string representation of the instance.
+        """
+        if isinstance(self._source, str | bytes):
+            return f"{self.__module__}.{self.__class__.__name__}({self._source[:10]})>"
+        else:
+            return f"{self.__module__}.{self.__class__.__name__}({self._source})>"
+
     """
     @property
     def final_url(self) -> list[str]:
