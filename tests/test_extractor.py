@@ -17,6 +17,8 @@ logging.getLogger("pydoxtools.document").setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 
 test_files_w_type = {
+    "text/markdown": ["./data/demo.md",
+                      "../README.md", ],
     "application/pdf": ["./data/PFR-PR23_BAT-110__V1.00_.pdf",
                         "./data/Datasheet-Centaur-Charger-DE.6f.pdf",
                         "./data/remo-m_fixed-wing.2f.pdf",
@@ -37,8 +39,6 @@ test_files_w_type = {
     "image/png": "./data/north_american_countries.png",
     "image/tiff": "./data/north_american_countries.tif",
     "image/jpeg": "./data/north_american_countries.jpg",
-    "text/markdown": [
-        "../README.md", "./data/demo.md"]
 }
 test_files = flatten(test_files_w_type.values())
 test_dir_path = pathlib.Path(__file__).parent.absolute()
@@ -62,6 +62,17 @@ def test_document_type_detection():
             d = Document(str(make_path_absolute(f)))
             logger.info(f"testing filetype string path detection for {f}")
             assert d.document_type == t
+
+            with open(make_path_absolute(f), "rb") as file:
+                doc_str = file.read()
+            d = Document(fobj=doc_str, source=f)
+            assert d.document_type == t
+            d = Document(fobj=io.BytesIO(doc_str), source=f)
+            assert d.document_type == t
+
+            with open(make_path_absolute(f), "rb") as file:
+                d = Document(fobj=file)
+                assert d.document_type == t
 
 
 # TODO: implement a test case where we need to overwrite the document
@@ -376,8 +387,6 @@ if __name__ == "__main__":
     #    f.write(doc.ocr_pdf_file)
 
     # test_qam_machine()
-    test_document_type_detection()
-    test_pandoc()
     test_document_type_detection()
     test_documentation_generation()
     test_pipeline_graph()

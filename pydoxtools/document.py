@@ -1,3 +1,5 @@
+import functools
+import io
 import json
 import mimetypes
 from functools import cached_property
@@ -444,6 +446,7 @@ operations and include the documentation there. Lambda functions should not be u
     def __init__(
             self,
             fobj: str | bytes | Path | IO | dict | list | set = None,
+            # TODO: only use Path and declare the variables using pydantic we'll also get validation
             source: str | Path = None,
             document_type: str = "auto",
             page_numbers: list[int] = None,
@@ -523,29 +526,26 @@ operations and include the documentation there. Lambda functions should not be u
 
     @cached_property
     def source(self) -> str:
-        if self._source:
-            return self._source
-        else:
-            # an infinite loop can not happen here, as we will always have self._fobj defined
-            # if self._source doesn't exist.
-            return self.filename
+        return self._source
 
-    @cached_property
+    @property
     def filename(self) -> str | None:
-        if hasattr(self.fobj, "name") or isinstance(self._fobj, Path):
-            return self.fobj.name
-        else:
-            return None
+        """return filename or some other identifier of a file"""
+        _, filepath = self.document_type_detection()
+        return filepath.name
 
-    @cached_property
+    @property
     def path(self):
-        if isinstance(self.fobj, Path):
-            return self.fobj
-        else:
-            return Path(self.source)
+        _, filepath = self.document_type_detection()
+        return filepath
 
-    @cached_property
+    @property
     def document_type(self):
+        doc_type, _ = self.document_type_detection()
+        return doc_type
+
+    @functools.cache
+    def document_type_detection(self):
         """
         This one here is actually important as it detects the
         type of data that we are going to use for out pipeline.
@@ -559,43 +559,65 @@ operations and include the documentation there. Lambda functions should not be u
         # document type was overriden
         if self._document_type != "auto":
             return self._document_type
-        # check if we have an actual file here
-        elif isinstance(self.fobj, (Path, str)):
+
+        buffer = None
+        detected_filepath: Path | None = None
+        # now, check filetype using python-magic
+        if isinstance(self.fobj, (Path, str)):
             fobj = Path(self.fobj)
-            if fobj.is_file():
+            if fobj.is_file():  # check if we have an actual file here
                 mimetype = magic.from_file(self.fobj, mime=True)
-                if mimetype == "application/json":
-                    with open(self.fobj) as f:
-                        # TODO: can we make this "lazy" basically throw anexception later, so that the document_type
-                        #       can change iterativly?
-                        try:
-                            json.load(f)
-                        except json.decoder.JSONDecodeError:
-                            mimetype = "text/plain"
-                if mimetype == "text/plain":
-                    # it's hard to check for the actual filetype here with python magic, so we
-                    # fall back to using the extension itself
-                    mimetype, encoding = mimetypes.guess_type(fobj)
-                    return mimetype
-                    # TODO: implement a logic on what to do if
-                    #       mimetypes and magic don't agree'
-                else:
-                    return mimetype
+                detected_filepath = fobj
             else:
                 # if it's not a file, we take it as a string, but can be overwritten
                 # using the document_type variable during initialization
-                return "string"
-        elif hasattr(self.fobj, "name"):  # might be a streaming object
-            # TODO: there is probably a better way to check for many file io obejcts...
+                mimetype = "string"
+        elif isinstance(self.fobj, bytes):
             mimetype = magic.from_buffer(self.fobj, mime=True)
-            return mimetype
-        # find out ourselfs :)
+        elif isinstance(self.fobj, io.IOBase):  # might be a streaming object
+            # TODO: there is probably a better way to check for many file io objects...
+            buffer = self.fobj.read(2048)
+            self.fobj.seek(0)  # reset pointer for downstream tasks
+            mimetype = magic.from_buffer(buffer, mime=True)
+            try:
+                detected_filepath = Path(self.fobj.name)
+            except:
+                pass
         elif isinstance(self.fobj, (dict, list, set)):
-            return str(type(self.fobj))
-        # try to guess filetype.
-        # if no mimetype was guess, check if it is a simple string
-        elif isinstance(self.fobj, str) and (self._document_type is None):
-            return "generic"
+            mimetype = str(type(self.fobj))
+        else:
+            mimetype = str(type(self.fobj))
+
+        # do some more checks on problems that we have encountered when using "magic"
+        if mimetype == "application/json":
+            if buffer:
+                jsonstr = self.fobj.read()
+                self.fobj.seek(0)
+            elif detected_filepath:
+                with open(self.fobj, "r") as f:
+                    # TODO: can we make this "lazy" basically throw anexception later, so that the document_type
+                    #       can change iterativly?
+                    jsonstr = f.read()
+            else:
+                jsonstr = self.fobj
+
+            try:
+                json.loads(jsonstr)
+            except json.decoder.JSONDecodeError:
+                mimetype = "text/plain"
+
+        # if file is text based or json etc... do some more checks!
+        # the file ending becomes a lot more important in this case!
+        if mimetype == "text/plain":
+            # it's hard to check for the actual filetype here with python magic, so we
+            # fall back to using the extension itself
+            mimetype, encoding = mimetypes.guess_type(detected_filepath or self.source)
+            return mimetype, detected_filepath
+        else:
+            return mimetype, detected_filepath
+
+    # TODO: implement a logic on what to do if
+    #       mimetypes and magic don't agree'
 
     @cached_property
     def pipeline_chooser(self):
@@ -610,9 +632,9 @@ operations and include the documentation there. Lambda functions should not be u
             str: A string representation of the instance.
         """
         if isinstance(self._source, str | bytes):
-            return f"{self.__module__}.{self.__class__.__name__}({self._source[:10]})>"
+            return f"{self.__module__}.{self.__class__.__name__}({self._source or self.filename})>"
         else:
-            return f"{self.__module__}.{self.__class__.__name__}({self._source})>"
+            return f"{self.__module__}.{self.__class__.__name__}({self._source or self.filename})>"
 
     """
     @property
