@@ -328,10 +328,9 @@ def test_sql_download():
         sql="users",
         index_column="id"
     ), pipeline="db", max_documents=1000)
-    d = docs.docs_bag.compute()
-    d = docs.docs_bag.take(5)
-    d = docs.props_bag(["vector"]).take(3)
-    d = docs.props_bag(["text_segment_vectors"]).take(3)
+    #d = docs.props_bag(["vector"]).take(3)
+    d = docs.props_bag(["text_segment_vectors"]).flatten().take(5)
+
 
 
 def test_dict():

@@ -88,10 +88,14 @@ class DataMerger(Operator):
 def forgiving_extract(doc: Pipeline, properties: list[str]) -> dict[str, Any]:
     try:
         props = doc.property_dict(*properties)
-        return props
     except OperatorException:
         # we just continue  if an error happened. This is why we are "forgiving"
-        return {"Error": "OperatorException"}
+        props = {"Error": "OperatorException"}
+
+    if len(properties) == 1:
+        return props[properties[0]]
+    else:
+        return props
 
 
 class ForgivingExtractIterator(Operator):
@@ -121,10 +125,6 @@ class ForgivingExtractIterator(Operator):
                 properties = iterablefyer(properties)
                 for doc in doc_list:
                     props = forgiving_extract(doc, properties)
-
-                    if len(properties) == 1:
-                        yield props[properties[0]]
-                    else:
-                        yield props
+                    yield props
 
             return safe_extract
