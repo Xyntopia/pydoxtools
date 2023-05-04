@@ -1,6 +1,7 @@
 comcharax_lib.egg-info
 
 .idea
+.chroma
 
 __pycache__
 **/.ipynb_checkpoints/
