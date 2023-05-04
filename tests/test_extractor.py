@@ -299,9 +299,9 @@ def test_yaml_json_dict_prop_dict():
     doc.textrank_sents
     doc.keywords
     doc.to_dict("addresses", "filename", "keywords")
-    doc.yaml("addresses", "filename", "keywords")
-    doc.json("addresses", "filename", "keywords")
-    a = Document(doc.yaml(
+    doc.to_yaml("addresses", "filename", "keywords")
+    doc.to_json("addresses", "filename", "keywords")
+    a = Document(doc.to_yaml(
         "document_type",
         "num_words",
         "language",

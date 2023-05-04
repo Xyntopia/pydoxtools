@@ -532,7 +532,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
 
         return deep_str_convert(properties)
 
-    def yaml(self, *args, **kwargs):
+    def to_yaml(self, *args, **kwargs):
         """
         Returns a dictionary that accumulates the properties given in *args or with a mapping in **kwargs, and dumps the output as YAML.
 
@@ -554,7 +554,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         out = yaml.safe_dump(out)
         return out
 
-    def json(self, *args, **kwargs):
+    def to_json(self, *args, **kwargs):
         """
         Returns a dictionary that accumulates the properties given in *args or with a
         mapping in **kwargs, and dumps the output as JSON.
