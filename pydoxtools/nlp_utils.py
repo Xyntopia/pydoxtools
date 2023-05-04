@@ -591,7 +591,12 @@ def summarize_long_text(
 ):
     pipeline = load_pipeline("summarization", model_id=model_id)
     model, tokenizer = pipeline.model, pipeline.tokenizer
-    max_input_tokens = pipeline.model.config.max_position_embeddings
+    try:
+        max_input_tokens = pipeline.model.config.max_position_embeddings
+    except AttributeError:
+        # TOOD: we should probably find a better method for this....
+        max_input_tokens = 512  # e.g. this is a good choice for t5 (doesn't have a hard limit,
+        # but huge memory consumption)
 
     def summarize_chunks(text) -> (str, int):
         inputs = tokenizer(text, return_tensors="pt").input_ids

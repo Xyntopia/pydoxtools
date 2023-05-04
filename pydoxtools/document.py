@@ -431,7 +431,7 @@ operations and include the documentation there. Lambda functions should not be u
                 x="clean_text", m="summarizer_model",
                 to="summarizer_token_overlap",
                 ml="summarizer_max_text_len"
-            ).out("summary"),
+            ).out("summary").cache(),
 
             ########### QaM machine #############
             # TODO: make sure we can set the model that we want to use dynamically!

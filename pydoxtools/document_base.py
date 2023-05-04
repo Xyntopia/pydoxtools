@@ -718,7 +718,7 @@ supports pipelines
         """
         return {property: self.x(property) for property in self.x_funcs}
 
-    def run_pipeline(self):
+    def run_pipeline(self, exclude: list[str] = None):
         """
         Runs all extractors defined in the pipeline for testing or pre-caching purposes.
 
@@ -729,8 +729,14 @@ supports pipelines
         extractor logic is functioning correctly and caching the results if required.
         """
         # print(pdfdoc.elements)
+        exclude = exclude or []
         for x in self.x_funcs:
-            self.x(x)
+            if x not in exclude:
+                self.x(x)
+
+    def run_pipeline_fast(self):
+        """run pipeline, but exclude long-running calculations"""
+        self.run_pipeline(exclude=["summary"])
 
     def pre_cache(self):
         """

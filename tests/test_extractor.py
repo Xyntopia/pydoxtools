@@ -90,7 +90,7 @@ def run_single_non_interactive_document_test(file_name):
     logger.info(f"testing: {file_name}")
     # load object from path
     doc = Document(fobj=pathlib.Path(file_name))
-    doc.run_pipeline()
+    doc.run_pipeline_fast()
     assert doc._cache_hits >= 0
 
     with open(file_name, "rb") as file:
@@ -100,13 +100,13 @@ def run_single_non_interactive_document_test(file_name):
     # from bytestream
     doc = Document(fobj=io.BytesIO(doc_str))
     doc.document_type
-    doc.run_pipeline()
+    doc.run_pipeline_fast()
     assert doc._cache_hits >= 0
 
     # from bytes
     doc = Document(fobj=doc_str)
     doc.document_type
-    doc.run_pipeline()
+    doc.run_pipeline_fast()
     assert doc._cache_hits >= 0
 
     return doc
@@ -116,14 +116,14 @@ def test_string_extraction():
     doc = Document(source=str(make_path_absolute("./data/alan_turing.txt")))
     doc.document_type
     doc.keywords
-    doc.run_pipeline()
+    doc.run_pipeline_fast()
 
     with open(make_path_absolute("./data/alan_turing.txt"), "r") as f:
         some_string = f.read()
 
     doc = Document(fobj=some_string)
     doc.document_type
-    doc.run_pipeline()
+    doc.run_pipeline_fast()
     assert doc._cache_hits >= 30
     assert doc.keywords == ["Turing"]
 
@@ -387,7 +387,7 @@ def test_dict():
                        'bio': 'Friendly music geek. Organizer. Twitter scholar. Creator. General food nerd. '
                               'Future teen idol. Thinker.'}
     doc = Document(person_document)
-    doc.run_pipeline()
+    doc.run_pipeline_fast()
     assert doc.keywords == ['Susan full_name', 'Susan Williamson', 'bio', 'Organizer', 'Twitter scholar']
     assert doc.document_type == "<class 'dict'>"
 
@@ -403,9 +403,9 @@ if __name__ == "__main__":
 
     # TODO: automatically recognize doc_type
     # from bytestream
-    doc = Document(fobj=io.BytesIO(doc_str))
+    doc = Document(fobj=io.BytesIO(doc_str)).config(summarizer_model='t5-small')
     doc.document_type
-    doc.run_pipeline()
+    doc.run_pipeline_fast()
 
     #run_single_non_interactive_document_test("/home/tom/git/componardolib/pydoxtools/tests/data/demo.md")
 
