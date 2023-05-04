@@ -146,15 +146,15 @@ meta&#45;&gt;meta</title>
 <path fill="none" stroke="black" d="M483.23,-2152.6C510.27,-2139.9 539.94,-2126 562.05,-2115.6"/>
 <polygon fill="black" stroke="black" points="563.8,-2118.64 571.34,-2111.2 560.8,-2112.32 563.8,-2118.64"/>
 </g>
-<!-- _fobj -->
+<!-- fobj -->
 <g id="node6" class="node">
-<title>_fobj</title>
-<ellipse fill="none" stroke="black" cx="261" cy="-2593.1" rx="32.5" ry="18"/>
-<text text-anchor="middle" x="261" y="-2589.4" font-family="Times,serif" font-size="14.00">_fobj</text>
+<title>fobj</title>
+<ellipse fill="none" stroke="black" cx="261" cy="-2593.1" rx="28.7" ry="18"/>
+<text text-anchor="middle" x="261" y="-2589.4" font-family="Times,serif" font-size="14.00">fobj</text>
 </g>
-<!-- _fobj&#45;&gt;FileLoaderraw_content -->
+<!-- fobj&#45;&gt;FileLoaderraw_content -->
 <g id="edge5" class="edge">
-<title>_fobj&#45;&gt;FileLoaderraw_content</title>
+<title>fobj&#45;&gt;FileLoaderraw_content</title>
 <path fill="none" stroke="black" d="M261,-2574.8C261,-2563.2 261,-2547.5 261,-2534.2"/>
 <polygon fill="black" stroke="black" points="264.5,-2534.1 261,-2524.1 257.5,-2534.1 264.5,-2534.1"/>
 </g>

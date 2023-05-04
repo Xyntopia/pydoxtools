@@ -236,15 +236,15 @@ table_candidates&#45;&gt;table_candidates</title>
 <path fill="none" stroke="black" d="M843.53,-2008.3C842.43,-2000.6 841.1,-1991.4 839.87,-1982.8"/>
 <polygon fill="black" stroke="black" points="843.32,-1982.2 838.44,-1972.8 836.39,-1983.19 843.32,-1982.2"/>
 </g>
-<!-- _fobj -->
+<!-- fobj -->
 <g id="node12" class="node">
-<title>_fobj</title>
-<ellipse fill="none" stroke="black" cx="244" cy="-2418.6" rx="32.5" ry="18"/>
-<text text-anchor="middle" x="244" y="-2414.9" font-family="Times,serif" font-size="14.00">_fobj</text>
+<title>fobj</title>
+<ellipse fill="none" stroke="black" cx="244" cy="-2418.6" rx="28.7" ry="18"/>
+<text text-anchor="middle" x="244" y="-2414.9" font-family="Times,serif" font-size="14.00">fobj</text>
 </g>
-<!-- _fobj&#45;&gt;FileLoaderraw_content -->
+<!-- fobj&#45;&gt;FileLoaderraw_content -->
 <g id="edge11" class="edge">
-<title>_fobj&#45;&gt;FileLoaderraw_content</title>
+<title>fobj&#45;&gt;FileLoaderraw_content</title>
 <path fill="none" stroke="black" d="M244,-2400.3C244,-2392.6 244,-2383.4 244,-2374.8"/>
 <polygon fill="black" stroke="black" points="247.5,-2374.8 244,-2364.8 240.5,-2374.8 247.5,-2374.8"/>
 </g>

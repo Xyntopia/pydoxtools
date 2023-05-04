@@ -330,13 +330,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#pydoxtools.document.Document.document_type" class="md-nav__link">
-    document_type
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#pydoxtools.document.Document.filename" class="md-nav__link">
     filename
   </a>
@@ -346,6 +339,20 @@
           <li class="md-nav__item">
   <a href="#pydoxtools.document.Document.__init__" class="md-nav__link">
     __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pydoxtools.document.Document.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pydoxtools.document.Document.document_type_detection" class="md-nav__link">
+    document_type_detection()
   </a>
   
 </li>
@@ -413,6 +420,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#pydoxtools.document_base.Pipeline.__getstate__" class="md-nav__link">
+    __getstate__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#pydoxtools.document_base.Pipeline.__init__" class="md-nav__link">
     __init__()
   </a>
@@ -422,6 +436,13 @@
           <li class="md-nav__item">
   <a href="#pydoxtools.document_base.Pipeline.__repr__" class="md-nav__link">
     __repr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pydoxtools.document_base.Pipeline.__setstate__" class="md-nav__link">
+    __setstate__()
   </a>
   
 </li>
@@ -478,6 +499,13 @@
           <li class="md-nav__item">
   <a href="#pydoxtools.document_base.Pipeline.run_pipeline" class="md-nav__link">
     run_pipeline()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pydoxtools.document_base.Pipeline.run_pipeline_fast" class="md-nav__link">
+    run_pipeline_fast()
   </a>
   
 </li>
@@ -579,13 +607,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#pydoxtools.document.Document.document_type" class="md-nav__link">
-    document_type
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#pydoxtools.document.Document.filename" class="md-nav__link">
     filename
   </a>
@@ -595,6 +616,20 @@
           <li class="md-nav__item">
   <a href="#pydoxtools.document.Document.__init__" class="md-nav__link">
     __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pydoxtools.document.Document.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pydoxtools.document.Document.document_type_detection" class="md-nav__link">
+    document_type_detection()
   </a>
   
 </li>
@@ -662,6 +697,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#pydoxtools.document_base.Pipeline.__getstate__" class="md-nav__link">
+    __getstate__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#pydoxtools.document_base.Pipeline.__init__" class="md-nav__link">
     __init__()
   </a>
@@ -671,6 +713,13 @@
           <li class="md-nav__item">
   <a href="#pydoxtools.document_base.Pipeline.__repr__" class="md-nav__link">
     __repr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pydoxtools.document_base.Pipeline.__setstate__" class="md-nav__link">
+    __setstate__()
   </a>
   
 </li>
@@ -727,6 +776,13 @@
           <li class="md-nav__item">
   <a href="#pydoxtools.document_base.Pipeline.run_pipeline" class="md-nav__link">
     run_pipeline()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pydoxtools.document_base.Pipeline.run_pipeline_fast" class="md-nav__link">
+    run_pipeline_fast()
   </a>
   
 </li>
@@ -892,34 +948,10 @@ operations and include the documentation there. Lambda functions should not be u
 
 
 
-<h3 id="pydoxtools.document.Document.document_type" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">document_type</span></code>
-  
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
-  </span>
-
-</h3>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>detect doc type based on file-ending
-TODO add a doc-type extractor using for example python-magic</p>
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-attribute">
-
-
-
 <h3 id="pydoxtools.document.Document.filename" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
@@ -928,7 +960,7 @@ TODO add a doc-type extractor using for example python-magic</p>
 
   <div class="doc doc-contents ">
   
-      <p>TODO: move this into document pipeline</p>
+      <p>return filename or some other identifier of a file</p>
   </div>
 
 </div>
@@ -940,7 +972,7 @@ TODO add a doc-type extractor using for example python-magic</p>
 
 
 <h3 id="pydoxtools.document.Document.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">fobj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">page_numbers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_pages</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mime_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">document_type</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">fobj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">document_type</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="n">page_numbers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_pages</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 </h3>
 
@@ -948,6 +980,11 @@ TODO add a doc-type extractor using for example python-magic</p>
   <div class="doc doc-contents ">
   
       <p>Initialize a Document instance.</p>
+<p>Either fobj or source are required. They can both be given. If either of them
+isn't specified the other one is inferred automatically.</p>
+<p>document_type, page_number and max_pages are also not required, but can be used to override
+the default behaviour. specifically document_type can be used manually specify
+the pipeline that should be used.</p>
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -963,13 +1000,15 @@ TODO add a doc-type extractor using for example python-magic</p>
         <tr>
           <td><code>fobj</code></td>
           <td>
-                <code>str | bytes | <span title="pathlib.Path">Path</span> | <span title="typing.IO">IO</span></code>
+                <code>str | bytes | <span title="pathlib.Path">Path</span> | <span title="typing.IO">IO</span> | dict | list | set</code>
           </td>
-          <td><p>The file object to load. Depending on the type of object passed:
+          <td><p>The file object or data to load. Depending on the type of object passed:
 - If a string or bytes object: the object itself is the document.
 - If a string representing a URL: the document will be loaded from the URL.
 - If a pathlib.Path object: load the document from the path.
-- If a file object: load the document from the file object (e.g., bytestream).</p></td>
+- If a file object: load the document from the file object (e.g., bytestream).
+- If a python dict object: interprete a "dict" as a document
+- If a python list object: interprete a "list" as a document</p></td>
           <td>
                 <code>None</code>
           </td>
@@ -979,9 +1018,29 @@ TODO add a doc-type extractor using for example python-magic</p>
           <td>
                 <code>str | <span title="pathlib.Path">Path</span></code>
           </td>
-          <td><p>The source of the extracted data (e.g., URL, 'pdfupload', parent-URL, or a path).</p></td>
+          <td><p>The source of the extracted data (e.g., URL, 'pdfupload', parent-URL, or a path).
+source is given in addition to fobj it overrides the automatically inferred source.
+A special case applies if our document is a dataobject from a database. In that case
+the index key from the database should be used as source. This facilitates downstream
+tasks immensely where we have to refer back to where the data came from.</p>
+<p>This also applies for "explode" operations on documents where the newly created documents
+will all try to trace their origin using the "source" attribute</p></td>
           <td>
                 <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>document_type</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>The document type to directly specify the pipeline to be used. If "auto" is given
+it will try to be inferred automatically. For example in some cases
+we would like to have a string given in fobj not to be loaded as a file
+but actually be used as raw "string" data. In this case we can explicitly
+specify document_type="string"</p></td>
+          <td>
+                <code>&#39;auto&#39;</code>
           </td>
         </tr>
         <tr>
@@ -1004,38 +1063,70 @@ TODO add a doc-type extractor using for example python-magic</p>
                 <code>None</code>
           </td>
         </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pydoxtools.document.Document.__repr__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
         <tr>
-          <td><code>mime_type</code></td>
-          <td>
-                <code>str</code>
+<td><code>str</code></td>          <td>
           </td>
-          <td><p>The MIME type of the document, if available.</p></td>
-          <td>
-                <code>None</code>
-          </td>
-        </tr>
-        <tr>
-          <td><code>filename</code></td>
-          <td>
-                <code>str</code>
-          </td>
-          <td><p>The filename of the document, which can sometimes help in determining its purpose.</p></td>
-          <td>
-                <code>None</code>
-          </td>
-        </tr>
-        <tr>
-          <td><code>document_type</code></td>
-          <td>
-                <code>str</code>
-          </td>
-          <td><p>The document type to directly specify the extraction logic to be used.</p></td>
-          <td>
-                <code>None</code>
-          </td>
+          <td><p>A string representation of the instance.</p></td>
         </tr>
     </tbody>
   </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pydoxtools.document.Document.document_type_detection" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">document_type_detection</span><span class="p">()</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
+  </span>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>This one here is actually important as it detects the
+type of data that we are going to use for out pipeline.
+That is also why this is implemented as a member function and can
+not be pushed in the pipeline itself, because in needs to be run
+in order to select which pipline we are going to use.</p>
+<p>detect doc type based on various criteria
+TODO add a doc-type extractor using for example python-magic</p>
 
   </div>
 
@@ -1068,6 +1159,12 @@ TODO add a doc-type extractor using for example python-magic</p>
       <p><strong>This class is WIP use with caution</strong></p>
 <p>This class loads an entire set of documents and processes
 it using a pipeline.</p>
+<p>In order to fit into memory we are making extensive use of dask bags to
+store and make calculations on documents.</p>
+<p>For more information check the documentation for dask bags
+<a href="https://docs.dask.org/en/stable/bag.html">-&gt;here&lt;-</a>.</p>
+<p>This has the added benefit that one can use dask dataframes out of the box
+for downstream calculations!!</p>
 <p>This class is still experimental. Expect more documentation in
 the near future.</p>
 <p>This class is developed to do work on larger-than-memory datasets and
@@ -1404,6 +1501,26 @@ instead of document.x('addresses')</p>
 
 
 
+<h3 id="pydoxtools.document_base.Pipeline.__getstate__" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">__getstate__</span><span class="p">()</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>return necessary variables for pickling, ensuring that
+we leave out everything that can potentiall have some sort
+of a lambda function in it...</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
 <h3 id="pydoxtools.document_base.Pipeline.__init__" class="doc doc-heading">
 <code class="highlight language-python"><span class="fm">__init__</span><span class="p">()</span></code>
 
@@ -1458,9 +1575,6 @@ functions to store intermediate results.</p></td>
 
   <div class="doc doc-contents ">
   
-      <p>Returns a string representation of the instance.</p>
-<p>This method provides a string representation of the instance, including the module and class
-names, as well as the file object or string and the source.</p>
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -1487,8 +1601,26 @@ names, as well as the file object or string and the source.</p>
 
 
 
+<h3 id="pydoxtools.document_base.Pipeline.__setstate__" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">__setstate__</span><span class="p">(</span><span class="n">state</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>we need to restore _x_func_cache for pickling to work...</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
 <h3 id="pydoxtools.document_base.Pipeline.config" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">config</span><span class="p">(</span><span class="o">**</span><span class="n">settings</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">config</span><span class="p">(</span><span class="o">**</span><span class="n">configuration</span><span class="p">)</span></code>
 
 </h3>
 
@@ -1511,7 +1643,7 @@ and assigns the provided configuration settings to them.</p>
     </thead>
     <tbody>
         <tr>
-          <td><code>**settings</code></td>
+          <td><code>**configuration</code></td>
           <td>
                 <code>dict[str, <span title="typing.Any">Any</span>]</code>
           </td>
@@ -1886,7 +2018,7 @@ used with this function.</p>
 
 
 <h3 id="pydoxtools.document_base.Pipeline.run_pipeline" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">run_pipeline</span><span class="p">()</span></code>
+<code class="highlight language-python"><span class="n">run_pipeline</span><span class="p">(</span><span class="n">exclude</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 </h3>
 
@@ -1898,6 +2030,24 @@ used with this function.</p>
 anyway.</p>
 <p>This method iterates through the defined extractors and calls each one, ensuring that the
 extractor logic is functioning correctly and caching the results if required.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pydoxtools.document_base.Pipeline.run_pipeline_fast" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">run_pipeline_fast</span><span class="p">()</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>run pipeline, but exclude long-running calculations</p>
 
   </div>
 
