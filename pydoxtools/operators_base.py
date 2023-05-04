@@ -86,6 +86,7 @@ class DataMerger(Operator):
 
 
 def forgiving_extract(doc: Pipeline, properties: list[str]) -> dict[str, Any]:
+    # TODO: it might be a good idea to move this directly into the pipeline as "forgiving_dict"?
     try:
         props = doc.to_dict(*properties)
     except OperatorException:

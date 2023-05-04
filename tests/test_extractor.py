@@ -404,7 +404,8 @@ def test_dict():
 
 if __name__ == "__main__":
     from pathlib import Path
-
+    import dask
+    dask.config.set(scheduler='synchronous')  # overwrite default with single-threaded scheduler for debugging
     home = Path.home()
     database_source = pydoxtools.document.DatabaseSource(
         connection_string="sqlite:///" + str(home / "comcharax/data/component_pages.db"),
@@ -416,8 +417,12 @@ if __name__ == "__main__":
     # d = docs.props_bag(["vector"]).take(3)
     df = docs.dataframe.get_partition(0)
 
-    vector_bag = docs.dict_bag(["data", "text_segment_vectors"])
-    data = vector_bag.take(10)
+    vector_bag = docs.dict_bag("data", "text_segment_vectors")
+    data = vector_bag.take(1)
+    new_bag = docs.dict_bag("source", "full_text")
+    new_bag.take(1)
+    text_bag = DocumentBag(new_bag)
+    text_bag.dict_bag("vector").take(1)
     d = docs.docs_bag.take(1)[0]
     d.keys
     d.values
@@ -426,13 +431,14 @@ if __name__ == "__main__":
     d.data['index']
     d.data_doc("raw_html").to_dict("source", "vector")
 
-    docs.data_docs("raw_html")
+    html_docs_bag =docs.data_doc_bag("raw_html")
+    html_docs_list = html_docs_bag.take(2)
 
-    docs.data('index',)
+    docs.data('index', )
 
     docs.props("source", "text_segment_vectors")
 
-    #docs.
+    # docs.
 
     # we want to achieve this:
     # docs = DocumentBag(source=..., pipeline="db").props_bag(["source", "text_segment_vectors"]).to_dataframe().push_sql(...)

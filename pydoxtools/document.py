@@ -314,6 +314,10 @@ operations and include the documentation there. Lambda functions should not be u
             Alias(full_text="raw_content"),
             Alias(clean_text="full_text"),
 
+            # adding a dummy-data operator for downstream-compatibiliy. Not every document has
+            # explicitly defined data associated with it.
+            Constant(data=dict()),
+
             ## Standard text splitter for splitting text along lines...
             LambdaOperator(lambda x: pd.DataFrame(x.split("\n\n"), columns=["text"]))
             .pipe(x="full_text").out("text_box_elements").cache(),
@@ -651,9 +655,9 @@ operations and include the documentation there. Lambda functions should not be u
             str: A string representation of the instance.
         """
         if isinstance(self._source, str | bytes):
-            return f"{self.__module__}.{self.__class__.__name__}({self._source or self.filename})>"
+            return f"{self.__module__}.{self.__class__.__name__}(source={self._source[:10] or self.filename})"
         else:
-            return f"{self.__module__}.{self.__class__.__name__}({self._source or self.filename})>"
+            return f"{self.__module__}.{self.__class__.__name__}(source={self._source or self.filename})"
 
     """
     @property
@@ -720,7 +724,7 @@ class DocumentBag(Pipeline):
     # TODO: give this class multi-processing capabilities
     _operators = {
         str(DatabaseSource): [
-            str(Bag),
+            str(Bag),  # DatabaseSource will eventually be turned into a bag of documents
             LambdaOperator(lambda x: x.dict())
             .pipe(x="source")
             .out("sql", "connection_string", "index_column").cache(),
@@ -732,15 +736,20 @@ class DocumentBag(Pipeline):
         ],
         str(Bag): [
             Alias(bag="source"),
-            dask_operators.BagMapOperator(lambda y: Document(y, source=y['index']))
+            dask_operators.BagMapOperator(lambda y: Document(y, source=y.get('index', None)))
             .pipe(dask_bag="bag").out("docs_bag").cache().docs(
                 "Create a dask bag of one data document for each row of the source table"),
+            # dask_operators.BagMapOperator(lambda x: functools.cache(
+            #    lambda y: DocumentBag()))
+            # .pipe(dask_bag="dict_bag").out("docbag").cache(),
             dask_operators.BagPropertyExtractor()
             .pipe(dask_bag="docs_bag").out("dict_bag").cache(),
-            # LambdaOperator(lambda x: lambda *y: Document({d: x.data[] for d in y}))
-            # .pipe(dask_bag="docs_bag").out("data_docset").cache(),
-            #dask_operators.LambdaOperator()
-            #.pipe(dask_bag="docs_bag").out("props_bag").cache(),
+            # get a bag of data documents
+            LambdaOperator(lambda docs: lambda *x: docs.map(
+                lambda d: d.data_doc(*x)))
+            .pipe(docs="docs_bag").out("data_doc_bag").cache()
+            # dask_operators.LambdaOperator()
+            # .pipe(dask_bag="docs_bag").out("props_bag").cache(),
         ],
         # TODO: add "fast, slow, medium" pipelines..  e.g. with keywords extraction as fast
         #       etc...

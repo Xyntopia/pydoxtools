@@ -1,10 +1,11 @@
-from typing import Any, Callable
+from typing import Any
+from typing import Callable
 
 import dask.bag
 from dask import dataframe
 
-from pydoxtools.operators_base import forgiving_extract
 from pydoxtools.document_base import Operator
+from pydoxtools.operators_base import forgiving_extract
 
 
 class BagMapOperator(Operator):
@@ -25,10 +26,11 @@ class BagPropertyExtractor(Operator):
     """
 
     def __call__(self, dask_bag: dask.bag.Bag) -> Callable[[Any], dask.bag.Bag]:
-        def safe_extract(properties: list[str] | str) -> dask.bag.Bag:
+        def safe_extract(*properties: list[str] | str) -> dask.bag.Bag:
             return dask_bag.map(forgiving_extract, properties=properties)
 
         return safe_extract
+
 
 class SQLTableLoader(Operator):
     """

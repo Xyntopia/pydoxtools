@@ -768,7 +768,7 @@ supports pipelines
         Returns:
             str: A string representation of the instance.
         """
-        return f"{self.__module__}.{self.__class__.__name__}>"
+        return f"{self.__module__}.{self.__class__.__name__}"
 
     # TODO: more configuration options:
     #       - which nlp models (spacy/transformers) to use
