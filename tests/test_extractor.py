@@ -402,42 +402,4 @@ def test_dict():
 
 
 if __name__ == "__main__":
-    from pathlib import Path
-
-
-    if False:
-        with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:
-            doc_str = file.read()
-        doc = Document(fobj=doc_str).config(qam_model_id='deepset/roberta-base-squad2')
-        ans = doc.x('answers')(questions=('what is the address?',))
-        doc.addresses
-
-    # TODO: load a "wrong" configuration and make sure, this spits out an error :)
-
-    # graph_string = doc.logic_graph()
-
-    # doc = Document(fobj=make_path_absolute("./data/north_american_countries.png"))
-    # doc = Document(fobj=make_path_absolute("./data/berrybase_raspberrypi4.html"))
-    # doc = Document(fobj=make_path_absolute("./data/remo-m_fixed-wing.2f.pdf"))
-    # doc = Document(fobj=make_path_absolute("./data/north_american_countries.tif"))
-    # with open(make_path_absolute("./data/alan_turing.txt"), "r") as f:
-    #    some_string = f.read()
-    #    doc = Document(fobj=some_string)
-
-    # doc.run_all_operators()
-
-    # doc.run_all_operators()
-
-    # doc
-    # doc.run_all_operators()
-    # index = doc.noun_index
-    # keywords = doc.keywords
-
-    # test_single_product_extraction()
-    # test_qam_machine()
-
-    # doc.run_all_operators()
-    # run_single_non_interactive_document_test("./data/berrybase_raspberrypi4.html")
-    # test_table_extraction()
-    # doc.x('answers', questions=('what is this the product name?', 'who build the product?'))
     pass
