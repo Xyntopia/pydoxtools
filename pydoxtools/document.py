@@ -289,8 +289,15 @@ operations and include the documentation there. Lambda functions should not be u
                 str(k) + ": " + str(v) for k, v in flatten_dict(x).items()],
                 columns=["text"]
             )).pipe(x="data").out("text_box_elements").cache(),
-            Alias(text_box_list="text_box_elements"),
-            Alias(text_segments="text_box_elements"),
+            Alias(text_segments="text_box_list"),
+            LambdaOperator(lambda x,s: lambda *y: Document({k: x[k] for k in y}, source=s))
+            .pipe(x="data", s="source").out("data_doc").cache(),
+            LambdaOperator(lambda x: x.keys())
+            .pipe(x="data").out("keys").no_cache(),
+            LambdaOperator(lambda x: x.values())
+            .pipe(x="data").out("values").no_cache(),
+            LambdaOperator(lambda x: x.values())
+            .pipe(x="data").out("items").no_cache()
         ],
         # TODO: json, csv etc...
         # TODO: pptx, odp etc...
@@ -709,15 +716,17 @@ class DocumentSet(Pipeline):
     _operators = {
         "db": [
             LambdaOperator(lambda x: x.dict())
-            .pipe(x="_source").out("sql", "connection_string", "index_column"),
+            .pipe(x="_source").out("sql", "connection_string", "index_column").cache(),
             SQLTableLoader()
-            .pipe("sql", "connection_string", "index_column").out("dataframe"),
-            LambdaOperator(lambda x: x.to_bag(index=False, format="dict"))
-            .pipe(x="dataframe").out("bag"),
-            dask_operators.BagMapOperator(lambda y: Document(y))
-            .pipe(dask_bag="bag").out("docs_bag"),
+            .pipe("sql", "connection_string", "index_column").out("dataframe").cache(),
+            LambdaOperator(lambda x: x.to_bag(index=True, format="dict"))
+            .pipe(x="dataframe").out("bag").cache(),
+            dask_operators.BagMapOperator(lambda y: Document(y, y['index']))
+            .pipe(dask_bag="bag").out("docs_bag").cache(),
             dask_operators.BagPropertyExtractor()
-            .pipe(dask_bag="docs_bag").out("props_bag")
+            .pipe(dask_bag="docs_bag").out("props_bag").cache(),
+            # dask_operators.LambdaOperator()
+            # .pipe(dask_bag="docs_bag").out("props_bag").cache(),
         ],
         # TODO: add "fast, slow, medium" pipelines..  e.g. with keywords extraction as fast
         #       etc...

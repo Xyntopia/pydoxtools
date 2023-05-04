@@ -504,7 +504,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         """
         return self._pipelines[self.pipeline_chooser]
 
-    def property_dict(self, *args, **kwargs):
+    def to_dict(self, *args, **kwargs):
         """
         Returns a dictionary that accumulates the properties given in *args or with a mapping in **kwargs.
 
@@ -546,7 +546,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
             str: A YAML-formatted string representing the accumulated properties and their values, using
                  either the property names or custom keys as specified in the input arguments.
         """
-        out = self.property_dict(*args, **kwargs)
+        out = self.to_dict(*args, **kwargs)
         out = yaml.safe_dump(out)
         return out
 
@@ -569,7 +569,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
             str: A JSON-formatted string representing the accumulated properties and their values, using
                  either the property names or custom keys as specified in the input arguments.
         """
-        out = self.property_dict(*args, **kwargs)
+        out = self.to_dict(*args, **kwargs)
         out = json.dumps(out)
         return out
 

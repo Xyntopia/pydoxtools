@@ -289,7 +289,7 @@ def test_ocr_and_exceptions():
 def test_yaml_json_dict_prop_dict():
     # document chaining
     doc = Document(fobj=make_path_absolute("../README.md")).config(spacy_model_size='trf')
-    doc.property_dict(
+    doc.to_dict(
         "document_type",
         "num_words",
         "language",
@@ -298,7 +298,7 @@ def test_yaml_json_dict_prop_dict():
     )
     doc.textrank_sents
     doc.keywords
-    doc.property_dict("addresses", "filename", "keywords")
+    doc.to_dict("addresses", "filename", "keywords")
     doc.yaml("addresses", "filename", "keywords")
     doc.json("addresses", "filename", "keywords")
     a = Document(doc.yaml(
@@ -328,7 +328,7 @@ def test_document_pickling():
     # Create a sample Document object
     # TODO: add some efficiency checks
     doc = Document(fobj=make_path_absolute("./data/alan_turing.txt"))
-    assert doc.keywords == ['Turing']#['mathematical biology','Victoria University','Turing','accidental poisoning']
+    assert doc.keywords == ['Turing']  # ['mathematical biology','Victoria University','Turing','accidental poisoning']
 
     # Pickle the Document object
     pickled_doc = pickle.dumps(doc)
@@ -350,10 +350,10 @@ def test_sql_download():
     # or
     # client = Client(processes=False)
 
-    postgresql = pydoxtools.document.DatabaseSource(
+    database_source = pydoxtools.document.DatabaseSource(
         connection_string="postgresql://dbrzndwaewfkswsmgzuswkyl%40psql-mock-database-cloud:" \
-                        "mqthzwqfpklphdyfzkjiijip@psql-mock-database-cloud.postgres.database.azure.com:" \
-                        "5432/booking1682609619577lmurqyelcxysrdbx",
+                          "mqthzwqfpklphdyfzkjiijip@psql-mock-database-cloud.postgres.database.azure.com:" \
+                          "5432/booking1682609619577lmurqyelcxysrdbx",
         sql="users",
         index_column="id"
     )
@@ -361,22 +361,28 @@ def test_sql_download():
     from pathlib import Path
     home = Path.home()
     database_source = pydoxtools.document.DatabaseSource(
-        connection_string=str(home/"comcharax_data/data/component_pages.db"),
-        sql="titles",
-        index_column="title_id"
+        connection_string="sqlite:///" + str(home / "comcharax/data/component_pages.db"),
+        sql="component_pages",
+        index_column="id"
     )
 
-    docs = DocumentSet(source=database_source, pipeline="db", max_documents=1000)
+    docs = DocumentSet(source=database_source, pipeline="db", max_documents=20)
     # d = docs.props_bag(["vector"]).take(3)
     docs.dataframe
     vector_bag = docs.props_bag(["source", "text_segment_vectors"])
+
+    docs.props("source", "text_segment_vectors")
     # we want to achieve this:
     # docs = DocumentSet(source=..., pipeline="db").props_bag(["source", "text_segment_vectors"]).to_dataframe().push_sql(...)
-    #vector_bag.push_sql(source=dict(
+    # vector_bag.push_sql(source=dict(
     #    connection_string=connection_string,
     #    sql="users",
     #    index_column="id"
-    #))
+    # ))
+
+    # docs = DocumentSet(source=..., pipeline="db").docset("bio").query("somequestion")
+    # docs = DocumentSet(source=..., pipeline="db").props_bag(["source","keywords", "addresses"]).to_dataframe().compute()
+    # docs = DocumentSet(source=..., pipeline="db").props_bag(["source", "tables"]).docset.props_bag('text_segment_vectors').push_sql(...)
 
 
 def test_dict():
@@ -397,21 +403,45 @@ def test_dict():
 
 
 if __name__ == "__main__":
-    # test if we can actually open the pdf...
-    # with open("ocrpdf", "wb") as f:
-    #    f.write(doc.ocr_pdf_file)
+    from pathlib import Path
 
-    file_name = "/home/tom/git/componardolib/pydoxtools/tests/data/demo.md"
-    with open(file_name, "rb") as file:
-        doc_str = file.read()
+    home = Path.home()
+    database_source = pydoxtools.document.DatabaseSource(
+        connection_string="sqlite:///" + str(home / "comcharax/data/component_pages.db"),
+        sql="component_pages",
+        index_column="id"
+    )
 
-    # TODO: automatically recognize doc_type
-    # from bytestream
-    doc = Document(fobj=io.BytesIO(doc_str)).config(summarizer_model='t5-small')
-    doc.document_type
-    doc.run_pipeline_fast()
+    docs = DocumentSet(source=database_source, pipeline="db", max_documents=20)
+    # d = docs.props_bag(["vector"]).take(3)
+    df = docs.dataframe.get_partition(0)
 
-    #run_single_non_interactive_document_test("/home/tom/git/componardolib/pydoxtools/tests/data/demo.md")
+    vector_bag = docs.props_bag(["data", "text_segment_vectors"])
+    d = docs.docs_bag.take(1)[0]
+    d.keys
+    d.values
+    d.data_doc("raw_html").vector
+    d.text_segments
+    d.data['index']
+    d.data_doc("raw_html").to_dict("source", "vector")
+
+    docs.data('index',)
+
+    docs.props("source", "text_segment_vectors")
+
+    #docs.
+
+    # we want to achieve this:
+    # docs = DocumentSet(source=..., pipeline="db").props_bag(["source", "text_segment_vectors"]).to_dataframe().push_sql(...)
+    # vector_bag.push_sql(source=dict(
+    #    connection_string=connection_string,
+    #    sql="users",
+    #    index_column="id"
+    # ))
+
+    # docs = DocumentSet(source=..., pipeline="db").docset("bio").query("somequestion")
+    # docs = DocumentSet(source=..., pipeline="db").props_bag(["source","keywords", "addresses"]).to_dataframe().compute()
+    # docs = DocumentSet(source=..., pipeline="db").props_bag(["source", "tables"]).docset.props_bag('text_segment_vectors').push_sql(...)
 
     if False:
         with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:
