@@ -341,72 +341,16 @@ def test_document_pickling():
 
 
 def test_sql_download():
-    # import dask
+    import dask
     # dask.config.set(scheduler='threads')  # overwrite default with threaded scheduler
     # dask.config.set(scheduler='processes') # # overwrite default with multiprocessing scheduler
-    # dask.config.set(scheduler='synchronous')  # overwrite default with single-threaded scheduler for debugging
     # from dask.distributed import Client
     # client = Client()
     # or
     # client = Client(processes=False)
 
-    database_source = pydoxtools.document.DatabaseSource(
-        connection_string="postgresql://dbrzndwaewfkswsmgzuswkyl%40psql-mock-database-cloud:" \
-                          "mqthzwqfpklphdyfzkjiijip@psql-mock-database-cloud.postgres.database.azure.com:" \
-                          "5432/booking1682609619577lmurqyelcxysrdbx",
-        sql="users",
-        index_column="id"
-    )
-
-    from pathlib import Path
-    home = Path.home()
-    database_source = pydoxtools.document.DatabaseSource(
-        connection_string="sqlite:///" + str(home / "comcharax/data/component_pages.db"),
-        sql="component_pages",
-        index_column="id"
-    )
-
-    docs = DocumentBag(source=database_source, pipeline="db", max_documents=20)
-    # d = docs.props_bag(["vector"]).take(3)
-    docs.dataframe
-    vector_bag = docs.props_bag(["source", "text_segment_vectors"])
-
-    docs.props("source", "text_segment_vectors")
-    # we want to achieve this:
-    # docs = DocumentBag(source=..., pipeline="db").props_bag(["source", "text_segment_vectors"]).to_dataframe().push_sql(...)
-    # vector_bag.push_sql(source=dict(
-    #    connection_string=connection_string,
-    #    sql="users",
-    #    index_column="id"
-    # ))
-
-    # docs = DocumentBag(source=..., pipeline="db").docset("bio").query("somequestion")
-    # docs = DocumentBag(source=..., pipeline="db").props_bag(["source","keywords", "addresses"]).to_dataframe().compute()
-    # docs = DocumentBag(source=..., pipeline="db").props_bag(["source", "tables"]).docset.props_bag('text_segment_vectors').push_sql(...)
-
-
-def test_dict():
-    person_document = {'full_name': 'Susan Williamson',
-                       'first_name': 'Susan',
-                       'last_name': 'Williamson',
-                       'username': 'sWilliamson',
-                       'email': 'Kyla_Considine@hotmail.com',
-                       'email_verified': True,
-                       'phone': '808.797.1741',
-                       'twitter_handle': 'sWilliamson',
-                       'bio': 'Friendly music geek. Organizer. Twitter scholar. Creator. General food nerd. '
-                              'Future teen idol. Thinker.'}
-    doc = Document(person_document)
-    doc.run_pipeline_fast()
-    assert doc.keywords == ['Susan full_name', 'Susan Williamson', 'bio', 'Organizer', 'Twitter scholar']
-    assert doc.document_type == "<class 'dict'>"
-
-
-if __name__ == "__main__":
-    from pathlib import Path
-    import dask
-
     dask.config.set(scheduler='synchronous')  # overwrite default with single-threaded scheduler for debugging
+
     home = Path.home()
     database_source = pydoxtools.document.DatabaseSource(
         connection_string="sqlite:///" + str(home / "comcharax/data/component_pages.db"),
@@ -436,37 +380,61 @@ if __name__ == "__main__":
 
     ft = docs.get_datadocs("raw_html").take(2)[0].full_text
     html_doc_bag = docs.get_data_docbag("raw_html")
-    idx = html_doc_bag.get_dicts("source", "vector")
+    idx = html_doc_bag.get_dicts("source", "vector", "full_text")
     dd = idx.to_dataframe()
 
+
+def test_dict():
+    person_document = {'full_name': 'Susan Williamson',
+                       'first_name': 'Susan',
+                       'last_name': 'Williamson',
+                       'username': 'sWilliamson',
+                       'email': 'Kyla_Considine@hotmail.com',
+                       'email_verified': True,
+                       'phone': '808.797.1741',
+                       'twitter_handle': 'sWilliamson',
+                       'bio': 'Friendly music geek. Organizer. Twitter scholar. Creator. General food nerd. '
+                              'Future teen idol. Thinker.'}
+    doc = Document(person_document)
+    doc.run_pipeline_fast()
+    assert doc.keywords == ['Susan full_name', 'Susan Williamson', 'bio', 'Organizer', 'Twitter scholar']
+    assert doc.document_type == "<class 'dict'>"
+
+
+if __name__ == "__main__":
+    from pathlib import Path
+    import dask
+
+    dask.config.set(scheduler='synchronous')  # overwrite default with single-threaded scheduler for debugging
+
     import chromadb
+
     chroma_client = chromadb.Client()
     project = chroma_client.create_collection(name="project")
 
-    project.add(
-        # TODO: embeddings=  #use our own embeddings for specific purposes...
-        documents=doc.text_box_list,
-        metadatas=[{"filename": doc.filename} for i, _ in enumerate(doc.text_box_list)],
-        ids=[f"{str(doc.path)}_{i}" for i, _ in enumerate(doc.text_box_list)]
+    database_source = pydoxtools.document.DatabaseSource(
+        connection_string="sqlite:///" + str(Path.home() / "comcharax/data/component_pages.db"),
+        sql="component_pages",
+        index_column="id"
     )
 
-    import chromadb
+    # oneliner:
+    idx = DocumentBag(source=database_source). \
+        get_data_docbag("raw_html"). \
+        get_dicts("source", "full_text", "vector")
 
 
+    def add_to_chroma(item: dict):
+        project.add(
+            # TODO: embeddings=  #use our own embeddings for specific purposes...
+            embeddings=[[float(n) for n in item["vector"]]],
+            documents=[item["full_text"]],
+            metadatas=[{"source": item["source"]}],
+            ids=[item["source"]]
+        )
 
-    # docs.
 
-    # we want to achieve this:
-    # docs = DocumentBag(source=..., pipeline="db").props_bag(["source", "text_segment_vectors"]).to_dataframe().push_sql(...)
-    # vector_bag.push_sql(source=dict(
-    #    connection_string=connection_string,
-    #    sql="users",
-    #    index_column="id"
-    # ))
-
-    # docs = DocumentBag(source=..., pipeline="db").docset("bio").query("somequestion")
-    # docs = DocumentBag(source=..., pipeline="db").props_bag(["source","keywords", "addresses"]).to_dataframe().compute()
-    # docs = DocumentBag(source=..., pipeline="db").props_bag(["source", "tables"]).docset.props_bag('text_segment_vectors').push_sql(...)
+    idx.map(add_to_chroma).take(20)
 
     if False:
         with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:

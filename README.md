@@ -15,7 +15,7 @@ Pydoxtools is a library that provides a sophisticated interface for reading and
 writing documents, designed to work with AI models such as GPT, Alpaca, and
 Huggingface. It offers functionalities such as:
 
-- Pipeline management on a new level
+- Pipeline management
 - Integration with AI (LLMs and more) models
 - low-resource (PDF) table extraction without configuration and expensive
   layout detection algorithms!

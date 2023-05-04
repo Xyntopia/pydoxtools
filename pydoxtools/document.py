@@ -736,7 +736,7 @@ class DocumentBag(Pipeline):
             LambdaOperator(lambda x: x.to_bag(index=True, format="dict"))
             .pipe(x="dataframe")
             .out("bag").cache(),
-            dask_operators.BagMapOperator(lambda y: Document(y, source=y.get('index', None)))
+            dask_operators.BagMapOperator(lambda y: Document(y, source=str(y.get('index', None))))
             .pipe(dask_bag="bag").out("docs").cache().docs(
                 "Create a dask bag of one data document for each row of the source table"),
         ],
