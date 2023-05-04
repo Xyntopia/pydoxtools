@@ -290,8 +290,12 @@ operations and include the documentation there. Lambda functions should not be u
                 columns=["text"]
             )).pipe(x="data").out("text_box_elements").cache(),
             Alias(text_segments="text_box_list"),
-            LambdaOperator(lambda x,s: lambda *y: Document({k: x[k] for k in y}, source=s))
-            .pipe(x="data", s="source").out("data_doc").cache(),
+            # TODO: maybe we should declare a new function for this ;)?
+            LambdaOperator(lambda x, s: functools.cache(lambda *y: Document({k: x[k] for k in y}, source=s)))
+            .pipe(x="data", s="source").out("data_doc").cache().docs(
+                "Create new data document from a subset of the data. The new document will have"
+                "the same source specified."
+            ),
             LambdaOperator(lambda x: x.keys())
             .pipe(x="data").out("keys").no_cache(),
             LambdaOperator(lambda x: x.values())
