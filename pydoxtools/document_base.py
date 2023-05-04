@@ -204,6 +204,7 @@ class Operator(ABC):
 
     def docs(self, doc_str: str = ""):
         self.__doc__ = doc_str
+        return self
 
 
 class Configuration(Operator):

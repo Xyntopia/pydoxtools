@@ -14,6 +14,7 @@ import pandas as pd
 import pydantic
 import requests
 import yaml
+from dask.bag import Bag
 
 from . import dask_operators
 from .dask_operators import SQLTableLoader
@@ -294,7 +295,7 @@ operations and include the documentation there. Lambda functions should not be u
             LambdaOperator(lambda x, s: functools.cache(lambda *y: Document({k: x[k] for k in y}, source=s)))
             .pipe(x="data", s="source").out("data_doc").cache().docs(
                 "Create new data document from a subset of the data. The new document will have"
-                "the same source specified."
+                "the same source as the original one."
             ),
             LambdaOperator(lambda x: x.keys())
             .pipe(x="data").out("keys").no_cache(),
@@ -678,7 +679,7 @@ class DatabaseSource(pydantic.BaseModel):
     index_column: str
 
 
-class DocumentSet(Pipeline):
+class DocumentBag(Pipeline):
     """
     **This class is WIP use with caution**
 
@@ -718,28 +719,37 @@ class DocumentSet(Pipeline):
 
     # TODO: give this class multi-processing capabilities
     _operators = {
-        "db": [
+        str(DatabaseSource): [
+            str(Bag),
             LambdaOperator(lambda x: x.dict())
-            .pipe(x="_source").out("sql", "connection_string", "index_column").cache(),
+            .pipe(x="source")
+            .out("sql", "connection_string", "index_column").cache(),
             SQLTableLoader()
             .pipe("sql", "connection_string", "index_column").out("dataframe").cache(),
             LambdaOperator(lambda x: x.to_bag(index=True, format="dict"))
-            .pipe(x="dataframe").out("bag").cache(),
-            dask_operators.BagMapOperator(lambda y: Document(y, y['index']))
-            .pipe(dask_bag="bag").out("docs_bag").cache(),
+            .pipe(x="dataframe")
+            .out("bag").cache()
+        ],
+        str(Bag): [
+            Alias(bag="source"),
+            dask_operators.BagMapOperator(lambda y: Document(y, source=y['index']))
+            .pipe(dask_bag="bag").out("docs_bag").cache().docs(
+                "Create a dask bag of one data document for each row of the source table"),
             dask_operators.BagPropertyExtractor()
-            .pipe(dask_bag="docs_bag").out("props_bag").cache(),
-            # dask_operators.LambdaOperator()
-            # .pipe(dask_bag="docs_bag").out("props_bag").cache(),
+            .pipe(dask_bag="docs_bag").out("dict_bag").cache(),
+            # LambdaOperator(lambda x: lambda *y: Document({d: x.data[] for d in y}))
+            # .pipe(dask_bag="docs_bag").out("data_docset").cache(),
+            #dask_operators.LambdaOperator()
+            #.pipe(dask_bag="docs_bag").out("props_bag").cache(),
         ],
         # TODO: add "fast, slow, medium" pipelines..  e.g. with keywords extraction as fast
         #       etc...
         # TODO: add a pipeline to add a summarizing description whats in every directory
-        "directory": [
+        str(Path): [
             # TODO:  add a string filter which can be used to filte paths & db entries
             #        and is simply a bit more generalized ;)
             # TODO: make this all an iterable...  maybe even using dask..
-            Alias(root_path="_source"),
+            Alias(root_path="source"),
             PathLoader(mode="files")
             .pipe(directory="root_path", exclude="_exclude")
             .out("file_path_list").cache(),
@@ -779,7 +789,7 @@ class DocumentSet(Pipeline):
 
     def __init__(
             self,
-            source: str | Path | DatabaseSource,  # can be sql information,
+            source: str | Path | DatabaseSource | Bag,  # can be sql information,
             pipeline: str = None,
             exclude: list[str] = None,
             max_documents: int = None,
@@ -790,9 +800,10 @@ class DocumentSet(Pipeline):
         self._pipeline = pipeline or "directory"
         self._max_documents = max_documents
 
-        # TODO: detect what kind of information "source" holds.
-        #       is it a db? is it a directory? is it a file?, a URL?
+    @cached_property
+    def source(self):
+        return self._source
 
     @cached_property
     def pipeline_chooser(self) -> str:
-        return self._pipeline
+        return str(type(self._source))

@@ -30,7 +30,6 @@ class BagPropertyExtractor(Operator):
 
         return safe_extract
 
-
 class SQLTableLoader(Operator):
     """
     Load a table using dask/pandas read_sql

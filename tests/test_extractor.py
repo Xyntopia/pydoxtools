@@ -10,7 +10,7 @@ import pytest
 import pydoxtools
 import pydoxtools.document
 from pydoxtools import settings
-from pydoxtools.document import Document, DocumentSet
+from pydoxtools.document import Document, DocumentBag
 from pydoxtools.document_base import OperatorException
 from pydoxtools.list_utils import flatten, iterablefyer
 
@@ -366,23 +366,23 @@ def test_sql_download():
         index_column="id"
     )
 
-    docs = DocumentSet(source=database_source, pipeline="db", max_documents=20)
+    docs = DocumentBag(source=database_source, pipeline="db", max_documents=20)
     # d = docs.props_bag(["vector"]).take(3)
     docs.dataframe
     vector_bag = docs.props_bag(["source", "text_segment_vectors"])
 
     docs.props("source", "text_segment_vectors")
     # we want to achieve this:
-    # docs = DocumentSet(source=..., pipeline="db").props_bag(["source", "text_segment_vectors"]).to_dataframe().push_sql(...)
+    # docs = DocumentBag(source=..., pipeline="db").props_bag(["source", "text_segment_vectors"]).to_dataframe().push_sql(...)
     # vector_bag.push_sql(source=dict(
     #    connection_string=connection_string,
     #    sql="users",
     #    index_column="id"
     # ))
 
-    # docs = DocumentSet(source=..., pipeline="db").docset("bio").query("somequestion")
-    # docs = DocumentSet(source=..., pipeline="db").props_bag(["source","keywords", "addresses"]).to_dataframe().compute()
-    # docs = DocumentSet(source=..., pipeline="db").props_bag(["source", "tables"]).docset.props_bag('text_segment_vectors').push_sql(...)
+    # docs = DocumentBag(source=..., pipeline="db").docset("bio").query("somequestion")
+    # docs = DocumentBag(source=..., pipeline="db").props_bag(["source","keywords", "addresses"]).to_dataframe().compute()
+    # docs = DocumentBag(source=..., pipeline="db").props_bag(["source", "tables"]).docset.props_bag('text_segment_vectors').push_sql(...)
 
 
 def test_dict():
@@ -412,11 +412,12 @@ if __name__ == "__main__":
         index_column="id"
     )
 
-    docs = DocumentSet(source=database_source, pipeline="db", max_documents=20)
+    docs = DocumentBag(source=database_source, pipeline="db", max_documents=20)
     # d = docs.props_bag(["vector"]).take(3)
     df = docs.dataframe.get_partition(0)
 
-    vector_bag = docs.props_bag(["data", "text_segment_vectors"])
+    vector_bag = docs.dict_bag(["data", "text_segment_vectors"])
+    data = vector_bag.take(10)
     d = docs.docs_bag.take(1)[0]
     d.keys
     d.values
@@ -425,6 +426,8 @@ if __name__ == "__main__":
     d.data['index']
     d.data_doc("raw_html").to_dict("source", "vector")
 
+    docs.data_docs("raw_html")
+
     docs.data('index',)
 
     docs.props("source", "text_segment_vectors")
@@ -432,16 +435,16 @@ if __name__ == "__main__":
     #docs.
 
     # we want to achieve this:
-    # docs = DocumentSet(source=..., pipeline="db").props_bag(["source", "text_segment_vectors"]).to_dataframe().push_sql(...)
+    # docs = DocumentBag(source=..., pipeline="db").props_bag(["source", "text_segment_vectors"]).to_dataframe().push_sql(...)
     # vector_bag.push_sql(source=dict(
     #    connection_string=connection_string,
     #    sql="users",
     #    index_column="id"
     # ))
 
-    # docs = DocumentSet(source=..., pipeline="db").docset("bio").query("somequestion")
-    # docs = DocumentSet(source=..., pipeline="db").props_bag(["source","keywords", "addresses"]).to_dataframe().compute()
-    # docs = DocumentSet(source=..., pipeline="db").props_bag(["source", "tables"]).docset.props_bag('text_segment_vectors').push_sql(...)
+    # docs = DocumentBag(source=..., pipeline="db").docset("bio").query("somequestion")
+    # docs = DocumentBag(source=..., pipeline="db").props_bag(["source","keywords", "addresses"]).to_dataframe().compute()
+    # docs = DocumentBag(source=..., pipeline="db").props_bag(["source", "tables"]).docset.props_bag('text_segment_vectors').push_sql(...)
 
     if False:
         with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:
