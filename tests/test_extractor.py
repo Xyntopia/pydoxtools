@@ -357,14 +357,18 @@ def test_sql_download():
         sql="users",
         index_column="id"
     )
-    sqlite = pydoxtools.document.DatabaseSource(
-        connection_string="../imdb.db",
+
+    from pathlib import Path
+    home = Path.home()
+    database_source = pydoxtools.document.DatabaseSource(
+        connection_string=str(home/"comcharax_data/data/component_pages.db"),
         sql="titles",
         index_column="title_id"
     )
 
     docs = DocumentSet(source=database_source, pipeline="db", max_documents=1000)
     # d = docs.props_bag(["vector"]).take(3)
+    docs.dataframe
     vector_bag = docs.props_bag(["source", "text_segment_vectors"])
     # we want to achieve this:
     # docs = DocumentSet(source=..., pipeline="db").props_bag(["source", "text_segment_vectors"]).to_dataframe().push_sql(...)

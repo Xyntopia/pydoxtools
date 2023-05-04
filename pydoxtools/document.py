@@ -708,7 +708,7 @@ class DocumentSet(Pipeline):
     # TODO: give this class multi-processing capabilities
     _operators = {
         "db": [
-            LambdaOperator(lambda x: x)
+            LambdaOperator(lambda x: x.dict())
             .pipe(x="_source").out("sql", "connection_string", "index_column"),
             SQLTableLoader()
             .pipe("sql", "connection_string", "index_column").out("dataframe"),
