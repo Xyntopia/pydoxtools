@@ -11,6 +11,7 @@ import langdetect
 import magic
 import numpy as np
 import pandas as pd
+import pydantic
 import requests
 import yaml
 
@@ -616,7 +617,8 @@ operations and include the documentation there. Lambda functions should not be u
         if mimetype == "text/plain":
             # it's hard to check for the actual filetype here with python magic, so we
             # fall back to using the extension itself
-            mimetype, encoding = mimetypes.guess_type(detected_filepath or self.source)
+            if detected_filepath or self.source:
+                mimetype, encoding = mimetypes.guess_type(detected_filepath or self.source)
             return mimetype, detected_filepath
         else:
             return mimetype, detected_filepath
@@ -657,6 +659,12 @@ operations and include the documentation there. Lambda functions should not be u
         ""
         return []
     """
+
+
+class DatabaseSource(pydantic.BaseModel):
+    connection_string: str
+    sql: str
+    index_column: str
 
 
 class DocumentSet(Pipeline):
@@ -758,7 +766,7 @@ class DocumentSet(Pipeline):
 
     def __init__(
             self,
-            source: str | Path,  # can be sql information,
+            source: str | Path | DatabaseSource,  # can be sql information,
             pipeline: str = None,
             exclude: list[str] = None,
             max_documents: int = None,

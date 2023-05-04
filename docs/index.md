@@ -56,7 +56,7 @@ The pipelines can be visualized which helps a lot when developing
 your own pipeline on top of a complex pipeline such as the document pipeline.
 The extraction logic for different file types can be visualized like this:
 
-    doc = Document(fobj=make_path_absolute("./data/demo.docx"), document_type=".docx")
+    doc = Document(fobj=make_path_absolute("./data/demo.docx"))
     # for the currently loaded file type:
     doc.logic_graph(image_path=settings._PYDOXTOOLS_DIR / "docs/images/document_logic_docx.svg")
     # for the 

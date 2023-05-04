@@ -7,6 +7,8 @@ from pathlib import Path
 
 import pytest
 
+import pydoxtools
+import pydoxtools.document
 from pydoxtools import settings
 from pydoxtools.document import Document, DocumentSet
 from pydoxtools.document_base import OperatorException
@@ -348,15 +350,20 @@ def test_sql_download():
     # or
     # client = Client(processes=False)
 
-    connection_string = "postgresql://tnkaiypekofebmaxuxwlysbu%40psql-mock-database-cloud:" \
-                        "yvzhpmjuconioczuiglnfnoq@psql-mock-database-cloud.postgres.database.azure.com:5432" \
-                        "/cars1682799488882fyfxytaajychjrer"
-
-    docs = DocumentSet(source=dict(
-        connection_string=connection_string,
+    postgresql = pydoxtools.document.DatabaseSource(
+        connection_string="postgresql://dbrzndwaewfkswsmgzuswkyl%40psql-mock-database-cloud:" \
+                        "mqthzwqfpklphdyfzkjiijip@psql-mock-database-cloud.postgres.database.azure.com:" \
+                        "5432/booking1682609619577lmurqyelcxysrdbx",
         sql="users",
         index_column="id"
-    ), pipeline="db", max_documents=1000)
+    )
+    sqlite = pydoxtools.document.DatabaseSource(
+        connection_string="../imdb.db",
+        sql="titles",
+        index_column="title_id"
+    )
+
+    docs = DocumentSet(source=database_source, pipeline="db", max_documents=1000)
     # d = docs.props_bag(["vector"]).take(3)
     vector_bag = docs.props_bag(["source", "text_segment_vectors"])
     # we want to achieve this:
@@ -390,7 +397,17 @@ if __name__ == "__main__":
     # with open("ocrpdf", "wb") as f:
     #    f.write(doc.ocr_pdf_file)
 
-    test_dict()
+    file_name = "/home/tom/git/componardolib/pydoxtools/tests/data/demo.md"
+    with open(file_name, "rb") as file:
+        doc_str = file.read()
+
+    # TODO: automatically recognize doc_type
+    # from bytestream
+    doc = Document(fobj=io.BytesIO(doc_str))
+    doc.document_type
+    doc.run_pipeline()
+
+    #run_single_non_interactive_document_test("/home/tom/git/componardolib/pydoxtools/tests/data/demo.md")
 
     if False:
         with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:
