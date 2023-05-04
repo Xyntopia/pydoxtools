@@ -284,8 +284,10 @@ operations and include the documentation there. Lambda functions should not be u
             Alias(data="raw_content"),
             LambdaOperator(lambda x: yaml.dump(deep_str_convert(x)))
             .pipe(x="data").out("full_text"),
-            LambdaOperator(lambda x: [str(k) + ": " + str(v) for k, v in flatten_dict(x).items()])
-            .pipe(x="data").out("text_box_elements").cache(),
+            LambdaOperator(lambda x: pd.DataFrame([
+                str(k) + ": " + str(v) for k, v in flatten_dict(x).items()],
+                columns=["text"]
+            )).pipe(x="data").out("text_box_elements").cache(),
             Alias(text_box_list="text_box_elements"),
             Alias(text_segments="text_box_elements"),
         ],

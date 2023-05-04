@@ -359,11 +359,13 @@ def test_sql_download():
     ), pipeline="db", max_documents=1000)
     # d = docs.props_bag(["vector"]).take(3)
     vector_bag = docs.props_bag(["source", "text_segment_vectors"])
-    vector_bag.push_sql(source=dict(
-        connection_string=connection_string,
-        sql="users",
-        index_column="id"
-    ))
+    # we want to achieve this:
+    # docs = DocumentSet(source=..., pipeline="db").props_bag(["source", "text_segment_vectors"]).to_dataframe().push_sql(...)
+    #vector_bag.push_sql(source=dict(
+    #    connection_string=connection_string,
+    #    sql="users",
+    #    index_column="id"
+    #))
 
 
 def test_dict():
@@ -388,8 +390,7 @@ if __name__ == "__main__":
     # with open("ocrpdf", "wb") as f:
     #    f.write(doc.ocr_pdf_file)
 
-    test_summarization()
-    test_yaml_json_dict_prop_dict()
+    test_dict()
 
     if False:
         with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:
