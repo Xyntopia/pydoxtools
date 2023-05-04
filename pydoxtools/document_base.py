@@ -202,6 +202,9 @@ class Operator(ABC):
         self._cache = False
         return self
 
+    def docs(self, doc_str: str = ""):
+        self.__doc__ = doc_str
+
 
 class Configuration(Operator):
     """
