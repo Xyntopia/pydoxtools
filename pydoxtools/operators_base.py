@@ -46,7 +46,6 @@ class LambdaOperator(Operator):
     def __call__(self, *args, **kwargs):
         return self._func(*args, **kwargs)
 
-
 class ElementWiseOperator(Operator):
     """
     Take a function and apply it elementwise to

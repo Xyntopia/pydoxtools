@@ -405,6 +405,7 @@ def test_dict():
 if __name__ == "__main__":
     from pathlib import Path
     import dask
+
     dask.config.set(scheduler='synchronous')  # overwrite default with single-threaded scheduler for debugging
     home = Path.home()
     database_source = pydoxtools.document.DatabaseSource(
@@ -417,13 +418,15 @@ if __name__ == "__main__":
     # d = docs.props_bag(["vector"]).take(3)
     df = docs.dataframe.get_partition(0)
 
-    vector_bag = docs.dict_bag("data", "text_segment_vectors")
+    vector_bag = docs.get_dicts("data", "text_segment_vectors")
     data = vector_bag.take(1)
-    new_bag = docs.dict_bag("source", "full_text")
+    new_bag = docs.get_dicts("source", "full_text")
     new_bag.take(1)
-    text_bag = DocumentBag(new_bag)
-    text_bag.dict_bag("vector").take(1)
-    d = docs.docs_bag.take(1)[0]
+    # TODO: this doesn't work anymore, because we can not accept bags with
+    #       arbitrary data anymore
+    # text_bag = DocumentBag(new_bag)
+    # text_bag.get_dicts("vector").take(1)
+    d = docs.docs.take(1)[0]
     d.keys
     d.values
     d.data_doc("raw_html").vector
@@ -431,12 +434,25 @@ if __name__ == "__main__":
     d.data['index']
     d.data_doc("raw_html").to_dict("source", "vector")
 
-    html_docs_bag =docs.data_doc_bag("raw_html")
-    html_docs_list = html_docs_bag.take(2)
+    ft = docs.get_datadocs("raw_html").take(2)[0].full_text
+    html_doc_bag = docs.get_data_docbag("raw_html")
+    idx = html_doc_bag.get_dicts("source", "vector")
+    dd = idx.to_dataframe()
 
-    docs.data('index', )
+    import chromadb
+    chroma_client = chromadb.Client()
+    project = chroma_client.create_collection(name="project")
 
-    docs.props("source", "text_segment_vectors")
+    project.add(
+        # TODO: embeddings=  #use our own embeddings for specific purposes...
+        documents=doc.text_box_list,
+        metadatas=[{"filename": doc.filename} for i, _ in enumerate(doc.text_box_list)],
+        ids=[f"{str(doc.path)}_{i}" for i, _ in enumerate(doc.text_box_list)]
+    )
+
+    import chromadb
+
+
 
     # docs.
 

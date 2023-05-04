@@ -722,6 +722,9 @@ class DocumentBag(Pipeline):
     #       & deeper & deeper in the analysis. and synthesize new documents...
 
     # TODO: give this class multi-processing capabilities
+
+    # TODO: resolve naming conflicts:
+    #       bag & documentbag
     _operators = {
         str(DatabaseSource): [
             str(Bag),  # DatabaseSource will eventually be turned into a bag of documents
@@ -732,24 +735,26 @@ class DocumentBag(Pipeline):
             .pipe("sql", "connection_string", "index_column").out("dataframe").cache(),
             LambdaOperator(lambda x: x.to_bag(index=True, format="dict"))
             .pipe(x="dataframe")
-            .out("bag").cache()
+            .out("bag").cache(),
+            dask_operators.BagMapOperator(lambda y: Document(y, source=y.get('index', None)))
+            .pipe(dask_bag="bag").out("docs").cache().docs(
+                "Create a dask bag of one data document for each row of the source table"),
         ],
         str(Bag): [
-            Alias(bag="source"),
-            dask_operators.BagMapOperator(lambda y: Document(y, source=y.get('index', None)))
-            .pipe(dask_bag="bag").out("docs_bag").cache().docs(
-                "Create a dask bag of one data document for each row of the source table"),
+            # TODO: accept arbitrary bags
+            # Alias(bag="source"),
+            Alias(docs="source"),
             # dask_operators.BagMapOperator(lambda x: functools.cache(
             #    lambda y: DocumentBag()))
             # .pipe(dask_bag="dict_bag").out("docbag").cache(),
             dask_operators.BagPropertyExtractor()
-            .pipe(dask_bag="docs_bag").out("dict_bag").cache(),
+            .pipe(dask_bag="docs").out("get_dicts").cache(),
             # get a bag of data documents
-            LambdaOperator(lambda docs: lambda *x: docs.map(
-                lambda d: d.data_doc(*x)))
-            .pipe(docs="docs_bag").out("data_doc_bag").cache()
-            # dask_operators.LambdaOperator()
-            # .pipe(dask_bag="docs_bag").out("props_bag").cache(),
+            LambdaOperator(lambda docs_bag: lambda *props: docs_bag.map(
+                lambda d: d.data_doc(*props)))
+            .pipe(docs_bag="docs").out("get_datadocs").cache(),
+            LambdaOperator(lambda x: lambda *props: DocumentBag(x(*props)))
+            .pipe(x="get_datadocs").out("get_data_docbag").cache(),
         ],
         # TODO: add "fast, slow, medium" pipelines..  e.g. with keywords extraction as fast
         #       etc...
