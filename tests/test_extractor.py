@@ -403,41 +403,7 @@ def test_dict():
 
 if __name__ == "__main__":
     from pathlib import Path
-    import dask
 
-    dask.config.set(scheduler='synchronous')  # overwrite default with single-threaded scheduler for debugging
-
-    import chromadb
-
-    chroma_client = chromadb.Client()
-    project = chroma_client.create_collection(name="project")
-
-    database_source = pydoxtools.document.DatabaseSource(
-        connection_string="sqlite:///" + str(Path.home() / "comcharax/data/component_pages.db"),
-        sql="component_pages",
-        index_column="id"
-    )
-
-    # oneliner:
-    idx = DocumentBag(source=database_source). \
-        get_data_docbag("raw_html"). \
-        get_dicts("source", "full_text", "vector")
-
-
-    def add_to_chroma(item: dict):
-        project.add(
-            # TODO: embeddings=  #use our own embeddings for specific purposes...
-            embeddings=[[float(n) for n in item["vector"]]],
-            documents=[item["full_text"]],
-            metadatas=[{"source": item["source"]}],
-            ids=[item["source"]]
-        )
-
-
-    idx.map(add_to_chroma).take(20)
-
-    # query the db:
-    project.query(Document("db query").vector.tolist())
 
     if False:
         with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:
