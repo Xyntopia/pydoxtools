@@ -619,4 +619,4 @@ def summarize_long_text(
     while chunk_num > 1:
         summary, chunk_num = summarize_chunks(summary)
 
-    return summary
+    return summary.strip()

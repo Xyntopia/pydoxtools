@@ -315,7 +315,7 @@ def test_summarization():
     doc.full_text
     doc.keywords
     summary = doc.summary
-    assert summary == ""
+    assert summary == 'Pydoxtools is a library that provides a sophisticated interface for reading and writing documents. It is designed to work with AI models such as Alpaca, Huggingface, and HuggingFace. The library allows for the creation of complex extraction pipelines for complex data extraction pipelines.'
 
     doc = Document(fobj=make_path_absolute("../README.md")).config(spacy_model_size='md')
     doc.keywords
@@ -326,7 +326,7 @@ def test_document_pickling():
     # Create a sample Document object
     # TODO: add some efficiency checks
     doc = Document(fobj=make_path_absolute("./data/alan_turing.txt"))
-    assert doc.keywords == ["Turing"]
+    assert doc.keywords == ['Turing']#['mathematical biology','Victoria University','Turing','accidental poisoning']
 
     # Pickle the Document object
     pickled_doc = pickle.dumps(doc)
@@ -375,8 +375,10 @@ def test_dict():
                        'email_verified': True,
                        'phone': '808.797.1741',
                        'twitter_handle': 'sWilliamson',
-                       'bio': 'Friendly music geek. Organizer. Twitter scholar. Creator. General food nerd. Future teen idol. Thinker.'}
+                       'bio': 'Friendly music geek. Organizer. Twitter scholar. Creator. General food nerd. '
+                              'Future teen idol. Thinker.'}
     doc = Document(person_document)
+    doc.run_pipeline()
     assert doc.keywords == ['Susan full_name', 'Susan Williamson', 'bio', 'Organizer', 'Twitter scholar']
     assert doc.document_type == "<class 'dict'>"
 
@@ -386,6 +388,7 @@ if __name__ == "__main__":
     # with open("ocrpdf", "wb") as f:
     #    f.write(doc.ocr_pdf_file)
 
+    test_summarization()
     test_yaml_json_dict_prop_dict()
 
     if False:
