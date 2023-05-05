@@ -1,9 +1,16 @@
 from typing import Any
 
 import pandas as pd
+from urlextract import URLExtract
 
-from pydoxtools import nlp_utils
 from pydoxtools.document_base import Operator
+from pydoxtools.settings import settings
+
+dns_cache_dir = settings.CACHE_DIR_BASE / "urlextract"
+dns_cache_dir.mkdir(parents=True, exist_ok=True)
+urlextractor = URLExtract(extract_email=True, cache_dns=True, extract_localhost=True,
+                          cache_dir=dns_cache_dir)
+urlextractor.update_when_older(7)  # updates when list is older that 7 days
 
 
 class EntityExtractor(Operator):
@@ -40,7 +47,7 @@ def grouped_ner(self) -> dict[str, Any]:
 
 
 def urls(self) -> list[str]:
-    urls = nlp_utils.get_urls_from_text(self.full_text)
+    urls = urlextractor.find_urls(text, only_unique=False, check_dns=True)
     return urls
 
 

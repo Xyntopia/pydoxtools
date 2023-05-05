@@ -32,9 +32,7 @@ from pydantic import BaseModel
 from scipy.spatial.distance import pdist, squareform
 from tqdm import tqdm
 from transformers import AutoTokenizer, AutoModel, AutoModelForQuestionAnswering
-from urlextract import URLExtract
 
-from pydoxtools import html_utils
 from pydoxtools.settings import settings
 
 logger = logging.getLogger(__name__)
@@ -55,12 +53,22 @@ def str_similarity(a, b):
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 logger.info(f"using {device}-device for nlp_operations!")
 
-memory = settings.get_memory_cache()
-dns_cache_dir = settings.CACHE_DIR_BASE / "urlextract"
-dns_cache_dir.mkdir(parents=True, exist_ok=True)
-urlextractor = URLExtract(extract_email=True, cache_dns=True, extract_localhost=True,
-                          cache_dir=dns_cache_dir)
-urlextractor.update_when_older(7)  # updates when list is older that 7 days
+
+@functools.lru_cache(maxsize=32)
+def load_tokenizer(model_id):
+    logger.info("load_tokenizer")
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    return tokenizer
+
+
+@functools.lru_cache()
+def load_model(model_id: str) -> Any:
+    logger.info(f"load model {model_id} on device: {device}")
+    # model = AutoModelForQuestionAnswering.from_pretrained(model_id, output_hidden_states=True)
+    model = AutoModel.from_pretrained(model_id, output_hidden_states=True)
+    model.to(device)
+    model.eval()
+    return model
 
 
 # TODO: enhance this with "textrank" algorithms
@@ -79,13 +87,7 @@ def self_similarity_matrix(strlist):
     return pd.DataFrame(s)  # , columns=strlist, index=strlist)
 
 
-def get_urls_from_text(text):
-    # TODO:  add this to
-    urls = urlextractor.find_urls(text, only_unique=False, check_dns=True)
-    return urls
-
-
-def get_embeddings(txt: str, model_id: str):
+def get_tokenizer_only_embeddings(txt: str, model_id: str):
     """
     generate word-piece embeddings (pseudo-syllables)
     using only transformers tokenizer without
@@ -196,7 +198,7 @@ def longtxt_fullword_embeddings_only_lookup_table(txt: str, model_id: str):
     using only transformers tokenizer without
     model.
     """
-    vs, toktxt = get_embeddings(txt, model_id=model_id)
+    vs, toktxt = get_tokenizer_only_embeddings(txt, model_id=model_id)
     return fullword_embeddings(toktxt, vs)
 
 
@@ -301,14 +303,6 @@ def reset_models():
     load_tokenizer.cache_clear()
 
 
-def veclengths(x):
-    return np.sqrt((x * x).sum(axis=1))
-
-
-def maxlens(x):
-    return np.max(x, axis=1)
-
-
 def vecseq_similarity(vs, search_vec):
     return cos_compare(vs, [search_vec])
 
@@ -382,7 +376,7 @@ def top_search_results(toktxt, match, num=10):
 
 
 def get_max_word_similarity(vs, searchstring, model_id: str):
-    sv, _ = get_embeddings(searchstring, model_id=model_id)
+    sv, _ = get_tokenizer_only_embeddings(searchstring, model_id=model_id)
     match = vecseq_similarity(vs, sv.mean(axis=0))
     return match.max()
 
@@ -393,7 +387,7 @@ def search(toktxt, vs, searchstring: str, model_id: str, num=1):
         top tokens, token ids, correponding scores, all token scores
     """
     # sv, _ = longtxt_embeddings(search_word,model,tokenizer)
-    sv, _ = get_embeddings(searchstring, model_id=model_id)
+    sv, _ = get_tokenizer_only_embeddings(searchstring, model_id=model_id)
 
     match = vecseq_similarity(vs, sv.mean(axis=0))
     return top_search_results(toktxt, match, num=num) + (match,)
@@ -405,55 +399,12 @@ def calculate_string_embeddings(text: str, model_id: str, only_tokenizer: bool):
     a vector.
     """
     if only_tokenizer:
-        vs, toktxt = get_embeddings(text, model_id)
+        vs, toktxt = get_tokenizer_only_embeddings(text, model_id)
         return vs, toktxt
     else:
         # vs, toktxt = longtxt_embeddings(text, model, tokenizer, np.mean)
         vs, toktxt = longtxt_embeddings(text, model_id)
         return vs, toktxt
-
-
-def page2vec(page_str, url=None, method="slow"):
-    """
-    TODO: use the document class for this....
-
-    calculate a fingerprint from any arbitrary webpage
-    
-    TODO: include potential incoming links in fingerprint.
-        Those would have to be search independently
-    
-    TODO: include more information into vectorization such as
-    - tag-density
-    - link-density
-    - nomalized pagelength
-    
-    - which tags
-    - structure of html
-    - screenshot of page
-    """
-    # +length = len(html)
-    # length = len(" ".join(html.split()))
-    if method == "no_embeddings":
-        vs = [
-            len(url),
-            len(page_str),
-        ]
-    elif method in ["slow", "fast"]:
-        try:
-            # TODO: can we somehow move html_utils out of this file?
-            text_short = html_utils.get_pure_html_text(page_str)
-            vs = calculate_string_embeddings(text_short, method)
-        except:
-            logger.exception(f"can not convert: {url}")
-            return None
-
-    vectorization = vs
-    return vectorization
-
-
-# TODO implement this function for reinforcement link following
-def link2vec(source_html, source_url, link_context, link_url):
-    raise NotImplementedError()
 
 
 def topic_similarity(html, topic, method="slow"):
@@ -513,23 +464,6 @@ class NLPContext(BaseModel):
     class Config:
         # we need this as pydantic doesn't have validators for transformers models
         arbitrary_types_allowed = True
-
-
-@functools.lru_cache(maxsize=32)
-def load_tokenizer(model_id):
-    logger.info("load_tokenizer")
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
-    return tokenizer
-
-
-@functools.lru_cache()
-def load_model(model_id: str) -> Any:
-    logger.info(f"load model {model_id} on device: {device}")
-    # model = AutoModelForQuestionAnswering.from_pretrained(model_id, output_hidden_states=True)
-    model = AutoModel.from_pretrained(model_id, output_hidden_states=True)
-    model.to(device)
-    model.eval()
-    return model
 
 
 @functools.lru_cache()
