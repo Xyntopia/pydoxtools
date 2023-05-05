@@ -20,8 +20,9 @@ database_source = pydoxtools.document.DatabaseSource(
 )
 
 # oneliner to extract the information and form an index:
-idx = DocumentBag(source=database_source). \
-    get_data_docbag("raw_html"). \
-    get_dicts("source", "full_text", "vector")
-
-idx.
+# create another DocumentBag using a subset of the extracted tabledata with the key "raw_html"
+# and finally extract a dask-bag of dicts "get_dicts" from the DocumentBag
+# which we will ingest into the vector store.
+idx = DocumentBag(source=database_source).get_data_docbag("raw_html")
+idx.take(2)
+idx
