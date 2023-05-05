@@ -85,20 +85,21 @@ def get_urls_from_text(text):
     return urls
 
 
-def get_embeddings(txt, tokenizer):
+def get_embeddings(txt: str, model_id: str):
     """
     generate word-piece embeddings (pseudo-syllables)
     using only transformers tokenizer without
     model.
     """
+    tokenizer = load_tokenizer(model_id=model_id)
     txttok = tokenizer.tokenize(txt)
     tok_ids = tokenizer.convert_tokens_to_ids(txttok)
     tok_vecs = get_vocabulary(tokenizer.name_or_path)[tok_ids]
     return tok_vecs, txttok
 
 
-def tokenize_windows(txt, tokenizer, win_len=500, overlap=50,
-                     max_len=510, add_special_tokens=True):
+def tokenize_windows(txt, model_id: str, win_len: int = 500, overlap: int = 50,
+                     max_len: int = 510, add_special_tokens: bool = True):
     """
     Tokenize a given text into a series of overlapping windows with special tokens.
 
@@ -129,6 +130,7 @@ def tokenize_windows(txt, tokenizer, win_len=500, overlap=50,
 
     """
     # token_ids = tokenizer.encode(txt,add_special_tokens=False)
+    tokenizer = load_tokenizer(model_id=model_id)
     toktxt = tokenizer.tokenize(txt)
     # tokenizer.convert_tokens_to_ids(toktxt)
 
@@ -154,7 +156,10 @@ def tokenize_windows(txt, tokenizer, win_len=500, overlap=50,
         return tok_wins_ids, toktxt
 
 
-def transform_to_contextual_embeddings(input_ids_t, model, tokenizer=None, lang=False):
+def transform_to_contextual_embeddings(input_ids_t, model_id: str, tokenizer=None, lang=False):
+    """
+    Create contextual embeddings using a huggingface model
+    """
     # for one sentence all ids are "1" for two, the first sentence gets "0"
     input_ids_t = torch.tensor([input_ids_t]).to(device)
     segments_ids_t = torch.tensor([[1] * input_ids_t.shape[1]]).to(device)
@@ -165,6 +170,8 @@ def transform_to_contextual_embeddings(input_ids_t, model, tokenizer=None, lang=
         langs_t = torch.tensor([language_id] * input_ids_t.shape[1])  # torch.tensor([0, 0, 0, ..., 0])
         # We reshape it to be of size (batch_size, sequence_length)
         langs_t = langs_t.view(1, -1)  # is
+
+    model = load_model(model_id=model_id)
 
     # Predict hidden states features for each layer
     with torch.no_grad():
@@ -183,50 +190,47 @@ def transform_to_contextual_embeddings(input_ids_t, model, tokenizer=None, lang=
     return wvecs_out
 
 
-def longtxt_fullword_embeddings_only_lookup_table(txt, tokenizer):
+def longtxt_fullword_embeddings_only_lookup_table(txt: str, model_id: str):
     """
     generate whole-word embeddings (without pseudo-syllables)
     using only transformers tokenizer without
     model.
     """
-    vs, toktxt = get_embeddings(txt, tokenizer)
+    vs, toktxt = get_embeddings(txt, model_id=model_id)
     return fullword_embeddings(toktxt, vs)
 
 
-def longtxt_embeddings_fullword(txt, model, tokenizer):
+def longtxt_embeddings_fullword(txt, model_id: str):
     """
     generate whole-word embeddings (without pseudo-syllables)
     using transformers models.
     """
-    vs, toktxt = longtxt_embeddings(txt, model, tokenizer)
+    vs, toktxt = longtxt_embeddings(txt, model_id)
     return fullword_embeddings(toktxt, vs)
 
 
 def longtxt_embeddings(
-        txt, model, tokenizer,
-        pooling=None,
-        overlap=50,
-        longtextcap=True,
-        status_bar=False
-):
+        txt: str, model_id: str,
+        overlap: int = 50, longtextcap: bool = True,
+        status_bar: bool = False
+) -> tuple[np.ndarray, list[str]]:
     """
     generate wordpiece embeddings (pseudo-syllables) using transformer model
     and text windowing. The individual windows are stitched
-    back together at the and by averaging their values
+    back together at the and by averaging their values.
 
     TODO: add option to cancel embeddings generation afte a certain
           number of windows to make sure it finishes in a guaranteed time
     """
-    tok_wins, toktxt = tokenize_windows(txt, tokenizer=tokenizer,
-                                        overlap=overlap)
+    tok_wins, toktxt = tokenize_windows(txt, model_id=model_id, overlap=overlap)
     if longtextcap:
         tok_wins = tok_wins[:100]
 
     if status_bar:  # only use tqdm for "long lasting" transformations
-        vec_wins = [transform_to_contextual_embeddings(win, model=model)
+        vec_wins = [transform_to_contextual_embeddings(win, model_id=model_id)
                     for win in tqdm(tok_wins)]
     else:
-        vec_wins = [transform_to_contextual_embeddings(win, model=model)
+        vec_wins = [transform_to_contextual_embeddings(win, model_id=model_id)
                     for win in tok_wins]
     # pd.DataFrame(vec_wins).shapeFalse
 
@@ -243,16 +247,14 @@ def longtxt_embeddings(
             vecs = np.vstack((vecs, vec_wins[i + 1][overlap:step]))
         # vecs = np.vstack((vecs,vec_wins[-1][step:]))
 
-    if pooling == None:
-        return vecs, toktxt
-    else:
-        return pooling(vecs, axis=0), toktxt
+    return vecs, toktxt
 
 
 # old name: create_cross_lingual_embeddings
-def create_cross_lingual_contextual_embeddings(txt, model, tokenizer, lang=False):
+def create_cross_lingual_contextual_embeddings(txt: str, model_id: str, lang: bool = False):
     # Map the token strings to their vocabulary indeces.
     # indexed_tokens = tokenizer.convert_tokens_to_ids(toktxt)
+    tokenizer = load_tokenizer(model_id=model_id)
     input_ids_t = torch.tensor([tokenizer.encode(txt)])
 
     # for one sentence all ids are "1" for two, the first sentence gets "0"
@@ -264,6 +266,8 @@ def create_cross_lingual_contextual_embeddings(txt, model, tokenizer, lang=False
         langs_t = torch.tensor([language_id] * input_ids_t.shape[1])  # torch.tensor([0, 0, 0, ..., 0])
         # We reshape it to be of size (batch_size, sequence_length)
         langs_t = langs_t.view(1, -1)  # is
+
+    model = load_model(model_id=model_id)
 
     # Predict hidden states features for each layer
     with torch.no_grad():
@@ -293,7 +297,7 @@ def cos_similarity(a, b):
 
 def reset_models():
     """clear models from memory"""
-    load_models.cache_clear()
+    load_model.cache_clear()
     load_tokenizer.cache_clear()
 
 
@@ -314,7 +318,7 @@ def get_vocabulary(model_id: str):
     """make sure the vocabulary only gets loaded once
     TODO: implement more vocabularies"""
     logger.info(f"loading vocabulary from {model_id}")
-    model, _ = load_models(model_id)
+    model = load_model(model_id)
     # return and transform embeddings into numpy array
     return model.embeddings.word_embeddings.weight.detach().numpy()
 
@@ -377,54 +381,22 @@ def top_search_results(toktxt, match, num=10):
     return toktxt[idxs], idxs, match[idxs]
 
 
-def get_max_word_similarity(vs, searchstring, model, tokenizer):
-    sv, _ = get_embeddings(searchstring, tokenizer)
+def get_max_word_similarity(vs, searchstring, model_id: str):
+    sv, _ = get_embeddings(searchstring, model_id=model_id)
     match = vecseq_similarity(vs, sv.mean(axis=0))
     return match.max()
 
 
-def search(toktxt, vs, searchstring, model, tokenizer, num=1):
+def search(toktxt, vs, searchstring: str, model_id: str, num=1):
     """
     returns:
         top tokens, token ids, correponding scores, all token scores
     """
     # sv, _ = longtxt_embeddings(search_word,model,tokenizer)
-    sv, _ = get_embeddings(searchstring, tokenizer)
+    sv, _ = get_embeddings(searchstring, model_id=model_id)
 
     match = vecseq_similarity(vs, sv.mean(axis=0))
     return top_search_results(toktxt, match, num=num) + (match,)
-
-
-def get_keywords():
-    raise NotImplementedError
-    # justsome ideas in the following
-    # TODO: generate "vs" using transform_to_contextual_embeddings
-    # TODO: maybe to a ANN search with the vocabulary from BERT?
-    similarity = nlpu.vecseq_similarity(vs, sentvec)
-    wordranks = pd.DataFrame(zip(similarity, tokwords),
-                             columns=['similarity', 'words'])
-    wordranks['importance'] = importance * wordranks['similarity']
-    # colhtml = html_utils.color_text(tokwords, similarity)
-    # oib = html_utils.oib
-    # oib(colhtml)
-
-
-# def topic_similarity(model):
-
-# these urls were selected, because they have particularly long webpages
-# to slow down the classifiers etc...
-example_urls = [
-    "https://www.newark.com/c/passive-components/resistors-fixed-value",
-    "https://www.newark.com/c/test-measurement/test-equipment-accessories",
-    "https://www.newark.com/c/enclosures-racks-cabinets/enclosures-boxes-cases",
-    "https://www.newark.com/c/circuit-protection/tvs-transient-voltage-suppressors",
-    "https://chicagodist.com/collections/pololu",
-    "https://www.newark.com/c/semiconductors-discretes/transistors",
-    "https://chicagodist.com/collections/all-in-stock-items",
-    "https://buyzero.de/products/raspberry-pi-4-model-b?variant=28034033287270",
-    "https://buyzero.de/products/raspberry-pi-4-model-b?variant=28034033090662",
-    "https://buyzero.de/products/raspberry-pi-4-model-b?variant=28034034008166",
-]
 
 
 def calculate_string_embeddings(text: str, model_id: str, only_tokenizer: bool):
@@ -432,15 +404,13 @@ def calculate_string_embeddings(text: str, model_id: str, only_tokenizer: bool):
     this method converts a text of arbitrary length into
     a vector.
     """
-    tokenizer = load_tokenizer(model_id)
     if only_tokenizer:
-        vs, toktxt = get_embeddings(text, tokenizer)
-        vs = vs.mean(axis=0)
-        return vs
+        vs, toktxt = get_embeddings(text, model_id)
+        return vs, toktxt
     else:
-        model = load_models()
-        vs, toktxt = longtxt_embeddings(text, model, tokenizer, np.mean)
-        return vs
+        # vs, toktxt = longtxt_embeddings(text, model, tokenizer, np.mean)
+        vs, toktxt = longtxt_embeddings(text, model_id)
+        return vs, toktxt
 
 
 def page2vec(page_str, url=None, method="slow"):
@@ -502,8 +472,9 @@ def topic_similarity(html, topic, method="slow"):
 
     model_id = settings.PDXT_STANDARD_TOKENIZER
     tokenizers = load_tokenizer(model_id)
-    model = load_models(model_id)
-    sv, _ = longtxt_embeddings(topic, model, tokenizer, np.mean)
+    model = load_model(model_id)
+    sv, _ = longtxt_embeddings(topic, model)
+    sv.mean()
     # sv, _ = get_embeddings(searchstring,tokenizer)
 
     similarity = cos_compare([vs], [sv])
@@ -545,22 +516,20 @@ class NLPContext(BaseModel):
 
 
 @functools.lru_cache(maxsize=32)
-def load_tokenizer(model_name):
+def load_tokenizer(model_id):
     logger.info("load_tokenizer")
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
     return tokenizer
 
 
-# TODO: merge this function with
 @functools.lru_cache()
-def load_models(model_id: str):
-    logger.info(f"load model on device: {device}")
-    tokenizer = load_tokenizer(model_id)
+def load_model(model_id: str) -> Any:
+    logger.info(f"load model {model_id} on device: {device}")
     # model = AutoModelForQuestionAnswering.from_pretrained(model_id, output_hidden_states=True)
     model = AutoModel.from_pretrained(model_id, output_hidden_states=True)
     model.to(device)
     model.eval()
-    return model, tokenizer
+    return model
 
 
 @functools.lru_cache()
@@ -589,6 +558,12 @@ def summarize_long_text(
         token_overlap=50,
         max_len=200,
 ):
+    """
+    This function is rather slow due to the recursive nature of it.
+    It is usually a good idea to do some pre-processing of the
+    text before using this summarizer. For example reducing the text size
+    using a textrank algorithm which filters out unimportant sentences .
+    """
     pipeline = load_pipeline("summarization", model_id=model_id)
     model, tokenizer = pipeline.model, pipeline.tokenizer
     try:
