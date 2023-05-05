@@ -5,7 +5,7 @@ import logging
 import mimetypes
 from functools import cached_property
 from pathlib import Path
-from typing import IO
+from typing import IO, Protocol
 from urllib.parse import urlparse
 
 import langdetect
@@ -59,6 +59,20 @@ class DocumentTypeError(Exception):
 
 class DocumentInitializationError(Exception):
     pass
+
+
+# defining a document interface class
+class DocumentType(Protocol):
+    # TODO: define our minimum document output
+    #       with downstream
+    # TODO: generate this class by going through
+    #       x-funcs automatically
+    # TODO: we need at least define an interface which is cmopatible with
+    #       the document class
+    raw_content: str
+    full_text: str
+
+    def answers(self, questions: list[str]) -> list[str]: ...
 
 
 class Document(Pipeline):

@@ -97,19 +97,26 @@ class Operator(ABC):
 
     dynamic configuration of an extractor parameters can be configured through
     "config" function which will indicate to the parent document class
-    to set some input parameters to this function manually.
+    to set some input parameters to this function automatically.
+
+    configuration parameters can be set during pipeline initialization like this:
+
+    ```
+    Pipeline(source=...).config(
+        first_config_parameter=...,
+        seconf_config_parameter=...
+    )
+    ```
+
+    In order to know what parameters of a pipeline are configurable and what
+    their default values are, call the configuration parameter like this:
+
+    Pipeline(source=...).configuration
+
     If the same parameters are also set in doc.pipe the parameters are
     optional and will only be taken if explicitly set through doc.config(...).
 
-    ```
-    doc.dynamic()
-    ```
-
-    This function can be accessed through:
-
-    ```python
-    doc.config(my_dynamic_parameter="some_new_value")
-    ```
+    TODO: explain configuration parameters
     """
 
     # TODO:  how can we anhance the type checking for outputs?
@@ -489,7 +496,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
             configuration_map.update(**(configuration[c]._configuration_map))
         return configuration_map
 
-    @cached_property
+    @property
     def pipeline_chooser(self) -> str:
         """
         Must be implemented by derived classes
