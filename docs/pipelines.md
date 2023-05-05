@@ -50,6 +50,20 @@ return type
 supports pipelines
 : *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
+### data
+
+Can be called using:
+
+    doc.x('data')
+    # or
+    doc.data
+
+return type
+: 
+
+supports pipelines
+: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+
 ### text_box_elements
 
 Can be called using:
@@ -1226,13 +1240,55 @@ return type
 supports pipelines
 : image,image/jpeg,image/png,image/tiff
 
-### data
+### data_doc
 
 Can be called using:
 
-    doc.x('data')
+    doc.x('data_doc')
     # or
-    doc.data
+    doc.data_doc
+
+return type
+: 
+
+supports pipelines
+: <class 'dict'>,application/x-yaml
+
+### keys
+
+Can be called using:
+
+    doc.x('keys')
+    # or
+    doc.keys
+
+return type
+: 
+
+supports pipelines
+: <class 'dict'>,application/x-yaml
+
+### values
+
+Can be called using:
+
+    doc.x('values')
+    # or
+    doc.values
+
+return type
+: 
+
+supports pipelines
+: <class 'dict'>,application/x-yaml
+
+### items
+
+Can be called using:
+
+    doc.x('items')
+    # or
+    doc.items
 
 return type
 : 
