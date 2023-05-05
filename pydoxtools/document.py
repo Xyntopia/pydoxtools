@@ -653,7 +653,7 @@ operations and include the documentation there. Lambda functions should not be u
             # it's hard to check for the actual filetype here with python magic, so we
             # fall back to using the extension itself
             if detected_filepath or self.source:
-                mimetype, encoding = mimetypes.guess_type(detected_filepath or self.source)
+                mimetype, encoding = mimetypes.guess_type(detected_filepath or self.source, strict=False)
             return mimetype, detected_filepath
         else:
             return mimetype, detected_filepath
