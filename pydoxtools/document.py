@@ -1,6 +1,7 @@
 import functools
 import io
 import json
+import logging
 import mimetypes
 from functools import cached_property
 from pathlib import Path
@@ -8,7 +9,6 @@ from typing import IO
 from urllib.parse import urlparse
 
 import langdetect
-import magic
 import numpy as np
 import pandas as pd
 import pydantic
@@ -41,6 +41,8 @@ from .operators_base import Alias, LambdaOperator, ElementWiseOperator, Constant
 from .operators_base import DataMerger, \
     ForgivingExtractIterator
 from .pdf_utils import PDFFileLoader
+
+logger = logging.getLogger(__name__)
 
 
 def is_url(url):
@@ -584,23 +586,40 @@ operations and include the documentation there. Lambda functions should not be u
         """
         buffer = None
         detected_filepath: Path | None = None
-        # now, check filetype using python-magic
+        mimetype = "text/plain"  # use this as a standard mimetype
+
+        try:
+            import magic
+        except ImportError:
+            logger.warning("libmagic was not found on your system! falling back"
+                           "to filetype detection by file-ending only. In order"
+                           "to have a more robust file type detection it would be"
+                           "advisable to install this library.")
+            magic = False
+
+        # if it works... now, check filetype using python-magic
         if isinstance(self.fobj, (Path, str)):
             fobj = Path(self.fobj)
             if fobj.is_file():  # check if we have an actual file here
-                mimetype = magic.from_file(self.fobj, mime=True)
+                if magic:
+                    mimetype = magic.from_file(self.fobj, mime=True)
                 detected_filepath = fobj
             else:
                 # if it's not a file, we take it as a string, but can be overwritten
                 # using the document_type variable during initialization
                 mimetype = "string"
         elif isinstance(self.fobj, bytes):
-            mimetype = magic.from_buffer(self.fobj, mime=True)
+            if magic:
+                mimetype = magic.from_buffer(self.fobj, mime=True)
+            else:
+                logger.warning(f"no filetype specified for {self.source}")
         elif isinstance(self.fobj, io.IOBase):  # might be a streaming object
             # TODO: there is probably a better way to check for many file io objects...
-            buffer = self.fobj.read(2048)
-            self.fobj.seek(0)  # reset pointer for downstream tasks
-            mimetype = magic.from_buffer(buffer, mime=True)
+            if magic:
+                buffer = self.fobj.read(2048)
+                self.fobj.seek(0)  # reset pointer for downstream tasks
+                mimetype = magic.from_buffer(buffer, mime=True)
+
             try:
                 detected_filepath = Path(self.fobj.name)
             except:
@@ -744,6 +763,10 @@ class DocumentBag(Pipeline):
             # TODO: accept arbitrary bags
             # Alias(bag="source"),
             Alias(docs="source"),
+            LambdaOperator(lambda x: x.take)
+            .pipe(x="docs").out("take").cache(),
+            LambdaOperator(lambda x: x.compute)
+            .pipe(x="docs").out("compute").cache(),
             # dask_operators.BagMapOperator(lambda x: functools.cache(
             #    lambda y: DocumentBag()))
             # .pipe(dask_bag="dict_bag").out("docbag").cache(),
