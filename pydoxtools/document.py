@@ -17,6 +17,7 @@ import yaml
 from dask.bag import Bag
 
 from . import dask_operators
+from . import nlp_utils
 from .dask_operators import SQLTableLoader
 from .document_base import Pipeline, ElementType, Configuration
 from .extract_classes import LanguageExtractor, TextBlockClassifier
@@ -384,12 +385,15 @@ operations and include the documentation there. Lambda functions should not be u
             # TODO: implement summarizer based on textrank
             Alias(url="source"),
 
-            ########### VECTORIZATION ##########
+            ########### VECTORIZATION (SPACY) ##########
             Alias(sents="spacy_sents"),
             Alias(noun_chunks="spacy_noun_chunks"),
 
             LambdaOperator(lambda x: x.vector)
             .pipe(x="spacy_doc").out("vector").cache(),
+            # TODO: make this configurable.. either we want
+            #       to use spacy for this or we would rather have a huggingface
+            #       model doing this...
             LambdaOperator(
                 lambda x: dict(
                     sent_vecs=np.array([e.vector for e in x]),
@@ -401,18 +405,31 @@ operations and include the documentation there. Lambda functions should not be u
                     noun_ids=list(range(len(x)))))
             .pipe(x="noun_chunks").out("noun_vecs", "noun_ids").cache(),
 
+            ########### VECTORIZATION (Huggingface) ##########
+            Alias(sents="spacy_sents"),
+            Alias(noun_chunks="spacy_noun_chunks"),
+            Configuration(
+                vectorizer_model="deepset/minilm-uncased-squad2",
+                vectorizer_only_tokenizer=False
+            ).docs("Choose the embeddings model (huggingface-style) and if we want"
+                   "to do the vectorization using only the tokenizer. Using only the"
+                   "tokenizer is MUCH faster and uses lower CPU than creating actual"
+                   "contextual embeddings using the model. BUt is also lower quality"
+                   "because it lacks the context."),
+            LambdaOperator(
+                lambda x, m, t: nlp_utils.calculate_string_embeddings(
+                    text=x, model_id=m, only_tokenizer=t)
+            ).pipe(x="full_text", m="vectorizer_model", t="vectorizer_only_tokenizer")
+            .out("tok_embeddings").cache(),
+
             ########### SEGMENT_INDEX ##########
             TextPieceSplitter()
             .pipe(full_text="full_text").out("text_segments").cache(),
-            Configuration(
-                text_segment_model="deepset/minilm-uncased-squad2",
-                text_segment_only_tokenizer=True
-            ),
             ElementWiseOperator(calculate_string_embeddings, return_iterator=False)
             .pipe(
                 elements="text_segments",
-                model_id="text_segment_model",
-                only_tokenizer="text_segment_only_tokenizer")
+                model_id="vectorizer_model",
+                only_tokenizer="vectorizer_only_tokenizer")
             .out("text_segment_vectors"),
 
             ########### NOUN_INDEX #############

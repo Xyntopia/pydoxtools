@@ -441,7 +441,8 @@ def topic_similarity(html, topic, method="slow"):
 # @functools.lru_cache()
 
 
-def convert_ids_to_string(tokenizer, ids):
+def convert_ids_to_string(model_id: str, ids):
+    tokenizer = load_tokenizer(model_id=model_id)
     a = tokenizer.convert_ids_to_tokens(ids)
     return tokenizer.convert_tokens_to_string(a)
 
