@@ -409,7 +409,7 @@ operations and include the documentation there. Lambda functions should not be u
             Alias(sents="spacy_sents"),
             Alias(noun_chunks="spacy_noun_chunks"),
             Configuration(
-                vectorizer_model="deepset/minilm-uncased-squad2",
+                vectorizer_model="sentence-transformers/all-MiniLM-L6-v2",
                 vectorizer_only_tokenizer=False
             ).docs("Choose the embeddings model (huggingface-style) and if we want"
                    "to do the vectorization using only the tokenizer. Using only the"
@@ -420,7 +420,11 @@ operations and include the documentation there. Lambda functions should not be u
                 lambda x, m, t: nlp_utils.calculate_string_embeddings(
                     text=x, model_id=m, only_tokenizer=t)
             ).pipe(x="full_text", m="vectorizer_model", t="vectorizer_only_tokenizer")
-            .out("tok_embeddings").cache(),
+            .out("vec_res").cache(),
+            LambdaOperator(lambda x: dict(emb=x[0], tok=x[1]))
+            .pipe(x="vec_res").out(emb="tok_embeddings", tok="tokens"),
+            LambdaOperator(lambda x: x.mean(0))
+            .pipe(x="tok_embeddings").out("embedding").cache(),
 
             ########### SEGMENT_INDEX ##########
             TextPieceSplitter()

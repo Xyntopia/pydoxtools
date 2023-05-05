@@ -409,11 +409,19 @@ if __name__ == "__main__":
 
     from pydoxtools import nlp_utils as nu
 
-    emb, tok = doc.tok_embeddings
+    emb = doc.embedding
+    embs = doc.tok_embeddings
 
     tokenizer = nu.load_tokenizer(doc.vectorizer_model)
     ids =tokenizer.convert_tokens_to_ids(tok)
     txt = nu.convert_ids_to_string(doc.vectorizer_model, ids)
+
+    emb
+
+    doc.full_text
+    doc.sents[5]
+
+
     wemb, wtok = nu.fullword_embeddings(ids, emb)
 
     pass
