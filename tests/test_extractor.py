@@ -412,7 +412,8 @@ if __name__ == "__main__":
         vectorizer_model="sentence-transformers/all-MiniLM-L6-v2"
     )
 
-    doc.configuration
+    defconf=doc.get_configuration_names("*")
+    b = doc.configuration
 
     from pydoxtools import nlp_utils as nu
 

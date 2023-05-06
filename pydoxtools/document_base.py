@@ -127,7 +127,6 @@ class Operator(ABC):
         self._in_mapping: dict[str, str] = {}
         self._out_mapping: dict[str, str] = {}
         self._cache = False  # TODO: switch to "True" by default
-        self._dynamic_config: dict[str, str] = {}
 
     @abc.abstractmethod
     def __call__(self, *args, **kwargs) -> dict[str, typing.Any] | Any:
@@ -430,6 +429,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
             _x_func_cache (dict[pydoxtools.document_base.Operator, dict[str, Any]]): Cache for operator
                 functions to store intermediate results.
         """
+        self._configuration = None
         self._cache_hits = 0
         self._source = "base_pipeline"
         self._x_func_cache: dict[Operator, dict[str, Any]] = {}
@@ -437,9 +437,6 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
     def config(self, **configuration: Any) -> "Pipeline":
         """
         Set configuration parameters for a pipeline.
-
-        This method loops through all "operators.Configure" instances in the pipeline
-        and assigns the provided configuration settings to them.
 
         Args:
             **configuration: A dictionary of key-value pairs representing the configuration
@@ -454,33 +451,38 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
             pipeline = Pipeline()
             pipeline.config(param1=value1, param2=value2)
         """
-        # Get all configuration objects in the pipeline
-        configuration_objs: dict[str, Configuration] = \
-            {k: v for k, v in self.x_funcs.items() if isinstance(v, Configuration)}
-
-        # Assign the settings to the corresponding configuration objects
-        for k, v in configuration.items():
-            if k in configuration_objs:
-                configuration_objs[k]._configuration_map[k] = v
+        # replace configuration objects in the pipeine with
+        # our own configuration objects with correct keys
+        self._configuration = configuration
 
         # Return the current pipeline instance for method chaining
         return self
 
     @property
-    def configuration(self) -> dict[str, Any]:
-        """
-        Gets all configuration objects of the pipeline and merges them into a single dictionary.
+    def configuration(self):
+        """Returns a dictionary of all configuration objects for the current pipeline.
 
         Returns:
-            dict: A dictionary containing the merged configuration objects of the pipeline, with keys as
-                  the configuration names and values as the configuration objects.
+            dict: A dictionary containing the names and values of all configuration objects
+                  for the current pipeline.
+        """
+        return {k: self.x(k) for k in self.get_configuration_names(self.pipeline_chooser)}
+
+    @classmethod
+    @functools.lru_cache
+    def get_configuration_names(cls, pipeline: str) -> list[str]:
+        """Returns a list of names of all configuration objects for a given pipeline.
+
+        Args:
+            pipeline (str): The name of the pipeline to retrieve configuration objects from.
+
+        Returns:
+            list: A list of strings containing the names of all configuration objects for the
+                  given pipeline.
         """
         configuration: dict[str, Configuration] = \
-            {k: v for k, v in self.x_funcs.items() if isinstance(v, Configuration)}
-        configuration_map = {}
-        for c in configuration:
-            configuration_map.update(**(configuration[c]._configuration_map))
-        return configuration_map
+            {k: v for k, v in cls._pipelines[pipeline].items() if isinstance(v, Configuration)}
+        return list(configuration.keys())
 
     @property
     def pipeline_chooser(self) -> str:
@@ -616,12 +618,12 @@ supports pipelines
         docs = '\n\n'.join(node_docs)
         return docs
 
-    def x(self, extract_name: str, *args, **kwargs) -> Any:
+    def x(self, operator_name: str, *args, **kwargs) -> Any:
         """
         Calls an extractor from the defined pipeline and returns the result.
 
         Args:
-            extract_name (str): The name of the extractor to be called.
+            operator_name (str): The name of the extractor to be called.
             *args: Variable-length argument list to be passed to the extractor.
             **kwargs: Arbitrary keyword arguments to be passed to the extractor.
 
@@ -634,34 +636,37 @@ supports pipelines
         Notes:
             The extractor's parameters can be overridden using *args and **kwargs.
         """
-        if not (extractor_func := self.x_funcs.get(extract_name, None)):
-            return self.__dict__[extract_name]  # choose the class' own properties as a fallback
+        # override the operator if this instance has its own configuration
+        if operator_name in self._configuration:
+            return self._configuration[operator_name]
+        elif not (operator_functions := self.x_funcs.get(operator_name, None)):
+            return self.__dict__[operator_name]  # choose the class' own properties as a fallback
 
         try:
             # check if we executed this function at some point...
-            if extractor_func._cache:
+            if operator_functions._cache:
                 # TODO: implement our own key function in order
                 #       to be able to pickle the document cache!
-                key = functools._make_key((extractor_func,) + args, kwargs, typed=False)
+                key = functools._make_key((operator_functions,) + args, kwargs, typed=False)
                 # we need to check for "is not None" as we also have pandas dataframes in this
                 # which cannot be checked for by simply using "if"
                 if (res := self._x_func_cache.get(key, None)) is not None:
                     self._cache_hits += 1
                 else:
-                    res = extractor_func._mapped_call(self, *args, **kwargs)
+                    res = operator_functions._mapped_call(self, *args, **kwargs)
                     self._x_func_cache[key] = res
             else:
-                res = extractor_func._mapped_call(self, *args, **kwargs)
+                res = operator_functions._mapped_call(self, *args, **kwargs)
 
         except OperatorException as e:
-            logger.error(f"Extraction error in '{extract_name}': {e}")
+            logger.error(f"Extraction error in '{operator_name}': {e}")
             raise e
         except Exception as e:
-            logger.error(f"Extraction error in '{extract_name}': {e}")
-            raise OperatorException(f"could not get {extract_name} for {self}")
+            logger.error(f"Extraction error in '{operator_name}': {e}")
+            raise OperatorException(f"could not get {operator_name} for {self}")
             # raise e
 
-        return res[extract_name]
+        return res[operator_name]
 
     def __getattr__(self, extract_name) -> Any:
         """
