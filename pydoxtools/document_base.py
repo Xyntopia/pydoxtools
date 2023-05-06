@@ -792,7 +792,8 @@ supports pipelines
         """
         return uuid.uuid4()
 
-    def pipeline_graph(self, image_path: str | pathlib.Path = None, document_logic_id="current"):
+    @classmethod
+    def pipeline_graph(cls, image_path: str | pathlib.Path = None, document_logic_id="*"):
         """
         Generates a visualization of the defined pipelines and optionally saves it as an image.
 
@@ -811,10 +812,7 @@ supports pipelines
         """
         # TODO: change into a static method
         graph = nx.DiGraph()
-        if document_logic_id == "current":
-            logic = self.x_funcs
-        else:
-            logic = self._pipelines[document_logic_id]
+        logic = cls._pipelines[document_logic_id]
 
         for name, f in logic.items():
             f_class = f.__class__.__name__ + "\n".join(f._out_mapping.keys())

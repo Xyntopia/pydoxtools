@@ -227,16 +227,20 @@ def test_pandoc():
 
 
 def test_pipeline_graph():
-    doc = Document(fobj=make_path_absolute("./data/demo.docx"))
     # TODO: generate graphs for all document types
-    for k in doc._operators:
+    for k in Document._pipelines:
         ending = mimetypes.guess_extension(k, strict=False) or k
         ending = ending.replace("/", "_")
-        doc.pipeline_graph(
+        Document.pipeline_graph(
             image_path=settings._PYDOXTOOLS_DIR / f"docs/images/document_logic_{ending}.svg",
             document_logic_id=k
         )
 
+    for k in DocumentBag._pipelines:
+        DocumentBag.pipeline_graph(
+            image_path=settings._PYDOXTOOLS_DIR / f"docs/images/documentbag_logic_{k}.svg",
+            document_logic_id=k
+        )
 
 def test_documentation_generation():
     doc = Document
@@ -398,25 +402,24 @@ def test_dict():
     doc = Document(person_document).config(summarizer_max_text_len=400)
     doc2 = Document(person_document)
     doc.run_pipeline_fast()
-    assert doc.data_doc("email").configuration["summarizer_max_text_len"]!=doc2.data_doc("email").configuration["summarizer_max_text_len"]
-    assert doc.data_doc("email").configuration["summarizer_max_text_len"]==400
+    assert doc.data_doc("email").configuration["summarizer_max_text_len"] != doc2.data_doc("email").configuration[
+        "summarizer_max_text_len"]
+    assert doc.data_doc("email").configuration["summarizer_max_text_len"] == 400
     assert doc.keywords == ['Susan full_name', 'Susan Williamson', 'bio', 'Organizer', 'Twitter scholar']
     assert doc.document_type == "<class 'dict'>"
 
 
-if __name__ == "__main__":
+def test_nlp_utils():
+    from pydoxtools import nlp_utils as nu
     import time
 
-    test_pipeline_graph()
     doc = Document(make_path_absolute("../README.md")).config(
         vectorizer_only_tokenizer=False,
         vectorizer_model="sentence-transformers/all-MiniLM-L6-v2"
     )
 
-    defconf=doc.get_configuration_names("*")
+    defconf = doc.get_configuration_names("*")
     b = doc.configuration
-
-    from pydoxtools import nlp_utils as nu
 
     start_time = time.monotonic()
     emb = doc.embedding
@@ -424,7 +427,7 @@ if __name__ == "__main__":
     tok = doc.tokens
     end_time = time.monotonic()
     # calculate the elapsed time
-    print(f"Elapsed time: {end_time - start_time:.5f} seconds")
+    print(f"Elapsed time: for embedding generation {end_time - start_time:.5f} seconds")
 
     tokenizer = nu.load_tokenizer(doc.vectorizer_model)
     ids = tokenizer.convert_tokens_to_ids(tok)
@@ -436,9 +439,14 @@ if __name__ == "__main__":
 
     wemb, wtok = nu.fullword_embeddings(tok, embs)
     sd = doc.spacy_nlp(" ".join(wtok))
+
+
+if __name__ == "__main__":
+    test_pipeline_graph()
+
     import pandas as pd
 
-    a = pd.DataFrame(sd.sents)
-    a[2]
+    #a = pd.DataFrame(sd.sents)
+    #a[2]
 
     pass
