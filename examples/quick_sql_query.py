@@ -26,15 +26,14 @@ database_source = pydoxtools.document.DatabaseSource(
 # which we will ingest into the vector store.
 docs = DocumentBag(source=database_source).config(doc_configuration=dict(
     # here we can choose to do some fast vectorization by usong only the tokenizer
-    vectorizer_only_tokenizer=True,
+    vectorizer_only_tokenizer=False,
     vectorizer_model="sentence-transformers/all-MiniLM-L6-v2"
 ))
 d = docs.take(1)[0]
-column = docs.get_data_docbag("raw_html")
-docs.get_datadocs("url").take(1)[0].configuration
-c = column.take(1)[0]
-a = column.get_dicts("embedding").take(2)
-idx = column.get_dicts("source", "full_text", "embedding")
+column = docs.get_data_docbag("url")
 
 with ProgressBar():
-    b = idx.take(20)
+    idx = column.create_index(500)
+
+# get URLs which are related to "products":
+res = column.query_chroma("product")

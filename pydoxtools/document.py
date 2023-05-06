@@ -25,7 +25,7 @@ from .extract_filesystem import FileLoader
 from .extract_filesystem import PathLoader
 from .extract_html import HtmlExtractor
 from .extract_index import IndexExtractor, KnnQuery, \
-    SimilarityGraph, TextrankOperator, TextPieceSplitter
+    SimilarityGraph, TextrankOperator, TextPieceSplitter, ChromaIndexFromBag
 from .extract_nlpchat import OpenAIChat
 from .extract_objects import EntityExtractor
 from .extract_ocr import OCRExtractor
@@ -612,6 +612,7 @@ operations and include the documentation there. Lambda functions should not be u
             return doc_type
 
     @staticmethod
+    @functools.cache  # make sure we only run it once..
     def magic_library_available():
         try:
             import magic
@@ -839,6 +840,17 @@ class DocumentBag(Pipeline):
                 " which they got on document creation with 'data_doc' in the previous"
                 " step 'get_datadocs'"
             ),
+            LambdaOperator(lambda get_dicts: get_dicts("source", "full_text", "embedding"))
+            .pipe("get_dicts").out("idx_dict").cache(),
+            # TODO: optionally add a custom chromadb as an argument.
+            LambdaOperator(lambda dc: lambda query: Document(query).config(**dc).embedding)
+            .pipe(dc="doc_configuration").out("vectorizer").cache(),
+            ChromaIndexFromBag()
+            .pipe(query_vectorizer="vectorizer", idx_bag="idx_dict")
+            .out("chroma_index", "create_index", "query_chroma").cache().docs(
+                "in order to build an index in chrome db we need a key, text, embeddings and a key."
+                " Those come from a daskbag with dictionaries with those keys."
+            )
         ],
         # TODO: add "fast, slow, medium" pipelines..  e.g. with keywords extraction as fast
         #       etc...

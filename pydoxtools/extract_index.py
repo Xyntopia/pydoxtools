@@ -1,6 +1,8 @@
+import functools
 import logging
 from typing import Callable
 
+import dask.bag
 import hnswlib
 import networkx as nx
 import numpy as np
@@ -25,9 +27,6 @@ class TextPieceSplitter(Operator):
     if we split up large text blocks we will let the individual pieces overlap
     just a little bit in order to preserve some of the context.
     """
-
-    def __init__(self):
-        super().__init__()
 
     def __call__(
             self, full_text: str, min_size: int = 256, max_size: int = 512,
@@ -81,9 +80,6 @@ class IndexExtractor(Operator):
         etc....
     """
 
-    def __init__(self):
-        super().__init__()
-
     def __call__(self, vecs: np.ndarray, ids: list[int]):
         """create a nearest neighbour search index
 
@@ -123,9 +119,6 @@ class IndexExtractor(Operator):
 
 
 class KnnQuery(Operator):
-    def __init__(self):
-        super().__init__()
-
     def __call__(
             self,
             index: hnswlib.Index,
@@ -187,3 +180,52 @@ class TextrankOperator(Operator):
         seen = set()  # use set to remove duplicates
         seen_add = seen.add
         return [x[0] for x in top_nodes if not (x[0] in seen or seen_add(x[0]))]
+
+
+class ChromaIndexFromBag(Operator):
+    """
+    Create a chroma db index from vectors/textpieces
+    when used in a pipeline, the output will usually be cached,
+    so we can do all the initialization in __call__ in order to
+    only initialize it when needed.
+    """
+
+    def __call__(self, query_vectorizer: callable, idx_bag: dask.bag.Bag):
+        # TODO: not sure how to organize this with clients etc..
+        import chromadb
+        chroma_client = chromadb.Client()
+        # persist
+        # from chromadb.config import Settings
+        # client = chromadb.Client(Settings(
+        #    chroma_db_impl="duckdb+parquet",
+        #    persist_directory="/path/to/persist/directory"  # Optional, defaults to .chromadb/ in the current directory
+        # ))
+        chroma_index = chroma_client.create_collection(name="index")
+
+        # add items from bag to chroma piece-by-piece
+        def add_to_chroma(item: dict):
+            chroma_index.add(
+                # TODO: embeddings=  #use our own embeddings for specific purposes...
+                embeddings=[[float(n) for n in item["embedding"]]],
+                documents=[item["full_text"]],
+                metadatas=[{"source": item["source"]}],
+                ids=[item["source"]]
+            )
+
+        # we are returning a function which does the calculation for all elements
+        # bot also leaves the option to only do a small subset for testing purposes
+        @functools.lru_cache
+        def create_index(num=0):
+            if num:
+                idx_bag.map(add_to_chroma).take(num)
+            else:
+                idx_bag.map(add_to_chroma).compute()
+            return chroma_index
+
+        @functools.lru_cache()
+        def query_chroma(query: str):
+            query_embedding = query_vectorizer(query)
+            res = chroma_index.query(query_embedding.tolist())
+            return res
+
+        return dict(chroma_index=chroma_index, create_index=create_index, query_chroma=query_chroma)
