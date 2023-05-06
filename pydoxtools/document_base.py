@@ -316,7 +316,6 @@ class MetaPipelineClassConfiguration(type):
 
                 uncombined_operators: dict[str, dict[str, Operator]] = {}
                 extractor_combinations: dict[str, list[str]] = {}  # record the extraction hierarchy
-                uncombined_x_configs: dict[str, dict[str, list[str]]] = {}
                 ex: Operator | str
                 # loop through class hierarchy in order to get the logic of parent classes as well,
                 # including the newly defined class
@@ -325,7 +324,6 @@ class MetaPipelineClassConfiguration(type):
                     for doc_type, ex_list in cl._operators.items():
                         doc_type_pipeline = {}  # save function mappings for single doc_type
                         extractor_combinations[doc_type] = []  # save combination list for single doctype
-                        doc_type_x_config = {}  # save configuration mappings for single doc_type
                         for ex in ex_list:
                             # strings indicate that we would like to
                             # add all the functions from that document type as well but with
@@ -342,22 +340,13 @@ class MetaPipelineClassConfiguration(type):
                                     # check out Operator.pipe and Operator.map member functions
                                     doc_type_pipeline[doc_key] = ex
 
-                                    # build a map of configuration values for each
-                                    # parameter. This means when a parameter gets called we know automatically
-                                    # how to configure the corresponding Operator
-                                    if ex._dynamic_config:
-                                        doc_type_x_config[doc_key] = list(ex._dynamic_config.keys())
-
                         uncombined_operators[doc_type] = uncombined_operators.get(doc_type, {})
                         uncombined_operators[doc_type].update(doc_type_pipeline)
-                        uncombined_x_configs[doc_type] = uncombined_x_configs.get(doc_type, {})
-                        uncombined_x_configs[doc_type].update(doc_type_x_config)
 
                 logger.debug("combining... extraction logic")
                 # we need to re-initialize the class logic so that they are not linked
                 # to the logic of the parent classes.
                 new_class._pipelines = {}
-                new_class._x_config = {}
                 doc_type: str
                 # add all extractors by combining the logic for the different document types
                 for doc_type in uncombined_operators:
@@ -373,7 +362,6 @@ class MetaPipelineClassConfiguration(type):
                     #       levels right now). We probably need to run this function multiple times
                     #       in order for this to work.
                     new_class._pipelines[doc_type] = {}
-                    new_class._x_config[doc_type] = {}
 
                     # build class combination in correct order:
                     # the first one is the least important, because it gets
@@ -392,9 +380,6 @@ class MetaPipelineClassConfiguration(type):
                         # add newly defined extractors overriding extractors defined
                         # in lower hierarchy logic
                         new_class._pipelines[doc_type].update(uncombined_operators[ordered_doc_type])
-                        new_class._x_config[doc_type].update(uncombined_x_configs[ordered_doc_type])
-
-                        # TODO: how do we add x-functions to
 
                 # TODO: remove "dangling" extractors which lack input mapping
 
