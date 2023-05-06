@@ -112,7 +112,7 @@ Check out how Pydoxtools' `Document` class mixes pipelines for each individual f
 As an example, consider this pipeline for *.png images from the repository,
 which includes OCR, keyword extraction, vectorization, and more:
 
-![png pipeline](http://pydoxtools.xyntopia.com/images/document_logic_png.svg)
+![png pipeline](http://pydoxtools.xyntopia.com/images/document_logic_.png.svg)
 
 Pipelines can be mixed, partially overwritten, and extended, giving you a lot of possibilities
 to extend and adapt the functionality for your specific use case.
