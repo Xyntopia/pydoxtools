@@ -410,16 +410,18 @@ operations and include the documentation there. Lambda functions should not be u
             Alias(noun_chunks="spacy_noun_chunks"),
             Configuration(
                 vectorizer_model="sentence-transformers/all-MiniLM-L6-v2",
-                vectorizer_only_tokenizer=False
+                vectorizer_only_tokenizer=False,
+                vectorizer_overlap_ratio=0.1
             ).docs("Choose the embeddings model (huggingface-style) and if we want"
                    "to do the vectorization using only the tokenizer. Using only the"
                    "tokenizer is MUCH faster and uses lower CPU than creating actual"
                    "contextual embeddings using the model. BUt is also lower quality"
                    "because it lacks the context."),
             LambdaOperator(
-                lambda x, m, t: nlp_utils.calculate_string_embeddings(
-                    text=x, model_id=m, only_tokenizer=t)
-            ).pipe(x="full_text", m="vectorizer_model", t="vectorizer_only_tokenizer")
+                lambda x, m, t, o: nlp_utils.calculate_string_embeddings(
+                    text=x, model_id=m, only_tokenizer=t, overlap_ratio=o)
+            ).pipe(x="full_text", m="vectorizer_model",
+                   t="vectorizer_only_tokenizer", o="vectorizer_overlap_ratio")
             .out("vec_res").cache(),
             LambdaOperator(lambda x: dict(emb=x[0], tok=x[1]))
             .pipe(x="vec_res").out(emb="tok_embeddings", tok="tokens"),
@@ -484,7 +486,7 @@ operations and include the documentation there. Lambda functions should not be u
                 x="clean_text", m="summarizer_model",
                 to="summarizer_token_overlap",
                 ml="summarizer_max_text_len"
-            ).out("summary").cache(),
+            ).out("slow_summary").cache(),
 
             ########### QaM machine #############
             # TODO: make sure we can set the model that we want to use dynamically!

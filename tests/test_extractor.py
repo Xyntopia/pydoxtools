@@ -411,17 +411,21 @@ if __name__ == "__main__":
 
     emb = doc.embedding
     embs = doc.tok_embeddings
+    tok = doc.tokens
 
     tokenizer = nu.load_tokenizer(doc.vectorizer_model)
-    ids =tokenizer.convert_tokens_to_ids(tok)
+    ids = tokenizer.convert_tokens_to_ids(tok)
     txt = nu.convert_ids_to_string(doc.vectorizer_model, ids)
-
-    emb
 
     doc.full_text
     doc.sents[5]
+    nu.get_model_max_len(nu.load_model(doc.vectorizer_model))
 
+    wemb, wtok = nu.fullword_embeddings(tok, embs)
+    sd = doc.spacy_nlp(" ".join(wtok))
+    import pandas as pd
 
-    wemb, wtok = nu.fullword_embeddings(ids, emb)
+    a = pd.DataFrame(sd.sents)
+    a[2]
 
     pass

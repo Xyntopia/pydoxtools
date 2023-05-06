@@ -100,41 +100,38 @@ def get_tokenizer_only_embeddings(txt: str, model_id: str):
     return tok_vecs, txttok
 
 
-def tokenize_windows(txt, model_id: str, win_len: int = 500, overlap: int = 50,
+def tokenize_windows(txt, model_id: str, win_len: int = 500, overlap_ratio: float = 0.1,
                      max_len: int = 510, add_special_tokens: bool = True):
     """
-    Tokenize a given text into a series of overlapping windows with special tokens.
+    Tokenize text into overlapping windows with special tokens.
 
-    This function tokenizes a given text into a series of overlapping windows,
+    Given an input text, this function tokenizes it into a series of overlapping windows,
     adds special tokens ([CLS], [SEP]) if required, and converts the tokens into
-    token IDs. The function accepts parameters for the window length, overlap between
-    consecutive windows, maximum tokenization length, and a flag to add special tokens.
-    It returns the tokenized windows with token IDs and the tokenized text without
+    token IDs. It returns the tokenized windows with token IDs and the tokenized text without
     token IDs.
 
     Args:
         txt (str): The input text to be tokenized.
-        tokenizer (Tokenizer): The tokenizer instance to be used for tokenization.
+        model_id (str): The model ID for the tokenizer to be used for tokenization.
         win_len (int, optional): The length of each token window. Default is 500.
-        overlap (int, optional): The number of overlapping tokens between consecutive windows. Default is 50.
+        overlap_ratio (float, optional): The ratio of overlapping tokens between consecutive windows. Default is 0.1.
         max_len (int, optional): The maximum length for tokenization. Default is 510.
-        add_special_tokens (bool, optional): Whether to add special tokens ([CLS], [SEP]) to the tokenized text. Default is True.
+        add_special_tokens (bool, optional): Whether to add special tokens ([CLS], [SEP]) to the tokenized text.
+            Default is True.
 
     Returns:
-        list: A list of lists containing the tokenized windows with token IDs.
-        list: The tokenized text without token IDs.
+        Tuple[List[List[int]], List[str]]: A tuple containing a list of lists with the tokenized windows' token IDs
+            and the tokenized text without token IDs.
 
     Example:
 
-        tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
         txt = "This is a sample text."
-        tok_wins_ids, toktxt = tokenize_windows(txt, tokenizer)
+        tok_wins_ids, toktxt = tokenize_windows(txt, "bert-base-uncased")
 
     """
-    # token_ids = tokenizer.encode(txt,add_special_tokens=False)
-    tokenizer = load_tokenizer(model_id=model_id)
+    overlap = int(max_len * overlap_ratio)
+    tokenizer = load_tokenizer(model_id)
     toktxt = tokenizer.tokenize(txt)
-    # tokenizer.convert_tokens_to_ids(toktxt)
 
     tk_num = len(toktxt)
     if tk_num < max_len:
@@ -213,18 +210,20 @@ def longtxt_embeddings_fullword(txt, model_id: str):
 
 def longtxt_embeddings(
         txt: str, model_id: str,
-        overlap: int = 50, longtextcap: bool = True,
+        overlap_ratio: float = 0.1, longtextcap: bool = True,
         status_bar: bool = False
 ) -> tuple[np.ndarray, list[str]]:
     """
     generate wordpiece embeddings (pseudo-syllables) using transformer model
     and text windowing. The individual windows are stitched
-    back together at the and by averaging their values.
+    back together at the and by averaging their values in the overlapped areas.
 
     TODO: add option to cancel embeddings generation afte a certain
           number of windows to make sure it finishes in a guaranteed time
     """
-    tok_wins, toktxt = tokenize_windows(txt, model_id=model_id, overlap=overlap)
+    max_len = get_model_max_len(load_model(model_id=model_id))
+    overlap = int(max_len * overlap_ratio)
+    tok_wins, toktxt = tokenize_windows(txt, model_id=model_id, max_len=max_len, overlap_ratio=overlap_ratio)
     if longtextcap:
         tok_wins = tok_wins[:100]
 
@@ -317,24 +316,18 @@ def get_vocabulary(model_id: str):
     return model.embeddings.word_embeddings.weight.detach().numpy()
 
 
-def fullword_embeddings(toktxt, vs):
+def fullword_embeddings(toktxt: list[str], vs: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """
-    get embeddings for entire words by sowing wordpieces back together.
+    Get embeddings for entire words by sewing word pieces back together.
 
-    Parameters
-    ----------
-    toktxt : tokenized text
-        DESCRIPTION.
-    vs : word piece vectors
-        DESCRIPTION.
+    Args:
+        toktxt (List[str]): Tokenized text as a list of word pieces.
+        vs (np.ndarray): Word piece vectors as a 2D numpy array.
 
-    Returns
-    -------
-    numpy.ndarray, numpy.ndarray
-        return full word-tokens and vectors
-
+    Returns:
+        Tuple[np.ndarray, np.ndarray]: Returns two 1D numpy arrays for full word-tokens and vectors respectively.
     """
-    # average embedding vectors for entire words:
+    # Average embedding vectors for entire words:
     emb_map = list(zip(toktxt, vs))
 
     syl_sep = ""  # could also be "-" for example
@@ -350,7 +343,7 @@ def fullword_embeddings(toktxt, vs):
                 cur_vec += [v]
                 continue
         newtoks += [cur_word.replace("##", syl_sep)]
-        # TODO:  replace np.mean with np.sum here and below?
+        # TODO: replace np.mean with np.sum here and below?
         newvs += [np.mean(cur_vec, axis=0)]
         cur_vec = [v]
         cur_word = tok
@@ -393,7 +386,7 @@ def search(toktxt, vs, searchstring: str, model_id: str, num=1):
     return top_search_results(toktxt, match, num=num) + (match,)
 
 
-def calculate_string_embeddings(text: str, model_id: str, only_tokenizer: bool):
+def calculate_string_embeddings(text: str, model_id: str, only_tokenizer: bool, overlap_ratio: float = 0.1):
     """
     this method converts a text of arbitrary length into
     a vector.
@@ -403,7 +396,7 @@ def calculate_string_embeddings(text: str, model_id: str, only_tokenizer: bool):
         return vs, toktxt
     else:
         # vs, toktxt = longtxt_embeddings(text, model, tokenizer, np.mean)
-        vs, toktxt = longtxt_embeddings(text, model_id)
+        vs, toktxt = longtxt_embeddings(text, model_id, overlap_ratio=overlap_ratio)
         return vs, toktxt
 
 
@@ -487,6 +480,17 @@ def QandAmodels(model_id: str):
     return NLPContext(tokenizer=tokenizer, model=model)
 
 
+def get_model_max_len(model):
+    try:
+        max_input_tokens = model.config.max_position_embeddings
+    except AttributeError:
+        # TOOD: we should probably find a better method for this....
+        max_input_tokens = 512  # e.g. this is a good choice for t5 (doesn't have a hard limit,
+        # but huge memory consumption)
+
+    return max_input_tokens
+
+
 def summarize_long_text(
         long_text: str,
         model_id: str,
@@ -501,12 +505,7 @@ def summarize_long_text(
     """
     pipeline = load_pipeline("summarization", model_id=model_id)
     model, tokenizer = pipeline.model, pipeline.tokenizer
-    try:
-        max_input_tokens = pipeline.model.config.max_position_embeddings
-    except AttributeError:
-        # TOOD: we should probably find a better method for this....
-        max_input_tokens = 512  # e.g. this is a good choice for t5 (doesn't have a hard limit,
-        # but huge memory consumption)
+    max_input_tokens = get_model_max_len(model)
 
     def summarize_chunks(text) -> (str, int):
         inputs = tokenizer(text, return_tensors="pt").input_ids
