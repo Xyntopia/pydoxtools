@@ -36,7 +36,11 @@ database_source = pydoxtools.document.DatabaseSource(
 # which we will ingest into the vector store.
 # or as a one-liner:
 #   DocumentBag(source=database_source).get_data_docbag(column).get_dicts("source", "full_text", "vector")
-table = DocumentBag(source=database_source)
+table = DocumentBag(source=database_source).config(doc_configuration=dict(
+    # here we can choose to do some fast vectorization by usong only the tokenizer
+    vectorizer_only_tokenizer=True,
+    vectorizer_model="sentence-transformers/all-MiniLM-L6-v2"
+))
 column = "url"  # which column(s) from the SQL table we want to extract
 column = table.get_data_docbag(column)  # multiple columns can be specified here.
 # we create the index by creating a "vector" out of the selected column/s
@@ -57,7 +61,7 @@ def add_to_chroma(item: dict):
 
 
 with ProgressBar():
-    idx.map(add_to_chroma).take(20)  # choose a number how many rows you would like to add ro your chromadb!
+    idx.map(add_to_chroma).take(100)  # choose a number how many rows you would like to add ro your chromadb!
     # run idx.map(add_to_chroma).persist()  to move all data into chromadb!
 
 # query the db:

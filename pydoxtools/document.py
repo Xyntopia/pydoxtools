@@ -309,8 +309,9 @@ operations and include the documentation there. Lambda functions should not be u
             )).pipe(x="data").out("text_box_elements").cache(),
             Alias(text_segments="text_box_list"),
             # TODO: maybe we should declare a new function for this ;)?
-            LambdaOperator(lambda x, s: functools.cache(lambda *y: Document({k: x[k] for k in y}, source=s)))
-            .pipe(x="data", s="source").out("data_doc").cache().docs(
+            LambdaOperator(lambda x, s, c: functools.cache(
+                lambda *y: Document({k: x[k] for k in y}, source=s).config(**c)))
+            .pipe(x="data", s="source", c="configuration").out("data_doc").cache().docs(
                 "Create new data document from a subset of the data. The new document will have"
                 "the same source as the original one."
             ),
@@ -804,8 +805,8 @@ class DocumentBag(Pipeline):
             # Alias(bag="source"),
             Configuration(doc_configuration=dict()).docs(
                 "We can pass through a configuration object to Documents that are"
-                "created in our document bag. Any setting that is supported"
-                "by Document can be specified here."),
+                " created in our document bag. Any setting that is supported"
+                " by Document can be specified here."),
             Alias(docs="source"),
             LambdaOperator(lambda x: x.take)
             .pipe(x="docs").out("take").cache(),
@@ -821,7 +822,13 @@ class DocumentBag(Pipeline):
                 lambda d: d.data_doc(*props)))
             .pipe(docs_bag="docs").out("get_datadocs").cache(),
             LambdaOperator(lambda x, c: lambda *props: DocumentBag(x(*props)).config(**c))
-            .pipe(x="get_datadocs", c="configuration").out("get_data_docbag").cache(),
+            .pipe(x="get_datadocs", c="configuration").out("get_data_docbag").cache().docs(
+                "Here, we create a new DocumentBag from a dask bag of documents."
+                " We are also setting the config again, so that it is consistent with the"
+                " original one. The documents already have the correct vonfiguration"
+                " which they got on document creation with 'data_doc' in the previous"
+                " step 'get_datadocs'"
+            ),
         ],
         # TODO: add "fast, slow, medium" pipelines..  e.g. with keywords extraction as fast
         #       etc...

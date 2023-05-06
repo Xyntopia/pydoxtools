@@ -396,8 +396,9 @@ def test_dict():
                        'bio': 'Friendly music geek. Organizer. Twitter scholar. Creator. General food nerd. '
                               'Future teen idol. Thinker.'}
     doc = Document(person_document).config(summarizer_max_text_len=400)
-    doc2 = Document(person_document).config(summarizer_max_text_len=200)
+    doc2 = Document(person_document)
     doc.run_pipeline_fast()
+    assert doc.data_doc("email").configuration["summarizer_max_text_len"]!=doc2.data_doc("email").configuration["summarizer_max_text_len"]
     assert doc.data_doc("email").configuration["summarizer_max_text_len"]==400
     assert doc.keywords == ['Susan full_name', 'Susan Williamson', 'bio', 'Organizer', 'Twitter scholar']
     assert doc.document_type == "<class 'dict'>"

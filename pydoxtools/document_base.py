@@ -429,7 +429,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
             _x_func_cache (dict[pydoxtools.document_base.Operator, dict[str, Any]]): Cache for operator
                 functions to store intermediate results.
         """
-        self._configuration = None
+        self._configuration = {}
         self._cache_hits = 0
         self._source = "base_pipeline"
         self._x_func_cache: dict[Operator, dict[str, Any]] = {}
