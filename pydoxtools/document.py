@@ -793,13 +793,19 @@ class DocumentBag(Pipeline):
             LambdaOperator(lambda x: x.to_bag(index=True, format="dict"))
             .pipe(x="dataframe")
             .out("bag").cache(),
-            dask_operators.BagMapOperator(lambda y: Document(y, source=str(y.get('index', None))))
-            .pipe(dask_bag="bag").out("docs").cache().docs(
+            dask_operators.BagMapOperator(lambda y, c: Document(
+                y, source=str(y.get('index', None))
+            ).config(**c))
+            .pipe(dask_bag="bag", c="doc_configuration").out("docs").cache().docs(
                 "Create a dask bag of one data document for each row of the source table"),
         ],
         str(Bag): [
             # TODO: accept arbitrary bags
             # Alias(bag="source"),
+            Configuration(doc_configuration=dict()).docs(
+                "We can pass through a configuration object to Documents that are"
+                "created in our document bag. Any setting that is supported"
+                "by Document can be specified here."),
             Alias(docs="source"),
             LambdaOperator(lambda x: x.take)
             .pipe(x="docs").out("take").cache(),
@@ -814,8 +820,8 @@ class DocumentBag(Pipeline):
             LambdaOperator(lambda docs_bag: lambda *props: docs_bag.map(
                 lambda d: d.data_doc(*props)))
             .pipe(docs_bag="docs").out("get_datadocs").cache(),
-            LambdaOperator(lambda x: lambda *props: DocumentBag(x(*props)))
-            .pipe(x="get_datadocs").out("get_data_docbag").cache(),
+            LambdaOperator(lambda x, c: lambda *props: DocumentBag(x(*props)).config(**c))
+            .pipe(x="get_datadocs", c="configuration").out("get_data_docbag").cache(),
         ],
         # TODO: add "fast, slow, medium" pipelines..  e.g. with keywords extraction as fast
         #       etc...

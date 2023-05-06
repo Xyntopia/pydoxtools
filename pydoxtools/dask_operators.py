@@ -15,8 +15,8 @@ class BagMapOperator(Operator):
         super().__init__()
         self._func = func
 
-    def __call__(self, dask_bag: dask.bag.Bag) -> dask.bag.Bag:
-        return dask_bag.map(lambda item: self._func(item))
+    def __call__(self, dask_bag: dask.bag.Bag, *args, **kwargs) -> dask.bag.Bag:
+        return dask_bag.map(lambda item: self._func(item, *args, **kwargs))
 
 
 class BagPropertyExtractor(Operator):

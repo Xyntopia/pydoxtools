@@ -395,23 +395,34 @@ def test_dict():
                        'twitter_handle': 'sWilliamson',
                        'bio': 'Friendly music geek. Organizer. Twitter scholar. Creator. General food nerd. '
                               'Future teen idol. Thinker.'}
-    doc = Document(person_document)
+    doc = Document(person_document).config(summarizer_max_text_len=400)
+    doc2 = Document(person_document).config(summarizer_max_text_len=200)
     doc.run_pipeline_fast()
+    assert doc.data_doc("email").configuration["summarizer_max_text_len"]==400
     assert doc.keywords == ['Susan full_name', 'Susan Williamson', 'bio', 'Organizer', 'Twitter scholar']
     assert doc.document_type == "<class 'dict'>"
 
 
 if __name__ == "__main__":
+    import time
+
     test_pipeline_graph()
-    doc = Document(make_path_absolute("../README.md")).config(vectorizer_only_tokenizer=False)
+    doc = Document(make_path_absolute("../README.md")).config(
+        vectorizer_only_tokenizer=False,
+        vectorizer_model="sentence-transformers/all-MiniLM-L6-v2"
+    )
 
     doc.configuration
 
     from pydoxtools import nlp_utils as nu
 
+    start_time = time.monotonic()
     emb = doc.embedding
     embs = doc.tok_embeddings
     tok = doc.tokens
+    end_time = time.monotonic()
+    # calculate the elapsed time
+    print(f"Elapsed time: {end_time - start_time:.5f} seconds")
 
     tokenizer = nu.load_tokenizer(doc.vectorizer_model)
     ids = tokenizer.convert_tokens_to_ids(tok)

@@ -449,7 +449,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         self._source = "base_pipeline"
         self._x_func_cache: dict[Operator, dict[str, Any]] = {}
 
-    def config(self, **configuration: dict[str, Any]) -> "Pipeline":
+    def config(self, **configuration: Any) -> "Pipeline":
         """
         Set configuration parameters for a pipeline.
 
@@ -475,7 +475,8 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
 
         # Assign the settings to the corresponding configuration objects
         for k, v in configuration.items():
-            configuration_objs[k]._configuration_map[k] = v
+            if k in configuration_objs:
+                configuration_objs[k]._configuration_map[k] = v
 
         # Return the current pipeline instance for method chaining
         return self
