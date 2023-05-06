@@ -523,7 +523,8 @@ operations and include the documentation there. Lambda functions should not be u
         Args:
             fobj:
                 The file object or data to load. Depending on the type of object passed:
-                - If a string or bytes object: the object itself is the document.
+                - If a string or bytes object: the object itself is the document. IN case of a bytes
+                     object, the source helps in determining the filetype through file endings.
                 - If a string representing a URL: the document will be loaded from the URL.
                 - If a pathlib.Path object: load the document from the path.
                 - If a file object: load the document from the file object (e.g., bytestream).
@@ -610,6 +611,18 @@ operations and include the documentation there. Lambda functions should not be u
             doc_type, _ = self.document_type_detection()
             return doc_type
 
+    @staticmethod
+    def magic_library_available():
+        try:
+            import magic
+        except ImportError:
+            logger.warning("libmagic was not found on your system! falling back"
+                           "to filetype detection by file-ending only. In order"
+                           "to have a more robust file type detection it would be"
+                           "advisable to install this library.")
+            magic = False
+        return magic
+
     @functools.cache
     def document_type_detection(self):
         """
@@ -626,14 +639,7 @@ operations and include the documentation there. Lambda functions should not be u
         detected_filepath: Path | None = None
         mimetype = "text/plain"  # use this as a standard mimetype
 
-        try:
-            import magic
-        except ImportError:
-            logger.warning("libmagic was not found on your system! falling back"
-                           "to filetype detection by file-ending only. In order"
-                           "to have a more robust file type detection it would be"
-                           "advisable to install this library.")
-            magic = False
+        magic = Document.magic_library_available()
 
         # if it works... now, check filetype using python-magic
         if isinstance(self.fobj, (Path, str)):

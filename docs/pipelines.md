@@ -456,6 +456,104 @@ return type
 supports pipelines
 : *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
+### vectorizer_model
+
+Can be called using:
+
+    doc.x('vectorizer_model')
+    # or
+    doc.vectorizer_model
+
+return type
+: 
+
+supports pipelines
+: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+
+### vectorizer_only_tokenizer
+
+Can be called using:
+
+    doc.x('vectorizer_only_tokenizer')
+    # or
+    doc.vectorizer_only_tokenizer
+
+return type
+: 
+
+supports pipelines
+: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+
+### vectorizer_overlap_ratio
+
+Can be called using:
+
+    doc.x('vectorizer_overlap_ratio')
+    # or
+    doc.vectorizer_overlap_ratio
+
+return type
+: 
+
+supports pipelines
+: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+
+### vec_res
+
+Can be called using:
+
+    doc.x('vec_res')
+    # or
+    doc.vec_res
+
+return type
+: 
+
+supports pipelines
+: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+
+### tok_embeddings
+
+Can be called using:
+
+    doc.x('tok_embeddings')
+    # or
+    doc.tok_embeddings
+
+return type
+: 
+
+supports pipelines
+: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+
+### tokens
+
+Can be called using:
+
+    doc.x('tokens')
+    # or
+    doc.tokens
+
+return type
+: 
+
+supports pipelines
+: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+
+### embedding
+
+Can be called using:
+
+    doc.x('embedding')
+    # or
+    doc.embedding
+
+return type
+: 
+
+supports pipelines
+: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+
 ### text_segments
 
 Can be called using:
@@ -463,34 +561,6 @@ Can be called using:
     doc.x('text_segments')
     # or
     doc.text_segments
-
-return type
-: 
-
-supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
-
-### text_segment_model
-
-Can be called using:
-
-    doc.x('text_segment_model')
-    # or
-    doc.text_segment_model
-
-return type
-: 
-
-supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
-
-### text_segment_only_tokenizer
-
-Can be called using:
-
-    doc.x('text_segment_only_tokenizer')
-    # or
-    doc.text_segment_only_tokenizer
 
 return type
 : 
@@ -722,13 +792,13 @@ return type
 supports pipelines
 : *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
-### summary
+### slow_summary
 
 Can be called using:
 
-    doc.x('summary')
+    doc.x('slow_summary')
     # or
-    doc.summary
+    doc.slow_summary
 
 return type
 : 
@@ -981,6 +1051,20 @@ Can be called using:
     doc.x('main_content_clean_html')
     # or
     doc.main_content_clean_html
+
+return type
+: 
+
+supports pipelines
+: text/html
+
+### summary
+
+Can be called using:
+
+    doc.x('summary')
+    # or
+    doc.summary
 
 return type
 : 

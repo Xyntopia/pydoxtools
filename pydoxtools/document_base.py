@@ -738,7 +738,7 @@ supports pipelines
 
     def run_pipeline_fast(self):
         """run pipeline, but exclude long-running calculations"""
-        self.run_pipeline(exclude=["summary"])
+        self.run_pipeline(exclude=["slow_summary"])
 
     def pre_cache(self):
         """

@@ -19,6 +19,8 @@ logging.getLogger("pydoxtools.document").setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 
 test_files_w_type = {
+    "text/html": ["./data/berrybase_raspberrypi4.html",
+                  "./data/test.html"],
     "text/rtf": "./data/sample.rtf",
     "text/markdown": ["./data/demo.md",
                       "../README.md", ],
@@ -27,8 +29,6 @@ test_files_w_type = {
                         "./data/remo-m_fixed-wing.2f.pdf",
                         "./data/Doxcavator.pdf",
                         "./data/List of North American countries by population - Wikipedia.pdf"],
-    "text/html": ["./data/berrybase_raspberrypi4.html",
-                  "./data/test.html"],
     "text/plain": ["./data/alan_turing.txt"],
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "./data/demo.docx",
     # TODO: enable ODP
@@ -91,6 +91,8 @@ def run_single_non_interactive_document_test(file_name):
     # load object from path
     doc = Document(fobj=pathlib.Path(file_name))
     doc.run_pipeline_fast()
+    doctype = doc.document_type
+    assert doc
     assert doc._cache_hits >= 0
 
     with open(file_name, "rb") as file:
@@ -98,14 +100,19 @@ def run_single_non_interactive_document_test(file_name):
 
     # TODO: automatically recognize doc_type
     # from bytestream
-    doc = Document(fobj=io.BytesIO(doc_str))
-    doc.document_type
+    if doc.magic_library_available():
+        source = None
+    else:
+        source = file_name
+
+    doc = Document(fobj=io.BytesIO(doc_str), source=source)
+    assert doc.document_type == doctype
     doc.run_pipeline_fast()
     assert doc._cache_hits >= 0
 
     # from bytes
-    doc = Document(fobj=doc_str)
-    doc.document_type
+    doc = Document(fobj=doc_str, source=source)
+    assert doc.document_type == doctype
     doc.run_pipeline_fast()
     assert doc._cache_hits >= 0
 
@@ -135,15 +142,16 @@ def test_all_documents():
 
 
 def test_table_extraction():
-    doc = Document(fobj=make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"))
+    fpath = make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf")
+    doc = Document(fobj=fpath)
     metrics = [t.metrics_X for t in doc.x("table_candidates") if t.is_valid]
     assert len(metrics) == 2
     assert doc.x("tables_df")[0].shape == (10, 2)
     assert doc.x("tables_df")[1].shape == (14, 2)
 
-    with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:
+    with open(fpath, "rb") as file:
         doc_str = file.read()
-    doc = Document(fobj=doc_str)
+    doc = Document(fobj=doc_str, source=None if Document.magic_library_available() else fpath)
     metrics = [t.metrics_X for t in doc.x("table_candidates") if t.is_valid]
     assert len(metrics) == 2
     assert doc.x("tables_df")[0].shape == (10, 2)
@@ -242,6 +250,7 @@ def test_pipeline_graph():
             document_logic_id=k
         )
 
+
 def test_documentation_generation():
     doc = Document
     docs = doc.pipeline_docs()
@@ -264,16 +273,18 @@ Pipeline visualizations for every supported file type can be found
 
 
 def test_pipeline_configuration():
-    with open(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"), "rb") as file:
-        doc_str = file.read()
-    doc = Document(fobj=doc_str).config(qam_model_id='deepset/roberta-base-squad2')
+    doc = Document(fobj=make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf")).config(
+        qam_model_id='deepset/roberta-base-squad2')
     ans = doc.x('answers')(questions=('what is the address?',))
     # doc.config(qam_model_id='some_model_that_doesn_t_exist')
     # ans = doc.x('answers')(questions=('what is the address?',))
 
 
 def test_url_download():
-    doc = Document("https://www.raspberrypi.org/app/uploads/2012/12/quick-start-guide-v1.1.pdf")
+    doc = Document(
+        "https://www.raspberrypi.org/app/uploads/2012/12/quick-start-guide-v1.1.pdf",
+        document_type="auto" if Document.magic_library_available() else 'application/pdf'
+    )
     # doc = Document(fobj=make_path_absolute("./data/alan_turing.txt"))
     # doc = run_single_non_interactive_document_test("./data/alan_turing.txt")
     assert doc.x("tables_df")[0].shape == (8, 3)
@@ -320,8 +331,11 @@ def test_summarization():
     doc.configuration
     doc.full_text
     doc.keywords
-    summary = doc.summary
-    assert summary == 'Pydoxtools is a library that provides a sophisticated interface for reading and writing documents. It is designed to work with AI models such as Alpaca, Huggingface, and HuggingFace. The library allows for the creation of complex extraction pipelines for complex data extraction pipelines.'
+    summary = doc.slow_summary
+    # check if certain keywords appear in the summary
+    wn = [w for w in {"Pydoxtools", "library", "AI", "Pipeline", "table", "pdf", "documents"}
+          if w.lower() in summary.lower()]
+    assert len(wn) > 6
 
     doc = Document(fobj=make_path_absolute("../README.md")).config(spacy_model_size='md')
     doc.keywords
@@ -442,12 +456,9 @@ def test_nlp_utils():
 
 
 if __name__ == "__main__":
-    test_document_type_detection()
     test_pipeline_graph()
 
-    import pandas as pd
-
-    #a = pd.DataFrame(sd.sents)
-    #a[2]
+    # a = pd.DataFrame(sd.sents)
+    # a[2]
 
     pass

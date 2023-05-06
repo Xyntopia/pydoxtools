@@ -13,18 +13,18 @@ from typing import Dict, List, Tuple, Callable
 import torch
 
 from pydoxtools import nlp_utils
-from pydoxtools.list_utils import iterablefyer
-from pydoxtools.nlp_utils import tokenize_windows, QandAmodels
 from pydoxtools.document_base import Operator
+from pydoxtools.list_utils import iterablefyer
+from pydoxtools.nlp_utils import tokenize_windows
 
 logger = logging.getLogger(__name__)
 
 
-def answer_questions_on_long_text(questions, text, nlp_context) -> Dict[str, List[Tuple[str, float]]]:
+def answer_questions_on_long_text(questions, text, model_id) -> Dict[str, List[Tuple[str, float]]]:
     all_answers = {}
     for q in questions:
         answers = long_text_question(
-            q, text, nlp_context.tokenizer, nlp_context.model)
+            q, text, model_id=model_id)
         all_answers[q] = sorted(answers, key=lambda x: -x[1])
 
     return all_answers
@@ -75,13 +75,14 @@ def get_topk_answers(answer_start_scores, answer_end_scores,
     return answers
 
 
-def long_text_question(question, text, tokenizer, model):
+def long_text_question(question, text, model_id: str):
     max_len = 512  # maximum possble input for BERT and other transformers
+    model, tokenizer = nlp_utils.load_qa_models(model_id=model_id)
     q_inputs = tokenizer(question, add_special_tokens=False, return_tensors="pt")
     q_len = q_inputs.input_ids.shape[1]
     max_txt_len = max_len - q_len - 3  # -1, because the [CLS] token from q_len will get truncated
     win_tokens, win_toktxt = tokenize_windows(
-        text, tokenizer, win_len=max_txt_len, overlap=50, max_len=512,
+        text, model_id, win_len=max_txt_len, overlap_ratio=0.1, max_len=512,
         add_special_tokens=False)
 
     q_tokens = q_inputs.input_ids[0].tolist()
@@ -158,8 +159,6 @@ class QamExtractor(Operator):
 """
 
     def __call__(self, property_dict: Callable, trf_model_id: str = None):
-        nlpc = QandAmodels(trf_model_id)
-
         @functools.lru_cache
         def qa_machine(
                 questions: list[str] | str,
@@ -175,7 +174,7 @@ class QamExtractor(Operator):
             # TODO: sort answers regarding threshold
             text = str(data)
             questions = iterablefyer(questions)
-            allanswers = answer_questions_on_long_text(questions, text, nlpc)
+            allanswers = answer_questions_on_long_text(questions, text, model_id=trf_model_id)
             answers = list(allanswers.values())
             return answers
 

@@ -16,9 +16,7 @@ import readability
 from bs4 import BeautifulSoup, NavigableString
 from goose3 import Goose
 
-import pydoxtools.document_base
 import pydoxtools.operators_base
-from pydoxtools import document_base
 from pydoxtools import html_utils
 from pydoxtools.html_utils import logger, clean_html
 
@@ -198,6 +196,8 @@ class HtmlExtractor(pydoxtools.document_base.Operator):
         self._engine = engine
 
     def __call__(self, raw_html: str, url: str = ""):
+        url = str(url)
+
         if self._engine == "combined":
             try:  # try to unescape html its ok if it doesn't work
                 raw_html = html.unescape(raw_html)

@@ -454,26 +454,6 @@ def convert_ids_to_string(model_id: str, ids):
     return tokenizer.convert_tokens_to_string(a)
 
 
-# TODO: get rid of this...
-# we are creating a factory here as our tranformers vector calculation is stateful
-# and we need a specific class for this..
-# @Language.factory("my_component", default_config={"some_setting": True})
-# def my_component(nlp, name, some_setting: bool):
-#    return MyComponent(some_setting=some_setting)
-class NLPContext(BaseModel):
-    # doesn't work with trasformers yet because AutoTokenizer/Model
-    # are converted into the respective model classes which don't inherit from Autotokenizer...
-    # TODO: find a potential base class?
-    # TODO: generalize this class with nlp_utils loading models...
-    tokenizer: Any  # transformers.AutoTokenizer
-    model: Any  # transformers.AutoModel
-    capabilities: set[str] = []  # model capabilities e.g. "qam"  or "ner"
-
-    class Config:
-        # we need this as pydantic doesn't have validators for transformers models
-        arbitrary_types_allowed = True
-
-
 @functools.lru_cache()
 def load_pipeline(pipeline_type: str, model_id: str):
     from transformers import pipeline
@@ -482,7 +462,7 @@ def load_pipeline(pipeline_type: str, model_id: str):
 
 
 @functools.lru_cache()
-def QandAmodels(model_id: str):
+def load_qa_models(model_id: str):
     # TODO: only load model "id" and use that id
     #        with transformers AutoModel etc...
     logger.info(f"loading Q & A model and tokenizer {model_id}")
@@ -491,7 +471,7 @@ def QandAmodels(model_id: str):
     tokenizer = load_tokenizer(model_id)
     model = AutoModelForQuestionAnswering.from_pretrained(model_id)
     logger.info(f"finished loading Q & A models... {model_id}")
-    return NLPContext(tokenizer=tokenizer, model=model)
+    return model, tokenizer
 
 
 def get_model_max_len(model):
