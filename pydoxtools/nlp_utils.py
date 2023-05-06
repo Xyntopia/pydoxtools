@@ -214,12 +214,26 @@ def longtxt_embeddings(
         status_bar: bool = False
 ) -> tuple[np.ndarray, list[str]]:
     """
-    generate wordpiece embeddings (pseudo-syllables) using transformer model
-    and text windowing. The individual windows are stitched
-    back together at the and by averaging their values in the overlapped areas.
+    Generate wordpiece embeddings using a transformer model and text windowing.
 
-    TODO: add option to cancel embeddings generation afte a certain
-          number of windows to make sure it finishes in a guaranteed time
+    This function generates wordpiece embeddings (pseudo-syllables) using a transformer model
+    and text windowing. The individual windows are stitched back together by averaging their
+    values in the overlapped areas.
+
+    Args:
+        txt (str): Input text for generating embeddings.
+        model_id (str): Model ID for the transformer model to be used.
+        overlap_ratio (float, optional): Ratio of overlapping tokens between consecutive windows. Default is 0.1.
+        longtextcap (bool, optional): Limit the number of tokenized windows to 100. Default is True.
+        status_bar (bool, optional): Display a progress bar for long-lasting transformations. Default is False.
+
+    Returns:
+        Tuple[np.ndarray, List[str]]: A tuple containing the generated embeddings and tokenized text.
+
+    Todo:
+        Add an option to cancel embeddings generation after a certain number of windows to ensure
+        it finishes within a guaranteed time.
+
     """
     max_len = get_model_max_len(load_model(model_id=model_id))
     overlap = int(max_len * overlap_ratio)
