@@ -88,22 +88,37 @@ and utilize AI models for more advanced analysis.
 
 ### Large pipelines
 
-Pydoxtools main feature is the ability to mix LLMs and other
-AI models in large, composable and customizable pipelines.
-As a teaser, check out this pipeline for *.png images from the repository including
-OCR, keyword extraction, vectorization and more. In this pipeline:
+## Some Features in More Detail
+
+### Large Pipelines
+
+Pydoxtools' main feature is the ability to mix LLMs and other
+AI models in large, composable, and customizable pipelines.
+Using pipelines comes with the slight disadvantage that it
+can be more challenging to add type hints to the code.
+However, using pipelines decouples all parts of your code,
+allowing all operators to work independently. This
+makes it easy to run the pipeline in a distributed setting for big data
+and enables easy, lazy evaluation. Additionally,
+mixing different LLM logics together becomes much easier.
+
+Check out how Pydoxtools' `Document` class mixes pipelines for each individual file type:
 
 - Every node in an ellipse can be called as an attribute of the document-analysis pipeline.
-- Every execution-path is lazily executed throughout the entire graph.
-- Every node is cached by default (can be turned off).
+- Every execution path is lazily executed throughout the entire graph.
+- Every node is cached by default (but can be turned off).
 - Every piece of this pipeline can be replaced by a customized version.
 
-<img src="http://pydoxtools.xyntopia.com/images/document_logic_png.svg" width="500">
+As an example, consider this pipeline for *.png images from the repository,
+which includes OCR, keyword extraction, vectorization, and more:
 
-Pipelines can be mixed, partially overwritten and extended which gives you a lot of possibilities
-to extend and adapt the functionality for your specific use-case.
+![png pipeline](http://pydoxtools.xyntopia.com/images/document_logic_png.svg)
 
-Find out more about it in the [documentation](http://pydoxtools.xyntopia.com/reference/#pydoxtools.document.Document)
+Pipelines can be mixed, partially overwritten, and extended, giving you a lot of possibilities
+to extend and adapt the functionality for your specific use case.
+
+To learn more about Pydoxtools' large pipelines feature, please refer to
+the [documentation](http://pydoxtools.xyntopia.com/reference/#pydoxtools.document.Document).
 
 #### Pipeline Configuration
 
