@@ -493,11 +493,11 @@ operations and include the documentation there. Lambda functions should not be u
             # TODO: make sure we can set the model that we want to use dynamically!
             Configuration(qam_model_id='deepset/minilm-uncased-squad2'),
             QamExtractor()
-            .pipe("property_dict", trf_model_id="qam_model_id").out("answers").cache(),
+            .pipe(property_dict="to_dict", trf_model_id="qam_model_id").out("answers").cache(),
 
             ########### Chat AI ##################
             Configuration(openai_chat_model_id="gpt-3.5-turbo"),
-            OpenAIChat().pipe("property_dict", model_id="openai_chat_model_id")
+            OpenAIChat().pipe(property_dict="to_dict", model_id="openai_chat_model_id")
             .out("chat_answers").cache()
         ]
     }
