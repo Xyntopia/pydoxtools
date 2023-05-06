@@ -692,9 +692,13 @@ operations and include the documentation there. Lambda functions should not be u
             # fall back to using the extension itself
             if detected_filepath or self.source:
                 mimetype, encoding = mimetypes.guess_type(detected_filepath or self.source, strict=False)
-            return mimetype, detected_filepath
-        else:
-            return mimetype, detected_filepath
+
+        # do a mapping to standardize file type detection a bit more:
+        mimetype = {
+            'application/rtf': 'text/rtf'
+        }.get(mimetype, mimetype)
+
+        return mimetype, detected_filepath
 
     # TODO: implement a logic on what to do if
     #       mimetypes and magic don't agree'

@@ -19,6 +19,7 @@ logging.getLogger("pydoxtools.document").setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 
 test_files_w_type = {
+    "text/rtf": "./data/sample.rtf",
     "text/markdown": ["./data/demo.md",
                       "../README.md", ],
     "application/pdf": ["./data/PFR-PR23_BAT-110__V1.00_.pdf",
@@ -35,7 +36,6 @@ test_files_w_type = {
     # TODO: enable pptx
     # "./data/Doxcavator.pptx",
     "application/vnd.oasis.opendocument.text": "./data/test.odt",
-    "text/rtf": "./data/sample.rtf",
     "application/epub+zip": "./data/basic-v3plus2.epub",
     # images
     "image/png": "./data/north_american_countries.png",
@@ -442,6 +442,7 @@ def test_nlp_utils():
 
 
 if __name__ == "__main__":
+    test_document_type_detection()
     test_pipeline_graph()
 
     import pandas as pd
