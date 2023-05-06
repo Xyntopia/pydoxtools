@@ -785,8 +785,9 @@ class DocumentBag(Pipeline):
             LambdaOperator(lambda x: x.dict())
             .pipe(x="source")
             .out("sql", "connection_string", "index_column").cache(),
+            Configuration(bytes_per_chunk="256 MiB"),
             SQLTableLoader()
-            .pipe("sql", "connection_string", "index_column").out("dataframe").cache(),
+            .pipe("sql", "connection_string", "index_column", "bytes_per_chunk").out("dataframe").cache(),
             LambdaOperator(lambda x: x.to_bag(index=True, format="dict"))
             .pipe(x="dataframe")
             .out("bag").cache(),

@@ -37,12 +37,15 @@ class SQLTableLoader(Operator):
     Load a table using dask/pandas read_sql
     """
 
-    def __call__(self, connection_string: str, sql: str, index_column: str) -> dataframe:
+    def __call__(
+            self, connection_string: str, sql: str, index_column: str,
+            bytes_per_chunk: str
+    ) -> dataframe:
         # tables = pd.read_sql("SELECT * FROM information_schema.tables", connection_string)
         # users = pd.read_sql("users", connection_string)
         # data = pd.read_sql(sql, connection_string)
         # TODO: read in a test row, find out what the index column is and use that automatically
-        df = dataframe.read_sql_table(sql, connection_string, index_column)
+        df = dataframe.read_sql_table(sql, connection_string, index_column, bytes_per_chunk=bytes_per_chunk)
         # npartitions=10, index_col='id'
         # we are not specifying the npartitions or divisions argument
         # so that dask automatically reduces the memory footprint for every partition
