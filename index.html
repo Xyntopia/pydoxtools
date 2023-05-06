@@ -423,7 +423,7 @@
 <p>The main interface that pydoxtools uses are three classes:</p>
 <ul>
 <li><a class="autorefs autorefs-internal" href="reference/#pydoxtools.document.Document">pydoxtools.Document</a></li>
-<li><a class="autorefs autorefs-internal" href="reference/#pydoxtools.document.DocumentSet">pydoxtools.DocumentSet</a></li>
+<li>[pydoxtools.DocumentSet][]</li>
 <li><a class="autorefs autorefs-internal" href="reference/#pydoxtools.document_base.Pipeline">pydoxtools.Pipeline</a></li>
 </ul>
 <p>And a set of operators:</p>
@@ -437,7 +437,7 @@ a set of documents. A list of all the "out-of-the-box" featurs for each pipeline
 can be found in:</p>
 <p>-&gt; <a href="pipelines">Pipelines</a></p>
 <p>In order for this to work, this library has the philosophy that <a class="autorefs autorefs-internal" href="reference/#pydoxtools.document.Document">Document</a>
-&amp; <a class="autorefs autorefs-internal" href="reference/#pydoxtools.document.DocumentSet">DocumentSet</a>
+&amp; [DocumentSet][pydoxtools.DocumentSet]
 should always automatically "know" how to organize information internally in a
 sensible way. Pydoxtools will try to keep memory &amp; CPU footprint
 as low as possible. This makes
@@ -453,11 +453,11 @@ modern pipelines involving the use of a lot of AI tools:</p>
 <li>they can be mixed, extended, (partially) overwritten with other pipelines</li>
 <li>they can export/import their data (yaml, json, python-dict),</li>
 <li>they can be configured &amp; optimized</li>
-<li>they can convert their data into <a class="autorefs autorefs-internal" href="reference/#pydoxtools.document.Document">pydoxtools.Document</a> and <a class="autorefs autorefs-internal" href="reference/#pydoxtools.document.DocumentSet">pydoxtools.DocumentSet</a></li>
+<li>they can convert their data into <a class="autorefs autorefs-internal" href="reference/#pydoxtools.document.Document">pydoxtools.Document</a> and [pydoxtools.DocumentSet][]</li>
 </ul>
 <p>Additionally, in order to develop a custom pipeline, pydoxtools has a large
 library of <a class="autorefs autorefs-internal" href="reference/#pydoxtools.operators">pydoxtools.operators</a> which can be used to build your custom pipeline.
-It usually makes sense to use <a class="autorefs autorefs-internal" href="reference/#pydoxtools.document.Document">pydoxtools.Document</a> or <a class="autorefs autorefs-internal" href="reference/#pydoxtools.document.DocumentSet">pydoxtools.DocumentSet</a>
+It usually makes sense to use <a class="autorefs autorefs-internal" href="reference/#pydoxtools.document.Document">pydoxtools.Document</a> or [pydoxtools.DocumentSet][]
 as a base for a new pipeline and only replace small parts of them in order to
 get desired custom functionality.</p>
 <h2 id="visualization-of-the-pipelines">Visualization of the Pipelines</h2>

@@ -363,13 +363,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pydoxtools.document.DocumentSet" class="md-nav__link">
-    DocumentSet
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#pydoxtools.document_base" class="md-nav__link">
     pydoxtools.document_base
   </a>
@@ -455,8 +448,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#pydoxtools.document_base.Pipeline.json" class="md-nav__link">
-    json()
+  <a href="#pydoxtools.document_base.Pipeline.get_configuration_names" class="md-nav__link">
+    get_configuration_names()
   </a>
   
 </li>
@@ -490,13 +483,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#pydoxtools.document_base.Pipeline.property_dict" class="md-nav__link">
-    property_dict()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#pydoxtools.document_base.Pipeline.run_pipeline" class="md-nav__link">
     run_pipeline()
   </a>
@@ -511,6 +497,27 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#pydoxtools.document_base.Pipeline.to_dict" class="md-nav__link">
+    to_dict()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pydoxtools.document_base.Pipeline.to_json" class="md-nav__link">
+    to_json()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pydoxtools.document_base.Pipeline.to_yaml" class="md-nav__link">
+    to_yaml()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#pydoxtools.document_base.Pipeline.x" class="md-nav__link">
     x()
   </a>
@@ -520,13 +527,6 @@
           <li class="md-nav__item">
   <a href="#pydoxtools.document_base.Pipeline.x_all" class="md-nav__link">
     x_all()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#pydoxtools.document_base.Pipeline.yaml" class="md-nav__link">
-    yaml()
   </a>
   
 </li>
@@ -640,13 +640,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pydoxtools.document.DocumentSet" class="md-nav__link">
-    DocumentSet
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#pydoxtools.document_base" class="md-nav__link">
     pydoxtools.document_base
   </a>
@@ -732,8 +725,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#pydoxtools.document_base.Pipeline.json" class="md-nav__link">
-    json()
+  <a href="#pydoxtools.document_base.Pipeline.get_configuration_names" class="md-nav__link">
+    get_configuration_names()
   </a>
   
 </li>
@@ -767,13 +760,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#pydoxtools.document_base.Pipeline.property_dict" class="md-nav__link">
-    property_dict()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#pydoxtools.document_base.Pipeline.run_pipeline" class="md-nav__link">
     run_pipeline()
   </a>
@@ -788,6 +774,27 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#pydoxtools.document_base.Pipeline.to_dict" class="md-nav__link">
+    to_dict()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pydoxtools.document_base.Pipeline.to_json" class="md-nav__link">
+    to_json()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pydoxtools.document_base.Pipeline.to_yaml" class="md-nav__link">
+    to_yaml()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#pydoxtools.document_base.Pipeline.x" class="md-nav__link">
     x()
   </a>
@@ -797,13 +804,6 @@
           <li class="md-nav__item">
   <a href="#pydoxtools.document_base.Pipeline.x_all" class="md-nav__link">
     x_all()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#pydoxtools.document_base.Pipeline.yaml" class="md-nav__link">
-    yaml()
   </a>
   
 </li>
@@ -1003,7 +1003,8 @@ the pipeline that should be used.</p>
                 <code>str | bytes | <span title="pathlib.Path">Path</span> | <span title="typing.IO">IO</span> | dict | list | set</code>
           </td>
           <td><p>The file object or data to load. Depending on the type of object passed:
-- If a string or bytes object: the object itself is the document.
+- If a string or bytes object: the object itself is the document. IN case of a bytes
+     object, the source helps in determining the filetype through file endings.
 - If a string representing a URL: the document will be loaded from the URL.
 - If a pathlib.Path object: load the document from the path.
 - If a file object: load the document from the file object (e.g., bytestream).
@@ -1140,60 +1141,6 @@ TODO add a doc-type extractor using for example python-magic</p>
 
 </div>
 
-<div class="doc doc-object doc-class">
-
-
-
-<h2 id="pydoxtools.document.DocumentSet" class="doc doc-heading">
-        <code>DocumentSet</code>
-
-
-</h2>
-
-
-  <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="pydoxtools.document_base.Pipeline" href="#pydoxtools.document_base.Pipeline">Pipeline</a></code></p>
-
-  
-      <p><strong>This class is WIP use with caution</strong></p>
-<p>This class loads an entire set of documents and processes
-it using a pipeline.</p>
-<p>In order to fit into memory we are making extensive use of dask bags to
-store and make calculations on documents.</p>
-<p>For more information check the documentation for dask bags
-<a href="https://docs.dask.org/en/stable/bag.html">-&gt;here&lt;-</a>.</p>
-<p>This has the added benefit that one can use dask dataframes out of the box
-for downstream calculations!!</p>
-<p>This class is still experimental. Expect more documentation in
-the near future.</p>
-<p>This class is developed to do work on larger-than-memory datasets and
-scale LLM &amp; AI inference to very large workloads.</p>
-<p>This class makes mostly use of iterative dask bags &amp; dataframes
-to avoid out-of-memory problems.</p>
-
-
-
-  
-
-  <div class="doc doc-children">
-
-
-
-
-
-
-
-
-
-
-
-  </div>
-
-  </div>
-
-</div>
-
 
 
 
@@ -1298,7 +1245,7 @@ operator functions by their "out-key" which was defined in _operators.</p></td>
 
 
 <h3 id="pydoxtools.document_base.Pipeline.configuration" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">configuration</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span></code>
+<code class="highlight language-python"><span class="n">configuration</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-property"><code>property</code></small>
@@ -1309,7 +1256,7 @@ operator functions by their "out-key" which was defined in _operators.</p></td>
 
   <div class="doc doc-contents ">
   
-      <p>Gets all configuration objects of the pipeline and merges them into a single dictionary.</p>
+      <p>Returns a dictionary of all configuration objects for the current pipeline.</p>
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -1322,10 +1269,9 @@ operator functions by their "out-key" which was defined in _operators.</p></td>
     <tbody>
         <tr>
 <td><code>dict</code></td>          <td>
-                <code>dict[str, <span title="typing.Any">Any</span>]</code>
           </td>
-          <td><p>A dictionary containing the merged configuration objects of the pipeline, with keys as
-  the configuration names and values as the configuration objects.</p></td>
+          <td><p>A dictionary containing the names and values of all configuration objects
+  for the current pipeline.</p></td>
         </tr>
     </tbody>
   </table>
@@ -1341,7 +1287,6 @@ operator functions by their "out-key" which was defined in _operators.</p></td>
 <code class="highlight language-python"><span class="n">pipeline_chooser</span><span class="p">:</span> <span class="nb">str</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
@@ -1628,8 +1573,6 @@ functions to store intermediate results.</p></td>
   <div class="doc doc-contents ">
   
       <p>Set configuration parameters for a pipeline.</p>
-<p>This method loops through all "operators.Configure" instances in the pipeline
-and assigns the provided configuration settings to them.</p>
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -1645,7 +1588,7 @@ and assigns the provided configuration settings to them.</p>
         <tr>
           <td><code>**configuration</code></td>
           <td>
-                <code>dict[str, <span title="typing.Any">Any</span>]</code>
+                <code><span title="typing.Any">Any</span></code>
           </td>
           <td><p>A dictionary of key-value pairs representing the configuration
 settings for the pipeline. Each key is a string representing the name
@@ -1689,8 +1632,368 @@ pipeline.config(param1=value1, param2=value2)</p>
 
 
 
-<h3 id="pydoxtools.document_base.Pipeline.json" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">json</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+<h3 id="pydoxtools.document_base.Pipeline.get_configuration_names" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_configuration_names</span><span class="p">(</span><span class="n">pipeline</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns a list of names of all configuration objects for a given pipeline.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>pipeline</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>The name of the pipeline to retrieve configuration objects from.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>list</code></td>          <td>
+                <code>list[str]</code>
+          </td>
+          <td><p>A list of strings containing the names of all configuration objects for the
+  given pipeline.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pydoxtools.document_base.Pipeline.non_interactive_pipeline" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">non_interactive_pipeline</span><span class="p">()</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>return all non-interactive extractors/pipeline nodes</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pydoxtools.document_base.Pipeline.pipeline_docs" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">pipeline_docs</span><span class="p">()</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns a formatted string containing the documentation for each pipeline operation in the class.</p>
+<p>This class method iterates through the pipeline operations, collects information about their
+output types and supported pipelines, and formats the documentation accordingly.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>str</code></td>          <td>
+          </td>
+          <td><p>A formatted string containing the documentation for each pipeline operation, including
+ operation name, usage, return type, and supported pipelines.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pydoxtools.document_base.Pipeline.pipeline_graph" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">pipeline_graph</span><span class="p">(</span><span class="n">image_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">document_logic_id</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Generates a visualization of the defined pipelines and optionally saves it as an image.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>image_path</code></td>
+          <td>
+                <code>str | pathlib.<span title="pathlib.Path">Path</span></code>
+          </td>
+          <td><p>File path for the generated image. If provided, the
+                                       generated graph will be saved as an image.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>document_logic_id</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>The document logic ID for which the pipeline graph should
+                               be generated. Defaults to "current".</p></td>
+          <td>
+                <code>&#39;*&#39;</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>AGraph</code></td>          <td>
+          </td>
+          <td><p>A PyGraphviz AGraph object representing the pipeline graph. This object can be
+    visualized or manipulated using PyGraphviz functions.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+<details class="notes">
+  <summary>Notes</summary>
+  <p>This method requires the NetworkX and PyGraphviz libraries to be installed.</p>
+</details>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pydoxtools.document_base.Pipeline.pre_cache" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">pre_cache</span><span class="p">()</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Pre-caches the results of all extractors that have caching enabled.</p>
+<p>This method iterates through the defined extractors and calls each one with caching enabled,
+storing the results for faster access in future calls.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>self</code></td>          <td>
+          </td>
+          <td><p>The instance of the class, allowing for method chaining.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pydoxtools.document_base.Pipeline.run_pipeline" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">run_pipeline</span><span class="p">(</span><span class="n">exclude</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Runs all extractors defined in the pipeline for testing or pre-caching purposes.</p>
+<p>!!IMPORTANT!!!  This function should normally not be used as the pipeline is lazily executed
+anyway.</p>
+<p>This method iterates through the defined extractors and calls each one, ensuring that the
+extractor logic is functioning correctly and caching the results if required.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pydoxtools.document_base.Pipeline.run_pipeline_fast" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">run_pipeline_fast</span><span class="p">()</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>run pipeline, but exclude long-running calculations</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pydoxtools.document_base.Pipeline.to_dict" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">to_dict</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns a dictionary that accumulates the properties given in <em>args or with a mapping in </em>*kwargs.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>*args</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>A variable number of strings, each representing a property name.</p></td>
+          <td>
+                <code>()</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>**kwargs</code></td>
+          <td>
+                <code>dict</code>
+          </td>
+          <td><p>A dictionary mapping property names (values) to custom keys (keys) for the
+             returned dictionary.</p></td>
+          <td>
+                <code>{}</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+<details class="note">
+  <summary>Note</summary>
+  <p>This function currently only supports properties that do not require any arguments, such as
+"full_text". Properties like "answers" that return a function requiring arguments cannot be
+used with this function.</p>
+</details>
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>dict</code></td>          <td>
+          </td>
+          <td><p>A dictionary with the accumulated properties and their values, using either the
+  property names or custom keys as specified in the input arguments.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pydoxtools.document_base.Pipeline.to_json" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">to_json</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 </h3>
 
@@ -1767,188 +2070,15 @@ used with this function.</p>
 
 
 
-<h3 id="pydoxtools.document_base.Pipeline.non_interactive_pipeline" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">non_interactive_pipeline</span><span class="p">()</span></code>
+<h3 id="pydoxtools.document_base.Pipeline.to_yaml" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">to_yaml</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 </h3>
 
 
   <div class="doc doc-contents ">
   
-      <p>return all non-interactive extractors/pipeline nodes</p>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h3 id="pydoxtools.document_base.Pipeline.pipeline_docs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">pipeline_docs</span><span class="p">()</span></code>
-  
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
-  </span>
-
-</h3>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Returns a formatted string containing the documentation for each pipeline operation in the class.</p>
-<p>This class method iterates through the pipeline operations, collects information about their
-output types and supported pipelines, and formats the documentation accordingly.</p>
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-<th>Name</th>        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-<td><code>str</code></td>          <td>
-          </td>
-          <td><p>A formatted string containing the documentation for each pipeline operation, including
- operation name, usage, return type, and supported pipelines.</p></td>
-        </tr>
-    </tbody>
-  </table>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h3 id="pydoxtools.document_base.Pipeline.pipeline_graph" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">pipeline_graph</span><span class="p">(</span><span class="n">image_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">document_logic_id</span><span class="o">=</span><span class="s1">&#39;current&#39;</span><span class="p">)</span></code>
-
-</h3>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Generates a visualization of the defined pipelines and optionally saves it as an image.</p>
-
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>image_path</code></td>
-          <td>
-                <code>str | pathlib.<span title="pathlib.Path">Path</span></code>
-          </td>
-          <td><p>File path for the generated image. If provided, the
-                                       generated graph will be saved as an image.</p></td>
-          <td>
-                <code>None</code>
-          </td>
-        </tr>
-        <tr>
-          <td><code>document_logic_id</code></td>
-          <td>
-                <code>str</code>
-          </td>
-          <td><p>The document logic ID for which the pipeline graph should
-                               be generated. Defaults to "current".</p></td>
-          <td>
-                <code>&#39;current&#39;</code>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-<th>Name</th>        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-<td><code>AGraph</code></td>          <td>
-          </td>
-          <td><p>A PyGraphviz AGraph object representing the pipeline graph. This object can be
-    visualized or manipulated using PyGraphviz functions.</p></td>
-        </tr>
-    </tbody>
-  </table>
-
-<details class="notes">
-  <summary>Notes</summary>
-  <p>This method requires the NetworkX and PyGraphviz libraries to be installed.</p>
-</details>
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h3 id="pydoxtools.document_base.Pipeline.pre_cache" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">pre_cache</span><span class="p">()</span></code>
-
-</h3>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Pre-caches the results of all extractors that have caching enabled.</p>
-<p>This method iterates through the defined extractors and calls each one with caching enabled,
-storing the results for faster access in future calls.</p>
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-<th>Name</th>        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-<td><code>self</code></td>          <td>
-          </td>
-          <td><p>The instance of the class, allowing for method chaining.</p></td>
-        </tr>
-    </tbody>
-  </table>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h3 id="pydoxtools.document_base.Pipeline.property_dict" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">property_dict</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
-
-</h3>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Returns a dictionary that accumulates the properties given in <em>args or with a mapping in </em>*kwargs.</p>
+      <p>Returns a dictionary that accumulates the properties given in <em>args or with a mapping in </em>*kwargs, and dumps the output as YAML.</p>
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2001,10 +2131,10 @@ used with this function.</p>
     </thead>
     <tbody>
         <tr>
-<td><code>dict</code></td>          <td>
+<td><code>str</code></td>          <td>
           </td>
-          <td><p>A dictionary with the accumulated properties and their values, using either the
-  property names or custom keys as specified in the input arguments.</p></td>
+          <td><p>A YAML-formatted string representing the accumulated properties and their values, using
+ either the property names or custom keys as specified in the input arguments.</p></td>
         </tr>
     </tbody>
   </table>
@@ -2017,48 +2147,8 @@ used with this function.</p>
 
 
 
-<h3 id="pydoxtools.document_base.Pipeline.run_pipeline" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">run_pipeline</span><span class="p">(</span><span class="n">exclude</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
-
-</h3>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Runs all extractors defined in the pipeline for testing or pre-caching purposes.</p>
-<p>!!IMPORTANT!!!  This function should normally not be used as the pipeline is lazily executed
-anyway.</p>
-<p>This method iterates through the defined extractors and calls each one, ensuring that the
-extractor logic is functioning correctly and caching the results if required.</p>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h3 id="pydoxtools.document_base.Pipeline.run_pipeline_fast" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">run_pipeline_fast</span><span class="p">()</span></code>
-
-</h3>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>run pipeline, but exclude long-running calculations</p>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
 <h3 id="pydoxtools.document_base.Pipeline.x" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">x</span><span class="p">(</span><span class="n">extract_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">x</span><span class="p">(</span><span class="n">operator_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 </h3>
 
@@ -2079,7 +2169,7 @@ extractor logic is functioning correctly and caching the results if required.</p
     </thead>
     <tbody>
         <tr>
-          <td><code>extract_name</code></td>
+          <td><code>operator_name</code></td>
           <td>
                 <code>str</code>
           </td>
@@ -2181,83 +2271,6 @@ extractor logic is functioning correctly and caching the results if required.</p
           </td>
           <td><p>A dictionary containing the results of all extractors, with keys as the extractor
   names and values as the corresponding results.</p></td>
-        </tr>
-    </tbody>
-  </table>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h3 id="pydoxtools.document_base.Pipeline.yaml" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">yaml</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
-
-</h3>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Returns a dictionary that accumulates the properties given in <em>args or with a mapping in </em>*kwargs, and dumps the output as YAML.</p>
-
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>*args</code></td>
-          <td>
-                <code>str</code>
-          </td>
-          <td><p>A variable number of strings, each representing a property name.</p></td>
-          <td>
-                <code>()</code>
-          </td>
-        </tr>
-        <tr>
-          <td><code>**kwargs</code></td>
-          <td>
-                <code>dict</code>
-          </td>
-          <td><p>A dictionary mapping property names (values) to custom keys (keys) for the
-             returned dictionary.</p></td>
-          <td>
-                <code>{}</code>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-<details class="note">
-  <summary>Note</summary>
-  <p>This function currently only supports properties that do not require any arguments, such as
-"full_text". Properties like "answers" that return a function requiring arguments cannot be
-used with this function.</p>
-</details>
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-<th>Name</th>        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-<td><code>str</code></td>          <td>
-          </td>
-          <td><p>A YAML-formatted string representing the accumulated properties and their values, using
- either the property names or custom keys as specified in the input arguments.</p></td>
         </tr>
     </tbody>
   </table>
