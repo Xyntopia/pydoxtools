@@ -618,14 +618,12 @@ supports pipelines
         docs = '\n\n'.join(node_docs)
         return docs
 
-    def x(self, operator_name: str, *args, **kwargs) -> Any:
+    def x(self, operator_name: str) -> Any:
         """
         Calls an extractor from the defined pipeline and returns the result.
 
         Args:
             operator_name (str): The name of the extractor to be called.
-            *args: Variable-length argument list to be passed to the extractor.
-            **kwargs: Arbitrary keyword arguments to be passed to the extractor.
 
         Returns:
             Any: The result of the extractor after processing the document.
@@ -639,24 +637,26 @@ supports pipelines
         # override the operator if this instance has its own configuration
         if operator_name in self._configuration:
             return self._configuration[operator_name]
-        elif not (operator_functions := self.x_funcs.get(operator_name, None)):
+        elif not (operator_function := self.x_funcs.get(operator_name, None)):
             return self.__dict__[operator_name]  # choose the class' own properties as a fallback
 
         try:
             # check if we executed this function at some point...
-            if operator_functions._cache:
+            if operator_function._cache:
                 # TODO: implement our own key function in order
                 #       to be able to pickle the document cache!
-                key = functools._make_key((operator_functions,) + args, kwargs, typed=False)
+                #
+                # key = functools._make_key((operator_functions,)+args,kwargs, typed=False)
+                key = (operator_function,)
                 # we need to check for "is not None" as we also have pandas dataframes in this
                 # which cannot be checked for by simply using "if"
                 if (res := self._x_func_cache.get(key, None)) is not None:
                     self._cache_hits += 1
                 else:
-                    res = operator_functions._mapped_call(self, *args, **kwargs)
+                    res = operator_function._mapped_call(self)
                     self._x_func_cache[key] = res
             else:
-                res = operator_functions._mapped_call(self, *args, **kwargs)
+                res = operator_function._mapped_call(self)
 
         except OperatorException as e:
             logger.error(f"Extraction error in '{operator_name}': {e}")
@@ -666,6 +666,8 @@ supports pipelines
             raise OperatorException(f"could not get {operator_name} for {self}")
             # raise e
 
+        # TODO automatically wrap the result with functools.cache if
+        #      it is a callable. (or use our own cache decorator)
         return res[operator_name]
 
     def get(self, property: str, default_return: Any = None) -> Any:
@@ -841,11 +843,12 @@ supports pipelines
         logic = cls._pipelines[document_logic_id]
 
         for name, f in logic.items():
-            f_class = f.__class__.__name__ + "\n".join(f._out_mapping.keys())
+            f_class = "\n".join([f.__class__.__name__] + list(f._out_mapping.keys()))
+            name = f.__class__.__name__
             shape = "none"
             if isinstance(f, Configuration):
                 shape = "invhouse"
-            graph.add_node(f_class, shape=shape)
+            graph.add_node(f_class, shape=shape, label=name)
             # out-edges
             for k, v in f._out_mapping.items():
                 graph.add_node(v)  # , shape="none")
