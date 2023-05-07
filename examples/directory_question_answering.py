@@ -3,6 +3,7 @@ then answer questions about it"""
 
 import dask.bag
 
+from dask.diagnostics import ProgressBar
 from pydoxtools import DocumentBag
 
 dask.config.set(scheduler='synchronous')  # overwrite default with single-threaded scheduler for debugging
@@ -15,21 +16,11 @@ ds = DocumentBag(
         '/__pycache__/', '.pytest_cache/'
     ])
 
-# ds.take(10)
+#ds = DocumentBag(['../README.md', '../DEVELOPMENT.md'])
 
-ds = DocumentBag(['../README.md','../DEVELOPMENT.md'])
-#ds = DocumentBag(['../README.md'])
-#ds.bag.take(1)
-#ds.file_path_list.take(1)
-#ds.dir_list.take(1)
-#ds.docs.take(1)[0].full_text
-ds.pipeline_chooser
-ds.docs.take(10)
-ds.e('text_segments').docs#.flatten().compute()
-ds.e('text_segments').compute()
+idx = ds.e('text_segments')
 
-d = ds.docs.take(1)[0]
-getattr(d,"document_type")
-#d['embedding']
-#d.x('embeddings')
-#d.get('embedding')
+with ProgressBar():
+    idx.compute_index(10) # remove number to calculate for all files!
+
+idx.query_chroma("How to contribute to this library?")

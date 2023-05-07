@@ -212,20 +212,20 @@ class ChromaIndexFromBag(Operator):
                 ids=[item["source"]]
             )
 
-        # we are returning a function which does the calculation for all elements
-        # bot also leaves the option to only do a small subset for testing purposes
-        @functools.lru_cache
-        def create_index(num=0):
-            if num:
-                idx_bag.map(add_to_chroma).take(num)
-            else:
-                idx_bag.map(add_to_chroma).compute()
-            return chroma_index
-
         @functools.lru_cache()
         def query_chroma(query: str):
             query_embedding = query_vectorizer(query)
             res = chroma_index.query(query_embedding.tolist())
             return res
 
-        return dict(chroma_index=chroma_index, create_index=create_index, query_chroma=query_chroma)
+        # we are returning a function which does the calculation for all elements
+        # bot also leaves the option to only do a small subset for testing purposes
+        @functools.lru_cache
+        def compute_index(num=0):
+            if num:
+                idx_bag.map(add_to_chroma).take(num)
+            else:
+                idx_bag.map(add_to_chroma).compute()
+            return chroma_index
+
+        return dict(chroma_index=chroma_index, compute_index=compute_index, query_chroma=query_chroma)

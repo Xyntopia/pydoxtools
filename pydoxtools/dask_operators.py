@@ -4,8 +4,7 @@ from typing import Callable
 import dask.bag
 from dask import dataframe
 
-from pydoxtools.document_base import Operator
-from pydoxtools.operators_base import forgiving_extract
+from pydoxtools.document_base import Operator, OperatorException, Pipeline
 
 
 class BagMapOperator(Operator):
@@ -38,8 +37,30 @@ class BagPropertyExtractor(Operator):
     """
 
     def __call__(self, dask_bag: dask.bag.Bag) -> Callable[[Any], dask.bag.Bag]:
+        def forgiving_extract(doc: Pipeline, properties: list[str]) -> dict[str, Any]:
+            # TODO: add option to this operator to use it as a "forgiving" extractor
+            # TODO: it might be a good idea to move this directly into the pipeline as "forgiving_dict"?
+            try:
+                props = doc.to_dict(*properties)
+            except OperatorException:
+                # we just continue  if an error happened. This is why we are "forgiving"
+                props = {"Error": "OperatorException"}
+
+            if len(properties) == 1:
+                return props[properties[0]]
+            else:
+                return props
+
+        def extract(doc: Pipeline, properties: list[str]) -> dict[str, Any]:
+            props = doc.to_dict(*properties)
+
+            if len(properties) == 1:
+                return props[properties[0]]
+            else:
+                return props
+
         def safe_extract(*properties: list[str] | str) -> dask.bag.Bag:
-            return dask_bag.map(forgiving_extract, properties=properties)
+            return dask_bag.map(extract, properties=properties)
 
         return safe_extract
 

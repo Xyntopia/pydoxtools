@@ -306,18 +306,6 @@ operations and include the documentation there. Lambda functions should not be u
                 columns=["text"]
             )).pipe(x="data").out("text_box_elements").cache(),
             Alias(text_segments="text_box_list"),
-            # TODO: maybe we should declare a dedicated class for this ;)?
-            #       Problem is: we do not want the Document class in an
-            #       external operator
-            # TODO: remove this, this should only pe part of DocumentBag
-            #       if we access the data directly with DocumentBag through
-            #       and element-wise operator, this should be easy...
-            LambdaOperator(lambda x, s, c: functools.cache(
-                lambda *y: Document({k: x[k] for k in y}, source=s).config(**c)))
-            .pipe(x="data", s="source", c="configuration").out("data_doc").cache().docs(
-                "Create new data document from a subset of the data. The new document will have"
-                "the same source as the original one."
-            ),
             LambdaOperator(lambda x: x.keys())
             .pipe(x="data").out("keys").no_cache(),
             LambdaOperator(lambda x: x.values())
@@ -929,9 +917,10 @@ class DocumentBag(Pipeline):
             .pipe(dc="doc_configuration").out("vectorizer").cache(),
             ChromaIndexFromBag()
             .pipe(query_vectorizer="vectorizer", idx_bag="idx_dict")
-            .out("chroma_index", "create_index", "query_chroma").cache().docs(
+            .out("chroma_index", "compute_index", "query_chroma").cache().docs(
                 "in order to build an index in chrome db we need a key, text, embeddings and a key."
                 " Those come from a daskbag with dictionaries with those keys."
+                " Caching is important here in order to retain the index"
             )
         ],
         # TODO: add "fast, slow, medium" pipelines..  e.g. with keywords extraction as fast
@@ -969,13 +958,7 @@ class DocumentBag(Pipeline):
             .pipe(dask_bag="bag", c="doc_configuration").out("docs").cache().docs(
                 "create a bag with one document for each file that was found"
                 "From this point we can hand off the logic to str(Bag) pipeline."),
-            # it is important here to use no_cache, as we need to re-create the iterator every
-            # time we want to use it...
-            # ForgivingExtractIterator(method="list")
-            # .pipe("docs").out("props_iterator").no_cache(),
-            # Iterator2Dataframe()
-            # .pipe(iterator="props_iterator").out("props_df").cache(),
-            # LambdaDocumentBuilder(),
+            # TODO: extract some metadata about files etc..  as a new DocumentBag or as a Document?!
             # LambdaOperator(
             #    lambda x: x([
             #        "filename",
@@ -989,8 +972,6 @@ class DocumentBag(Pipeline):
             #        "a_d_ratio",
             #        "language"]))
             # .pipe(x="props_iterator").out("meta_data_iterator").no_cache(),
-            # LambdaOperator(lambda x: x)
-            # .pipe(x="props_iterator").out("file_stats").cache(),
             # DataMerger()
             # .pipe(root_dir="_source")
             # .out(joint_data="meta_data").cache()
@@ -1005,17 +986,18 @@ class DocumentBag(Pipeline):
             exclude: list[str] = None,
             max_documents: int = None,
     ):
+        # TODO: add "overwrite" parameter where we basically say that DocumentBag should
+        #       automatically overwrite configurations of documents it creates
         super().__init__()
         self._exclude = exclude or []
         # TODO: _pipeline isn't used yet
         self._pipeline = pipeline or "directory"
         self._max_documents = max_documents
 
+        self._source = source
         if isinstance(source, str):
             if Path(source).exists():
                 self._source = Path(source)
-
-        self._source = source
 
     @cached_property
     def source(self):
