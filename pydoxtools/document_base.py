@@ -668,6 +668,26 @@ supports pipelines
 
         return res[operator_name]
 
+    def __getitem__(self, extract_name) -> Any:
+        """
+        Retrieves an extractor result by directly accessing it as an attribute.
+
+        This method is automatically called for attribute names that
+        aren't defined on class level, allowing for a convenient
+        way to access pipeline operator outputs without needing to call the 'x' method.
+
+        Example:
+            >>> document["addresses"]
+            instead of document.x('addresses')
+
+        Args:
+            extract_name (str): The name of the extractor result to be accessed.
+
+        Returns:
+            Any: The result of the extractor after processing the document.
+        """
+        return self.x(extract_name)
+
     def __getattr__(self, extract_name) -> Any:
         """
         Retrieves an extractor result by directly accessing it as an attribute.
