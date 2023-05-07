@@ -554,6 +554,48 @@ return type
 supports pipelines
 : *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
+### min_size_text_segment
+
+Can be called using:
+
+    doc.x('min_size_text_segment')
+    # or
+    doc.min_size_text_segment
+
+return type
+: 
+
+supports pipelines
+: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+
+### max_size_text_segment
+
+Can be called using:
+
+    doc.x('max_size_text_segment')
+    # or
+    doc.max_size_text_segment
+
+return type
+: 
+
+supports pipelines
+: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+
+### text_segment_overlap
+
+Can be called using:
+
+    doc.x('text_segment_overlap')
+    # or
+    doc.text_segment_overlap
+
+return type
+: 
+
+supports pipelines
+: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+
 ### text_segments
 
 Can be called using:

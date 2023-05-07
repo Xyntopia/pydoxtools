@@ -5,7 +5,7 @@ import logging
 import mimetypes
 from functools import cached_property
 from pathlib import Path
-from typing import IO, Protocol, Any
+from typing import IO, Protocol, Any, Callable
 from urllib.parse import urlparse
 
 import dask.bag
@@ -742,9 +742,9 @@ operations and include the documentation there. Lambda functions should not be u
             str: A string representation of the instance.
         """
         if isinstance(self._source, str | bytes):
-            return f"{self.__module__}.{self.__class__.__name__}(source={self._source[:10]})"
+            return f"{self.__module__}.{self.__class__.__name__}(source={self.source[:10]})"
         else:
-            return f"{self.__module__}.{self.__class__.__name__}(source={self._source})"
+            return f"{self.__module__}.{self.__class__.__name__}(source={self.source})"
 
     """
     @property
@@ -785,7 +785,11 @@ class DocumentBagExtractor(Operator):
 
     """
 
-    def __call__(self, dask_bag: Bag, configuration: dict[str, Any]) -> callable:
+    def __init__(self, dask_bag_func: str = None):
+        super().__init__()
+        self._dask_bag_func: str = dask_bag_func
+
+    def __call__(self, dask_bag: Bag, configuration: dict[str, Any]) -> Callable[..., "DocumentBag"]:
         """we have several cases:
 
         - return a list of items (e.g. example list of text segments)
@@ -794,7 +798,7 @@ class DocumentBagExtractor(Operator):
         - return a callable (in which case we should call it with args & kwargs!)
         """
 
-        def x_single_prop(d: Document, property: str, *args, **kwargs) -> list[Document]:
+        def x_single_prop(d: Document, property: str) -> list[Document]:
             if isinstance(property, str):
                 fobjs = d.to_dict(property)[property]
                 new_docs = []
@@ -810,6 +814,8 @@ class DocumentBagExtractor(Operator):
 
         def inception_func(properties: list[str] | str, *args, **kwargs) -> DocumentBag:
             new_documents = dask_bag.map(x_single_prop, properties, *args, **kwargs)
+            if self._dask_bag_func:
+                new_documents = getattr(new_documents, self._dask_bag_func)()
             # make sure our new DocumentBag has the same configuration as the old one...
             db = DocumentBag(new_documents).config(**configuration)
             return db
@@ -914,23 +920,8 @@ class DocumentBag(Pipeline):
             # .pipe(dask_bag="dict_bag").out("docbag").cache(),
             dask_operators.BagPropertyExtractor()
             .pipe(dask_bag="docs").out("get_dicts").cache(),
-            # get a bag of data documents
-            # TODO: create the docs in DocumentBag and not from Document itself!!
-            # TODO: also delete the "data_doc" function from Document
-            #       and replace it with an element-wise operator here.
-            DocumentBagExtractor()
+            DocumentBagExtractor("flatten")
             .pipe("configuration", dask_bag="docs").out("e").cache(),
-            LambdaOperator(lambda docs_bag: lambda *props: docs_bag.map(
-                lambda d: d.data_doc(*props)))
-            .pipe(docs_bag="docs").out("get_datadocs").cache(),
-            LambdaOperator(lambda x, c: lambda *props: DocumentBag(x(*props)).config(**c))
-            .pipe(x="get_datadocs", c="configuration").out("get_data_docbag").cache().docs(
-                "Here, we create a new DocumentBag from a dask bag of documents."
-                " We are also setting the config again, so that it is consistent with the"
-                " original one. The documents already have the correct configuration"
-                " which they got on document creation with 'data_doc' in the previous"
-                " step 'get_datadocs'"
-            ),
             LambdaOperator(lambda get_dicts: get_dicts("source", "full_text", "embedding"))
             .pipe("get_dicts").out("idx_dict").cache(),
             # TODO: optionally add a custom chromadb as an argument.
@@ -949,7 +940,7 @@ class DocumentBag(Pipeline):
         str(list): [
             str(Path), str(Bag),
             # load all paths into a bag
-            LambdaOperator(lambda x: dask.bag.from_sequence(Path(p) for p in x))
+            LambdaOperator(lambda x: dask.bag.from_sequence((Path(p) for p in x), partition_size=10))
             .pipe(x="source").out("bag"),
             # filter for actual files
             dask_operators.BagFilterOperator(lambda it: it.is_file())

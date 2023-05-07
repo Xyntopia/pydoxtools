@@ -17,16 +17,19 @@ ds = DocumentBag(
 
 # ds.take(10)
 
-d = DocumentBag(['../README.md','../DEVELOPMENT.md'])
-d = DocumentBag(['../README.md'])
-d.bag.take(1)
-d.file_path_list.take(1)
-d.dir_list.take(1)
-d.docs.take(1)[0].full_text
-d.pipeline_chooser
+ds = DocumentBag(['../README.md','../DEVELOPMENT.md'])
+#ds = DocumentBag(['../README.md'])
+#ds.bag.take(1)
+#ds.file_path_list.take(1)
+#ds.dir_list.take(1)
+#ds.docs.take(1)[0].full_text
+ds.pipeline_chooser
+ds.docs.take(10)
+ds.e('text_segments').docs#.flatten().compute()
+ds.e('text_segments').compute()
 
-d.d.full_text
-d.d.text_segments
-d.sub_doc("text_segments")
-d.to_dict("text_segments")
-[len(t) for t in d.text_segments]
+d = ds.docs.take(1)[0]
+getattr(d,"document_type")
+#d['embedding']
+#d.x('embeddings')
+#d.get('embedding')
