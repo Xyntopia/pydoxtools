@@ -5,7 +5,7 @@ import logging
 import mimetypes
 from functools import cached_property
 from pathlib import Path
-from typing import IO, Protocol
+from typing import IO, Protocol, Any
 from urllib.parse import urlparse
 
 import dask.bag
@@ -20,7 +20,7 @@ from dask.bag import Bag
 from . import dask_operators
 from . import nlp_utils
 from .dask_operators import SQLTableLoader
-from .document_base import Pipeline, ElementType, Configuration
+from .document_base import Pipeline, ElementType, Configuration, Operator
 from .extract_classes import LanguageExtractor, TextBlockClassifier
 from .extract_filesystem import FileLoader
 from .extract_filesystem import PathLoader
@@ -599,7 +599,7 @@ operations and include the documentation there. Lambda functions should not be u
 
     @cached_property
     def source(self) -> str:
-        return self._source
+        return self._source or self.path
 
     @property
     def filename(self) -> str | None:
@@ -617,6 +617,8 @@ operations and include the documentation there. Lambda functions should not be u
 
     @property
     def document_type(self):
+        """This has to be done in a member function and not
+        in the pipeline, because the selection of the pipeline depends on this..."""
         # document type was overriden
         if self._document_type != "auto":
             return self._document_type
@@ -655,52 +657,54 @@ operations and include the documentation there. Lambda functions should not be u
 
         magic = Document.magic_library_available()
 
+        _fobj = self._fobj or self._source
+
         # if it works... now, check filetype using python-magic
-        if isinstance(self.fobj, (Path, str)):
-            fobj = Path(self.fobj)
+        if isinstance(_fobj, (Path, str)):
+            fobj = Path(_fobj)
             if self._document_type == "string":
                 mimetype = "string"
             elif fobj.is_file():  # check if we have an actual file here
                 if magic:
-                    mimetype = magic.from_file(self.fobj, mime=True)
+                    mimetype = magic.from_file(_fobj, mime=True)
                 detected_filepath = fobj
             else:
                 # if it's not a file, we take it as a string, but can be overwritten
                 # using the document_type variable during initialization
                 mimetype = "string"
-        elif isinstance(self.fobj, bytes):
+        elif isinstance(self._fobj, bytes):
             if magic:
-                mimetype = magic.from_buffer(self.fobj, mime=True)
+                mimetype = magic.from_buffer(self._fobj, mime=True)
             else:
-                logger.warning(f"no filetype specified for {self.source}")
-        elif isinstance(self.fobj, io.IOBase):  # might be a streaming object
+                logger.warning(f"no filetype specified for {self._source}")
+        elif isinstance(self._fobj, io.IOBase):  # might be a streaming object
             # TODO: there is probably a better way to check for many file io objects...
             if magic:
-                buffer = self.fobj.read(2048)
-                self.fobj.seek(0)  # reset pointer for downstream tasks
+                buffer = self._fobj.read(2048)
+                self._fobj.seek(0)  # reset pointer for downstream tasks
                 mimetype = magic.from_buffer(buffer, mime=True)
 
             try:
-                detected_filepath = Path(self.fobj.name)
+                detected_filepath = Path(self._fobj.name)
             except:
                 pass
-        elif isinstance(self.fobj, (dict, list, set)):
-            mimetype = str(type(self.fobj))
+        elif isinstance(self._fobj, (dict, list, set)):
+            mimetype = str(type(self._fobj))
         else:
-            mimetype = str(type(self.fobj))
+            mimetype = str(type(self._fobj))
 
         # do some more checks on problems that we have encountered when using "magic"
         if mimetype == "application/json":
             if buffer:
-                jsonstr = self.fobj.read()
-                self.fobj.seek(0)
+                jsonstr = self._fobj.read()
+                self._fobj.seek(0)
             elif detected_filepath:
-                with open(self.fobj, "r") as f:
+                with open(self._fobj, "r") as f:
                     # TODO: can we make this "lazy" basically throw anexception later, so that the document_type
                     #       can change iterativly?
                     jsonstr = f.read()
             else:
-                jsonstr = self.fobj
+                jsonstr = self._fobj
 
             try:
                 json.loads(jsonstr)
@@ -712,8 +716,8 @@ operations and include the documentation there. Lambda functions should not be u
         if mimetype == "text/plain":
             # it's hard to check for the actual filetype here with python magic, so we
             # fall back to using the extension itself
-            if detected_filepath or self.source:
-                mimetype, encoding = mimetypes.guess_type(detected_filepath or self.source, strict=False)
+            if detected_filepath or self._source:
+                mimetype, encoding = mimetypes.guess_type(detected_filepath or self._source, strict=False)
 
         # do a mapping to standardize file type detection a bit more:
         mimetype = {
@@ -738,9 +742,9 @@ operations and include the documentation there. Lambda functions should not be u
             str: A string representation of the instance.
         """
         if isinstance(self._source, str | bytes):
-            return f"{self.__module__}.{self.__class__.__name__}(source={self._source[:10] or self.filename})"
+            return f"{self.__module__}.{self.__class__.__name__}(source={self._source[:10]})"
         else:
-            return f"{self.__module__}.{self.__class__.__name__}(source={self._source or self.filename})"
+            return f"{self.__module__}.{self.__class__.__name__}(source={self._source})"
 
     """
     @property
@@ -758,6 +762,59 @@ operations and include the documentation there. Lambda functions should not be u
         ""
         return []
     """
+
+
+class DocumentBagExtractor(Operator):
+    """
+    This is our "Inception" operator. Basically it does an element-wise operation
+    on items in a dask bag and then creates a new DocumentSet from that.
+
+    We would like to create a new Documentset by doing this:
+
+
+    ds = DocumentSet(...)
+    ds2 = ds.map(lambda x: x.dict())  --> gives us ds2 as a new DocumentSet
+
+    or this one:
+
+    ds2 = ds.element_wise_op("property") --> als gives us ds2 as a new DocumentSet, but "easier"
+
+        or this one:
+
+    ds2 = ds.element_wise_op("method", *args, **kwargs) --> als gives us ds2 as a new DocumentSet but
+
+    """
+
+    def __call__(self, dask_bag: Bag, configuration: dict[str, Any]) -> callable:
+        """we have several cases:
+
+        - return a list of items (e.g. example list of text segments)
+        - return a single property (e.g. full_text)
+        - return multiple properties (e.g. we could put it in a dictionary)
+        - return a callable (in which case we should call it with args & kwargs!)
+        """
+
+        def x_single_prop(d: Document, property: str, *args, **kwargs) -> list[Document]:
+            if isinstance(property, str):
+                fobjs = d.to_dict(property)[property]
+                new_docs = []
+                if isinstance(fobjs, str):
+                    new_docs = [Document(fobjs, source=d.source, document_type="string").config(**d.configuration)]
+                elif isinstance(fobjs, list):
+                    for fobj in fobjs:
+                        d = Document(fobj, source=d.source, document_type="string").config(**d.configuration)
+                        new_docs.append(d)
+                else:
+                    NotImplemented(f"Can not yet create a document from {property}!")
+                return new_docs
+
+        def inception_func(properties: list[str] | str, *args, **kwargs) -> DocumentBag:
+            new_documents = dask_bag.map(x_single_prop, properties, *args, **kwargs)
+            # make sure our new DocumentBag has the same configuration as the old one...
+            db = DocumentBag(new_documents).config(**configuration)
+            return db
+
+        return inception_func
 
 
 class DatabaseSource(pydantic.BaseModel):
@@ -780,6 +837,8 @@ class DocumentBag(Pipeline):
     In order to fit into memory we are making extensive use of dask bags to
     store and make calculations on documents.
 
+    docs: is the property which gives access to all the dask bag functions
+
     For more information check the documentation for dask bags
     [->here<-](https://docs.dask.org/en/stable/bag.html).
 
@@ -794,6 +853,14 @@ class DocumentBag(Pipeline):
 
     This class makes mostly use of iterative dask bags & dataframes
     to avoid out-of-memory problems.
+
+    Why do we need this function?
+
+    --> we could also simply add documents to a dask bag and then use dask bag directly...
+        ... BUT that would mean "a lot" more boilerplate code creating new documents,
+        creating source chains for traceable datasources etc  etc...
+        So the main reason is that we want new bags of documents instead of just bags
+        of arbitrary data.
     """
 
     # make sure we can pass configurations to udnerlying documents!
@@ -851,6 +918,8 @@ class DocumentBag(Pipeline):
             # TODO: create the docs in DocumentBag and not from Document itself!!
             # TODO: also delete the "data_doc" function from Document
             #       and replace it with an element-wise operator here.
+            DocumentBagExtractor()
+            .pipe("configuration", dask_bag="docs").out("e").cache(),
             LambdaOperator(lambda docs_bag: lambda *props: docs_bag.map(
                 lambda d: d.data_doc(*props)))
             .pipe(docs_bag="docs").out("get_datadocs").cache(),
