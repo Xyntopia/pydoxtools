@@ -306,7 +306,12 @@ operations and include the documentation there. Lambda functions should not be u
                 columns=["text"]
             )).pipe(x="data").out("text_box_elements").cache(),
             Alias(text_segments="text_box_list"),
-            # TODO: maybe we should declare a new function for this ;)?
+            # TODO: maybe we should declare a dedicated class for this ;)?
+            #       Problem is: we do not want the Document class in an
+            #       external operator
+            # TODO: remove this, this should only pe part of DocumentBag
+            #       if we access the data directly with DocumentBag through
+            #       and element-wise operator, this should be easy...
             LambdaOperator(lambda x, s, c: functools.cache(
                 lambda *y: Document({k: x[k] for k in y}, source=s).config(**c)))
             .pipe(x="data", s="source", c="configuration").out("data_doc").cache().docs(
@@ -429,8 +434,17 @@ operations and include the documentation there. Lambda functions should not be u
             .pipe(x="tok_embeddings").out("embedding").cache(),
 
             ########### SEGMENT_INDEX ##########
+            Configuration(
+                min_size_text_segment=256,
+                max_size_text_segment=512,
+                text_segment_overlap=0.3
+            ).docs("controls the text segmentation for knowledge bases"
+                   "overlap is only relevant for large text segmenets that need to"
+                   "be split up into smaller pieces."),
             TextPieceSplitter()
-            .pipe(full_text="full_text").out("text_segments").cache(),
+            .pipe(min_size="min_size_text_segment", max_size="max_size_text_segment",
+                  large_segment_overlap="text_segment_overlap", full_text="full_text")
+            .out("text_segments").cache(),
             ElementWiseOperator(calculate_string_embeddings, return_iterator=False)
             .pipe(
                 elements="text_segments",
@@ -834,6 +848,9 @@ class DocumentBag(Pipeline):
             dask_operators.BagPropertyExtractor()
             .pipe(dask_bag="docs").out("get_dicts").cache(),
             # get a bag of data documents
+            # TODO: create the docs in DocumentBag and not from Document itself!!
+            # TODO: also delete the "data_doc" function from Document
+            #       and replace it with an element-wise operator here.
             LambdaOperator(lambda docs_bag: lambda *props: docs_bag.map(
                 lambda d: d.data_doc(*props)))
             .pipe(docs_bag="docs").out("get_datadocs").cache(),
@@ -841,7 +858,7 @@ class DocumentBag(Pipeline):
             .pipe(x="get_datadocs", c="configuration").out("get_data_docbag").cache().docs(
                 "Here, we create a new DocumentBag from a dask bag of documents."
                 " We are also setting the config again, so that it is consistent with the"
-                " original one. The documents already have the correct vonfiguration"
+                " original one. The documents already have the correct configuration"
                 " which they got on document creation with 'data_doc' in the previous"
                 " step 'get_datadocs'"
             ),
@@ -860,6 +877,18 @@ class DocumentBag(Pipeline):
         # TODO: add "fast, slow, medium" pipelines..  e.g. with keywords extraction as fast
         #       etc...
         # TODO: add a pipeline to add a summarizing description whats in every directory
+        str(list): [
+            str(Path), str(Bag),
+            # load all paths into a bag
+            LambdaOperator(lambda x: dask.bag.from_sequence(Path(p) for p in x))
+            .pipe(x="source").out("bag"),
+            # filter for actual files
+            dask_operators.BagFilterOperator(lambda it: it.is_file())
+            .pipe(dask_bag="bag").out("file_path_list"),
+            # filter for directories
+            dask_operators.BagFilterOperator(lambda it: it.is_dir())
+            .pipe(dask_bag="bag").out("dir_list")
+        ],
         str(Path): [
             str(Bag),
             # TODO:  add a string filter which can be used to filte paths & db entries
@@ -911,21 +940,22 @@ class DocumentBag(Pipeline):
 
     def __init__(
             self,
-            source: str | Path | DatabaseSource | Bag,  # can be sql information,
+            source: str | Path | DatabaseSource | Bag | list[str | Path],  # can be sql information,
             pipeline: str = None,
             exclude: list[str] = None,
             max_documents: int = None,
     ):
         super().__init__()
         self._exclude = exclude or []
+        # TODO: _pipeline isn't used yet
         self._pipeline = pipeline or "directory"
         self._max_documents = max_documents
 
         if isinstance(source, str):
             if Path(source).exists():
                 self._source = Path(source)
-            else:
-                self._source = source
+
+        self._source = source
 
     @cached_property
     def source(self):

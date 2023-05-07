@@ -16,7 +16,19 @@ class BagMapOperator(Operator):
         self._func = func
 
     def __call__(self, dask_bag: dask.bag.Bag, *args, **kwargs) -> dask.bag.Bag:
-        return dask_bag.map(lambda item: self._func(item, *args, **kwargs))
+        return dask_bag.map(self._func, *args, **kwargs)
+
+
+class BagFilterOperator(Operator):
+    """Applies any function on items in a dask bag and filters them based on the result.
+    if func returns False, the element will be dropped from the bag."""
+
+    def __init__(self, func: callable):
+        super().__init__()
+        self._func = func
+
+    def __call__(self, dask_bag: dask.bag.Bag) -> dask.bag.Bag:
+        return dask_bag.filter(self._func)
 
 
 class BagPropertyExtractor(Operator):
