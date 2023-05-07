@@ -30,10 +30,10 @@ docs = DocumentBag(source=database_source).config(doc_configuration=dict(
     vectorizer_model="sentence-transformers/all-MiniLM-L6-v2"
 ))
 d = docs.take(1)[0]
-column = docs.get_data_docbag("url")
+column = docs.e('data_sel',"url")
 
 with ProgressBar():
-    idx = column.create_index(500)
+    idx = column.compute_index(100)
 
 # get URLs which are related to "products":
 res = column.query_chroma("product")

@@ -11,7 +11,7 @@ import dask
 from dask.diagnostics import ProgressBar
 
 import pydoxtools
-from pydoxtools import DocumentBag, Document
+from pydoxtools import DocumentBag
 
 logger = logging.getLogger(__name__)
 
@@ -41,12 +41,9 @@ table = DocumentBag(source=database_source).config(doc_configuration=dict(
     vectorizer_only_tokenizer=True,
     vectorizer_model="sentence-transformers/all-MiniLM-L6-v2"
 ))
-table.take(1)[0].data_sel("url","scrape_time")
-d = table.e("data_sel","url").take(2)[0]
 
 column = "url"  # which column(s) from the SQL table we want to extract
-column = table.e("data_sel",column)  # multiple columns can be specified here.
-column.take(1)
+column = table.e("data_sel", column)  # multiple columns can be specified here.
 
 with ProgressBar():
     column.compute_index(100)  # choose a number how many rows you would like to add ro your chromadb!
