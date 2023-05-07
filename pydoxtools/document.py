@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import IO, Protocol
 from urllib.parse import urlparse
 
+import dask.bag
 import langdetect
 import numpy as np
 import pandas as pd
@@ -31,7 +32,6 @@ from .extract_objects import EntityExtractor
 from .extract_ocr import OCRExtractor
 from .extract_pandoc import PandocLoader, PandocOperator, PandocConverter, PandocBlocks
 from .extract_spacy import SpacyOperator, extract_spacy_token_vecs, get_spacy_embeddings, extract_noun_chunks
-from .extract_tables import Iterator2Dataframe
 from .extract_tables import ListExtractor, TableCandidateAreasExtractor
 from .extract_textstructure import DocumentElementFilter, TextBoxElementExtractor, TitleExtractor
 from .html_utils import get_text_only_blocks
@@ -39,8 +39,6 @@ from .list_utils import flatten, flatten_dict, deep_str_convert
 from .nlp_utils import calculate_string_embeddings, summarize_long_text
 from .operator_huggingface import QamExtractor
 from .operators_base import Alias, LambdaOperator, ElementWiseOperator, Constant
-from .operators_base import DataMerger, \
-    ForgivingExtractIterator
 from .pdf_utils import PDFFileLoader
 
 logger = logging.getLogger(__name__)
@@ -751,6 +749,10 @@ class DatabaseSource(pydantic.BaseModel):
     index_column: str
 
 
+class DocumentBagType(Protocol):
+    docs: dask.bag.Bag
+
+
 class DocumentBag(Pipeline):
     """
     **This class is WIP use with caution**
@@ -856,43 +858,50 @@ class DocumentBag(Pipeline):
         #       etc...
         # TODO: add a pipeline to add a summarizing description whats in every directory
         str(Path): [
+            str(Bag),
             # TODO:  add a string filter which can be used to filte paths & db entries
             #        and is simply a bit more generalized ;)
             # TODO: make this all an iterable...  maybe even using dask..
             Alias(root_path="source"),
+            # TODO: make PathLoader an iterator!
             PathLoader(mode="files")
             .pipe(directory="root_path", exclude="_exclude")
             .out("file_path_list").cache(),
             PathLoader(mode="dirs")
             .pipe(directory="root_path")
             .out("dir_list").cache(),
-            LambdaOperator(lambda x: [Document(d) for d in x])
-            .pipe(data="file_path_list").out("docs").cache(),
+            LambdaOperator(lambda x: dask.bag.from_sequence(x, partition_size=10))
+            .pipe(x="file_path_list").out("bag").cache().docs(
+                "create a dask bag with all the filepaths in it"),
+            dask_operators.BagMapOperator(lambda x, c: Document(x).config(**c))
+            .pipe(dask_bag="bag", c="doc_configuration").out("docs").cache().docs(
+                "create a bag with one document for each file that was found"
+                "From this point we can hand off the logic to str(Bag) pipeline."),
             # it is important here to use no_cache, as we need to re-create the iterator every
             # time we want to use it...
-            ForgivingExtractIterator(method="list")
-            .pipe("docs").out("props_iterator").no_cache(),
-            Iterator2Dataframe()
-            .pipe(iterator="props_iterator").out("props_df").cache(),
+            # ForgivingExtractIterator(method="list")
+            # .pipe("docs").out("props_iterator").no_cache(),
+            # Iterator2Dataframe()
+            # .pipe(iterator="props_iterator").out("props_df").cache(),
             # LambdaDocumentBuilder(),
-            LambdaOperator(
-                lambda x: x([
-                    "filename",
-                    "keywords",
-                    "document_type",
-                    "url",
-                    "path",
-                    "num_pages",
-                    "num_words",
-                    "num_sents",
-                    "a_d_ratio",
-                    "language"]))
-            .pipe(x="props_iterator").out("meta_data_iterator").no_cache(),
-            LambdaOperator(lambda x: x)
-            .pipe(x="props_iterator").out("file_stats").cache(),
-            DataMerger()
-            .pipe(root_dir="_source")
-            .out(joint_data="meta_data").cache()
+            # LambdaOperator(
+            #    lambda x: x([
+            #        "filename",
+            #        "keywords",
+            #        "document_type",
+            #        "url",
+            #        "path",
+            #        "num_pages",
+            #        "num_words",
+            #        "num_sents",
+            #        "a_d_ratio",
+            #        "language"]))
+            # .pipe(x="props_iterator").out("meta_data_iterator").no_cache(),
+            # LambdaOperator(lambda x: x)
+            # .pipe(x="props_iterator").out("file_stats").cache(),
+            # DataMerger()
+            # .pipe(root_dir="_source")
+            # .out(joint_data="meta_data").cache()
         ],
         "*": []
     }
@@ -905,10 +914,15 @@ class DocumentBag(Pipeline):
             max_documents: int = None,
     ):
         super().__init__()
-        self._source = source
         self._exclude = exclude or []
         self._pipeline = pipeline or "directory"
         self._max_documents = max_documents
+
+        if isinstance(source, str):
+            if Path(source).exists():
+                self._source = Path(source)
+            else:
+                self._source = source
 
     @cached_property
     def source(self):
@@ -916,4 +930,7 @@ class DocumentBag(Pipeline):
 
     @cached_property
     def pipeline_chooser(self) -> str:
-        return str(type(self._source))
+        if isinstance(self._source, Path):
+            return str(Path)
+        else:
+            return str(type(self._source))
