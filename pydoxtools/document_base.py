@@ -668,6 +668,12 @@ supports pipelines
 
         return res[operator_name]
 
+    def get(self, property: str, default_return: Any = None) -> Any:
+        try:
+            return self.x(property)
+        except KeyError:
+            return default_return
+
     def __getitem__(self, extract_name) -> Any:
         """
         Retrieves an extractor result by directly accessing it as an attribute.
