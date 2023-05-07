@@ -325,7 +325,8 @@ operations and include the documentation there. Lambda functions should not be u
         "*": [
             # Loading text files
             FileLoader()
-            .pipe(fobj="fobj", page_numbers="_page_numbers", max_pages="_max_pages")
+            .pipe(fobj="fobj", path="path",
+                  page_numbers="_page_numbers", max_pages="_max_pages")
             .out("raw_content").cache(),
             Alias(full_text="raw_content"),
             Alias(clean_text="full_text"),
@@ -643,7 +644,9 @@ operations and include the documentation there. Lambda functions should not be u
         # if it works... now, check filetype using python-magic
         if isinstance(self.fobj, (Path, str)):
             fobj = Path(self.fobj)
-            if fobj.is_file():  # check if we have an actual file here
+            if self._document_type == "string":
+                mimetype = "string"
+            elif fobj.is_file():  # check if we have an actual file here
                 if magic:
                     mimetype = magic.from_file(self.fobj, mime=True)
                 detected_filepath = fobj

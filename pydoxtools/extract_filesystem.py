@@ -2,19 +2,19 @@ import pathlib
 import typing
 from pathlib import Path
 
-import pydoxtools.document_base
 import pydoxtools.operators_base
 
 
 class FileLoader(pydoxtools.document_base.Operator):
     """Load data from path"""
-    def __init__(self):
-        super().__init__()
 
     def __call__(
-            self, fobj: bytes | str | Path | typing.IO, page_numbers=None, max_pages=None
+            self, fobj: bytes | str | Path | typing.IO, path=None, page_numbers=None, max_pages=None
     ) -> bytes | str:
-        if isinstance(fobj, str | bytes):
+        if path:
+            with open(path, "r") as file:
+                txt = file.read()
+        elif isinstance(fobj, str | bytes):
             txt = fobj
         elif isinstance(fobj, pathlib.Path):
             try:

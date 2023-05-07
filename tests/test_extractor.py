@@ -76,6 +76,14 @@ def test_document_type_detection():
                 d = Document(fobj=file)
                 assert d.document_type == t
 
+    d = Document('../README.md', document_type="string")
+    assert d.document_type == "string"
+    assert '../README.md' == d.full_text
+
+    d = Document('../README.md')
+    assert d.document_type == "text/markdown"
+    assert '../README.md' not in d.full_text
+
 
 # TODO: implement a test case where we need to overwrite the document
 #       detection because the document is recognized in some funny way...
