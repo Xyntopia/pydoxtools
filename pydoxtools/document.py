@@ -38,7 +38,7 @@ from .html_utils import get_text_only_blocks
 from .list_utils import flatten, flatten_dict, deep_str_convert
 from .nlp_utils import calculate_string_embeddings, summarize_long_text
 from .operator_huggingface import QamExtractor
-from .operators_base import Alias, LambdaOperator, ElementWiseOperator, Constant
+from .operators_base import Alias, LambdaOperator, ElementWiseOperator, Constant, DictSelector
 from .pdf_utils import PDFFileLoader
 
 logger = logging.getLogger(__name__)
@@ -301,6 +301,9 @@ operations and include the documentation there. Lambda functions should not be u
             Alias(data="raw_content"),
             LambdaOperator(lambda x: yaml.dump(deep_str_convert(x)))
             .pipe(x="data").out("full_text"),
+            DictSelector()
+            .pipe(selectable="data").out("data_sel").cache().docs(
+                "select values by key from source data in Document"),
             LambdaOperator(lambda x: pd.DataFrame([
                 str(k) + ": " + str(v) for k, v in flatten_dict(x).items()],
                 columns=["text"]
@@ -561,12 +564,6 @@ operations and include the documentation there. Lambda functions should not be u
 
         # TODO: move this code into its own little extractor...
         #       can also be made better with pydantic ;).
-        try:
-            if is_url(fobj):
-                response = requests.get(fobj)
-                fobj = response.content
-        except:
-            pass
 
         if not (source or fobj):
             raise DocumentInitializationError(
@@ -577,6 +574,16 @@ operations and include the documentation there. Lambda functions should not be u
         self._document_type = document_type  # override pipeline selection
         self._page_numbers = page_numbers
         self._max_pages = max_pages
+
+        if self._document_type == "auto":
+            try:
+                # TODO: this is an unfortunate position..  somehow should refactor documenttype detection,
+                #       fileloader and this here to download urls
+                if not is_url(fobj):
+                    response = requests.get(fobj)
+                    self._fobj = response.content
+            except:
+                pass
 
     @cached_property
     def fobj(self) -> bytes | str | Path | IO | dict | list | set:
@@ -752,6 +759,15 @@ operations and include the documentation there. Lambda functions should not be u
     """
 
 
+def remove_lonely_lists(obj):
+    if len(obj) == 1:
+        if isinstance(obj, list):
+            obj = obj[0]
+        elif isinstance(obj, dict):
+            obj = next(iter(obj.values()))
+    return obj
+
+
 class DocumentBagExtractor(Operator):
     """
     This is our "Inception" operator. Basically it does an element-wise operation
@@ -782,23 +798,28 @@ class DocumentBagExtractor(Operator):
 
         - return a list of items (e.g. example list of text segments)
         - return a single property (e.g. full_text)
+        - return data from a nested property
         - return multiple properties (e.g. we could put it in a dictionary)
         - return a callable (in which case we should call it with args & kwargs!)
         """
 
-        def x_single_prop(d: Document, property: str) -> list[Document]:
-            if isinstance(property, str):
-                fobjs = d.to_dict(property)[property]
-                new_docs = []
-                if isinstance(fobjs, str):
-                    new_docs = [Document(fobjs, source=d.source, document_type="string").config(**d.configuration)]
-                elif isinstance(fobjs, list):
-                    for fobj in fobjs:
-                        d = Document(fobj, source=d.source, document_type="string").config(**d.configuration)
-                        new_docs.append(d)
-                else:
-                    NotImplemented(f"Can not yet create a document from {property}!")
-                return new_docs
+        def x_single_prop(d: Document, property: str, *args, **kwargs) -> list[Document]:
+            # obj = d.to_dict(property)[property]
+            obj = getattr(d, property)
+            if callable(obj):
+                obj = obj(*args, **kwargs)
+            obj = remove_lonely_lists(obj)
+            new_docs = []
+            if isinstance(obj, str):
+                new_docs = [Document(obj, source=d.source, document_type="string").config(**d.configuration)]
+            elif isinstance(obj, list):
+                for fobj in obj:
+                    d = Document(fobj, source=d.source, document_type="string").config(**d.configuration)
+                    new_docs.append(d)
+            else:
+                NotImplemented(f"Can not yet create a document from {property}!")
+
+            return new_docs
 
         def inception_func(properties: list[str] | str, *args, **kwargs) -> DocumentBag:
             new_documents = dask_bag.map(x_single_prop, properties, *args, **kwargs)

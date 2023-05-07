@@ -5,10 +5,9 @@ be used inside of a pipeline class definition
 to create your own pipelines.
 """
 
-from typing import Callable, Iterable, Any
+from typing import Callable, Iterable
 
-from pydoxtools.document_base import Operator, OperatorException, Pipeline
-from pydoxtools.list_utils import iterablefyer
+from pydoxtools.document_base import Operator
 
 
 class Alias(Operator):
@@ -46,6 +45,7 @@ class LambdaOperator(Operator):
     def __call__(self, *args, **kwargs):
         return self._func(*args, **kwargs)
 
+
 class ElementWiseOperator(Operator):
     """
     Take a function and apply it elementwise to
@@ -68,6 +68,16 @@ class ElementWiseOperator(Operator):
             return res
         else:
             return list(res)
+
+
+class DictSelector(Operator):
+    def __call__(self, selectable: dict) -> Callable[[...], dict]:
+        def selector(*args, **kwargs) -> dict:
+            selection = {a: selectable.get(a, None) for a in args}
+            selection.update({v: selectable.get(k, None) for k, v in kwargs.items()})
+            return selection
+
+        return selector
 
 
 class DataMerger(Operator):

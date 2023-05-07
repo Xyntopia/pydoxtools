@@ -41,28 +41,16 @@ table = DocumentBag(source=database_source).config(doc_configuration=dict(
     vectorizer_only_tokenizer=True,
     vectorizer_model="sentence-transformers/all-MiniLM-L6-v2"
 ))
+table.take(1)[0].data_sel("url","scrape_time")
+d = table.e("data_sel","url").take(2)[0]
+
 column = "url"  # which column(s) from the SQL table we want to extract
-column = table.get_data_docbag(column)  # multiple columns can be specified here.
-# we create the index by creating a "vector" out of the selected column/s
-idx = column.get_dicts("source", "full_text", "embedding")
-
-
-# we add our data to chroma line-by-line. There is not much overhead involved in this
-# as the most expensive operation here is the calculation for the embeddings
-def add_to_chroma(item: dict):
-    logger.info("adding new page!")
-    project.add(
-        embeddings=[[float(n) for n in item["embedding"]]],
-        documents=[item["full_text"]],
-        metadatas=[{"source": item["source"]}],
-        ids=[item["source"]]
-    )
-    logger.info("finished with page!")
-
+column = table.e("data_sel",column)  # multiple columns can be specified here.
+column.take(1)
 
 with ProgressBar():
-    idx.map(add_to_chroma).take(100)  # choose a number how many rows you would like to add ro your chromadb!
+    column.compute_index(100)  # choose a number how many rows you would like to add ro your chromadb!
     # run idx.map(add_to_chroma).persist()  to move all data into chromadb!
 
 # query the db:
-project.query(Document("product").embedding.tolist())
+column.query_chroma("product")
