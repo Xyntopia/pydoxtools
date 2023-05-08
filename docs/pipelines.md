@@ -1909,7 +1909,7 @@ Can be called using:
     doc.dataframe
 
 return type
-: <module 'dask.dataframe' from '/home/tom/.cache/pypoetry/virtualenvs/componardo-yE4zvXcb-py3.10/lib/python3.10/site-packages/dask/dataframe/__init__.py'>
+: <class 'dask.dataframe.core.DataFrame'>
 
 supports pipelines
 : <class 'pydoxtools.document.DatabaseSource'>

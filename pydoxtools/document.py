@@ -585,11 +585,12 @@ operations and include the documentation there. Lambda functions should not be u
         self._page_numbers = page_numbers
         self._max_pages = max_pages
 
-        if self._document_type == "auto":
+        if ((self._document_type == "auto" and self.magic_library_available()) or
+                self._document_type not in ["auto", "string", str(dict)]):
             try:
                 # TODO: this is an unfortunate position..  somehow should refactor documenttype detection,
                 #       fileloader and this here to download urls
-                if not is_url(fobj):
+                if is_url(fobj):
                     response = requests.get(fobj)
                     self._fobj = response.content
             except:

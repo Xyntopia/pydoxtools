@@ -73,7 +73,7 @@ class SQLTableLoader(Operator):
     def __call__(
             self, connection_string: str, sql: str, index_column: str,
             bytes_per_chunk: str
-    ) -> dataframe:
+    ) -> dataframe.DataFrame:
         # tables = pd.read_sql("SELECT * FROM information_schema.tables", connection_string)
         # users = pd.read_sql("users", connection_string)
         # data = pd.read_sql(sql, connection_string)

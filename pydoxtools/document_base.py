@@ -44,6 +44,7 @@ class DocumentElement:
     x1: float | None = None
     y1: float | None = None
     rawtext: str | None = None
+    text: str | None = None
     sections: list[str] | None = None
     font_infos: set[Font] | None = None
     linenum: int | None = None

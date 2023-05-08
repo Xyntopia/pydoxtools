@@ -119,7 +119,8 @@ class PandocToPdxConverter(pydoxtools.document_base.Operator):
                 pdx_el = pydoxtools.document_base.DocumentElement(
                     type=pydoxtools.document_base.ElementType.Text,
                     sections=[section_title],
-                    rawtext=section_title,
+                    rawtext=PandocConverter()(el, output_format="markdown").strip(),
+                    text=section_title,
                     level=0,
                     boxnum=boxnum
                 )
@@ -129,6 +130,7 @@ class PandocToPdxConverter(pydoxtools.document_base.Operator):
                     type=pydoxtools.document_base.ElementType.Text,
                     sections=[section_title],
                     rawtext=PandocConverter()(el, output_format="markdown").strip(),
+                    text=PandocConverter()(el, output_format="plain").strip(),
                     level=1,
                     boxnum=boxnum
                 )
