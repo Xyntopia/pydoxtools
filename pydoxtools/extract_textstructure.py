@@ -76,7 +76,7 @@ class DocumentElementFilter(pydoxtools.document_base.Operator):
 
 
 def group_elements(elements: pd.DataFrame, by: list[str], agg: str):
-    group = elements.groupby(*by)
+    group = elements.groupby(by)
     if agg == "boxes_from_lines_w_bb":
         # aggregate object from the same box and calculate new
         # bounding boxes, also join the formatted text

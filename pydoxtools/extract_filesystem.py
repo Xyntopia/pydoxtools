@@ -11,18 +11,15 @@ class FileLoader(pydoxtools.document_base.Operator):
     def __call__(
             self, fobj: bytes | str | Path | typing.IO, path=None, page_numbers=None, max_pages=None
     ) -> bytes | str:
-        if path:
-            with open(path, "r") as file:
-                txt = file.read()
-        elif isinstance(fobj, str | bytes):
-            txt = fobj
-        elif isinstance(fobj, pathlib.Path):
+        if path or isinstance(fobj, pathlib.Path):
             try:
                 with open(fobj, "r") as file:
                     txt = file.read()
             except:
                 with open(fobj, "rb") as file:
                     txt = file.read()
+        elif isinstance(fobj, str | bytes):
+            txt = fobj
         else:
             txt = fobj.read()
 
