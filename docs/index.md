@@ -7,7 +7,7 @@
 The main interface that pydoxtools uses are three classes:
 
 - [pydoxtools.Document][]
-- [pydoxtools.DocumentSet][]
+- [pydoxtools.DocumentBag][]
 - [pydoxtools.Pipeline][]
 
 And a set of operators:

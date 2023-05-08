@@ -4,7 +4,7 @@
     options:
         members:
             - Document
-            - DocumentSet
+            - DocumentBag
 
 ::: pydoxtools.document_base
     options:

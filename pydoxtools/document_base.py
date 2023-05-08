@@ -129,6 +129,7 @@ class Operator(ABC):
         self._in_mapping: dict[str, str] = {}
         self._out_mapping: dict[str, str] = {}
         self._cache = False  # TODO: switch to "True" by default
+        self.__node_doc__ = ""
 
     @abc.abstractmethod
     def __call__(self, *args, **kwargs) -> dict[str, typing.Any] | Any:
@@ -211,7 +212,7 @@ class Operator(ABC):
         return self
 
     def docs(self, doc_str: str = ""):
-        self.__doc__ = doc_str
+        self.__node_doc__ = doc_str
         return self
 
 
@@ -602,11 +603,14 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
                 oi["pipe_types"].add(pipeline_id)
                 if return_type := get_type_hints(op.__class__.__call__).get("return", None):
                     oi["output_types"].add(return_type)
+                oi["description"] = op.__node_doc__
                 output_infos[op_k] = oi
 
         node_docs = []
         for k, v in output_infos.items():
             single_node_doc = f"""### {k}
+            
+{v['description']}
 
 Can be called using:
 

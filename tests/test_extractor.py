@@ -260,8 +260,9 @@ def test_pipeline_graph():
 
 
 def test_documentation_generation():
-    doc = Document
-    docs = doc.pipeline_docs()
+    docs = Document.pipeline_docs()
+
+    docbag = DocumentBag.pipeline_docs()
 
     pipeline_docs = f"""
 # Pipelines
@@ -275,6 +276,10 @@ Pipeline visualizations for every supported file type can be found
 ## [pydoxtools.Document][]
 
 {docs}
+
+## [pydoxtools.DocumentBag][]
+
+{docbag}
 """.strip()
     with open(make_path_absolute('../docs/pipelines.md'), "w") as f:
         f.write(pipeline_docs)
@@ -464,6 +469,7 @@ def test_nlp_utils():
 
 
 if __name__ == "__main__":
+    test_table_extraction()
     test_pipeline_graph()
 
     # a = pd.DataFrame(sd.sents)
