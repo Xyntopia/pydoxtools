@@ -209,7 +209,7 @@ class ChromaIndexFromBag(Operator):
                 embeddings=[[float(n) for n in item["embedding"]]],
                 documents=[item["full_text"]],
                 metadatas=[{"source": item["source"]}],
-                ids=[item["source"]]
+                ids=[str(item["source"])]
             )
 
         @functools.lru_cache()
