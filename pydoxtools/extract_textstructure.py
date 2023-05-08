@@ -7,7 +7,6 @@ import pdfminer
 from pdfminer.layout import LTChar, LTTextLineVertical
 from sklearn.ensemble import IsolationForest
 
-import pydoxtools.document_base
 import pydoxtools.operators_base
 from pydoxtools import document_base
 
@@ -76,6 +75,32 @@ class DocumentElementFilter(pydoxtools.document_base.Operator):
         return df
 
 
+def group_elements(elements: pd.DataFrame, by: list[str], agg: str):
+    group = elements.groupby(*by)
+    if agg == "boxes_from_lines_w_bb":
+        # aggregate object from the same box and calculate new
+        # bounding boxes, also join the formatted text
+        bg = group.agg(
+            x0=("x0", "min"), y0=("y0", "min"),
+            x1=("x1", "max"), y1=("y1", "max"),
+            text=("lineobj",
+                  lambda x: "".join(_line2txt(obj, size_hints=False) for obj in x.values))
+        )
+        # remove empty box_groups
+        bg = bg[bg.text.str.strip().str.len() > 1].copy()
+        # do some calculations
+        bg['y_mean'] = bg[['y0', 'y1']].mean(axis=1)
+        bg['x_mean'] = bg[['x0', 'x1']].mean(axis=1)
+        bg['w'] = bg.x1 - bg.x0
+        bg['h'] = bg.y1 - bg.y0
+        return bg
+    elif "sections":
+        group = elements.explode('sections').groupby(*by)
+        df = group.agg(text=("rawtext", "sum"), order=("boxnum", "min")).sort_values("order")
+
+        return df["text"].to_dict()
+
+
 class TextBoxElementExtractor(pydoxtools.document_base.Operator):
     """
     create textboxes and create bounding boxes and aggregated text from
@@ -97,25 +122,20 @@ class TextBoxElementExtractor(pydoxtools.document_base.Operator):
 
     def __call__(self, line_elements: pd.DataFrame):
         if "boxnum" in line_elements:
-            group = line_elements.groupby(['p_num', 'boxnum'])
-            # aggregate object from the same box and calculate new
-            # bounding boxes, also join the formatted text
-            bg = group.agg(
-                x0=("x0", "min"), y0=("y0", "min"),
-                x1=("x1", "max"), y1=("y1", "max"),
-                text=("lineobj",
-                      lambda x: "".join(_line2txt(obj, size_hints=False) for obj in x.values))
-            )
-            # remove empty box_groups
-            bg = bg[bg.text.str.strip().str.len() > 1].copy()
-            # do some calculations
-            bg['y_mean'] = bg[['y0', 'y1']].mean(axis=1)
-            bg['x_mean'] = bg[['x0', 'x1']].mean(axis=1)
-            bg['w'] = bg.x1 - bg.x0
-            bg['h'] = bg.y1 - bg.y0
+            bg = group_elements(line_elements, ['p_num', 'boxnum'], agg="boxes_from_lines_w_bb")
             return dict(text_box_elements=bg)
         else:
             return dict(text_box_elements=None)
+
+
+class SectionsExtractor(pydoxtools.document_base.Operator):
+    """
+    extract sections from a textbox dataframe
+    """
+
+    def __call__(self, df: pd.DataFrame):
+        bg = group_elements(df, ['sections'], agg="sections")
+        return {"sections": bg}
 
 
 class TitleExtractor(pydoxtools.document_base.Operator):
@@ -167,7 +187,8 @@ class TitleExtractor(pydoxtools.document_base.Operator):
         dfl = dfl.join(pd.get_dummies(dfl.font, prefix="color"))
 
         features = set(dfl.columns) - {'gobj', 'linewidth', 'non_stroking_color', 'stroking_color', 'stroke',
-                                       'fill', 'evenodd', 'type', 'text', 'font_infos', 'font', 'rawtext', 'lineobj',
+                                       'fill', 'evenodd', 'type', 'text', 'font_infos', 'font', 'rawtext',
+                                       'lineobj',
                                        'color'}
 
         # detect outliers to isolate titles and other content from "normal"

@@ -102,6 +102,41 @@ class PandocConverter(pydoxtools.document_base.Operator):
         return full_text
 
 
+class PandocToPdxConverter(pydoxtools.document_base.Operator):
+    """convert pandoc elemens in our "own" element format"""
+
+    def __call__(self, pandoc_document: "pandoc.types.Pandoc") -> pd.DataFrame:
+        # extract subsections
+        pdoc = pandoc_document
+        metadata = pdoc[0]
+        pdx_elements = []  # declare our own element "format"
+        section_title = None
+        boxnum = 0
+        for el in pdoc[1]:
+            if isinstance(el, pandoc.types.Header):
+                section_title = PandocConverter()(el, output_format="plain").strip()
+                boxnum += 1
+                pdx_el = pydoxtools.document_base.DocumentElement(
+                    type=pydoxtools.document_base.ElementType.Text,
+                    sections=[section_title],
+                    rawtext=section_title,
+                    level=0,
+                    boxnum=boxnum
+                )
+            else:
+                boxnum += 1
+                pdx_el = pydoxtools.document_base.DocumentElement(
+                    type=pydoxtools.document_base.ElementType.Text,
+                    sections=[section_title],
+                    rawtext=PandocConverter()(el, output_format="markdown").strip(),
+                    level=1,
+                    boxnum=boxnum
+                )
+            pdx_elements.append(pdx_el)
+        df = pd.DataFrame(pdx_elements)
+        return df
+
+
 class PandocOperator(pydoxtools.document_base.Operator):
     """
     Extract tables, headers and lists from a pandoc document

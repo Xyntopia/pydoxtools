@@ -30,10 +30,10 @@ from .extract_index import IndexExtractor, KnnQuery, \
 from .extract_nlpchat import OpenAIChat
 from .extract_objects import EntityExtractor
 from .extract_ocr import OCRExtractor
-from .extract_pandoc import PandocLoader, PandocOperator, PandocConverter, PandocBlocks
+from .extract_pandoc import PandocLoader, PandocOperator, PandocConverter, PandocBlocks, PandocToPdxConverter
 from .extract_spacy import SpacyOperator, extract_spacy_token_vecs, get_spacy_embeddings, extract_noun_chunks
 from .extract_tables import ListExtractor, TableCandidateAreasExtractor
-from .extract_textstructure import DocumentElementFilter, TextBoxElementExtractor, TitleExtractor
+from .extract_textstructure import DocumentElementFilter, TextBoxElementExtractor, TitleExtractor, SectionsExtractor
 from .html_utils import get_text_only_blocks
 from .list_utils import flatten, flatten_dict, deep_str_convert
 from .nlp_utils import calculate_string_embeddings, summarize_long_text
@@ -186,7 +186,10 @@ operations and include the documentation there. Lambda functions should not be u
             .cache(),
             LambdaOperator(lambda pages: len(pages))
             .pipe(pages="page_set").out("num_pages").cache(),
-            DocumentElementFilter(element_type=ElementType.Line)
+            # TODO: move these filters etc... into a generalized text-structure pipeline!
+            #  we are converting pandoc elements into the same thing
+            #  anyways!!
+            DocumentElementFilter(element_type=ElementType.Text)
             .pipe("elements").out("line_elements").cache(),
             DocumentElementFilter(element_type=ElementType.Graphic)
             .pipe("elements").out("graphic_elements").cache(),
@@ -252,7 +255,14 @@ operations and include the documentation there. Lambda functions should not be u
             PandocConverter()
             .pipe(output_format="full_text_format", pandoc_document="pandoc_document")
             .out("full_text").cache(),
+            LambdaOperator(lambda x: lambda o: PandocConverter()(x, output_format=o))
+            .pipe(x="pandoc_document").out("convert_to").cache(),
             Constant(clean_format="plain"),
+            PandocToPdxConverter()
+            .pipe("pandoc_document").out("text_box_elements").cache().docs(
+                "split a pandoc document into text elements."),
+            SectionsExtractor()
+            .pipe(df="text_box_elements").out("sections").cache(),
             PandocConverter()  # clean for downstram processing tasks
             .pipe(output_format="clean_format", pandoc_document="pandoc_document")
             .out("clean_text").cache(),
@@ -656,17 +666,20 @@ operations and include the documentation there. Lambda functions should not be u
 
         # if it works... now, check filetype using python-magic
         if isinstance(_fobj, (Path, str)):
-            fobj = Path(_fobj)
-            if self._document_type == "string":
+            # if it's not a file, we take it as a string, but can be overwritten
+            # using the document_type variable during initialization
+            try:
+                if self._document_type == "string":
+                    mimetype = "string"
+                elif Path(_fobj).is_file():  # check if we have an actual file here
+                    if magic:
+                        mimetype = magic.from_file(_fobj, mime=True)
+                    detected_filepath = Path(_fobj)
+                else:
+                    mimetype = "string"
+            except OSError:  # could happen if we try to use a string as filename and that is too long
                 mimetype = "string"
-            elif fobj.is_file():  # check if we have an actual file here
-                if magic:
-                    mimetype = magic.from_file(_fobj, mime=True)
-                detected_filepath = fobj
-            else:
-                # if it's not a file, we take it as a string, but can be overwritten
-                # using the document_type variable during initialization
-                mimetype = "string"
+
         elif isinstance(self._fobj, bytes):
             if magic:
                 mimetype = magic.from_buffer(self._fobj, mime=True)

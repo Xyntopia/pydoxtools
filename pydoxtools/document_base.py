@@ -31,30 +31,32 @@ class Font:
 
 class ElementType(Enum):
     Graphic = 1
-    Line = 2
+    Text = 2
     Image = 3
 
 
 @dataclass(slots=True)
 class DocumentElement:
     type: ElementType
-    p_num: int
-    x0: float
-    y0: float
-    x1: float
-    y1: float
-    rawtext: str | None
-    font_infos: set[Font] | None
-    linenum: int | None
-    linewidth: float | None
-    boxnum: int | None
-    lineobj: Any | None
-    gobj: Any | None
-    non_stroking_color: str | None
-    stroking_color: str | None
-    stroke: bool | None
-    fill: bool | None
-    evenodd: int | None
+    p_num: int | None = None
+    x0: float | None = None
+    y0: float | None = None
+    x1: float | None = None
+    y1: float | None = None
+    rawtext: str | None = None
+    sections: list[str] | None = None
+    font_infos: set[Font] | None = None
+    linenum: int | None = None
+    linewidth: float | None = None
+    boxnum: int | None = None
+    lineobj: Any | None = None
+    gobj: Any | None = None
+    non_stroking_color: str | None = None
+    stroking_color: str | None = None
+    stroke: bool | None = None
+    fill: bool | None = None
+    evenodd: int | None = None
+    level: int = 0
 
 
 class TokenCollection:
@@ -258,6 +260,10 @@ class Configuration(Operator):
 
 
 class OperatorException(Exception):
+    pass
+
+
+class OperatorOutputException(OperatorException):
     pass
 
 
@@ -668,7 +674,12 @@ supports pipelines
 
         # TODO automatically wrap the result with functools.cache if
         #      it is a callable. (or use our own cache decorator)
-        return res[operator_name]
+
+        try:
+            return res[operator_name]
+        except KeyError:
+            raise OperatorOutputException(
+                f"Key '{operator_name}' does not exist in output dict of Operator {operator_function}")
 
     def get(self, property: str, default_return: Any = None) -> Any:
         try:

@@ -264,7 +264,7 @@ class PDFFileLoader(pydoxtools.document_base.Operator):
                         # TODO: move most of these function to a "feature-generation-function"
                         # which extracts the information directly from the LTTextLine object
                         docelements.append(dict(
-                            type=document_base.ElementType.Line,
+                            type=document_base.ElementType.Text,
                             lineobj=text_line,
                             rawtext=linetext,
                             font_infos=fontset,
