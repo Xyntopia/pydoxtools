@@ -330,6 +330,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#pydoxtools.document.Document.document_type" class="md-nav__link">
+    document_type
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#pydoxtools.document.Document.filename" class="md-nav__link">
     filename
   </a>
@@ -359,6 +366,13 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pydoxtools.document.DocumentBag" class="md-nav__link">
+    DocumentBag
+  </a>
   
 </li>
       
@@ -408,6 +422,13 @@
           <li class="md-nav__item">
   <a href="#pydoxtools.document_base.Pipeline.__getattr__" class="md-nav__link">
     __getattr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pydoxtools.document_base.Pipeline.__getitem__" class="md-nav__link">
+    __getitem__()
   </a>
   
 </li>
@@ -607,6 +628,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#pydoxtools.document.Document.document_type" class="md-nav__link">
+    document_type
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#pydoxtools.document.Document.filename" class="md-nav__link">
     filename
   </a>
@@ -636,6 +664,13 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pydoxtools.document.DocumentBag" class="md-nav__link">
+    DocumentBag
+  </a>
   
 </li>
       
@@ -685,6 +720,13 @@
           <li class="md-nav__item">
   <a href="#pydoxtools.document_base.Pipeline.__getattr__" class="md-nav__link">
     __getattr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pydoxtools.document_base.Pipeline.__getitem__" class="md-nav__link">
+    __getitem__()
   </a>
   
 </li>
@@ -948,6 +990,28 @@ operations and include the documentation there. Lambda functions should not be u
 
 
 
+<h3 id="pydoxtools.document.Document.document_type" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">document_type</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>This has to be done in a member function and not
+in the pipeline, because the selection of the pipeline depends on this...</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
 <h3 id="pydoxtools.document.Document.filename" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span></code>
   
@@ -1132,6 +1196,67 @@ TODO add a doc-type extractor using for example python-magic</p>
   </div>
 
 </div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="pydoxtools.document.DocumentBag" class="doc doc-heading">
+        <code>DocumentBag</code>
+
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="pydoxtools.document_base.Pipeline" href="#pydoxtools.document_base.Pipeline">Pipeline</a></code></p>
+
+  
+      <p><strong>This class is WIP use with caution</strong></p>
+<p>This class loads an entire set of documents and processes
+it using a pipeline.</p>
+<p>In order to fit into memory we are making extensive use of dask bags to
+store and make calculations on documents.</p>
+<p>docs: is the property which gives access to all the dask bag functions</p>
+<p>For more information check the documentation for dask bags
+<a href="https://docs.dask.org/en/stable/bag.html">-&gt;here&lt;-</a>.</p>
+<p>This has the added benefit that one can use dask dataframes out of the box
+for downstream calculations!!</p>
+<p>This class is still experimental. Expect more documentation in
+the near future.</p>
+<p>This class is developed to do work on larger-than-memory datasets and
+scale LLM &amp; AI inference to very large workloads.</p>
+<p>This class makes mostly use of iterative dask bags &amp; dataframes
+to avoid out-of-memory problems.</p>
+<p>Why do we need this function?</p>
+<p>--&gt; we could also simply add documents to a dask bag and then use dask bag directly...
+    ... BUT that would mean "a lot" more boilerplate code creating new documents,
+    creating source chains for traceable datasources etc  etc...
+    So the main reason is that we want new bags of documents instead of just bags
+    of arbitrary data.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
 
 
 
@@ -1391,6 +1516,80 @@ way to access pipeline operator outputs without needing to call the 'x' method.<
 <blockquote>
 <blockquote>
 <p>document.addresses
+instead of document.x('addresses')</p>
+</blockquote>
+</blockquote>
+</blockquote>
+</details>
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>extract_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>The name of the extractor result to be accessed.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>Any</code></td>          <td>
+                <code><span title="typing.Any">Any</span></code>
+          </td>
+          <td><p>The result of the extractor after processing the document.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pydoxtools.document_base.Pipeline.__getitem__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__getitem__</span><span class="p">(</span><span class="n">extract_name</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Retrieves an extractor result by directly accessing it as an attribute.</p>
+<p>This method is automatically called for attribute names that
+aren't defined on class level, allowing for a convenient
+way to access pipeline operator outputs without needing to call the 'x' method.</p>
+
+<details class="example">
+  <summary>Example</summary>
+  <blockquote>
+<blockquote>
+<blockquote>
+<p>document["addresses"]
 instead of document.x('addresses')</p>
 </blockquote>
 </blockquote>
@@ -2148,7 +2347,7 @@ used with this function.</p>
 
 
 <h3 id="pydoxtools.document_base.Pipeline.x" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">x</span><span class="p">(</span><span class="n">operator_name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">x</span><span class="p">(</span><span class="n">operator_name</span><span class="p">)</span></code>
 
 </h3>
 
@@ -2176,24 +2375,6 @@ used with this function.</p>
           <td><p>The name of the extractor to be called.</p></td>
           <td>
               <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>*args</code></td>
-          <td>
-          </td>
-          <td><p>Variable-length argument list to be passed to the extractor.</p></td>
-          <td>
-                <code>()</code>
-          </td>
-        </tr>
-        <tr>
-          <td><code>**kwargs</code></td>
-          <td>
-          </td>
-          <td><p>Arbitrary keyword arguments to be passed to the extractor.</p></td>
-          <td>
-                <code>{}</code>
           </td>
         </tr>
     </tbody>
