@@ -85,12 +85,12 @@ hostname = 'https://sync.rosemesh.net'
 # https://sync.rosemesh.net/index.php/s/KwkyKj8LgFZy8mo   the  "KwkyKj8LgFZy8mo"  webdav
 # takes this as a token with an empty password in order to share the folder
 token = "KwkyKj8LgFZy8mo"
-syncpath = str(settings.MODEL_DIR)
+syncpath = str(settings.PDX_MODEL_DIR)
 upload = False
 
 # %%
 # test webdav connection
-settings.MODEL_DIR.mkdir(parents=True, exist_ok=True)
+settings.PDX_MODEL_DIR.mkdir(parents=True, exist_ok=True)
 # and create a timestamp file to make sure we know it works!
 
 
@@ -100,7 +100,7 @@ sysinfo = dict(
     platform=platform.platform(),
     cpu=platform.processor()
 )
-with open(settings.MODEL_DIR / f"ts_{ts}.txt", "w") as f:
+with open(settings.PDX_MODEL_DIR / f"ts_{ts}.txt", "w") as f:
     f.write(str(sysinfo))
 
 # %%
@@ -172,7 +172,7 @@ model_config = dict(
 )
 
 if False:
-    m = classifier.txt_block_classifier.load_from_checkpoint(settings.MODEL_DIR / "text_blockclassifier.ckpt")
+    m = classifier.txt_block_classifier.load_from_checkpoint(settings.PDX_MODEL_DIR / "text_blockclassifier.ckpt")
 else:
     m = None
 
@@ -196,7 +196,7 @@ trainer, model, train_loader, validation_loader = training.train_text_block_clas
 )
 
 # %%
-#trainer.save_checkpoint(settings.MODEL_DIR/"test2", weights_only=True)
+#trainer.save_checkpoint(settings.PDX_MODEL_DIR/"test2", weights_only=True)
 
 # %%
 pytorch_lightning.utilities.memory.get_model_size_mb(model)

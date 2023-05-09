@@ -7,9 +7,9 @@ optuna.__version__
 
 study_name = "hyparams_50_inf_ep2"
 
-#storage_url = f"sqlite:///{str(settings.MODEL_DIR)}/study.sqlite"
+#storage_url = f"sqlite:///{str(settings.PDX_MODEL_DIR)}/study.sqlite"
 storage_url = f"sqlite:////home/tom/Nextcloud/pydoxtools_training/study.sqlite"
-#local_storage=f"sqlite:///{str(settings.MODEL_DIR)}/study.sqlite"
+#local_storage=f"sqlite:///{str(settings.PDX_MODEL_DIR)}/study.sqlite"
 remote_storage="TODO: get from env variable (f"mysql+pymysql:....")"
 remote_storage
 

@@ -123,7 +123,7 @@ classes
 
 # %%
 from transformers import AutoTokenizer
-mdir=settings.MODEL_DIR/"txtblockclassifier"
+mdir= settings.PDX_MODEL_DIR / "txtblockclassifier"
 #tokenizer = AutoTokenizer.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
 tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
 

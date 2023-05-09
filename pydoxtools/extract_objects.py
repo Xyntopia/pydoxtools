@@ -6,7 +6,7 @@ from urlextract import URLExtract
 from pydoxtools.document_base import Operator
 from pydoxtools.settings import settings
 
-dns_cache_dir = settings.CACHE_DIR_BASE / "urlextract"
+dns_cache_dir = settings.PDX_CACHE_DIR_BASE / "urlextract"
 dns_cache_dir.mkdir(parents=True, exist_ok=True)
 urlextractor = URLExtract(extract_email=True, cache_dns=True, extract_localhost=True,
                           cache_dir=dns_cache_dir)

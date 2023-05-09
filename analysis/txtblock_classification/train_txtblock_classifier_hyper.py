@@ -97,12 +97,12 @@ hostname = 'https://sync.rosemesh.net'
 # https://sync.rosemesh.net/index.php/s/KwkyKj8LgFZy8mo   the  "KwkyKj8LgFZy8mo"  webdav
 # takes this as a token with an empty password in order to share the folder
 token = "KwkyKj8LgFZy8mo"
-syncpath = str(settings.MODEL_DIR)
+syncpath = str(settings.PDX_MODEL_DIR)
 upload = False
 
 # %%
 # test webdav connection
-settings.MODEL_DIR.mkdir(parents=True, exist_ok=True)
+settings.PDX_MODEL_DIR.mkdir(parents=True, exist_ok=True)
 # and create a timestamp file to make sure we know it works!
 
 
@@ -112,7 +112,7 @@ sysinfo = dict(
     platform=platform.platform(),
     cpu=platform.processor()
 )
-with open(settings.MODEL_DIR / f"ts_{ts}.txt", "w") as f:
+with open(settings.PDX_MODEL_DIR / f"ts_{ts}.txt", "w") as f:
     f.write(str(sysinfo))
 
 # %%
@@ -236,7 +236,7 @@ def train_model(trial: optuna.trial.BaseTrial, tune_learning_rate=False):
     ))
 
     if start_model:
-        start_model_path = settings.MODEL_DIR / start_model
+        start_model_path = settings.PDX_MODEL_DIR / start_model
         m = classifier.txt_block_classifier.load_from_checkpoint(start_model_path)
     else:
         start_model_path = None
@@ -314,7 +314,7 @@ def train_model(trial: optuna.trial.BaseTrial, tune_learning_rate=False):
 
 
 # %%
-local_storage = f"sqlite:///{str(settings.MODEL_DIR)}/study.sqlite"
+local_storage = f"sqlite:///{str(settings.PDX_MODEL_DIR)}/study.sqlite"
 remote_storage = "TODO: get from env variable (f"mysql+pymysql:....")"
 remote_storage
 

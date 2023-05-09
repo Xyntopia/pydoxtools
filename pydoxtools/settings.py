@@ -12,7 +12,6 @@ from pathlib import Path
 
 import appdirs
 # TODO: remove joblib as a dependency from here ...
-import joblib
 from pydantic import BaseSettings
 
 logger = logging.getLogger(__name__)
@@ -28,9 +27,10 @@ appauthor = "pydoxtools"
 
 
 class _Settings(BaseSettings):
-    CACHE_DIR_BASE: Path = Path(appdirs.user_cache_dir(appname, appauthor))
+    PDX_CACHE_DIR_BASE: Path = Path(appdirs.user_cache_dir(appname, appauthor))
+    PDX_CACHE_TYPE: str = "memory"
     TRAINING_DATA_DIR: Path = _PYDOXTOOLS_DIR / 'training_data'
-    MODEL_DIR = CACHE_DIR_BASE / "models"
+    PDX_MODEL_DIR = PDX_CACHE_DIR_BASE / "models"
 
     # in order to be able to access OPENAI api
     OPENAI_API_KEY: str = "sk ...."
@@ -43,11 +43,7 @@ class _Settings(BaseSettings):
 
     # TODO: download classifiers in cache memory...
     def MODEL_STORE(self, name) -> Path:
-        return self.MODEL_DIR / f"{name}classifier.ckpt"
-
-    # TODO: replace this with diskcache
-    def get_memory_cache(self):
-        return joblib.Memory(str(self.CACHE_DIR_BASE), verbose=0)
+        return self.PDX_MODEL_DIR / f"{name}classifier.ckpt"
 
 
 settings = _Settings()

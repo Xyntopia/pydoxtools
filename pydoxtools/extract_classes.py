@@ -27,7 +27,7 @@ class TextBlockClassifier(Operator):
     def __call__(self, text_box_elements: pd.DataFrame):
         tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
         model_name = "txtblockclassifier"
-        model_dir = settings.MODEL_DIR / model_name
+        model_dir = settings.PDX_MODEL_DIR / model_name
         if not model_dir.exists():
             # TODO: download "any" model that we want from transformers
             logger.info(f"model {model_name} not found in pydoxtools models, download directly from transformers!")
