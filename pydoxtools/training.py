@@ -17,7 +17,6 @@ from pydoxtools.random_data_generators import TextBlockGenerator
 from pydoxtools.settings import settings
 
 logger = logging.getLogger(__name__)
-memory = settings.get_memory_cache()
 
 
 @functools.lru_cache()

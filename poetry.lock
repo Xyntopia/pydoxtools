@@ -1252,6 +1252,18 @@ files = [
 graph = ["objgraph (>=1.7.2)"]
 
 [[package]]
+name = "diskcache"
+version = "5.6.1"
+description = "Disk Cache -- Disk and file backed persistent cache."
+category = "main"
+optional = false
+python-versions = ">=3"
+files = [
+    {file = "diskcache-5.6.1-py3-none-any.whl", hash = "sha256:558c6a2d5d7c721bb00e40711803d6804850c9f76c426ed81ecc627fe9d2ce2d"},
+    {file = "diskcache-5.6.1.tar.gz", hash = "sha256:e4c978532feff5814c4cc00fe1e11e40501985946643d73220d41ee7737c72c3"},
+]
+
+[[package]]
 name = "distributed"
 version = "2023.4.1"
 description = "Distributed scheduler for Dask"
@@ -2219,7 +2231,7 @@ name = "joblib"
 version = "1.2.0"
 description = "Lightweight pipelining with Python functions"
 category = "main"
-optional = false
+optional = true
 python-versions = ">=3.7"
 files = [
     {file = "joblib-1.2.0-py3-none-any.whl", hash = "sha256:091138ed78f800342968c523bdde947e7a305b8594b910a0fea2ab83c3c6d385"},
@@ -7274,4 +7286,4 @@ inference = ["beautifulsoup4", "hnswlib", "pandas", "pytorch-lightning", "scikit
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4.0" # python version constraints are caused by scipy
-content-hash = "4db5a54823eeb7dc7ea698c2e5b74a00f05db2923eb0d5f88428e1b1f5c6c3b4"
+content-hash = "8f2d04caa049cbfc1a62b84aabfa66f0c0a7919fdfe64723d5f8cfc207dd240e"

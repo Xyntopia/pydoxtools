@@ -27,7 +27,6 @@ from pydoxtools import html_utils
 from pydoxtools.settings import settings
 
 logger = logging.getLogger(__name__)
-memory = settings.get_memory_cache()
 tqdm.tqdm.pandas()
 
 
