@@ -52,6 +52,39 @@ def is_url(url):
         return False
 
 
+import re
+
+
+def contains_markdown(text: str | bytes) -> bool:
+    if isinstance(text, bytes):
+        try:
+            text = text.decode('utf-8')
+        except UnicodeDecodeError:
+            return False
+
+    markdown_patterns = [
+        r'\*{1,2}[^*]+\*{1,2}',  # Bold or italic: *text* or **text**
+        r'#{1,6}\s',  # Headers: # text
+        r'\[.*\]\(.*\)',  # Links: [text](url)
+        r'!\[.*\]\(.*\)',  # Images: ![text](url)
+        r'`[^`]+`',  # Inline code: `code`
+        r'^\s{0,3}>\s',  # Blockquotes: > text
+        r'^\s{0,3}[-*+]\s',  # Unordered lists: - text or * text or + text
+        r'^\s{0,3}\d+\.\s',  # Ordered lists: 1. text
+        r'^\s{0,3}(```|~~~)',  # Code blocks: ``` or ~~~
+        r'\*\*\*|---|___',  # Horizontal rules: *** or --- or ___
+    ]
+
+    match_count = 0
+    for pattern in markdown_patterns:
+        if re.search(pattern, text, re.MULTILINE):
+            match_count += 1
+            if match_count >= 2:
+                return True
+
+    return False
+
+
 class DocumentTypeError(Exception):
     pass
 
@@ -283,7 +316,7 @@ operations and include the documentation there. Lambda functions should not be u
             Configuration(ocr_lang="auto", ocr_on=True),
             OCRExtractor()
             .pipe("ocr_on", "ocr_lang", file="raw_content")
-            .out("ocr_pdf_file"),
+            .out("ocr_pdf_file").cache(),
             # we need to do overwrite the pdf loading for images we inherited from
             # the ".pdf" logic as we are
             # now taking the pdf from a different variable
@@ -727,6 +760,15 @@ operations and include the documentation there. Lambda functions should not be u
             # fall back to using the extension itself
             if detected_filepath or self._source:
                 mimetype, encoding = mimetypes.guess_type(detected_filepath or self._source, strict=False)
+            elif isinstance(self._fobj, (bytes, str)):
+                if contains_markdown(self._fobj):
+                    mimetype = "text/markdown"
+            elif isinstance(self._fobj, io.IOBase):  # might be a streaming object
+                # TODO: there is probably a better way to check for many file io objects...
+                buffer = self._fobj.read(2048)
+                self._fobj.seek(0)
+                if contains_markdown(buffer):
+                    mimetype = "text/markdown"
 
         # do a mapping to standardize file type detection a bit more:
         mimetype = {

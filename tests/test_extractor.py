@@ -11,19 +11,23 @@ import pydoxtools
 import pydoxtools.document
 from pydoxtools import settings
 from pydoxtools.document import Document, DocumentBag
-from pydoxtools.operators_base import OperatorException
 from pydoxtools.list_utils import flatten, iterablefyer
+from pydoxtools.operators_base import OperatorException
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("pydoxtools.document").setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 
 test_files_w_type = {
+    # images
+    "image/png": "./data/north_american_countries.png",
+    "image/tiff": "./data/north_american_countries.tif",
+    "image/jpeg": "./data/north_american_countries.jpg",
+    "text/markdown": ["./data/demo.md",
+                      "../README.md", ],
     "text/html": ["./data/berrybase_raspberrypi4.html",
                   "./data/test.html"],
     "text/rtf": "./data/sample.rtf",
-    "text/markdown": ["./data/demo.md",
-                      "../README.md", ],
     "application/pdf": ["./data/PFR-PR23_BAT-110__V1.00_.pdf",
                         "./data/Datasheet-Centaur-Charger-DE.6f.pdf",
                         "./data/remo-m_fixed-wing.2f.pdf",
@@ -37,10 +41,6 @@ test_files_w_type = {
     # "./data/Doxcavator.pptx",
     "application/vnd.oasis.opendocument.text": "./data/test.odt",
     "application/epub+zip": "./data/basic-v3plus2.epub",
-    # images
-    "image/png": "./data/north_american_countries.png",
-    "image/tiff": "./data/north_american_countries.tif",
-    "image/jpeg": "./data/north_american_countries.jpg",
 }
 test_files = flatten(test_files_w_type.values())
 test_dir_path = pathlib.Path(__file__).parent.absolute()
@@ -61,15 +61,22 @@ def test_document_type_detection():
             logger.info(f"testing filetype detection for {f}")
             assert d.document_type == t
 
+            # TODO: automatically recognize doc_type
+            # from bytestream
+            if d.magic_library_available():
+                source = None
+            else:
+                source = f
+
             d = Document(str(make_path_absolute(f)))
             logger.info(f"testing filetype string path detection for {f}")
             assert d.document_type == t
 
             with open(make_path_absolute(f), "rb") as file:
                 doc_str = file.read()
-            d = Document(fobj=doc_str, source=f)
+            d = Document(fobj=doc_str, source=source)
             assert d.document_type == t
-            d = Document(fobj=io.BytesIO(doc_str), source=f)
+            d = Document(fobj=io.BytesIO(doc_str), source=source)
             assert d.document_type == t
 
             with open(make_path_absolute(f), "rb") as file:
@@ -469,7 +476,7 @@ def test_nlp_utils():
 
 
 if __name__ == "__main__":
-    test_document_pickling()
+    test_all_documents()
     test_pipeline_graph()
 
     # a = pd.DataFrame(sd.sents)
