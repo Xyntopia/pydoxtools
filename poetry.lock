@@ -607,7 +607,7 @@ name = "chardet"
 version = "5.1.0"
 description = "Universal encoding detector for Python 3"
 category = "main"
-optional = true
+optional = false
 python-versions = ">=3.7"
 files = [
     {file = "chardet-5.1.0-py3-none-any.whl", hash = "sha256:362777fb014af596ad31334fde1e8c327dfdb076e1960d1694662d46a6917ab9"},
@@ -7286,4 +7286,4 @@ inference = ["beautifulsoup4", "hnswlib", "pandas", "pytorch-lightning", "scikit
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4.0" # python version constraints are caused by scipy
-content-hash = "8f2d04caa049cbfc1a62b84aabfa66f0c0a7919fdfe64723d5f8cfc207dd240e"
+content-hash = "7462e90bb39646945a2e740e186aa70ae3e3bab58966172d23d6f68d6113a43c"
