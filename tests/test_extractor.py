@@ -11,7 +11,7 @@ import pydoxtools
 import pydoxtools.document
 from pydoxtools import settings
 from pydoxtools.document import Document, DocumentBag
-from pydoxtools.document_base import OperatorException
+from pydoxtools.operators_base import OperatorException
 from pydoxtools.list_utils import flatten, iterablefyer
 
 logging.basicConfig(level=logging.INFO)
@@ -469,7 +469,7 @@ def test_nlp_utils():
 
 
 if __name__ == "__main__":
-    test_table_extraction()
+    test_document_pickling()
     test_pipeline_graph()
 
     # a = pd.DataFrame(sd.sents)

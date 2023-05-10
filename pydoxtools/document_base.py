@@ -256,7 +256,6 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         self._configuration = {}
         self._cache_hits = 0
         self._source = "base_pipeline"
-        self._x_func_cache: dict[Operator, dict[str, Any]] = {}
         self._cache_type = "auto"
 
     def set_cache_type(self, cache_type: str):
@@ -273,14 +272,14 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         return self
 
     @cached_property
-    def cache(self):
+    def cache(self) -> dict[Operator, dict[str, Any]] | Cache:
         if self._cache_type == "auto":
             cache_mode = settings.PDX_CACHE_TYPE
         else:
             cache_mode = self._cache_type
 
         if cache_mode == "memory":
-            return self._x_func_cache
+            return {}
         elif cache_mode == "diskcache":
             cache = Cache(settings.PDX_CACHE_DIR_BASE / "pipelines")
             return cache
@@ -630,9 +629,8 @@ supports pipelines
         of a lambda function in it...
         """
         state = self.__dict__.copy()
-        state.pop("_x_func_cache", None)
+        state.pop("cache", None)
         state.pop("x_funcs", None)
-        state.pop("_pipelines", None)
         return state
 
     def __setstate__(self, state: dict):
