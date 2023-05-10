@@ -3,7 +3,7 @@ from typing import Any
 import pandas as pd
 from urlextract import URLExtract
 
-from pydoxtools.document_base import Operator
+from pydoxtools.operators_base import Operator
 from pydoxtools.settings import settings
 
 dns_cache_dir = settings.PDX_CACHE_DIR_BASE / "urlextract"

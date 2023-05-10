@@ -1,11 +1,8 @@
-import abc
 import functools
 import json
 import logging
 import pathlib
-import typing
 import uuid
-from abc import ABC
 from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
@@ -16,8 +13,11 @@ import networkx as nx
 import numpy as np
 import spacy.tokens
 import yaml
+from diskcache import Cache
 
 from .list_utils import deep_str_convert
+from .operators_base import Operator, Configuration, OperatorException, OperatorOutputException
+from .settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -83,190 +83,6 @@ class TokenCollection:
 
     def __repr__(self):
         return "|".join(t.text for t in self._tokens)
-
-
-class Operator(ABC):
-    """Base class to build extraction logic for information extraction from
-    unstructured documents and loading files
-
-    Extractors should always be stateless! This means one should not save
-    any variables in them that persist over the lifecycle over a single extraction
-    operation.
-
-    - Extractors can be "hooked" into the document pipeline by using:
-        pipe, out and cache calls.
-    - all parameters given in "out" can be accessed through the "x" property
-      (e.g. doc.x("extraction_parameter"))
-
-    dynamic configuration of an extractor parameters can be configured through
-    "config" function which will indicate to the parent document class
-    to set some input parameters to this function automatically.
-
-    configuration parameters can be set during pipeline initialization like this:
-
-    ```
-    Pipeline(source=...).config(
-        first_config_parameter=...,
-        seconf_config_parameter=...
-    )
-    ```
-
-    In order to know what parameters of a pipeline are configurable and what
-    their default values are, call the configuration parameter like this:
-
-    Pipeline(source=...).configuration
-
-    If the same parameters are also set in doc.pipe the parameters are
-    optional and will only be taken if explicitly set through doc.config(...).
-
-    TODO: explain configuration parameters
-    """
-
-    # TODO:  how can we anhance the type checking for outputs?
-    #        maybe turn this into a dataclass?
-
-    def __init__(self):
-        # try to keep __init__ with no arguments for Operator..
-        self._in_mapping: dict[str, str] = {}
-        self._out_mapping: dict[str, str] = {}
-        self._cache = False  # TODO: switch to "True" by default
-        self.__node_doc__ = ""
-
-    @abc.abstractmethod
-    def __call__(self, *args, **kwargs) -> dict[str, typing.Any] | Any:
-        pass
-
-    def _mapped_call(
-            self, parent_document: "document_base.Pipeline",
-            *args,
-            **kwargs
-    ) -> dict[
-        str, typing.Any]:
-        """
-        map objects from document properties to
-        processing function.
-
-        essentially, This maps the outputs from one element of _operators
-        to the inputs of another and also makes sure
-        to override certain parameters that were specified in
-        a config when calling the document class.
-
-        argument precedence is as follows:
-
-        python-class-member < extractor-graph-function < config
-
-        # TODO: maybe we should change precedence and make config the lowest?
-        """
-        mapped_kwargs = {}
-        # get all required input parameters from _in_mapping which was declared with "pipe"
-        for k, v in self._in_mapping.items():
-            # first check if parameter is available as an extractor
-            if v in parent_document.x_funcs:
-                # then call the function to get the value
-                mapped_kwargs[k] = parent_document.x(v)
-            else:
-                # get "native" member-variables or other functions
-                # if not found an extractor with that name
-                mapped_kwargs[k] = getattr(parent_document, v)
-
-        # override graph args directly with function call params...
-        mapped_kwargs.update(kwargs)
-        output = self(*args, **mapped_kwargs)
-        if isinstance(output, dict):
-            return {self._out_mapping[k]: v for k, v in output.items() if k in self._out_mapping}
-        else:
-            # use first key of out_mapping for output if
-            # we only have a single return value
-            return {next(iter(self._out_mapping)): output}
-
-    def pipe(self, *args, **kwargs):
-        """
-        configure input parameter mappings to this function
-
-        keys: are the actual function parameters of the extractor function
-        values: are the outside function names
-
-        """
-        self._in_mapping = kwargs
-        self._in_mapping.update({k: k for k in args})
-        return self
-
-    def out(self, *args, **kwargs):
-        """
-        configure output parameter mappings to this function
-
-        keys: are the
-        """
-        # TODO: rename to "name" because this actually represents the
-        #       variable names of the extractor?
-        self._out_mapping = kwargs
-        self._out_mapping.update({k: k for k in args})
-        return self
-
-    def cache(self):
-        """indicate to document that we want this extractor function to be cached"""
-        self._cache = True
-        return self
-
-    def no_cache(self):
-        self._cache = False
-        return self
-
-    def docs(self, doc_str: str = ""):
-        self.__node_doc__ = doc_str
-        return self
-
-
-class Configuration(Operator):
-    """
-    This is a special operator which can be used to configure a pipeline.
-
-    Declare some configuration values which can then be used as inputs for
-    other operators.
-
-    It takes a list of key-value pairs where the key
-    is the target variable name and the value is the
-    standard configuration value.
-
-    All "Configuration" values can be changed through the "config"
-    function in a pipeline.
-
-    When using a Configuration, we do not need an "out" mapping, as it will
-    directly be mapped on the configuration keys. We can optionally do this though.
-
-    The Question & Answering part of the pydoxtools.Document class
-    was specified with this config function like this:
-
-        QamExtractor(model_id=settings.PDXT_STANDARD_QAM_MODEL)
-            .pipe(text="full_text").out("answers").cache().config(trf_model_id="qam_model_id"),
-
-    In this case, when calling a document we can dynamically configure the
-    pipeline with the "qam_model_id" parameter:
-
-        doc = Document(
-            fobj=doc_str, document_type=".pdf"
-        ).config(dict(qam_model_id='deepset/roberta-base-squad2'))
-
-
-    """
-
-    def __init__(self, **configuration_map):
-        super().__init__()
-        self._configuration_map = configuration_map
-        self.no_cache()  # we don't need this, as everything is already saved in the _configuration_map
-        # use the configuration map directly as output mapping
-        self.out(*list(configuration_map.keys()))
-
-    def __call__(self):
-        return self._configuration_map
-
-
-class OperatorException(Exception):
-    pass
-
-
-class OperatorOutputException(OperatorException):
-    pass
 
 
 class ConfigurationError(Exception):
@@ -413,10 +229,10 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
     between file types.
 
     Attributes:
-        _operators (dict[str, list[pydoxtools.document_base.Operator]]): Stores the definition of the
+        _operators (dict[str, list[pydoxtools.operators_base.Operator]]): Stores the definition of the
             pipeline graph, a collection of connected operators/functions that process
             data from a document.
-        _pipelines (dict[str, dict[str, pydoxtools.document_base.Operator]]): Provides access to all
+        _pipelines (dict[str, dict[str, pydoxtools.operators_base.Operator]]): Provides access to all
             operator functions by their "out-key" which was defined in _operators.
 
     Todo:
@@ -434,13 +250,42 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
 
         Attributes:
             _cache_hits (int): Number of cache hits during pipeline execution.
-            _x_func_cache (dict[pydoxtools.document_base.Operator, dict[str, Any]]): Cache for operator
+            _x_func_cache (dict[pydoxtools.operators_base.Operator, dict[str, Any]]): Cache for operator
                 functions to store intermediate results.
         """
         self._configuration = {}
         self._cache_hits = 0
         self._source = "base_pipeline"
         self._x_func_cache: dict[Operator, dict[str, Any]] = {}
+        self._cache_type = "auto"
+
+    def set_cache_type(self, cache_type: str):
+        """Sets cache type to be on disk or in memory. Unless
+        it is set to "auto", it will override th global settings.
+        
+        Values can be:  
+        - "auto" this uses the cache as specified in the global settings
+        - "memory" (default)
+        - "diskcache"  which uses diskcache as a caching backend
+        """
+
+        self._cache_type = cache_type
+        return self
+
+    @cached_property
+    def cache(self):
+        if self._cache_type == "auto":
+            cache_mode = settings.PDX_CACHE_TYPE
+        else:
+            cache_mode = self._cache_type
+
+        if cache_mode == "memory":
+            return self._x_func_cache
+        elif cache_mode == "diskcache":
+            cache = Cache(settings.PDX_CACHE_DIR_BASE / "pipelines")
+            return cache
+        else:
+            raise NotImplementedError(f"Cache mode: {cache_mode} not available!")
 
     def config(self, **configuration: Any) -> "Pipeline":
         """
@@ -629,6 +474,33 @@ supports pipelines
         docs = '\n\n'.join(node_docs)
         return docs
 
+    def gather_arguments(self, **kwargs):
+        """
+        Gathers arguments from the pipeline and class, and maps them to the provided keys of kwargs.
+
+        This method retrieves all required input parameters from _in_mapping, which was declared with "pipe".
+        It first checks if the parameter is available as an extractor. If so, it calls the function to get the value.
+        Otherwise, it gets the "native" member-variables or other functions if an extractor with that name is not found.
+
+        Args:
+            **kwargs (dict): A dictionary containing the keys to be mapped to the corresponding values.
+
+        Returns:
+            dict: A dictionary containing the mapped keys and their corresponding values.
+        """
+        mapped_kwargs = {}
+        # get all required input parameters from _in_mapping which was declared with "pipe"
+        for k, v in kwargs.items():
+            # first check if parameter is available as an extractor
+            if v in self.x_funcs:
+                # then call the function to get the value
+                mapped_kwargs[k] = self.x(v)
+            else:
+                # get "native" member-variables or other functions
+                # if not found an extractor with that name
+                mapped_kwargs[k] = getattr(self, v)
+        return mapped_kwargs
+
     def x(self, operator_name: str) -> Any:
         """
         Calls an extractor from the defined pipeline and returns the result.
@@ -652,22 +524,41 @@ supports pipelines
             return self.__dict__[operator_name]  # choose the class' own properties as a fallback
 
         try:
+            # gather keywords for function from inputs
+            mapped_kwargs = self.gather_arguments(**operator_function._in_mapping)
+
             # check if we executed this function at some point...
-            if operator_function._cache:
+            if operator_function._cache:  # whether function should be cached or not...
                 # TODO: implement our own key function in order
                 #       to be able to pickle the document cache!
                 #
-                # key = functools._make_key((operator_functions,)+args,kwargs, typed=False)
-                key = (operator_function,)
+                # {} for kwargs in _make_key is only temporary to pass tests with class-bound tests where
+                # we don't need the additional key parameters
+                key = functools._make_key((operator_function,), {}, typed=False)
+                # key = (operator_function,)
+                # TODO: add parameters here as well so that w can use a "central" diskcache...
+                #       and different instances of pipelines don't mix up their cached
+                #       functions...
+                # key = self.__class__.__name__ + operator_name
                 # we need to check for "is not None" as we also have pandas dataframes in this
                 # which cannot be checked for by simply using "if"
-                if (res := self._x_func_cache.get(key, None)) is not None:
+                if (res := self.cache.get(key, None)) is not None:
                     self._cache_hits += 1
                 else:
-                    res = operator_function._mapped_call(self)
-                    self._x_func_cache[key] = res
+                    res = operator_function(**mapped_kwargs)
+                    self.cache[key] = res
             else:
-                res = operator_function._mapped_call(self)
+                res = operator_function(**mapped_kwargs)
+
+            # TODO: this can probably made more elegant
+            if isinstance(res, dict):
+                res = {operator_function._out_mapping[k]: v for k, v in res.items()
+                       if k in operator_function._out_mapping}
+            else:
+                # use first key of out_mapping for output if
+                # we only have a single return value
+                res = {next(iter(operator_function._out_mapping)): res}
+
 
         except OperatorException as e:
             logger.error(f"Extraction error in '{operator_name}': {e}")
@@ -741,6 +632,7 @@ supports pipelines
         state = self.__dict__.copy()
         state.pop("_x_func_cache", None)
         state.pop("x_funcs", None)
+        state.pop("_pipelines", None)
         return state
 
     def __setstate__(self, state: dict):

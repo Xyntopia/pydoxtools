@@ -153,7 +153,7 @@ def meta_infos(f: io.IOBase):
     return res
 
 
-class PDFFileLoader(pydoxtools.document_base.Operator):
+class PDFFileLoader(pydoxtools.operators_base.Operator):
     """
     Loads a pdf file and can extract all kinds of information from it.
 

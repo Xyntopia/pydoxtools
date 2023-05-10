@@ -7,7 +7,8 @@ import hnswlib
 import networkx as nx
 import numpy as np
 
-from pydoxtools.document_base import TokenCollection, Operator
+from pydoxtools.document_base import TokenCollection
+from pydoxtools.operators_base import Operator
 from pydoxtools.nlp_utils import calculate_string_embeddings
 
 logger = logging.getLogger(__name__)

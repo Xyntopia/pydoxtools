@@ -4,7 +4,8 @@ from typing import Callable
 import dask.bag
 from dask import dataframe
 
-from pydoxtools.document_base import Operator, OperatorException, Pipeline
+from pydoxtools.document_base import Pipeline
+from pydoxtools.operators_base import Operator, OperatorException
 
 
 class BagMapOperator(Operator):

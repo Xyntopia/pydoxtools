@@ -20,7 +20,7 @@ from dask.bag import Bag
 from . import dask_operators
 from . import nlp_utils
 from .dask_operators import SQLTableLoader
-from .document_base import Pipeline, ElementType, Configuration, Operator
+from .document_base import Pipeline, ElementType
 from .extract_classes import LanguageExtractor, TextBlockClassifier
 from .extract_filesystem import FileLoader
 from .extract_filesystem import PathLoader
@@ -38,7 +38,7 @@ from .html_utils import get_text_only_blocks
 from .list_utils import flatten, flatten_dict, deep_str_convert
 from .nlp_utils import calculate_string_embeddings, summarize_long_text
 from .operator_huggingface import QamExtractor
-from .operators_base import Alias, LambdaOperator, ElementWiseOperator, Constant, DictSelector
+from .operators_base import Alias, LambdaOperator, ElementWiseOperator, Constant, DictSelector, Operator, Configuration
 from .pdf_utils import PDFFileLoader
 
 logger = logging.getLogger(__name__)

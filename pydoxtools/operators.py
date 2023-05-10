@@ -3,9 +3,8 @@ This module simply gathers all operators from across the board to make them easi
 access.
 """
 
-from document_base import Operator
+from pydoxtools.operators_base import Operator, Configuration
 from operators_base import LambdaOperator, ElementWiseOperator, Alias, ForgivingExtractIterator,DataMerger
-from pydoxtools.document_base import Configuration
 from operator_huggingface import HuggingfacePipeline, QamExtractor
 from extract_filesystem import FileLoader, PathLoader, Path
 from extract_ocr import OCRExtractor

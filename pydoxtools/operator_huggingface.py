@@ -13,7 +13,7 @@ from typing import Dict, List, Tuple, Callable
 import torch
 
 from pydoxtools import nlp_utils
-from pydoxtools.document_base import Operator
+from pydoxtools.operators_base import Operator
 from pydoxtools.list_utils import iterablefyer
 from pydoxtools.nlp_utils import tokenize_windows
 

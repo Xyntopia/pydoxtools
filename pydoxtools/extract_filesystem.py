@@ -5,7 +5,7 @@ from pathlib import Path
 import pydoxtools.operators_base
 
 
-class FileLoader(pydoxtools.document_base.Operator):
+class FileLoader(pydoxtools.operators_base.Operator):
     """Load data from path"""
 
     def __call__(
@@ -35,7 +35,7 @@ class FileLoader(pydoxtools.document_base.Operator):
         return txt
 
 
-class PathLoader(pydoxtools.document_base.Operator):
+class PathLoader(pydoxtools.operators_base.Operator):
     def __init__(self, mode: str = "files"):
         super().__init__()
         self._mode = mode

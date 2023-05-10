@@ -63,7 +63,7 @@ def mime_type(self) -> str:
     return "unknown"
 
 
-class DocumentElementFilter(pydoxtools.document_base.Operator):
+class DocumentElementFilter(pydoxtools.operators_base.Operator):
     """Filter document elements for various criteria"""
 
     def __init__(self, element_type: document_base.ElementType):
@@ -101,7 +101,7 @@ def group_elements(elements: pd.DataFrame, by: list[str], agg: str):
         return df["text"].to_dict()
 
 
-class TextBoxElementExtractor(pydoxtools.document_base.Operator):
+class TextBoxElementExtractor(pydoxtools.operators_base.Operator):
     """
     create textboxes and create bounding boxes and aggregated text from
     a pandas dataframe with textlines.
@@ -128,7 +128,7 @@ class TextBoxElementExtractor(pydoxtools.document_base.Operator):
             return dict(text_box_elements=None)
 
 
-class SectionsExtractor(pydoxtools.document_base.Operator):
+class SectionsExtractor(pydoxtools.operators_base.Operator):
     """
     extract sections from a textbox dataframe
     """
@@ -138,7 +138,7 @@ class SectionsExtractor(pydoxtools.document_base.Operator):
         return {"sections": bg}
 
 
-class TitleExtractor(pydoxtools.document_base.Operator):
+class TitleExtractor(pydoxtools.operators_base.Operator):
     """
     This Operator extracts titels and other interesting text parts
     from a visual document. It does this by characterising parts
