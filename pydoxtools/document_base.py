@@ -552,7 +552,7 @@ supports pipelines
                     # that we would have to calculate the entire tree in the pipeline to get the
                     # parameters for this function.
                     if disk_cache_key := self._key():  # key might not exist!
-                        disk_cache_key = operator_name + str(dict_cache_key)
+                        disk_cache_key = operator_name + str(disk_cache_key)
 
                     if (not finished_calculation) and disk_cache_key:
                         try:

@@ -891,8 +891,8 @@ class DocumentBagExtractor(Operator):
                 new_docs = [Document(obj, source=d.source, document_type="string").config(**d.configuration)]
             elif isinstance(obj, list):
                 for fobj in obj:
-                    d = Document(fobj, source=d.source, document_type="string").config(**d.configuration)
-                    new_docs.append(d)
+                    nd = Document(fobj, source=d.source, document_type="string").config(**d.configuration)
+                    new_docs.append(nd)
             else:
                 NotImplemented(f"Can not yet create a document from {property}!")
 
@@ -900,7 +900,7 @@ class DocumentBagExtractor(Operator):
 
         def inception_func(properties: list[str] | str, *args, **kwargs) -> DocumentBag:
             new_documents = dask_bag.map(x_single_prop, properties, *args, **kwargs)
-            if self._dask_bag_func:
+            if self._dask_bag_func:  # e.g. "bag.flatten" the resulting object...
                 new_documents = getattr(new_documents, self._dask_bag_func)()
             # make sure our new DocumentBag has the same configuration as the old one...
             db = DocumentBag(new_documents).config(**configuration)

@@ -497,8 +497,22 @@ def test_disk_cache():
     settings.PDX_ENABLE_DISK_CACHE = False
 
 
+def test_source_vs_fobj():
+    """testing wether disk caching doesn't cause any collisions..."""
+    settings.PDX_ENABLE_DISK_CACHE = True
+    fobj = "../README.md"
+    d = Document(fobj)
+    d.full_text
+    # ts = d.text_segments
+    nd1 = Document("abcdef", source=d.source, document_type="string").config(**d.configuration)
+    nd2 = Document("123456", source=d.source, document_type="string").config(**d.configuration)
+    assert nd1.full_text == "abcdef"
+    assert nd2.full_text == "123456"
+    settings.PDX_ENABLE_DISK_CACHE = False
+
+
 if __name__ == "__main__":
-    test_disk_cache()
+    test_source_vs_fobj()
     test_pipeline_graph()
 
     # a = pd.DataFrame(sd.sents)
