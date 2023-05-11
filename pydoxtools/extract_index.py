@@ -58,6 +58,10 @@ class TextPieceSplitter(Operator):
                 pieces.append(new_segment.strip())
             new_segment = ""
 
+        # Append the last piece if it's not empty
+        if new_segment.strip():
+            pieces.append(new_segment.strip())
+
         return pieces
 
 
