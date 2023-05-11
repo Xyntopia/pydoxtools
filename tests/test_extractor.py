@@ -9,10 +9,10 @@ import pytest
 
 import pydoxtools
 import pydoxtools.document
-from pydoxtools import settings
 from pydoxtools.document import Document, DocumentBag
 from pydoxtools.list_utils import flatten, iterablefyer
 from pydoxtools.operators_base import OperatorException
+from pydoxtools.settings import settings, _PYDOXTOOLS_DIR
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("pydoxtools.document").setLevel(logging.INFO)
@@ -255,13 +255,13 @@ def test_pipeline_graph():
         ending = mimetypes.guess_extension(k, strict=False) or k
         ending = ending.replace("/", "_")
         Document.pipeline_graph(
-            image_path=settings._PYDOXTOOLS_DIR / f"docs/images/document_logic_{ending}.svg",
+            image_path=_PYDOXTOOLS_DIR / f"docs/images/document_logic_{ending}.svg",
             document_logic_id=k
         )
 
     for k in DocumentBag._pipelines:
         DocumentBag.pipeline_graph(
-            image_path=settings._PYDOXTOOLS_DIR / f"docs/images/documentbag_logic_{k}.svg",
+            image_path=_PYDOXTOOLS_DIR / f"docs/images/documentbag_logic_{k}.svg",
             document_logic_id=k
         )
 
@@ -480,18 +480,25 @@ def test_disk_cache():
         enable=True,
         ttl=3600  # keep cache for 1 hour
     )
-    assert d.keywords
+    assert d.keywords == ['documents', '- Document analysis']
     d = Document(source="../README.md").set_disk_cache_settings(
         enable=True,
         ttl=3600  # keep cache for 1 hour
     )
-    assert d.keywords
-    assert d._stats["cache_hits"] == 1
+    assert d.keywords == ['documents', '- Document analysis']
+    assert d._stats["cache_hits"] == 0
     assert d._stats["disk_cache_hits"] == 1
+
+    settings.PDX_ENABLE_DISK_CACHE = True
+    d = Document(source="../README.md")
+    d.keywords
+    assert d._stats["cache_hits"] == 0
+    assert d._stats["disk_cache_hits"] == 1
+    settings.PDX_ENABLE_DISK_CACHE = False
 
 
 if __name__ == "__main__":
-    test_ocr_and_exceptions()
+    test_disk_cache()
     test_pipeline_graph()
 
     # a = pd.DataFrame(sd.sents)

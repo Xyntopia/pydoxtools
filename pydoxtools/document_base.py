@@ -661,7 +661,8 @@ supports pipelines
         of a lambda function in it...
         """
         state = self.__dict__.copy()
-        state.pop("cache", None)
+        state.pop("_cache", None)
+        state.pop("_disk_cache", None)
         state.pop("x_funcs", None)
         return state
 
@@ -671,7 +672,6 @@ supports pipelines
         """
         # for k,v in state:
         self.__dict__.update(state)
-        self._x_func_cache = {}
         # TODO: restore more cached values to increase speed in a distributed setting.
         #       for this we need to rely on our cache to work with strings as keys
         #       and not functions...
