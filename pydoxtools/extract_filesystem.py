@@ -11,7 +11,8 @@ class FileLoader(pydoxtools.operators_base.Operator):
     """Load data from path"""
 
     def __call__(
-            self, fobj: bytes | str | Path | typing.IO, path=None, page_numbers=None, max_pages=None
+            self, fobj: bytes | str | Path | typing.IO, path=None,
+            page_numbers=None, max_pages=None, document_type=None
     ) -> bytes | str:
         if path or isinstance(fobj, pathlib.Path):
             try:
@@ -26,11 +27,12 @@ class FileLoader(pydoxtools.operators_base.Operator):
             txt = fobj.read()
 
         if isinstance(txt, bytes):
-            if detected_encoding := chardet.detect(txt)['encoding']:
-                try:
-                    txt = txt.decode(detected_encoding)
-                except UnicodeDecodeError:
-                    txt = txt.decode("utf-8", errors='replace')
+            if document_type == "text/plain":
+                if detected_encoding := chardet.detect(txt)['encoding']:
+                    try:
+                        txt = txt.decode(detected_encoding)
+                    except UnicodeDecodeError:
+                        txt = txt.decode("utf-8", errors='replace')
 
         # else:
         #    raise document_base.DocumentTypeError("Can not extract text from unknown document")

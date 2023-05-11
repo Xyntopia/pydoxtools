@@ -365,7 +365,7 @@ operations and include the documentation there. Lambda functions should not be u
         "*": [
             # Loading text files
             FileLoader()
-            .pipe(fobj="fobj", path="path",
+            .pipe(fobj="fobj", path="path", document_type="document_type",
                   page_numbers="_page_numbers", max_pages="_max_pages")
             .out("raw_content").cache(),
             Alias(full_text="raw_content"),

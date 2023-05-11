@@ -311,13 +311,13 @@ def test_url_download():
 
 
 def test_ocr_and_exceptions():
+    doc = Document(fobj=make_path_absolute("./data/north_american_countries.tif")).config(ocr_on=True)
+    doc.full_text
+
     with pytest.raises(OperatorException) as exc_info:
         doc = Document(fobj=make_path_absolute("./data/north_american_countries.tif")).config(ocr_on=False)
         doc.full_text
         assert exc_info.args == ('could not get ocr_pdf_file!',)
-
-    doc = Document(fobj=make_path_absolute("./data/north_american_countries.tif")).config(ocr_on=True)
-    doc.full_text
 
 
 # TODO: add tests for dict & yaml
@@ -491,7 +491,7 @@ def test_disk_cache():
 
 
 if __name__ == "__main__":
-    test_disk_cache()
+    test_ocr_and_exceptions()
     test_pipeline_graph()
 
     # a = pd.DataFrame(sd.sents)
