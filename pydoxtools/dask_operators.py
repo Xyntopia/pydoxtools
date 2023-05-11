@@ -1,3 +1,4 @@
+import copy
 from typing import Any
 from typing import Callable
 
@@ -37,12 +38,15 @@ class BagPropertyExtractor(Operator):
     property of the enclosed documents.
     """
 
-    def __call__(self, dask_bag: dask.bag.Bag, forgiving_extracts: bool) -> Callable[[Any], dask.bag.Bag]:
+    def __call__(self, dask_bag: dask.bag.Bag, forgiving_extracts: bool, stats=None
+                 ) -> Callable[[Any], dask.bag.Bag]:
         def forgiving_extract(doc: Pipeline, properties: list[str]) -> dict[str, Any]:
             # TODO: add option to this operator to use it as a "forgiving" extractor
             # TODO: it might be a good idea to move this directly into the pipeline as "forgiving_dict"?
             try:
                 props = doc.to_dict(*properties)
+                if stats is not None:
+                    stats.append(copy.copy(doc._stats))
             except OperatorException:
                 # we just continue  if an error happened. This is why we are "forgiving"
                 props = {"Error": "OperatorException"}
@@ -54,7 +58,8 @@ class BagPropertyExtractor(Operator):
 
         def extract(doc: Pipeline, properties: list[str]) -> dict[str, Any]:
             props = doc.to_dict(*properties)
-
+            if stats is not None:
+                stats.append(copy.copy(doc._stats))
             if len(properties) == 1:
                 return props[properties[0]]
             else:

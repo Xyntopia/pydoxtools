@@ -1,3 +1,4 @@
+import copy
 import functools
 import io
 import json
@@ -857,8 +858,8 @@ class DocumentBagExtractor(Operator):
         super().__init__()
         self._dask_bag_func: str = dask_bag_func
 
-    def __call__(self, dask_bag: Bag, configuration: dict[str, Any], forgiving_extracts: bool) -> Callable[
-        ..., "DocumentBag"]:
+    def __call__(self, dask_bag: Bag, configuration: dict[str, Any], forgiving_extracts: bool, stats=None
+                 ) -> Callable[..., "DocumentBag"]:
         """
         This function will automatically "jump" over failed extraction operations. The reason
         for this is, that documents will sometimes send exceptions in cases where a specific value
@@ -878,6 +879,8 @@ class DocumentBagExtractor(Operator):
             # obj = d.to_dict(property)[property]
             try:
                 obj = getattr(d, property)
+                if stats is not None:
+                    stats.append(copy.copy(d._stats))
                 if callable(obj):
                     obj = obj(*args, **kwargs)
             except:
@@ -970,7 +973,6 @@ class DocumentBag(Pipeline):
     # TODO: give this class multi-processing capabilities
 
     # TODO: resolve naming conflicts:
-    #       bag & documentbag
     _operators = {
         str(DatabaseSource): [
             str(Bag),  # DatabaseSource will eventually be turned into a bag of documents
@@ -992,10 +994,6 @@ class DocumentBag(Pipeline):
         str(Bag): [
             # TODO: accept arbitrary bags
             # Alias(bag="source"),
-            Configuration(doc_configuration=dict()).docs(
-                "We can pass through a configuration object to Documents that are"
-                " created in our document bag. Any setting that is supported"
-                " by Document can be specified here."),
             Alias(docs="source"),
             LambdaOperator(lambda x: x.take)
             .pipe(x="docs").out("take").cache(),
@@ -1004,11 +1002,6 @@ class DocumentBag(Pipeline):
             # dask_operators.BagMapOperator(lambda x: functools.cache(
             #    lambda y: DocumentBag()))
             # .pipe(dask_bag="dict_bag").out("docbag").cache(),
-            Configuration(forgiving_extracts=True),
-            dask_operators.BagPropertyExtractor()
-            .pipe(dask_bag="docs", forgiving_extracts="forgiving_extracts").out("get_dicts").cache(),
-            DocumentBagExtractor("flatten")
-            .pipe("configuration", dask_bag="docs", forgiving_extracts="forgiving_extracts").out("e").cache(),
             LambdaOperator(lambda get_dicts: get_dicts("source", "full_text", "embedding"))
             .pipe("get_dicts").out("idx_dict").cache(),
             # TODO: optionally add a custom chromadb as an argument.
@@ -1075,8 +1068,26 @@ class DocumentBag(Pipeline):
             # .pipe(root_dir="_source")
             # .out(joint_data="meta_data").cache()
         ],
-        "*": []
+        "*": [
+            Configuration(doc_configuration=dict()).docs(
+                "We can pass through a configuration object to Documents that are"
+                " created in our document bag. Any setting that is supported"
+                " by Document can be specified here."),
+            Configuration(forgiving_extracts=True),
+            Constant(_stats=[]),
+            dask_operators.BagPropertyExtractor()
+            .pipe(dask_bag="docs", forgiving_extracts="forgiving_extracts", stats="_stats")
+            .out("get_dicts").cache(),
+            DocumentBagExtractor("flatten")
+            .pipe("configuration", dask_bag="docs", forgiving_extracts="forgiving_extracts", stats="_stats")
+            .out("e").cache(),
+            LambdaOperator(lambda x: pd.DataFrame(x).sum())
+            .pipe(x="_stats").out("stats").no_cache()
+            .docs("gather a number of statistics from documents as a pandas dataframe"),
+        ]
     }
+
+    #       bag & documentbag
 
     def __init__(
             self,
