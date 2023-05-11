@@ -30,7 +30,7 @@ class TextPieceSplitter(Operator):
     """
 
     def __call__(
-            self, full_text: str, min_size: int = 256, max_size: int = 512,
+            self, full_text, min_size: int = 256, max_size: int = 512,
             large_segment_overlap=0.3
     ):
         # TODO: also accept text elements which have bounding boxes for better text box identification.

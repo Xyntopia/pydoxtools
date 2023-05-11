@@ -34,8 +34,11 @@ class OCRExtractor(Operator):
             text = extract_text(io.BytesIO(pdf))
             try:
                 lang = langdetect.detect(text)
-            except langdetect.lang_detect_exception.LangDetectException:
-                raise OCRException("could not detect language !!!")
+            except langdetect.lang_detect_exception.LangDetectException as err:
+                if err.args[0] == 'No features in text.':
+                    lang = "en" #simply use english as a language
+                else:
+                    raise OCRException("could not detect language !!!")
             # get the corresponding language for tesseract
             lang = ocr_language_mappings.langdetect2tesseract.get(lang, None)
             file.seek(0)  # we are scanning th same file now with the correct language

@@ -14,9 +14,9 @@ Pipeline visualizations for every supported file type can be found
 
 Can be called using:
 
-    doc.x('raw_content')
+    <Document>.x('raw_content')
     # or
-    doc.raw_content
+    <Document>.raw_content
 
 return type
 : bytes | str
@@ -30,9 +30,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('full_text')
+    <Document>.x('full_text')
     # or
-    doc.full_text
+    <Document>.full_text
 
 return type
 : <class 'str'>
@@ -46,9 +46,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('clean_text')
+    <Document>.x('clean_text')
     # or
-    doc.clean_text
+    <Document>.clean_text
 
 return type
 : <class 'str'>
@@ -62,9 +62,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('data')
+    <Document>.x('data')
     # or
-    doc.data
+    <Document>.data
 
 return type
 : 
@@ -78,9 +78,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('text_box_elements')
+    <Document>.x('text_box_elements')
     # or
-    doc.text_box_elements
+    <Document>.text_box_elements
 
 return type
 : <class 'pandas.core.frame.DataFrame'>
@@ -94,9 +94,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('text_box_list')
+    <Document>.x('text_box_list')
     # or
-    doc.text_box_list
+    <Document>.text_box_list
 
 return type
 : 
@@ -110,9 +110,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('tables_df')
+    <Document>.x('tables_df')
     # or
-    doc.tables_df
+    <Document>.tables_df
 
 return type
 : str | list[str] | list[pandas.core.frame.DataFrame]
@@ -126,9 +126,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('tables_dict')
+    <Document>.x('tables_dict')
     # or
-    doc.tables_dict
+    <Document>.tables_dict
 
 return type
 : 
@@ -142,9 +142,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('tables')
+    <Document>.x('tables')
     # or
-    doc.tables
+    <Document>.tables
 
 return type
 : 
@@ -158,9 +158,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('addresses')
+    <Document>.x('addresses')
     # or
-    doc.addresses
+    <Document>.addresses
 
 return type
 : 
@@ -174,9 +174,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('num_pages')
+    <Document>.x('num_pages')
     # or
-    doc.num_pages
+    <Document>.num_pages
 
 return type
 : 
@@ -190,9 +190,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('num_words')
+    <Document>.x('num_words')
     # or
-    doc.num_words
+    <Document>.num_words
 
 return type
 : 
@@ -206,9 +206,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('num_sents')
+    <Document>.x('num_sents')
     # or
-    doc.num_sents
+    <Document>.num_sents
 
 return type
 : 
@@ -222,9 +222,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('a_d_ratio')
+    <Document>.x('a_d_ratio')
     # or
-    doc.a_d_ratio
+    <Document>.a_d_ratio
 
 return type
 : 
@@ -238,9 +238,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('language')
+    <Document>.x('language')
     # or
-    doc.language
+    <Document>.language
 
 return type
 : <class 'str'>
@@ -254,9 +254,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('spacy_model_size')
+    <Document>.x('spacy_model_size')
     # or
-    doc.spacy_model_size
+    <Document>.spacy_model_size
 
 return type
 : 
@@ -270,9 +270,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('spacy_model')
+    <Document>.x('spacy_model')
     # or
-    doc.spacy_model
+    <Document>.spacy_model
 
 return type
 : 
@@ -286,9 +286,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('spacy_doc')
+    <Document>.x('spacy_doc')
     # or
-    doc.spacy_doc
+    <Document>.spacy_doc
 
 return type
 : dict[str, typing.Any]
@@ -302,9 +302,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('spacy_nlp')
+    <Document>.x('spacy_nlp')
     # or
-    doc.spacy_nlp
+    <Document>.spacy_nlp
 
 return type
 : dict[str, typing.Any]
@@ -318,9 +318,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('spacy_vectors')
+    <Document>.x('spacy_vectors')
     # or
-    doc.spacy_vectors
+    <Document>.spacy_vectors
 
 return type
 : 
@@ -334,9 +334,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('spacy_embeddings')
+    <Document>.x('spacy_embeddings')
     # or
-    doc.spacy_embeddings
+    <Document>.spacy_embeddings
 
 return type
 : 
@@ -350,9 +350,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('spacy_sents')
+    <Document>.x('spacy_sents')
     # or
-    doc.spacy_sents
+    <Document>.spacy_sents
 
 return type
 : 
@@ -362,13 +362,13 @@ supports pipelines
 
 ### spacy_noun_chunks
             
-
+exracts nounchunks from spacy. Will not be cached because it is allin the spacy doc already
 
 Can be called using:
 
-    doc.x('spacy_noun_chunks')
+    <Document>.x('spacy_noun_chunks')
     # or
-    doc.spacy_noun_chunks
+    <Document>.spacy_noun_chunks
 
 return type
 : 
@@ -382,9 +382,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('entities')
+    <Document>.x('entities')
     # or
-    doc.entities
+    <Document>.entities
 
 return type
 : dict[str, list[str]]
@@ -398,9 +398,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('url')
+    <Document>.x('url')
     # or
-    doc.url
+    <Document>.url
 
 return type
 : 
@@ -414,9 +414,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('sents')
+    <Document>.x('sents')
     # or
-    doc.sents
+    <Document>.sents
 
 return type
 : 
@@ -430,9 +430,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('noun_chunks')
+    <Document>.x('noun_chunks')
     # or
-    doc.noun_chunks
+    <Document>.noun_chunks
 
 return type
 : 
@@ -446,9 +446,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('vector')
+    <Document>.x('vector')
     # or
-    doc.vector
+    <Document>.vector
 
 return type
 : 
@@ -462,9 +462,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('sent_vecs')
+    <Document>.x('sent_vecs')
     # or
-    doc.sent_vecs
+    <Document>.sent_vecs
 
 return type
 : 
@@ -478,9 +478,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('sent_ids')
+    <Document>.x('sent_ids')
     # or
-    doc.sent_ids
+    <Document>.sent_ids
 
 return type
 : 
@@ -494,9 +494,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('noun_vecs')
+    <Document>.x('noun_vecs')
     # or
-    doc.noun_vecs
+    <Document>.noun_vecs
 
 return type
 : 
@@ -510,9 +510,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('noun_ids')
+    <Document>.x('noun_ids')
     # or
-    doc.noun_ids
+    <Document>.noun_ids
 
 return type
 : 
@@ -526,9 +526,9 @@ Choose the embeddings model (huggingface-style) and if we wantto do the vectoriz
 
 Can be called using:
 
-    doc.x('vectorizer_model')
+    <Document>.x('vectorizer_model')
     # or
-    doc.vectorizer_model
+    <Document>.vectorizer_model
 
 return type
 : 
@@ -542,9 +542,9 @@ Choose the embeddings model (huggingface-style) and if we wantto do the vectoriz
 
 Can be called using:
 
-    doc.x('vectorizer_only_tokenizer')
+    <Document>.x('vectorizer_only_tokenizer')
     # or
-    doc.vectorizer_only_tokenizer
+    <Document>.vectorizer_only_tokenizer
 
 return type
 : 
@@ -558,9 +558,9 @@ Choose the embeddings model (huggingface-style) and if we wantto do the vectoriz
 
 Can be called using:
 
-    doc.x('vectorizer_overlap_ratio')
+    <Document>.x('vectorizer_overlap_ratio')
     # or
-    doc.vectorizer_overlap_ratio
+    <Document>.vectorizer_overlap_ratio
 
 return type
 : 
@@ -574,9 +574,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('vec_res')
+    <Document>.x('vec_res')
     # or
-    doc.vec_res
+    <Document>.vec_res
 
 return type
 : 
@@ -590,9 +590,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('tok_embeddings')
+    <Document>.x('tok_embeddings')
     # or
-    doc.tok_embeddings
+    <Document>.tok_embeddings
 
 return type
 : 
@@ -606,9 +606,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('tokens')
+    <Document>.x('tokens')
     # or
-    doc.tokens
+    <Document>.tokens
 
 return type
 : 
@@ -622,9 +622,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('embedding')
+    <Document>.x('embedding')
     # or
-    doc.embedding
+    <Document>.embedding
 
 return type
 : 
@@ -638,9 +638,9 @@ controls the text segmentation for knowledge basesoverlap is only relevant for l
 
 Can be called using:
 
-    doc.x('min_size_text_segment')
+    <Document>.x('min_size_text_segment')
     # or
-    doc.min_size_text_segment
+    <Document>.min_size_text_segment
 
 return type
 : 
@@ -654,9 +654,9 @@ controls the text segmentation for knowledge basesoverlap is only relevant for l
 
 Can be called using:
 
-    doc.x('max_size_text_segment')
+    <Document>.x('max_size_text_segment')
     # or
-    doc.max_size_text_segment
+    <Document>.max_size_text_segment
 
 return type
 : 
@@ -670,9 +670,9 @@ controls the text segmentation for knowledge basesoverlap is only relevant for l
 
 Can be called using:
 
-    doc.x('text_segment_overlap')
+    <Document>.x('text_segment_overlap')
     # or
-    doc.text_segment_overlap
+    <Document>.text_segment_overlap
 
 return type
 : 
@@ -686,9 +686,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('text_segments')
+    <Document>.x('text_segments')
     # or
-    doc.text_segments
+    <Document>.text_segments
 
 return type
 : 
@@ -702,9 +702,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('text_segment_vectors')
+    <Document>.x('text_segment_vectors')
     # or
-    doc.text_segment_vectors
+    <Document>.text_segment_vectors
 
 return type
 : 
@@ -718,9 +718,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('noun_index')
+    <Document>.x('noun_index')
     # or
-    doc.noun_index
+    <Document>.noun_index
 
 return type
 : 
@@ -734,9 +734,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('vectorizer')
+    <Document>.x('vectorizer')
     # or
-    doc.vectorizer
+    <Document>.vectorizer
 
 return type
 : 
@@ -750,9 +750,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('noun_query')
+    <Document>.x('noun_query')
     # or
-    doc.noun_query
+    <Document>.noun_query
 
 return type
 : typing.Callable
@@ -766,9 +766,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('noun_graph')
+    <Document>.x('noun_graph')
     # or
-    doc.noun_graph
+    <Document>.noun_graph
 
 return type
 : 
@@ -782,9 +782,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('top_k_text_rank_keywords')
+    <Document>.x('top_k_text_rank_keywords')
     # or
-    doc.top_k_text_rank_keywords
+    <Document>.top_k_text_rank_keywords
 
 return type
 : 
@@ -798,9 +798,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('textrank_keywords')
+    <Document>.x('textrank_keywords')
     # or
-    doc.textrank_keywords
+    <Document>.textrank_keywords
 
 return type
 : set[str]
@@ -814,9 +814,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('keywords')
+    <Document>.x('keywords')
     # or
-    doc.keywords
+    <Document>.keywords
 
 return type
 : 
@@ -830,9 +830,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('sent_index')
+    <Document>.x('sent_index')
     # or
-    doc.sent_index
+    <Document>.sent_index
 
 return type
 : 
@@ -846,9 +846,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('sent_query')
+    <Document>.x('sent_query')
     # or
-    doc.sent_query
+    <Document>.sent_query
 
 return type
 : typing.Callable
@@ -862,9 +862,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('sent_graph')
+    <Document>.x('sent_graph')
     # or
-    doc.sent_graph
+    <Document>.sent_graph
 
 return type
 : 
@@ -878,9 +878,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('top_k_text_rank_sentences')
+    <Document>.x('top_k_text_rank_sentences')
     # or
-    doc.top_k_text_rank_sentences
+    <Document>.top_k_text_rank_sentences
 
 return type
 : 
@@ -894,9 +894,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('textrank_sents')
+    <Document>.x('textrank_sents')
     # or
-    doc.textrank_sents
+    <Document>.textrank_sents
 
 return type
 : set[str]
@@ -910,9 +910,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('summarizer_model')
+    <Document>.x('summarizer_model')
     # or
-    doc.summarizer_model
+    <Document>.summarizer_model
 
 return type
 : 
@@ -926,9 +926,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('summarizer_token_overlap')
+    <Document>.x('summarizer_token_overlap')
     # or
-    doc.summarizer_token_overlap
+    <Document>.summarizer_token_overlap
 
 return type
 : 
@@ -942,9 +942,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('summarizer_max_text_len')
+    <Document>.x('summarizer_max_text_len')
     # or
-    doc.summarizer_max_text_len
+    <Document>.summarizer_max_text_len
 
 return type
 : 
@@ -958,9 +958,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('slow_summary')
+    <Document>.x('slow_summary')
     # or
-    doc.slow_summary
+    <Document>.slow_summary
 
 return type
 : 
@@ -974,9 +974,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('qam_model_id')
+    <Document>.x('qam_model_id')
     # or
-    doc.qam_model_id
+    <Document>.qam_model_id
 
 return type
 : 
@@ -990,9 +990,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('answers')
+    <Document>.x('answers')
     # or
-    doc.answers
+    <Document>.answers
 
 return type
 : 
@@ -1006,9 +1006,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('openai_chat_model_id')
+    <Document>.x('openai_chat_model_id')
     # or
-    doc.openai_chat_model_id
+    <Document>.openai_chat_model_id
 
 return type
 : 
@@ -1022,9 +1022,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('chat_answers')
+    <Document>.x('chat_answers')
     # or
-    doc.chat_answers
+    <Document>.chat_answers
 
 return type
 : typing.Callable[[list[str], list[str] | str], list[str]]
@@ -1038,9 +1038,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('page_set')
+    <Document>.x('page_set')
     # or
-    doc.page_set
+    <Document>.page_set
 
 return type
 : 
@@ -1054,9 +1054,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('pages_bbox')
+    <Document>.x('pages_bbox')
     # or
-    doc.pages_bbox
+    <Document>.pages_bbox
 
 return type
 : 
@@ -1070,9 +1070,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('elements')
+    <Document>.x('elements')
     # or
-    doc.elements
+    <Document>.elements
 
 return type
 : 
@@ -1086,9 +1086,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('meta')
+    <Document>.x('meta')
     # or
-    doc.meta
+    <Document>.meta
 
 return type
 : 
@@ -1102,9 +1102,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('line_elements')
+    <Document>.x('line_elements')
     # or
-    doc.line_elements
+    <Document>.line_elements
 
 return type
 : 
@@ -1118,9 +1118,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('graphic_elements')
+    <Document>.x('graphic_elements')
     # or
-    doc.graphic_elements
+    <Document>.graphic_elements
 
 return type
 : 
@@ -1134,9 +1134,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('lists')
+    <Document>.x('lists')
     # or
-    doc.lists
+    <Document>.lists
 
 return type
 : str | list[str] | list[pandas.core.frame.DataFrame]
@@ -1150,9 +1150,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('table_box_levels')
+    <Document>.x('table_box_levels')
     # or
-    doc.table_box_levels
+    <Document>.table_box_levels
 
 return type
 : 
@@ -1166,9 +1166,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('table_candidates')
+    <Document>.x('table_candidates')
     # or
-    doc.table_candidates
+    <Document>.table_candidates
 
 return type
 : 
@@ -1182,9 +1182,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('table_df0')
+    <Document>.x('table_df0')
     # or
-    doc.table_df0
+    <Document>.table_df0
 
 return type
 : 
@@ -1198,9 +1198,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('titles')
+    <Document>.x('titles')
     # or
-    doc.titles
+    <Document>.titles
 
 return type
 : 
@@ -1214,9 +1214,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('side_titles')
+    <Document>.x('side_titles')
     # or
-    doc.side_titles
+    <Document>.side_titles
 
 return type
 : 
@@ -1230,9 +1230,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('html_keywords_str')
+    <Document>.x('html_keywords_str')
     # or
-    doc.html_keywords_str
+    <Document>.html_keywords_str
 
 return type
 : 
@@ -1246,9 +1246,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('main_content_clean_html')
+    <Document>.x('main_content_clean_html')
     # or
-    doc.main_content_clean_html
+    <Document>.main_content_clean_html
 
 return type
 : 
@@ -1262,9 +1262,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('summary')
+    <Document>.x('summary')
     # or
-    doc.summary
+    <Document>.summary
 
 return type
 : 
@@ -1278,9 +1278,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('goose_article')
+    <Document>.x('goose_article')
     # or
-    doc.goose_article
+    <Document>.goose_article
 
 return type
 : 
@@ -1294,9 +1294,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('main_content')
+    <Document>.x('main_content')
     # or
-    doc.main_content
+    <Document>.main_content
 
 return type
 : 
@@ -1310,9 +1310,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('schemadata')
+    <Document>.x('schemadata')
     # or
-    doc.schemadata
+    <Document>.schemadata
 
 return type
 : 
@@ -1326,9 +1326,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('final_urls')
+    <Document>.x('final_urls')
     # or
-    doc.final_urls
+    <Document>.final_urls
 
 return type
 : 
@@ -1342,9 +1342,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('pdf_links')
+    <Document>.x('pdf_links')
     # or
-    doc.pdf_links
+    <Document>.pdf_links
 
 return type
 : 
@@ -1358,9 +1358,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('title')
+    <Document>.x('title')
     # or
-    doc.title
+    <Document>.title
 
 return type
 : 
@@ -1374,9 +1374,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('short_title')
+    <Document>.x('short_title')
     # or
-    doc.short_title
+    <Document>.short_title
 
 return type
 : 
@@ -1390,9 +1390,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('urls')
+    <Document>.x('urls')
     # or
-    doc.urls
+    <Document>.urls
 
 return type
 : 
@@ -1406,9 +1406,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('main_image')
+    <Document>.x('main_image')
     # or
-    doc.main_image
+    <Document>.main_image
 
 return type
 : 
@@ -1422,9 +1422,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('html_keywords')
+    <Document>.x('html_keywords')
     # or
-    doc.html_keywords
+    <Document>.html_keywords
 
 return type
 : 
@@ -1438,9 +1438,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('pandoc_document')
+    <Document>.x('pandoc_document')
     # or
-    doc.pandoc_document
+    <Document>.pandoc_document
 
 return type
 : Pandoc(Meta, [Block])
@@ -1454,9 +1454,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('full_text_format')
+    <Document>.x('full_text_format')
     # or
-    doc.full_text_format
+    <Document>.full_text_format
 
 return type
 : 
@@ -1470,9 +1470,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('convert_to')
+    <Document>.x('convert_to')
     # or
-    doc.convert_to
+    <Document>.convert_to
 
 return type
 : 
@@ -1486,9 +1486,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('clean_format')
+    <Document>.x('clean_format')
     # or
-    doc.clean_format
+    <Document>.clean_format
 
 return type
 : 
@@ -1502,9 +1502,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('sections')
+    <Document>.x('sections')
     # or
-    doc.sections
+    <Document>.sections
 
 return type
 : 
@@ -1518,9 +1518,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('pandoc_blocks')
+    <Document>.x('pandoc_blocks')
     # or
-    doc.pandoc_blocks
+    <Document>.pandoc_blocks
 
 return type
 : list['pandoc.types.Block']
@@ -1534,9 +1534,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('headers')
+    <Document>.x('headers')
     # or
-    doc.headers
+    <Document>.headers
 
 return type
 : str | list[str] | list[pandas.core.frame.DataFrame]
@@ -1550,9 +1550,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('ocr_lang')
+    <Document>.x('ocr_lang')
     # or
-    doc.ocr_lang
+    <Document>.ocr_lang
 
 return type
 : 
@@ -1566,9 +1566,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('ocr_on')
+    <Document>.x('ocr_on')
     # or
-    doc.ocr_on
+    <Document>.ocr_on
 
 return type
 : 
@@ -1582,9 +1582,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('ocr_pdf_file')
+    <Document>.x('ocr_pdf_file')
     # or
-    doc.ocr_pdf_file
+    <Document>.ocr_pdf_file
 
 return type
 : 
@@ -1598,9 +1598,9 @@ select values by key from source data in Document
 
 Can be called using:
 
-    doc.x('data_sel')
+    <Document>.x('data_sel')
     # or
-    doc.data_sel
+    <Document>.data_sel
 
 return type
 : typing.Callable[..., dict]
@@ -1614,9 +1614,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('keys')
+    <Document>.x('keys')
     # or
-    doc.keys
+    <Document>.keys
 
 return type
 : 
@@ -1630,9 +1630,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('values')
+    <Document>.x('values')
     # or
-    doc.values
+    <Document>.values
 
 return type
 : 
@@ -1646,9 +1646,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('items')
+    <Document>.x('items')
     # or
-    doc.items
+    <Document>.items
 
 return type
 : 
@@ -1664,9 +1664,9 @@ We can pass through a configuration object to Documents that are created in our 
 
 Can be called using:
 
-    doc.x('doc_configuration')
+    <DocumentBag>.x('doc_configuration')
     # or
-    doc.doc_configuration
+    <DocumentBag>.doc_configuration
 
 return type
 : 
@@ -1680,9 +1680,9 @@ create a bag with one document for each file that was foundFrom this point we ca
 
 Can be called using:
 
-    doc.x('docs')
+    <DocumentBag>.x('docs')
     # or
-    doc.docs
+    <DocumentBag>.docs
 
 return type
 : <class 'dask.bag.core.Bag'>
@@ -1696,9 +1696,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('take')
+    <DocumentBag>.x('take')
     # or
-    doc.take
+    <DocumentBag>.take
 
 return type
 : 
@@ -1712,9 +1712,25 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('compute')
+    <DocumentBag>.x('compute')
     # or
-    doc.compute
+    <DocumentBag>.compute
+
+return type
+: 
+
+supports pipelines
+: <class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+
+### forgiving_extracts
+            
+
+
+Can be called using:
+
+    <DocumentBag>.x('forgiving_extracts')
+    # or
+    <DocumentBag>.forgiving_extracts
 
 return type
 : 
@@ -1728,9 +1744,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('get_dicts')
+    <DocumentBag>.x('get_dicts')
     # or
-    doc.get_dicts
+    <DocumentBag>.get_dicts
 
 return type
 : typing.Callable[[typing.Any], dask.bag.core.Bag]
@@ -1744,9 +1760,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('e')
+    <DocumentBag>.x('e')
     # or
-    doc.e
+    <DocumentBag>.e
 
 return type
 : typing.Callable[..., pydoxtools.document.DocumentBag]
@@ -1760,9 +1776,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('idx_dict')
+    <DocumentBag>.x('idx_dict')
     # or
-    doc.idx_dict
+    <DocumentBag>.idx_dict
 
 return type
 : 
@@ -1776,9 +1792,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('vectorizer')
+    <DocumentBag>.x('vectorizer')
     # or
-    doc.vectorizer
+    <DocumentBag>.vectorizer
 
 return type
 : 
@@ -1792,9 +1808,9 @@ in order to build an index in chrome db we need a key, text, embeddings and a ke
 
 Can be called using:
 
-    doc.x('chroma_index')
+    <DocumentBag>.x('chroma_index')
     # or
-    doc.chroma_index
+    <DocumentBag>.chroma_index
 
 return type
 : 
@@ -1808,9 +1824,9 @@ in order to build an index in chrome db we need a key, text, embeddings and a ke
 
 Can be called using:
 
-    doc.x('compute_index')
+    <DocumentBag>.x('compute_index')
     # or
-    doc.compute_index
+    <DocumentBag>.compute_index
 
 return type
 : 
@@ -1824,9 +1840,9 @@ in order to build an index in chrome db we need a key, text, embeddings and a ke
 
 Can be called using:
 
-    doc.x('query_chroma')
+    <DocumentBag>.x('query_chroma')
     # or
-    doc.query_chroma
+    <DocumentBag>.query_chroma
 
 return type
 : 
@@ -1840,9 +1856,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('sql')
+    <DocumentBag>.x('sql')
     # or
-    doc.sql
+    <DocumentBag>.sql
 
 return type
 : 
@@ -1856,9 +1872,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('connection_string')
+    <DocumentBag>.x('connection_string')
     # or
-    doc.connection_string
+    <DocumentBag>.connection_string
 
 return type
 : 
@@ -1872,9 +1888,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('index_column')
+    <DocumentBag>.x('index_column')
     # or
-    doc.index_column
+    <DocumentBag>.index_column
 
 return type
 : 
@@ -1888,9 +1904,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('bytes_per_chunk')
+    <DocumentBag>.x('bytes_per_chunk')
     # or
-    doc.bytes_per_chunk
+    <DocumentBag>.bytes_per_chunk
 
 return type
 : 
@@ -1904,9 +1920,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('dataframe')
+    <DocumentBag>.x('dataframe')
     # or
-    doc.dataframe
+    <DocumentBag>.dataframe
 
 return type
 : <class 'dask.dataframe.core.DataFrame'>
@@ -1920,9 +1936,9 @@ create a dask bag with all the filepaths in it
 
 Can be called using:
 
-    doc.x('bag')
+    <DocumentBag>.x('bag')
     # or
-    doc.bag
+    <DocumentBag>.bag
 
 return type
 : 
@@ -1936,9 +1952,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('root_path')
+    <DocumentBag>.x('root_path')
     # or
-    doc.root_path
+    <DocumentBag>.root_path
 
 return type
 : 
@@ -1952,9 +1968,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('file_path_list')
+    <DocumentBag>.x('file_path_list')
     # or
-    doc.file_path_list
+    <DocumentBag>.file_path_list
 
 return type
 : <class 'dask.bag.core.Bag'>list[pathlib.Path]
@@ -1968,9 +1984,9 @@ supports pipelines
 
 Can be called using:
 
-    doc.x('dir_list')
+    <DocumentBag>.x('dir_list')
     # or
-    doc.dir_list
+    <DocumentBag>.dir_list
 
 return type
 : <class 'dask.bag.core.Bag'>list[pathlib.Path]

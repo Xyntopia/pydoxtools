@@ -28,7 +28,7 @@ appauthor = "pydoxtools"
 
 class _Settings(BaseSettings):
     PDX_CACHE_DIR_BASE: Path = Path(appdirs.user_cache_dir(appname, appauthor))
-    PDX_CACHE_TYPE: str = "memory"
+    PDX_ENABLE_DISK_CACHE: bool = False
     TRAINING_DATA_DIR: Path = _PYDOXTOOLS_DIR / 'training_data'
     PDX_MODEL_DIR = PDX_CACHE_DIR_BASE / "models"
 

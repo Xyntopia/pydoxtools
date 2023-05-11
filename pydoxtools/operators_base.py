@@ -56,6 +56,7 @@ class Operator(ABC):
         self._in_mapping: dict[str, str] = {}
         self._out_mapping: dict[str, str] = {}
         self._cache = False  # TODO: switch to "True" by default
+        self._allow_disk_cache = True
         self.__node_doc__ = ""
 
     @abc.abstractmethod
@@ -86,9 +87,10 @@ class Operator(ABC):
         self._out_mapping.update({k: k for k in args})
         return self
 
-    def cache(self):
+    def cache(self, allow_disk_cache=True):
         """indicate to document that we want this extractor function to be cached"""
         self._cache = True
+        self._allow_disk_cache = allow_disk_cache
         return self
 
     def no_cache(self):

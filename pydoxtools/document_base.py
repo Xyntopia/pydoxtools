@@ -2,6 +2,7 @@ import functools
 import json
 import logging
 import pathlib
+import pickle
 import uuid
 from dataclasses import dataclass
 from enum import Enum
@@ -247,44 +248,44 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
     def __init__(self):
         """
         Initializes the Pipeline instance with cache-related attributes.
-
-        Attributes:
-            _cache_hits (int): Number of cache hits during pipeline execution.
-            _x_func_cache (dict[pydoxtools.operators_base.Operator, dict[str, Any]]): Cache for operator
-                functions to store intermediate results.
         """
         self._configuration = {}
-        self._cache_hits = 0
+        self._stats = dict(
+            cache_hits=0,
+            disk_cache_hits=0,
+            # this is a set, because the same error can appear many time
+            cache_errors=set()  # log operators that are not cachable for debugging purposes
+        )
         self._source = "base_pipeline"
-        self._cache_type = "auto"
+        self._disk_cache_enable = settings.PDX_ENABLE_DISK_CACHE
+        self._disk_cache_ttl = None
 
-    def set_cache_type(self, cache_type: str):
-        """Sets cache type to be on disk or in memory. Unless
-        it is set to "auto", it will override th global settings.
-        
-        Values can be:  
-        - "auto" this uses the cache as specified in the global settings
-        - "memory" (default)
-        - "diskcache"  which uses diskcache as a caching backend
+    def _key(self):
+        return None
+
+    def set_disk_cache_settings(
+            self,
+            enable: bool,
+            ttl: int = 3600 * 24 * 7  # default cache expires after 1 week
+    ):
+        """Sets disk cache settings
         """
-
-        self._cache_type = cache_type
+        self._disk_cache_ttl = ttl
+        self._disk_cache_enable = enable
         return self
 
     @cached_property
-    def cache(self) -> dict[Operator, dict[str, Any]] | Cache:
-        if self._cache_type == "auto":
-            cache_mode = settings.PDX_CACHE_TYPE
-        else:
-            cache_mode = self._cache_type
+    def _disk_cache_enabled(self):
+        return self._disk_cache_enable
 
-        if cache_mode == "memory":
-            return {}
-        elif cache_mode == "diskcache":
-            cache = Cache(settings.PDX_CACHE_DIR_BASE / "pipelines")
-            return cache
-        else:
-            raise NotImplementedError(f"Cache mode: {cache_mode} not available!")
+    @cached_property
+    def _cache(self):
+        return {}
+
+    @cached_property
+    def _disk_cache(self) -> dict[Operator, dict[str, Any]] | Cache:
+        cache = Cache(settings.PDX_CACHE_DIR_BASE / "pipelines")
+        return cache
 
     def config(self, **configuration: Any) -> "Pipeline":
         """
@@ -459,9 +460,9 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
 
 Can be called using:
 
-    doc.x('{k}')
+    <{cls.__name__}>.x('{k}')
     # or
-    doc.{k}
+    <{cls.__name__}>.{k}
 
 return type
 : {"".join(sorted(str(i) for i in v['output_types']))}
@@ -523,31 +524,62 @@ supports pipelines
             return self.__dict__[operator_name]  # choose the class' own properties as a fallback
 
         try:
-            # gather keywords for function from inputs
-            mapped_kwargs = self.gather_arguments(**operator_function._in_mapping)
-
-            # check if we executed this function at some point...
-            if operator_function._cache:  # whether function should be cached or not...
-                # TODO: implement our own key function in order
-                #       to be able to pickle the document cache!
-                #
-                # {} for kwargs in _make_key is only temporary to pass tests with class-bound tests where
-                # we don't need the additional key parameters
-                key = functools._make_key((operator_function,), {}, typed=False)
-                # key = (operator_function,)
-                # TODO: add parameters here as well so that w can use a "central" diskcache...
-                #       and different instances of pipelines don't mix up their cached
-                #       functions...
-                # key = self.__class__.__name__ + operator_name
+            # whether function should be cached or not...
+            finished_calculation = False
+            dict_cache_key = operator_name
+            disk_cache_key = None
+            if operator_function._cache:
+                # first check if we already have the result in memory-cache,
+                # as this is much faster than getting the result from disk
+                # we can be less specific about this key as our cache here is
+                # saved in the document instance.
+                # As the arguments are always going to be the same,
+                # only the operator name is sufficient here
                 # we need to check for "is not None" as we also have pandas dataframes in this
                 # which cannot be checked for by simply using "if"
-                if (res := self.cache.get(key, None)) is not None:
-                    self._cache_hits += 1
-                else:
-                    res = operator_function(**mapped_kwargs)
-                    self.cache[key] = res
-            else:
+                if (res := self._cache.get(dict_cache_key, None)) is not None:
+                    self._stats["cache_hits"] += 1
+                    finished_calculation = True
+
+                # TODO: hash pandas.util.hash_pandas_object for mapped kwargs key
+                if (not finished_calculation) and self._disk_cache_enabled \
+                        and operator_function._allow_disk_cache:
+                    # We are creating a key using a hash value
+                    # for this specific instance of a pipeline object.
+                    # this key should be provided by the pipeline itself.
+                    # we can not use the function arguments as keys, as they are iteratively
+                    # calculated through the pipeline. this means
+                    # that we would have to calculate the entire tree in the pipeline to get the
+                    # parameters for this function.
+                    if disk_cache_key := self._key():  # key might not exist!
+                        disk_cache_key = operator_name + str(dict_cache_key)
+
+                    if (not finished_calculation) and disk_cache_key:
+                        try:
+                            # we need to check for "is not None" as we also have pandas dataframes in this
+                            # which cannot be checked for by simply using "if"
+                            if (res := self._disk_cache.get(disk_cache_key, None)) is not None:
+                                self._stats["disk_cache_hits"] += 1
+                                finished_calculation = True
+                        except (pickle.PicklingError) as error:
+                            # simply don't do anything with the cache, if we can not cache it, but log
+                            # the function;)
+                            self._stats["cache_errors"].add((operator_name, error))
+                    else:
+                        self._stats["cache_errors"].add((operator_name, "no key for disk caching"))
+
+            # if we haven't gotten the result from cache yet...
+            if finished_calculation == False:
+                mapped_kwargs = self.gather_arguments(**operator_function._in_mapping)
                 res = operator_function(**mapped_kwargs)
+                # and save the result in both caches
+                if operator_function._cache:
+                    self._cache[dict_cache_key] = res
+                    if self._disk_cache_enabled and disk_cache_key:
+                        try:
+                            self._disk_cache.set(disk_cache_key, res, expire=self._disk_cache_ttl)
+                        except (pickle.PicklingError, AttributeError, TypeError) as error:
+                            self._stats["cache_errors"].add((operator_name, error))
 
             # TODO: this can probably made more elegant
             if isinstance(res, dict):
@@ -560,10 +592,10 @@ supports pipelines
 
 
         except OperatorException as e:
-            logger.error(f"Extraction error in '{operator_name}': {e}")
+            logger.error(f"Extraction error in {self}, '{operator_name}': {e}")
             raise e
         except Exception as e:
-            logger.error(f"Extraction error in '{operator_name}': {e}")
+            logger.error(f"Extraction error in {self}, '{operator_name}': {e}")
             raise OperatorException(f"could not get {operator_name} for {self}")
             # raise e
 

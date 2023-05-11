@@ -108,7 +108,7 @@ def run_single_non_interactive_document_test(file_name):
     doc.run_pipeline_fast()
     doctype = doc.document_type
     assert doc
-    assert doc._cache_hits >= 0
+    assert doc._stats["cache_hits"] >= 0
 
     with open(file_name, "rb") as file:
         doc_str = file.read()
@@ -123,13 +123,13 @@ def run_single_non_interactive_document_test(file_name):
     doc = Document(fobj=io.BytesIO(doc_str), source=source)
     assert doc.document_type == doctype
     doc.run_pipeline_fast()
-    assert doc._cache_hits >= 0
+    assert doc._stats["cache_hits"] >= 0
 
     # from bytes
     doc = Document(fobj=doc_str, source=source)
     assert doc.document_type == doctype
     doc.run_pipeline_fast()
-    assert doc._cache_hits >= 0
+    assert doc._stats["cache_hits"] >= 0
 
     return doc
 
@@ -146,7 +146,7 @@ def test_string_extraction():
     doc = Document(fobj=some_string)
     doc.document_type
     doc.run_pipeline_fast()
-    assert doc._cache_hits >= 30
+    assert doc._stats["cache_hits"] >= 30
     assert doc.keywords == ["Turing"]
 
 
@@ -475,8 +475,23 @@ def test_nlp_utils():
     sd = doc.spacy_nlp(" ".join(wtok))
 
 
+def test_disk_cache():
+    d = Document(source="../README.md").set_disk_cache_settings(
+        enable=True,
+        ttl=3600  # keep cache for 1 hour
+    )
+    assert d.keywords
+    d = Document(source="../README.md").set_disk_cache_settings(
+        enable=True,
+        ttl=3600  # keep cache for 1 hour
+    )
+    assert d.keywords
+    assert d._stats["cache_hits"] == 1
+    assert d._stats["disk_cache_hits"] == 1
+
+
 if __name__ == "__main__":
-    test_all_documents()
+    test_disk_cache()
     test_pipeline_graph()
 
     # a = pd.DataFrame(sd.sents)

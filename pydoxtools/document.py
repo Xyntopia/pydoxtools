@@ -38,7 +38,8 @@ from .html_utils import get_text_only_blocks
 from .list_utils import flatten, flatten_dict, deep_str_convert
 from .nlp_utils import calculate_string_embeddings, summarize_long_text
 from .operator_huggingface import QamExtractor
-from .operators_base import Alias, LambdaOperator, ElementWiseOperator, Constant, DictSelector, Operator, Configuration
+from .operators_base import OperatorException, Alias, LambdaOperator, ElementWiseOperator, Constant, DictSelector, \
+    Operator, Configuration
 from .pdf_utils import PDFFileLoader
 
 logger = logging.getLogger(__name__)
@@ -234,7 +235,7 @@ operations and include the documentation there. Lambda functions should not be u
             LambdaOperator(lambda candidates: [t.df for t in candidates if t.is_valid])
             .pipe(candidates="table_candidates").out("table_df0").cache(),
             LambdaOperator(lambda table_df0, lists: table_df0 + [lists]).cache()
-            .pipe("table_df0", "lists").out("tables_df"),
+            .pipe("table_df0", "lists").out("tables_df").cache(),
             TextBoxElementExtractor()
             .pipe("line_elements").out("text_box_elements").cache(),
             LambdaOperator(lambda df: df.get("text", None).to_list())
@@ -263,7 +264,7 @@ operations and include the documentation there. Lambda functions should not be u
             LambdaOperator(lambda t, s: [t, s])
             .pipe(t="title", s="short_title").out("titles").cache(),
             LambdaOperator(lambda x: set(w.strip() for w in x.split(",")))
-            .pipe(x="html_keywords_str").out("html_keywords"),
+            .pipe(x="html_keywords_str").out("html_keywords").cache(),
 
             ########### AGGREGATION ##############
             LambdaOperator(lambda **kwargs: set(flatten(kwargs.values())))
@@ -343,7 +344,7 @@ operations and include the documentation there. Lambda functions should not be u
             Alias(raw_content="fobj"),
             Alias(data="raw_content"),
             LambdaOperator(lambda x: yaml.dump(deep_str_convert(x)))
-            .pipe(x="data").out("full_text"),
+            .pipe(x="data").out("full_text").cache(),
             DictSelector()
             .pipe(selectable="data").out("data_sel").cache().docs(
                 "select values by key from source data in Document"),
@@ -394,7 +395,7 @@ operations and include the documentation there. Lambda functions should not be u
             LambdaOperator(lambda clean_text: len(clean_text.split()))
             .pipe("clean_text").out("num_words").cache(),
             LambdaOperator(lambda spacy_sents: len(spacy_sents))
-            .pipe("spacy_sents").out("num_sents"),
+            .pipe("spacy_sents").out("num_sents").no_cache(),
             LambdaOperator(lambda ft: sum(1 for c in ft if c.isdigit()) / sum(1 for c in ft if c.isalpha()))
             .pipe(ft="full_text").out("a_d_ratio").cache(),
             LambdaOperator(lambda full_text: langdetect.detect(full_text))
@@ -414,11 +415,13 @@ operations and include the documentation there. Lambda functions should not be u
             LambdaOperator(lambda spacy_doc: list(spacy_doc.sents))
             .pipe("spacy_doc").out("spacy_sents"),
             LambdaOperator(extract_noun_chunks)
-            .pipe("spacy_doc").out("spacy_noun_chunks").cache(),
+            .pipe("spacy_doc").out("spacy_noun_chunks")
+            .docs("exracts nounchunks from spacy. Will not be cached because it is all"
+                  "in the spacy doc already"),
             ########## END OF SPACY ################
 
             EntityExtractor().cache()
-            .pipe("spacy_doc").out("entities"),
+            .pipe("spacy_doc").out("entities").cache(),
             # TODO: try to implement as much as possible from the constants below for all documentypes
             #       summary, urls, main_image, keywords, final_url, pdf_links, schemadata, tables_df
             # TODO: implement summarizer based on textrank
@@ -463,7 +466,7 @@ operations and include the documentation there. Lambda functions should not be u
                    t="vectorizer_only_tokenizer", o="vectorizer_overlap_ratio")
             .out("vec_res").cache(),
             LambdaOperator(lambda x: dict(emb=x[0], tok=x[1]))
-            .pipe(x="vec_res").out(emb="tok_embeddings", tok="tokens"),
+            .pipe(x="vec_res").out(emb="tok_embeddings", tok="tokens").no_cache(),
             LambdaOperator(lambda x: x.mean(0))
             .pipe(x="tok_embeddings").out("embedding").cache(),
 
@@ -484,7 +487,7 @@ operations and include the documentation there. Lambda functions should not be u
                 elements="text_segments",
                 model_id="vectorizer_model",
                 only_tokenizer="vectorizer_only_tokenizer")
-            .out("text_segment_vectors"),
+            .out("text_segment_vectors").cache(),
 
             ########### NOUN_INDEX #############
             IndexExtractor()
@@ -628,6 +631,11 @@ operations and include the documentation there. Lambda functions should not be u
                     self._fobj = response.content
             except:
                 pass
+
+    @functools.cache
+    def _key(self):
+        return (self.__class__.__name__, str(self._configuration), self._fobj, self._source,
+                self._document_type, self._page_numbers, self._max_pages)
 
     @cached_property
     def fobj(self) -> bytes | str | Path | IO | dict | list | set:
@@ -849,8 +857,15 @@ class DocumentBagExtractor(Operator):
         super().__init__()
         self._dask_bag_func: str = dask_bag_func
 
-    def __call__(self, dask_bag: Bag, configuration: dict[str, Any]) -> Callable[..., "DocumentBag"]:
-        """we have several cases:
+    def __call__(self, dask_bag: Bag, configuration: dict[str, Any], forgiving_extracts: bool) -> Callable[
+        ..., "DocumentBag"]:
+        """
+        This function will automatically "jump" over failed extraction operations. The reason
+        for this is, that documents will sometimes send exceptions in cases where a specific value
+        is simply not available. For example it is not possible to extract text from an image
+        without text...
+
+        we have several cases:
 
         - return a list of items (e.g. example list of text segments)
         - return a single property (e.g. full_text)
@@ -861,9 +876,15 @@ class DocumentBagExtractor(Operator):
 
         def x_single_prop(d: Document, property: str, *args, **kwargs) -> list[Document]:
             # obj = d.to_dict(property)[property]
-            obj = getattr(d, property)
-            if callable(obj):
-                obj = obj(*args, **kwargs)
+            try:
+                obj = getattr(d, property)
+                if callable(obj):
+                    obj = obj(*args, **kwargs)
+            except:
+                if not forgiving_extracts:
+                    raise OperatorException(f"could not extract data from {d} in {self}")
+                obj = {"Error": "OperatorException"}
+
             obj = remove_lonely_lists(obj)
             new_docs = []
             if isinstance(obj, str):
@@ -983,10 +1004,11 @@ class DocumentBag(Pipeline):
             # dask_operators.BagMapOperator(lambda x: functools.cache(
             #    lambda y: DocumentBag()))
             # .pipe(dask_bag="dict_bag").out("docbag").cache(),
+            Configuration(forgiving_extracts=True),
             dask_operators.BagPropertyExtractor()
-            .pipe(dask_bag="docs").out("get_dicts").cache(),
+            .pipe(dask_bag="docs", forgiving_extracts="forgiving_extracts").out("get_dicts").cache(),
             DocumentBagExtractor("flatten")
-            .pipe("configuration", dask_bag="docs").out("e").cache(),
+            .pipe("configuration", dask_bag="docs", forgiving_extracts="forgiving_extracts").out("e").cache(),
             LambdaOperator(lambda get_dicts: get_dicts("source", "full_text", "embedding"))
             .pipe("get_dicts").out("idx_dict").cache(),
             # TODO: optionally add a custom chromadb as an argument.
@@ -994,7 +1016,7 @@ class DocumentBag(Pipeline):
             .pipe(dc="doc_configuration").out("vectorizer").cache(),
             ChromaIndexFromBag()
             .pipe(query_vectorizer="vectorizer", idx_bag="idx_dict")
-            .out("chroma_index", "compute_index", "query_chroma").cache().docs(
+            .out("chroma_index", "compute_index", "query_chroma").cache(allow_disk_cache=False).docs(
                 "in order to build an index in chrome db we need a key, text, embeddings and a key."
                 " Those come from a daskbag with dictionaries with those keys."
                 " Caching is important here in order to retain the index"
@@ -1066,7 +1088,7 @@ class DocumentBag(Pipeline):
         # TODO: add "overwrite" parameter where we basically say that DocumentBag should
         #       automatically overwrite configurations of documents it creates
         super().__init__()
-        self._exclude = exclude or []
+        self._exclude = tuple(exclude or [])
         # TODO: _pipeline isn't used yet
         self._pipeline = pipeline or "directory"
         self._max_documents = max_documents
@@ -1075,6 +1097,10 @@ class DocumentBag(Pipeline):
         if isinstance(source, str):
             if Path(source).exists():
                 self._source = Path(source)
+
+    def _key(self):
+        return (self.__class__.__name__, str(self._configuration), self._exclude, self._pipeline, self._max_documents,
+                self._source)
 
     @cached_property
     def source(self):
