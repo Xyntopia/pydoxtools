@@ -526,7 +526,10 @@ supports pipelines
         try:
             # whether function should be cached or not...
             finished_calculation = False
-            dict_cache_key = operator_name
+            # taking the operator_function instead of the output as a key makes everything here more
+            # efficient, because we don't have to store the output for individual
+            # keys in case a function has multiple keys as an output...
+            dict_cache_key = operator_function
             disk_cache_key = None
             if operator_function._cache:
                 # first check if we already have the result in memory-cache,
