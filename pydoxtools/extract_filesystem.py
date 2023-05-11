@@ -26,11 +26,11 @@ class FileLoader(pydoxtools.operators_base.Operator):
             txt = fobj.read()
 
         if isinstance(txt, bytes):
-            detected_encoding = chardet.detect(txt)['encoding']
-            try:
-                txt = txt.decode(detected_encoding)
-            except UnicodeDecodeError:
-                txt = txt.decode("utf-8", errors='replace')
+            if detected_encoding := chardet.detect(txt)['encoding']:
+                try:
+                    txt = txt.decode(detected_encoding)
+                except UnicodeDecodeError:
+                    txt = txt.decode("utf-8", errors='replace')
 
         # else:
         #    raise document_base.DocumentTypeError("Can not extract text from unknown document")
