@@ -8,8 +8,8 @@ import networkx as nx
 import numpy as np
 
 from pydoxtools.document_base import TokenCollection
-from pydoxtools.operators_base import Operator
 from pydoxtools.nlp_utils import calculate_string_embeddings
+from pydoxtools.operators_base import Operator
 
 logger = logging.getLogger(__name__)
 
@@ -196,20 +196,9 @@ class ChromaIndexFromBag(Operator):
     """
 
     def __call__(self, query_vectorizer: callable, idx_bag: dask.bag.Bag):
-        # TODO: not sure how to organize this with clients etc..
-        import chromadb
-        chroma_client = chromadb.Client()
-        # persist
-        # from chromadb.config import Settings
-        # client = chromadb.Client(Settings(
-        #    chroma_db_impl="duckdb+parquet",
-        #    persist_directory="/path/to/persist/directory"  # Optional, defaults to .chromadb/ in the current directory
-        # ))
-        chroma_index = chroma_client.create_collection(name="index")
-
         # add items from bag to chroma piece-by-piece
-        def add_to_chroma(item: dict):
-            chroma_index.add(
+        def add_to_chroma(item: dict, chroma_collection):
+            chroma_collection.add(
                 # TODO: embeddings=  #use our own embeddings for specific purposes...
                 embeddings=[[float(n) for n in item["embedding"]]],
                 documents=[item["full_text"]],
@@ -217,20 +206,21 @@ class ChromaIndexFromBag(Operator):
                 ids=[str(item["source"])]
             )
 
-        @functools.lru_cache()
-        def query_chroma(query: str):
-            query_embedding = query_vectorizer(query)
-            res = chroma_index.query(query_embedding.tolist())
-            return res
+        def link_to_chroma_collection(chroma_collection):
+            @functools.lru_cache()
+            def query_chroma(query: str):
+                query_embedding = query_vectorizer(query)
+                res = chroma_collection.query(query_embedding.tolist())
+                return res
 
-        # we are returning a function which does the calculation for all elements
-        # bot also leaves the option to only do a small subset for testing purposes
-        @functools.lru_cache
-        def compute_index(num=0):
-            if num:
-                idx_bag.map(add_to_chroma).take(num)
-            else:
-                idx_bag.map(add_to_chroma).compute()
-            return chroma_index
+            # we are returning a function which does the calculation for all elements
+            # bot also leaves the option to only do a small subset for testing purposes
+            def compute_index(num=0):
+                if num:
+                    idx_bag.map(add_to_chroma, chroma_collection).take(num)
+                else:
+                    idx_bag.map(add_to_chroma, chroma_collection).compute()
 
-        return dict(chroma_index=chroma_index, compute_index=compute_index, query_chroma=query_chroma)
+            return compute_index, query_chroma
+
+        return dict(add_to_chroma=link_to_chroma_collection)

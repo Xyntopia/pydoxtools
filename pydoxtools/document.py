@@ -858,7 +858,8 @@ class DocumentBagExtractor(Operator):
         super().__init__()
         self._dask_bag_func: str = dask_bag_func
 
-    def __call__(self, dask_bag: Bag, configuration: dict[str, Any], forgiving_extracts: bool, stats=None
+    def __call__(self, dask_bag: Bag, configuration: dict[str, Any], forgiving_extracts: bool,
+                 stats=None, verbosity=None
                  ) -> Callable[..., "DocumentBag"]:
         """
         This function will automatically "jump" over failed extraction operations. The reason
@@ -876,6 +877,8 @@ class DocumentBagExtractor(Operator):
         """
 
         def x_single_prop(d: Document, property: str, *args, **kwargs) -> list[Document]:
+            if verbosity:
+                logger.info(f"processing document: {d}")
             # obj = d.to_dict(property)[property]
             try:
                 obj = getattr(d, property)
@@ -999,21 +1002,6 @@ class DocumentBag(Pipeline):
             .pipe(x="docs").out("take").cache(),
             LambdaOperator(lambda x: x.compute)
             .pipe(x="docs").out("compute").cache(),
-            # dask_operators.BagMapOperator(lambda x: functools.cache(
-            #    lambda y: DocumentBag()))
-            # .pipe(dask_bag="dict_bag").out("docbag").cache(),
-            LambdaOperator(lambda get_dicts: get_dicts("source", "full_text", "embedding"))
-            .pipe("get_dicts").out("idx_dict").cache(),
-            # TODO: optionally add a custom chromadb as an argument.
-            LambdaOperator(lambda dc: lambda query: Document(query).config(**dc).embedding)
-            .pipe(dc="doc_configuration").out("vectorizer").cache(),
-            ChromaIndexFromBag()
-            .pipe(query_vectorizer="vectorizer", idx_bag="idx_dict")
-            .out("chroma_index", "compute_index", "query_chroma").cache(allow_disk_cache=False).docs(
-                "in order to build an index in chrome db we need a key, text, embeddings and a key."
-                " Those come from a daskbag with dictionaries with those keys."
-                " Caching is important here in order to retain the index"
-            )
         ],
         # TODO: add "fast, slow, medium" pipelines..  e.g. with keywords extraction as fast
         #       etc...
@@ -1075,15 +1063,33 @@ class DocumentBag(Pipeline):
                 " by Document can be specified here."),
             Configuration(forgiving_extracts=True),
             Constant(_stats=[]),
+            Configuration(verbosity=None),
             dask_operators.BagPropertyExtractor()
-            .pipe(dask_bag="docs", forgiving_extracts="forgiving_extracts", stats="_stats")
-            .out("get_dicts").cache(),
+            .pipe("verbosity", dask_bag="docs", forgiving_extracts="forgiving_extracts", stats="_stats")
+            .out("get_dicts").cache(allow_disk_cache=False),
             DocumentBagExtractor("flatten")
-            .pipe("configuration", dask_bag="docs", forgiving_extracts="forgiving_extracts", stats="_stats")
-            .out("e").cache(),
+            .pipe("verbosity", "configuration", dask_bag="docs", forgiving_extracts="forgiving_extracts",
+                  stats="_stats")
+            .out("e").cache(allow_disk_cache=False),
             LambdaOperator(lambda x: pd.DataFrame(x).sum())
             .pipe(x="_stats").out("stats").no_cache()
             .docs("gather a number of statistics from documents as a pandas dataframe"),
+
+            ###### building an index ######
+            LambdaOperator(lambda get_dicts: get_dicts("source", "full_text", "embedding"))
+            .pipe("get_dicts").out("idx_dict").cache(allow_disk_cache=False),
+            # TODO: optionally add a custom chromadb as an argument.
+            LambdaOperator(lambda dc: lambda query: Document(query).config(**dc).embedding)
+            .pipe(dc="doc_configuration").out("vectorizer").cache(),
+            ChromaIndexFromBag()
+            .pipe(query_vectorizer="vectorizer", idx_bag="idx_dict")
+            .out("add_to_chroma").cache(allow_disk_cache=False).docs(
+                "in order to build an index in chrome db we need a key, text, embeddings and a key."
+                " Those come from a daskbag with dictionaries with those keys."
+                " pydoxtools will return two functions which will "
+                "- create the index"
+                "- query the index"
+            )
         ]
     }
 

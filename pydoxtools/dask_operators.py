@@ -38,7 +38,8 @@ class BagPropertyExtractor(Operator):
     property of the enclosed documents.
     """
 
-    def __call__(self, dask_bag: dask.bag.Bag, forgiving_extracts: bool, stats=None
+    def __call__(self, dask_bag: dask.bag.Bag, forgiving_extracts: bool, stats=None,
+                 verbosity=None
                  ) -> Callable[[Any], dask.bag.Bag]:
         def forgiving_extract(doc: Pipeline, properties: list[str]) -> dict[str, Any]:
             # TODO: add option to this operator to use it as a "forgiving" extractor

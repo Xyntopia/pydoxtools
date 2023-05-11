@@ -580,7 +580,8 @@ supports pipelines
                     self._cache[dict_cache_key] = res
                     if self._disk_cache_enabled and disk_cache_key:
                         try:
-                            self._disk_cache.set(disk_cache_key, res, expire=self._disk_cache_ttl)
+                            #self._disk_cache.set(disk_cache_key, res, expire=self._disk_cache_ttl)
+                            self._disk_cache.set(disk_cache_key, res)
                         except (pickle.PicklingError, AttributeError, TypeError) as error:
                             self._stats["cache_errors"].add((operator_name, error))
 
@@ -664,9 +665,12 @@ supports pipelines
         of a lambda function in it...
         """
         state = self.__dict__.copy()
-        state.pop("_cache", None)
-        state.pop("_disk_cache", None)
-        state.pop("x_funcs", None)
+        drop_vars = [
+            "x_funcs", "_pipelines", "_cache",
+            "_disk_cache", "_operators",
+        ]
+        for v in drop_vars:
+            state.pop(v, None)
         return state
 
     def __setstate__(self, state: dict):
