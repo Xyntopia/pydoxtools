@@ -19,6 +19,7 @@ import yaml
 from dask.bag import Bag
 
 from . import dask_operators
+from . import list_utils
 from . import nlp_utils
 from .dask_operators import SQLTableLoader
 from .document_base import Pipeline, ElementType
@@ -36,7 +37,7 @@ from .extract_spacy import SpacyOperator, extract_spacy_token_vecs, get_spacy_em
 from .extract_tables import ListExtractor, TableCandidateAreasExtractor
 from .extract_textstructure import DocumentElementFilter, TextBoxElementExtractor, TitleExtractor, SectionsExtractor
 from .html_utils import get_text_only_blocks
-from .list_utils import flatten, flatten_dict, deep_str_convert
+from .list_utils import remove_lonely_lists
 from .nlp_utils import calculate_string_embeddings, summarize_long_text
 from .operator_huggingface import QamExtractor
 from .operators_base import OperatorException, Alias, LambdaOperator, ElementWiseOperator, Constant, DictSelector, \
@@ -107,6 +108,19 @@ class DocumentType(Protocol):
     full_text: str
 
     def answers(self, questions: list[str]) -> list[str]: ...
+
+
+def calculate_a_d_ratio(ft: str):
+    """
+    calculate the retaio of digits vs alphabeticsin a string
+
+    can be between 0.0 (no letters) and 1.0 (all letters)
+    """
+    alphas = sum(1 for c in ft if c.isalpha())
+    digits = sum(1 for c in ft if c.isdigit())
+
+    ratio = alphas / (alphas + digits)
+    return ratio
 
 
 class Document(Pipeline):
@@ -217,7 +231,7 @@ operations and include the documentation there. Lambda functions should not be u
             .pipe(fobj="fobj").out("raw_content").cache(),
             PDFFileLoader()
             .pipe(fobj="raw_content", page_numbers="_page_numbers", max_pages="_max_pages")
-            .out("pages_bbox", "elements", "meta", pages="page_set")
+            .out("pages_bbox", "elements", "meta_pdf", pages="page_set")
             .cache(),
             LambdaOperator(lambda pages: len(pages))
             .pipe(pages="page_set").out("num_pages").cache(),
@@ -268,7 +282,7 @@ operations and include the documentation there. Lambda functions should not be u
             .pipe(x="html_keywords_str").out("html_keywords").cache(),
 
             ########### AGGREGATION ##############
-            LambdaOperator(lambda **kwargs: set(flatten(kwargs.values())))
+            LambdaOperator(lambda **kwargs: set(list_utils.flatten(kwargs.values())))
             .pipe("html_keywords", "textrank_keywords").out("keywords").cache(),
         ],
         # docx
@@ -324,7 +338,7 @@ operations and include the documentation there. Lambda functions should not be u
             # now taking the pdf from a different variable
             PDFFileLoader()
             .pipe(fobj="ocr_pdf_file")
-            .out("pages_bbox", "elements", "meta", pages="page_set")
+            .out("pages_bbox", "elements", "meta_pdf", pages="page_set")
             .cache(),
         ],
         # the first base doc types have priority over the last ones
@@ -344,13 +358,13 @@ operations and include the documentation there. Lambda functions should not be u
         "<class 'dict'>": [  # pipeline to handle data based documents
             Alias(raw_content="fobj"),
             Alias(data="raw_content"),
-            LambdaOperator(lambda x: yaml.dump(deep_str_convert(x)))
+            LambdaOperator(lambda x: yaml.dump(list_utils.deep_str_convert(x)))
             .pipe(x="data").out("full_text").cache(),
             DictSelector()
             .pipe(selectable="data").out("data_sel").cache().docs(
                 "select values by key from source data in Document"),
             LambdaOperator(lambda x: pd.DataFrame([
-                str(k) + ": " + str(v) for k, v in flatten_dict(x).items()],
+                str(k) + ": " + str(v) for k, v in list_utils.flatten_dict(x).items()],
                 columns=["text"]
             )).pipe(x="data").out("text_box_elements").cache(),
             Alias(text_segments="text_box_list"),
@@ -360,6 +374,17 @@ operations and include the documentation there. Lambda functions should not be u
             .pipe(x="data").out("values").no_cache(),
             LambdaOperator(lambda x: x.values())
             .pipe(x="data").out("items").no_cache()
+        ],
+        "<class 'list'>": [
+            Alias(raw_content="fobj"),
+            Alias(data="raw_content"),
+            LambdaOperator(lambda x: yaml.dump(list_utils.deep_str_convert(x)))
+            .pipe(x="data").out("full_text").cache(),
+            LambdaOperator(lambda x: pd.DataFrame([
+                list_utils.deep_str_convert(v) for v in x],
+                columns=["text"]
+            )).pipe(x="data").out("text_box_elements").cache(),
+            Alias(text_segments="text_box_list"),
         ],
         # TODO: json, csv etc...
         # TODO: pptx, odp etc...
@@ -371,10 +396,28 @@ operations and include the documentation there. Lambda functions should not be u
             .out("raw_content").cache(),
             Alias(full_text="raw_content"),
             Alias(clean_text="full_text"),
+            LambdaOperator(lambda x: {"meta": (x or dict())})
+            .pipe(x="_meta").out("meta"),
 
             # adding a dummy-data operator for downstream-compatibiliy. Not every document has
             # explicitly defined data associated with it.
             Constant(data=dict()),
+
+            ##### calculate some metadata ####
+            LambdaOperator(
+                lambda x: dict(file_meta=x(
+                    "filename",
+                    # "keywords",
+                    "document_type",
+                    "url",
+                    "path",
+                    "num_pages",
+                    "num_words",
+                    # "num_sents",
+                    "a_d_ratio",
+                    "language")))
+            .pipe(x="to_dict").out("file_meta").cache().docs(
+                "some fast-to-calculate metadata information about a file"),
 
             ## Standard text splitter for splitting text along lines...
             LambdaOperator(lambda x: pd.DataFrame(x.split("\n\n"), columns=["text"]))
@@ -397,7 +440,7 @@ operations and include the documentation there. Lambda functions should not be u
             .pipe("clean_text").out("num_words").cache(),
             LambdaOperator(lambda spacy_sents: len(spacy_sents))
             .pipe("spacy_sents").out("num_sents").no_cache(),
-            LambdaOperator(lambda ft: sum(1 for c in ft if c.isdigit()) / sum(1 for c in ft if c.isalpha()))
+            LambdaOperator(calculate_a_d_ratio)
             .pipe(ft="full_text").out("a_d_ratio").cache(),
             LambdaOperator(lambda full_text: langdetect.detect(full_text))
             .pipe("full_text").out("language").cache(),
@@ -558,6 +601,7 @@ operations and include the documentation there. Lambda functions should not be u
             fobj: str | bytes | Path | IO | dict | list | set = None,
             # TODO: only use Path and declare the variables using pydantic we'll also get validation
             source: str | Path = None,
+            meta: dict[str: str] = None,
             document_type: str = "auto",
             page_numbers: list[int] = None,
             max_pages: int = None,
@@ -599,6 +643,10 @@ operations and include the documentation there. Lambda functions should not be u
                 but actually be used as raw "string" data. In this case we can explicitly
                 specify document_type="string"
 
+            meta:
+                Optionally set document metadata, which can be very useful for downstream
+                tasks like building an index.
+
             page_numbers:
                 A list of specific pages to extract from the document (e.g., in a PDF).
 
@@ -619,6 +667,7 @@ operations and include the documentation there. Lambda functions should not be u
         self._fobj = fobj  # file or data object
         self._source = source
         self._document_type = document_type  # override pipeline selection
+        self._meta = meta
         self._page_numbers = page_numbers
         self._max_pages = max_pages
 
@@ -781,7 +830,8 @@ operations and include the documentation there. Lambda functions should not be u
 
         # do a mapping to standardize file type detection a bit more:
         mimetype = {
-            'application/rtf': 'text/rtf'
+            'application/rtf': 'text/rtf',
+            None: 'UNKNOWN'  # TODO: try to not make everything that we "don't know" a text-file...
         }.get(mimetype, mimetype)
 
         return mimetype, detected_filepath
@@ -822,15 +872,6 @@ operations and include the documentation there. Lambda functions should not be u
         ""
         return []
     """
-
-
-def remove_lonely_lists(obj):
-    if len(obj) == 1:
-        if isinstance(obj, list):
-            obj = obj[0]
-        elif isinstance(obj, dict):
-            obj = next(iter(obj.values()))
-    return obj
 
 
 class DocumentBagExtractor(Operator):
@@ -876,7 +917,10 @@ class DocumentBagExtractor(Operator):
         - return a callable (in which case we should call it with args & kwargs!)
         """
 
-        def x_single_prop(d: Document, property: str, *args, **kwargs) -> list[Document]:
+        def x_props_single(
+                d: Document,
+                property: str, *args, **kwargs
+        ) -> list[Document]:
             if verbosity:
                 logger.info(f"processing document: {d}")
             # obj = d.to_dict(property)[property]
@@ -891,21 +935,67 @@ class DocumentBagExtractor(Operator):
                     raise OperatorException(f"could not extract data from {d} in {self}")
                 obj = {"Error": "OperatorException"}
 
-            obj = remove_lonely_lists(obj)
+            return obj
+
+        def x_props(d: Document,
+                    doc_props: list[str | dict[str, ...]],
+                    meta_props: list[str | dict[str, ...]]
+                    ) -> list[Document]:
+            """
+            extract doc_props from d and generate a list of new documents with that data.
+
+            Every new document data gets added a list of metadata using "meta_props".
+            """
+            # TODO: support functions with **kwargs where the keys are the
+            #       are the properties and the values the function arguments for the property
+            if verbosity:
+                logger.info(f"processing document: {d}")
+            # obj = d.to_dict(property)[property]
+            prop_list = []
+            for property in doc_props:
+                if isinstance(property, str):
+                    obj = x_props_single(d, property)
+                else:
+                    raise NotImplementedError("TODO: extracting callable properties wih arguments isn't supported yet")
+                obj = remove_lonely_lists(obj)
+                prop_list.append(obj)
+
+            meta_dict = {}
+            for property in meta_props:
+                if isinstance(property, str):
+                    obj = x_props_single(d, property)
+                else:
+                    raise NotImplementedError("TODO: extracting callable properties wih arguments isn't supported yet")
+                obj = remove_lonely_lists(obj)
+                if isinstance(obj, dict):
+                    meta_dict.update(obj)
+                else:
+                    meta_dict[property] = obj
+
             new_docs = []
-            if isinstance(obj, str):
-                new_docs = [Document(obj, source=d.source, document_type="string").config(**d.configuration)]
-            elif isinstance(obj, list):
-                for fobj in obj:
-                    nd = Document(fobj, source=d.source, document_type="string").config(**d.configuration)
-                    new_docs.append(nd)
-            else:
-                NotImplemented(f"Can not yet create a document from {property}!")
+            for obj in prop_list:
+                if isinstance(obj, (str, int, float)):
+                    new_docs = [Document(obj, source=d.source,
+                                         document_type="string", meta=meta_dict)
+                                .config(**d.configuration)]
+                elif isinstance(obj, list):
+                    for fobj in obj:
+                        nd = Document(
+                            fobj, source=d.source,
+                            document_type="string", meta=meta_dict
+                        ).config(**d.configuration)
+                        new_docs.append(nd)
+                else:
+                    NotImplemented(f"Can not yet create a document from {property}!")
 
             return new_docs
 
-        def inception_func(properties: list[str] | str, *args, **kwargs) -> DocumentBag:
-            new_documents = dask_bag.map(x_single_prop, properties, *args, **kwargs)
+        def inception_func(properties: list[str | dict[str, Any]] | str,
+                           meta_properties: list[str | dict[str, Any]] | str) -> DocumentBag:
+            """will create a new document bag from an old documentbag"""
+            properties = list_utils.iterablefyer(properties)
+            meta_properties = list_utils.iterablefyer(meta_properties)
+            new_documents = dask_bag.map(x_props, properties, meta_properties)
             if self._dask_bag_func:  # e.g. "bag.flatten" the resulting object...
                 new_documents = getattr(new_documents, self._dask_bag_func)()
             # make sure our new DocumentBag has the same configuration as the old one...
@@ -1039,19 +1129,6 @@ class DocumentBag(Pipeline):
                 "create a bag with one document for each file that was found"
                 "From this point we can hand off the logic to str(Bag) pipeline."),
             # TODO: extract some metadata about files etc..  as a new DocumentBag or as a Document?!
-            # LambdaOperator(
-            #    lambda x: x([
-            #        "filename",
-            #        "keywords",
-            #        "document_type",
-            #        "url",
-            #        "path",
-            #        "num_pages",
-            #        "num_words",
-            #        "num_sents",
-            #        "a_d_ratio",
-            #        "language"]))
-            # .pipe(x="props_iterator").out("meta_data_iterator").no_cache(),
             # DataMerger()
             # .pipe(root_dir="_source")
             # .out(joint_data="meta_data").cache()
@@ -1076,7 +1153,8 @@ class DocumentBag(Pipeline):
             .docs("gather a number of statistics from documents as a pandas dataframe"),
 
             ###### building an index ######
-            LambdaOperator(lambda get_dicts: get_dicts("source", "full_text", "embedding"))
+            LambdaOperator(lambda get_dicts: get_dicts(
+                "source", "meta", "full_text", "embedding"))
             .pipe("get_dicts").out("idx_dict").cache(allow_disk_cache=False),
             # TODO: optionally add a custom chromadb as an argument.
             LambdaOperator(lambda dc: lambda query: Document(query).config(**dc).embedding)

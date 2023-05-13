@@ -1,5 +1,6 @@
 import functools
 import logging
+import uuid
 from typing import Callable
 
 import dask.bag
@@ -202,8 +203,8 @@ class ChromaIndexFromBag(Operator):
                 # TODO: embeddings=  #use our own embeddings for specific purposes...
                 embeddings=[[float(n) for n in item["embedding"]]],
                 documents=[item["full_text"]],
-                metadatas=[{"source": item["source"]}],
-                ids=[str(item["source"])]
+                metadatas=[item["meta"]],
+                ids=[uuid.uuid4().hex]
             )
 
         def link_to_chroma_collection(chroma_collection):

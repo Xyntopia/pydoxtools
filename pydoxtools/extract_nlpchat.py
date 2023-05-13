@@ -2,9 +2,29 @@ from typing import Callable
 
 import openai
 import yaml
+from diskcache import Cache
 
 from .operators_base import Operator
 from .settings import settings
+
+cache = Cache(settings.PDX_CACHE_DIR_BASE / "openai")
+
+
+@cache.memoize()
+def openai_chat_completion_with_diskcache(
+        model_id: str, temperature: float,
+        messages: tuple[dict[str, str], ...],
+        max_tokens: int = 256,
+):
+    openai.api_key = settings.OPENAI_API_KEY
+    completion = openai.ChatCompletion.create(
+        model=model_id,
+        temperature=temperature,
+        messages=messages,
+        max_tokens=max_tokens
+    )
+    return completion
+
 
 # TODO: add a "normal" prompt
 
@@ -18,6 +38,15 @@ from .settings import settings
  'n': 1,
  'best_of': 1,
  'logit_bias': {}}
+
+
+@cache.memoize()
+def openai_chat_completion(msgs, model_id='gpt-3.5-turbo', max_tokens=256):
+    completion = openai_chat_completion_with_diskcache(
+        model_id=model_id, temperature=0.0, messages=msgs, max_tokens=max_tokens
+    )
+    result = completion.choices[0].message
+    return result
 
 
 class OpenAIChat(Operator):
@@ -53,14 +82,14 @@ class OpenAIChat(Operator):
             results = []
             # create a completion
             for task in tasks:
-                completion = openai.ChatCompletion.create(
-                    model=model_id,
-                    temperature=0.0,
-                    messages=[
-                        {"role": "system",
+                msgs = ({"role": "system",
                          "content": "You are a helpful assistant that aims to complete the given task."
                                     "Do not add any amount of explanatory text."},
-                        {"role": "user", "content": f"# Instruction: {task} ## Input for the task: {text}."}]
+                        {"role": "user", "content": f"# Instruction: {task} \n\n"
+                                                    f"## Input for the task: {text}.\n\n"
+                                                    f"## Output:\n\n"})
+                completion = openai_prompt_with_diskcache(
+                    model_id=model_id, temperature=0.0, messages=msgs
                 )
                 result = completion.choices[0].message
                 results.append(result)

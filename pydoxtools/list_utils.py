@@ -194,3 +194,17 @@ def group_by(data: List[Tuple[str, Any]]) -> Dict[str, Any]:
         groups[k] = [g[1:] for g in group]
 
     return groups
+
+
+def remove_lonely_lists(obj):
+    """remove list if obj is a list and only has a single member"""
+    try:
+        if len(obj) == 1:
+            if isinstance(obj, list):
+                obj = obj[0]
+            elif isinstance(obj, dict):
+                obj = next(iter(obj.values()))
+    except TypeError:  # if obj doesn't have a "len" attribute
+        pass
+
+    return obj
