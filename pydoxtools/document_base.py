@@ -12,6 +12,7 @@ from typing import List, Any, get_type_hints
 
 import networkx as nx
 import numpy as np
+import pandas as pd
 import spacy.tokens
 import yaml
 from diskcache import Cache
@@ -380,6 +381,12 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
 
         return deep_str_convert(properties)
 
+    @functools.cache
+    def to_dataframe(self, *args, **kwargs):
+        dictlist = self.to_dict(*args, **kwargs)
+        df = pd.DataFrame(dictlist)
+        return df
+
     def to_yaml(self, *args, **kwargs):
         """
         Returns a dictionary that accumulates the properties given in *args or with a mapping in **kwargs, and dumps the output as YAML.
@@ -580,7 +587,7 @@ supports pipelines
                     self._cache[dict_cache_key] = res
                     if self._disk_cache_enabled and disk_cache_key:
                         try:
-                            #self._disk_cache.set(disk_cache_key, res, expire=self._disk_cache_ttl)
+                            # self._disk_cache.set(disk_cache_key, res, expire=self._disk_cache_ttl)
                             self._disk_cache.set(disk_cache_key, res)
                         except (pickle.PicklingError, AttributeError, TypeError) as error:
                             self._stats["cache_errors"].add((operator_name, error))
