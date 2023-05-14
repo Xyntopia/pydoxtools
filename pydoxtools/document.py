@@ -40,7 +40,7 @@ from .html_utils import get_text_only_blocks
 from .list_utils import remove_lonely_lists
 from .nlp_utils import calculate_string_embeddings, summarize_long_text
 from .operator_huggingface import QamExtractor
-from .operators_base import OperatorException, Alias, LambdaOperator, ElementWiseOperator, Constant, DictSelector, \
+from .operators_base import OperatorException, Alias, FunctionOperator, ElementWiseOperator, Constant, DictSelector, \
     Operator, Configuration
 from .pdf_utils import PDFFileLoader
 
@@ -233,7 +233,7 @@ operations and include the documentation there. Lambda functions should not be u
             .pipe(fobj="raw_content", page_numbers="_page_numbers", max_pages="_max_pages")
             .out("pages_bbox", "elements", "meta_pdf", pages="page_set")
             .cache(),
-            LambdaOperator(lambda pages: len(pages))
+            FunctionOperator(lambda pages: len(pages))
             .pipe(pages="page_set").out("num_pages").cache(),
             # TODO: move these filters etc... into a generalized text-structure pipeline!
             #  we are converting pandoc elements into the same thing
@@ -247,15 +247,15 @@ operations and include the documentation there. Lambda functions should not be u
             TableCandidateAreasExtractor()
             .pipe("graphic_elements", "line_elements", "pages_bbox", "text_box_elements", "filename")
             .out("table_candidates", box_levels="table_box_levels").cache(),
-            LambdaOperator(lambda candidates: [t.df for t in candidates if t.is_valid])
+            FunctionOperator(lambda candidates: [t.df for t in candidates if t.is_valid])
             .pipe(candidates="table_candidates").out("table_df0").cache(),
-            LambdaOperator(lambda table_df0, lists: table_df0 + [lists]).cache()
+            FunctionOperator(lambda table_df0, lists: table_df0 + [lists]).cache()
             .pipe("table_df0", "lists").out("tables_df").cache(),
             TextBoxElementExtractor()
             .pipe("line_elements").out("text_box_elements").cache(),
-            LambdaOperator(lambda df: df.get("text", None).to_list())
+            FunctionOperator(lambda df: df.get("text", None).to_list())
             .pipe(df="text_box_elements").out("text_box_list").cache(),
-            LambdaOperator(lambda tb: "\n\n".join(tb))
+            FunctionOperator(lambda tb: "\n\n".join(tb))
             .pipe(tb="text_box_list").out("full_text").cache(),
             TitleExtractor()
             .pipe("line_elements").out("titles", "side_titles").cache(),
@@ -269,20 +269,20 @@ operations and include the documentation there. Lambda functions should not be u
             .out("main_content_clean_html", "summary", "language", "goose_article",
                  "main_content", "schemadata", "final_urls", "pdf_links", "title",
                  "short_title", "url", tables="tables_df", html_keywords="html_keywords_str").cache(),
-            LambdaOperator(lambda article: article.links)
+            FunctionOperator(lambda article: article.links)
             .pipe(article="goose_article").out("urls").cache(),
-            LambdaOperator(lambda article: article.top_image)
+            FunctionOperator(lambda article: article.top_image)
             .pipe(article="goose_article").out("main_image").cache(),
             Alias(full_text="main_content"),
-            LambdaOperator(lambda x: pd.DataFrame(get_text_only_blocks(x), columns=["text"])).cache()
+            FunctionOperator(lambda x: pd.DataFrame(get_text_only_blocks(x), columns=["text"])).cache()
             .pipe(x="raw_content").out("text_box_elements"),
-            LambdaOperator(lambda t, s: [t, s])
+            FunctionOperator(lambda t, s: [t, s])
             .pipe(t="title", s="short_title").out("titles").cache(),
-            LambdaOperator(lambda x: set(w.strip() for w in x.split(",")))
+            FunctionOperator(lambda x: set(w.strip() for w in x.split(",")))
             .pipe(x="html_keywords_str").out("html_keywords").cache(),
 
             ########### AGGREGATION ##############
-            LambdaOperator(lambda **kwargs: set(list_utils.flatten(kwargs.values())))
+            FunctionOperator(lambda **kwargs: set(list_utils.flatten(kwargs.values())))
             .pipe("html_keywords", "textrank_keywords").out("keywords").cache(),
         ],
         # docx
@@ -304,7 +304,7 @@ operations and include the documentation there. Lambda functions should not be u
             PandocConverter()
             .pipe(output_format="full_text_format", pandoc_document="pandoc_document")
             .out("full_text").cache(),
-            LambdaOperator(lambda x: lambda o: PandocConverter()(x, output_format=o))
+            FunctionOperator(lambda x: lambda o: PandocConverter()(x, output_format=o))
             .pipe(x="pandoc_document").out("convert_to").cache(),
             Constant(clean_format="plain"),
             PandocToPdxConverter()
@@ -349,7 +349,7 @@ operations and include the documentation there. Lambda functions should not be u
         "application/x-yaml": [
             "<class 'dict'>",
             Alias(full_text="raw_content"),
-            LambdaOperator(lambda x: dict(data=yaml.unsafe_load(x)))
+            FunctionOperator(lambda x: dict(data=yaml.unsafe_load(x)))
             .pipe(x="full_text").out("data").cache()
             # TODO: we might need to have a special "result" message, that we
             #       pass around....
@@ -358,29 +358,29 @@ operations and include the documentation there. Lambda functions should not be u
         "<class 'dict'>": [  # pipeline to handle data based documents
             Alias(raw_content="fobj"),
             Alias(data="raw_content"),
-            LambdaOperator(lambda x: yaml.dump(list_utils.deep_str_convert(x)))
+            FunctionOperator(lambda x: yaml.dump(list_utils.deep_str_convert(x)))
             .pipe(x="data").out("full_text").cache(),
             DictSelector()
             .pipe(selectable="data").out("data_sel").cache().docs(
                 "select values by key from source data in Document"),
-            LambdaOperator(lambda x: pd.DataFrame([
+            FunctionOperator(lambda x: pd.DataFrame([
                 str(k) + ": " + str(v) for k, v in list_utils.flatten_dict(x).items()],
                 columns=["text"]
             )).pipe(x="data").out("text_box_elements").cache(),
             Alias(text_segments="text_box_list"),
-            LambdaOperator(lambda x: x.keys())
+            FunctionOperator(lambda x: x.keys())
             .pipe(x="data").out("keys").no_cache(),
-            LambdaOperator(lambda x: x.values())
+            FunctionOperator(lambda x: x.values())
             .pipe(x="data").out("values").no_cache(),
-            LambdaOperator(lambda x: x.values())
+            FunctionOperator(lambda x: x.values())
             .pipe(x="data").out("items").no_cache()
         ],
         "<class 'list'>": [
             Alias(raw_content="fobj"),
             Alias(data="raw_content"),
-            LambdaOperator(lambda x: yaml.dump(list_utils.deep_str_convert(x)))
+            FunctionOperator(lambda x: yaml.dump(list_utils.deep_str_convert(x)))
             .pipe(x="data").out("full_text").cache(),
-            LambdaOperator(lambda x: pd.DataFrame([
+            FunctionOperator(lambda x: pd.DataFrame([
                 list_utils.deep_str_convert(v) for v in x],
                 columns=["text"]
             )).pipe(x="data").out("text_box_elements").cache(),
@@ -396,7 +396,7 @@ operations and include the documentation there. Lambda functions should not be u
             .out("raw_content").cache(),
             Alias(full_text="raw_content"),
             Alias(clean_text="full_text"),
-            LambdaOperator(lambda x: {"meta": (x or dict())})
+            FunctionOperator(lambda x: {"meta": (x or dict())})
             .pipe(x="_meta").out("meta"),
 
             # adding a dummy-data operator for downstream-compatibiliy. Not every document has
@@ -404,7 +404,7 @@ operations and include the documentation there. Lambda functions should not be u
             Constant(data=dict()),
 
             ##### calculate some metadata ####
-            LambdaOperator(
+            FunctionOperator(
                 lambda x: dict(file_meta=x(
                     "filename",
                     # "keywords",
@@ -420,29 +420,29 @@ operations and include the documentation there. Lambda functions should not be u
                 "some fast-to-calculate metadata information about a file"),
 
             ## Standard text splitter for splitting text along lines...
-            LambdaOperator(lambda x: pd.DataFrame(x.split("\n\n"), columns=["text"]))
+            FunctionOperator(lambda x: pd.DataFrame(x.split("\n\n"), columns=["text"]))
             .pipe(x="full_text").out("text_box_elements").cache(),
-            LambdaOperator(lambda df: df.get("text", None).to_list())
+            FunctionOperator(lambda df: df.get("text", None).to_list())
             .pipe(df="text_box_elements").out("text_box_list").cache(),
             # TODO: replace this with a real, generic table detection
             #       e.g. running the text through pandoc or scan for html tables
             Constant(tables_df=[]),
-            LambdaOperator(lambda tables_df: [df.to_dict('index') for df in tables_df]).cache()
+            FunctionOperator(lambda tables_df: [df.to_dict('index') for df in tables_df]).cache()
             .pipe("tables_df").out("tables_dict"),
             Alias(tables="tables_dict"),
             TextBlockClassifier()
             .pipe("text_box_elements").out("addresses").cache(),
 
             ## calculate some metadata values
-            LambdaOperator(lambda full_text: 1 + (len(full_text) // 1000))
+            FunctionOperator(lambda full_text: 1 + (len(full_text) // 1000))
             .pipe("full_text").out("num_pages").cache(),
-            LambdaOperator(lambda clean_text: len(clean_text.split()))
+            FunctionOperator(lambda clean_text: len(clean_text.split()))
             .pipe("clean_text").out("num_words").cache(),
-            LambdaOperator(lambda spacy_sents: len(spacy_sents))
+            FunctionOperator(lambda spacy_sents: len(spacy_sents))
             .pipe("spacy_sents").out("num_sents").no_cache(),
-            LambdaOperator(calculate_a_d_ratio)
+            FunctionOperator(calculate_a_d_ratio)
             .pipe(ft="full_text").out("a_d_ratio").cache(),
-            LambdaOperator(lambda full_text: langdetect.detect(full_text))
+            FunctionOperator(lambda full_text: langdetect.detect(full_text))
             .pipe("full_text").out("language").cache(),
 
             #########  SPACY WRAPPERS  #############
@@ -452,13 +452,13 @@ operations and include the documentation there. Lambda functions should not be u
                 "language", "spacy_model",
                 full_text="clean_text", model_size="spacy_model_size"
             ).out(doc="spacy_doc", nlp="spacy_nlp").cache(),
-            LambdaOperator(extract_spacy_token_vecs)
+            FunctionOperator(extract_spacy_token_vecs)
             .pipe("spacy_doc").out("spacy_vectors"),
-            LambdaOperator(get_spacy_embeddings)
+            FunctionOperator(get_spacy_embeddings)
             .pipe("spacy_nlp").out("spacy_embeddings"),
-            LambdaOperator(lambda spacy_doc: list(spacy_doc.sents))
+            FunctionOperator(lambda spacy_doc: list(spacy_doc.sents))
             .pipe("spacy_doc").out("spacy_sents"),
-            LambdaOperator(extract_noun_chunks)
+            FunctionOperator(extract_noun_chunks)
             .pipe("spacy_doc").out("spacy_noun_chunks")
             .docs("exracts nounchunks from spacy. Will not be cached because it is all"
                   "in the spacy doc already"),
@@ -475,17 +475,17 @@ operations and include the documentation there. Lambda functions should not be u
             Alias(sents="spacy_sents"),
             Alias(noun_chunks="spacy_noun_chunks"),
 
-            LambdaOperator(lambda x: x.vector)
+            FunctionOperator(lambda x: x.vector)
             .pipe(x="spacy_doc").out("vector").cache(),
             # TODO: make this configurable.. either we want
             #       to use spacy for this or we would rather have a huggingface
             #       model doing this...
-            LambdaOperator(
+            FunctionOperator(
                 lambda x: dict(
                     sent_vecs=np.array([e.vector for e in x]),
                     sent_ids=list(range(len(x)))))
             .pipe(x="sents").out("sent_vecs", "sent_ids").cache(),
-            LambdaOperator(
+            FunctionOperator(
                 lambda x: dict(
                     noun_vecs=np.array([e.vector for e in x]),
                     noun_ids=list(range(len(x)))))
@@ -503,15 +503,15 @@ operations and include the documentation there. Lambda functions should not be u
                    "tokenizer is MUCH faster and uses lower CPU than creating actual"
                    "contextual embeddings using the model. BUt is also lower quality"
                    "because it lacks the context."),
-            LambdaOperator(
+            FunctionOperator(
                 lambda x, m, t, o: nlp_utils.calculate_string_embeddings(
                     text=x, model_id=m, only_tokenizer=t, overlap_ratio=o)
             ).pipe(x="full_text", m="vectorizer_model",
                    t="vectorizer_only_tokenizer", o="vectorizer_overlap_ratio")
             .out("vec_res").cache(),
-            LambdaOperator(lambda x: dict(emb=x[0], tok=x[1]))
+            FunctionOperator(lambda x: dict(emb=x[0], tok=x[1]))
             .pipe(x="vec_res").out(emb="tok_embeddings", tok="tokens").no_cache(),
-            LambdaOperator(lambda x: x.mean(0))
+            FunctionOperator(lambda x: x.mean(0))
             .pipe(x="tok_embeddings").out("embedding").cache(),
 
             ########### SEGMENT_INDEX ##########
@@ -536,7 +536,7 @@ operations and include the documentation there. Lambda functions should not be u
             ########### NOUN_INDEX #############
             IndexExtractor()
             .pipe(vecs="noun_vecs", ids="noun_ids").out("noun_index").cache(),
-            LambdaOperator(lambda spacy_nlp: lambda x: spacy_nlp(x).vector)
+            FunctionOperator(lambda spacy_nlp: lambda x: spacy_nlp(x).vector)
             .pipe("spacy_nlp").out("vectorizer").cache(),
             KnnQuery().pipe(index="noun_index", idx_values="noun_chunks", vectorizer="vectorizer")
             .out("noun_query").cache(),
@@ -553,7 +553,7 @@ operations and include the documentation there. Lambda functions should not be u
             ########### SENTENCE_INDEX ###########
             IndexExtractor()
             .pipe(vecs="sent_vecs", ids="sent_ids").out("sent_index").cache(),
-            LambdaOperator(lambda spacy_nlp: lambda x: spacy_nlp(x).vector)
+            FunctionOperator(lambda spacy_nlp: lambda x: spacy_nlp(x).vector)
             .pipe("spacy_nlp").out("vectorizer").cache(),
             KnnQuery().pipe(index="sent_index", idx_values="spacy_sents", vectorizer="vectorizer")
             .out("sent_query").cache(),
@@ -573,9 +573,9 @@ operations and include the documentation there. Lambda functions should not be u
             # TODO: discover more "ad-hoc-use-cases" for this
             # HuggingfacePipeline(pipeline="summarization")
             # .pipe("property_dict", trf_model_id="summarizer_model").out("summary_func").cache(),
-            # LambdaOperator(lambda x, y: x(y))
+            # FunctionOperator(lambda x, y: x(y))
             # .pipe(x="summary_func", y="full_text").out("summary").cache(),
-            LambdaOperator(lambda x, m, to, ml: summarize_long_text(
+            FunctionOperator(lambda x, m, to, ml: summarize_long_text(
                 x, m, token_overlap=to, max_len=ml
             )).pipe(
                 x="clean_text", m="summarizer_model",
@@ -1069,13 +1069,13 @@ class DocumentBag(Pipeline):
     _operators = {
         str(DatabaseSource): [
             str(Bag),  # DatabaseSource will eventually be turned into a bag of documents
-            LambdaOperator(lambda x: x.dict())
+            FunctionOperator(lambda x: x.dict())
             .pipe(x="source")
             .out("sql", "connection_string", "index_column").cache(),
             Configuration(bytes_per_chunk="256 MiB"),
             SQLTableLoader()
             .pipe("sql", "connection_string", "index_column", "bytes_per_chunk").out("dataframe").cache(),
-            LambdaOperator(lambda x: x.to_bag(index=True, format="dict"))
+            FunctionOperator(lambda x: x.to_bag(index=True, format="dict"))
             .pipe(x="dataframe")
             .out("bag").cache(),
             dask_operators.BagMapOperator(lambda y, c: Document(
@@ -1088,9 +1088,9 @@ class DocumentBag(Pipeline):
             # TODO: accept arbitrary bags
             # Alias(bag="source"),
             Alias(docs="source"),
-            LambdaOperator(lambda x: x.take)
+            FunctionOperator(lambda x: x.take)
             .pipe(x="docs").out("take").cache(),
-            LambdaOperator(lambda x: x.compute)
+            FunctionOperator(lambda x: x.compute)
             .pipe(x="docs").out("compute").cache(),
         ],
         # TODO: add "fast, slow, medium" pipelines..  e.g. with keywords extraction as fast
@@ -1099,7 +1099,7 @@ class DocumentBag(Pipeline):
         str(list): [
             str(Path), str(Bag),
             # load all paths into a bag
-            LambdaOperator(lambda x: dask.bag.from_sequence((Path(p) for p in x), partition_size=10))
+            FunctionOperator(lambda x: dask.bag.from_sequence((Path(p) for p in x), partition_size=10))
             .pipe(x="source").out("bag"),
             # filter for actual files
             dask_operators.BagFilterOperator(lambda it: it.is_file())
@@ -1118,13 +1118,13 @@ class DocumentBag(Pipeline):
             PathLoader()
             .pipe(directory="root_path", exclude="_exclude")
             .out("paths").cache(),
-            LambdaOperator(lambda x: x(max_depth=10, mode="files"))
+            FunctionOperator(lambda x: x(max_depth=10, mode="files"))
             .pipe(directory="root_path", exclude="_exclude")
             .out("file_path_list").cache(),
-            LambdaOperator(lambda x: x(max_depth=10, mode="dirs"))
+            FunctionOperator(lambda x: x(max_depth=10, mode="dirs"))
             .pipe(directory="root_path", exclude="_exclude")
             .out("file_path_list").cache(),
-            LambdaOperator(lambda x: dask.bag.from_sequence(x, partition_size=10))
+            FunctionOperator(lambda x: dask.bag.from_sequence(x, partition_size=10))
             .pipe(x="file_path_list").out("bag").cache().docs(
                 "create a dask bag with all the filepaths in it"),
             dask_operators.BagMapOperator(lambda x, c: Document(x).config(**c))
@@ -1151,16 +1151,16 @@ class DocumentBag(Pipeline):
             .pipe("verbosity", "configuration", dask_bag="docs", forgiving_extracts="forgiving_extracts",
                   stats="_stats")
             .out("e").cache(allow_disk_cache=False),
-            LambdaOperator(lambda x: pd.DataFrame(x).sum())
+            FunctionOperator(lambda x: pd.DataFrame(x).sum())
             .pipe(x="_stats").out("stats").no_cache()
             .docs("gather a number of statistics from documents as a pandas dataframe"),
 
             ###### building an index ######
-            LambdaOperator(lambda get_dicts: get_dicts(
+            FunctionOperator(lambda get_dicts: get_dicts(
                 "source", "meta", "full_text", "embedding"))
             .pipe("get_dicts").out("idx_dict").cache(allow_disk_cache=False),
             # TODO: optionally add a custom chromadb as an argument.
-            LambdaOperator(lambda dc: lambda query: Document(query).config(**dc).embedding)
+            FunctionOperator(lambda dc: lambda query: Document(query).config(**dc).embedding)
             .pipe(dc="doc_configuration").out("vectorizer").cache(),
             ChromaIndexFromBag()
             .pipe(query_vectorizer="vectorizer", idx_bag="idx_dict")

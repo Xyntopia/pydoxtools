@@ -127,7 +127,7 @@ class Constant(Operator):
         return self.const_result
 
 
-class LambdaOperator(Operator):
+class FunctionOperator(Operator):
     """Wrap an arbitrary function as an Operator"""
 
     def __init__(self, func):
