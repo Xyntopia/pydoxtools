@@ -1115,12 +1115,15 @@ class DocumentBag(Pipeline):
             # TODO: make this all an iterable...  maybe even using dask..
             Alias(root_path="source"),
             # TODO: make PathLoader an iterator!
-            PathLoader(mode="files")
+            PathLoader()
+            .pipe(directory="root_path", exclude="_exclude")
+            .out("paths").cache(),
+            LambdaOperator(lambda x: x(max_depth=10, mode="files"))
             .pipe(directory="root_path", exclude="_exclude")
             .out("file_path_list").cache(),
-            PathLoader(mode="dirs")
-            .pipe(directory="root_path")
-            .out("dir_list").cache(),
+            LambdaOperator(lambda x: x(max_depth=10, mode="dirs"))
+            .pipe(directory="root_path", exclude="_exclude")
+            .out("file_path_list").cache(),
             LambdaOperator(lambda x: dask.bag.from_sequence(x, partition_size=10))
             .pipe(x="file_path_list").out("bag").cache().docs(
                 "create a dask bag with all the filepaths in it"),
