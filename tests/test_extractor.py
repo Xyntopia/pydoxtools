@@ -267,9 +267,9 @@ def test_pipeline_graph():
 
 
 def test_documentation_generation():
-    docs = Document.pipeline_docs()
+    docs = Document.markdown_docs()
 
-    docbag = DocumentBag.pipeline_docs()
+    docbag = DocumentBag.markdown_docs()
 
     pipeline_docs = f"""
 # Pipelines

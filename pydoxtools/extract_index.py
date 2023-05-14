@@ -1,4 +1,3 @@
-import functools
 import logging
 import uuid
 from typing import Callable
@@ -208,10 +207,15 @@ class ChromaIndexFromBag(Operator):
             )
 
         def link_to_chroma_collection(chroma_collection):
-            @functools.lru_cache()
-            def query_chroma(query: str):
+
+            def query_chroma(query: str, where=None, n_results=10):
                 query_embedding = query_vectorizer(query)
-                res = chroma_collection.query(query_embedding.tolist())
+                res = chroma_collection.query(
+                    query_embeddings=query_embedding.tolist(),
+                    n_results=n_results,
+                    where=where or {},  # {"metadata_field": "is_equal_to_this"}
+                    # where_document=where or None  # {"$contains": "search_string"}
+                )
                 return res
 
             # we are returning a function which does the calculation for all elements

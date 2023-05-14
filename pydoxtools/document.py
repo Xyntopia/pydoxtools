@@ -990,8 +990,10 @@ class DocumentBagExtractor(Operator):
 
             return new_docs
 
-        def inception_func(properties: list[str | dict[str, Any]] | str,
-                           meta_properties: list[str | dict[str, Any]] | str) -> DocumentBag:
+        def inception_func(
+                properties: list[str | dict[str, Any]] | str,
+                meta_properties: list[str | dict[str, Any]] | str = None
+        ) -> DocumentBag:
             """will create a new document bag from an old documentbag"""
             properties = list_utils.iterablefyer(properties)
             meta_properties = list_utils.iterablefyer(meta_properties)
@@ -1119,11 +1121,11 @@ class DocumentBag(Pipeline):
             .pipe(directory="root_path", exclude="_exclude")
             .out("paths").cache(),
             FunctionOperator(lambda x: x(max_depth=10, mode="files"))
-            .pipe(directory="root_path", exclude="_exclude")
+            .pipe(x="paths")
             .out("file_path_list").cache(),
             FunctionOperator(lambda x: x(max_depth=10, mode="dirs"))
-            .pipe(directory="root_path", exclude="_exclude")
-            .out("file_path_list").cache(),
+            .pipe(x="paths")
+            .out("dir_list").cache(),
             FunctionOperator(lambda x: dask.bag.from_sequence(x, partition_size=10))
             .pipe(x="file_path_list").out("bag").cache().docs(
                 "create a dask bag with all the filepaths in it"),
@@ -1147,6 +1149,7 @@ class DocumentBag(Pipeline):
             dask_operators.BagPropertyExtractor()
             .pipe("verbosity", dask_bag="docs", forgiving_extracts="forgiving_extracts", stats="_stats")
             .out("get_dicts").cache(allow_disk_cache=False),
+            Alias(d="get_dicts"),
             DocumentBagExtractor("flatten")
             .pipe("verbosity", "configuration", dask_bag="docs", forgiving_extracts="forgiving_extracts",
                   stats="_stats")

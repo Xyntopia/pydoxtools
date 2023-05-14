@@ -50,11 +50,30 @@ class PathLoader(pydoxtools.operators_base.Operator):
             self, directory: bytes | str | Path,
             # TODO: options: recursive-level
             exclude: list[str] = None
-    ) -> list[Path]:
+    ) -> typing.Callable:
+        """
+        Loads a list of paths from the given directory with the specified constraints.
+
+        Args:
+            directory (Union[bytes, str, Path]): The directory where the paths are to be fetched.
+            exclude (List[str], optional): List of filenames or directories to exclude from the result. Defaults to None.
+
+        Returns:
+            Return a function which traverses the specified directory
+        """
+
         @functools.cache
-        def traverse_paths(max_depth: int=10, mode: str = "files"):
+        def traverse_paths(max_depth: int = 10, mode: str = "", wildcard: str = "*"):
             """
-            max_depth: maximum depth to which we should be able to list file paths...
+            Travels through the directory and returns a list of paths according to the mode and max_depth.
+
+            Args:
+                max_depth (int, optional): Maximum depth to which paths should be listed. Defaults to 10.
+                mode (str, optional): Mode to determine which paths are returned ("files", "dirs", or ""). Defaults to "".
+                wildcard (str, optional): Wildcard to filter files..
+
+            Returns:
+                List[Path]: List of paths in the directory according to the specified mode and max_depth.
             """
 
             # TODO:
@@ -63,16 +82,15 @@ class PathLoader(pydoxtools.operators_base.Operator):
 
             # dirs = file_utils.get_nested_paths(directory, "*", mode="dirs")
             # level = lambda path: len(path.relative_to(directory).parts)
-            path_wildcard = "*"
 
             if mode == "files":
-                path_list = [x for x in Path(directory).rglob(path_wildcard)
+                path_list = [x for x in Path(directory).rglob(wildcard)
                              if (x.is_file() and is_within_max_depth(x, directory, max_depth))]
             elif mode == "dirs":
-                path_list = [x for x in Path(directory).rglob(path_wildcard)
+                path_list = [x for x in Path(directory).rglob(wildcard)
                              if (x.is_dir() and is_within_max_depth(x, directory, max_depth))]
             else:
-                path_list = [x for x in Path(directory).rglob(path_wildcard)
+                path_list = [x for x in Path(directory).rglob(wildcard)
                              if is_within_max_depth(x, directory, max_depth)]
 
             if exclude:

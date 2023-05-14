@@ -437,16 +437,19 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         NotImplementedError("TODO: search for functions that are type hinted as callable")
 
     @classmethod
-    def pipeline_docs(cls):
+    def pipeline_docs(cls, pipeline_type=None):
         """
-        Returns a formatted string containing the documentation for each pipeline operation in the class.
+        Aggregates the pipeline operations and their corresponding types and metadata.
 
-        This class method iterates through the pipeline operations, collects information about their
-        output types and supported pipelines, and formats the documentation accordingly.
+        This method iterates through all the pipelines registered in the class, and gathers
+        information about each operation, such as the pipeline types it appears in,
+        the return type of the operation, and the operation's docstring.
 
         Returns:
-            str: A formatted string containing the documentation for each pipeline operation, including
-                 operation name, usage, return type, and supported pipelines.
+            output_infos (Dict[str, Dict[str, Union[Set, str]]]): The aggregated information
+                about pipeline operations, with operation keys as the top-level keys, and
+                metadata such as pipeline types, output types, and descriptions as nested
+                dictionaries.
         """
         output_infos = {}
         # aggregate information
@@ -458,6 +461,25 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
                     oi["output_types"].add(return_type)
                 oi["description"] = op.__node_doc__
                 output_infos[op_k] = oi
+
+        if pipeline_type:
+            return output_infos[pipeline_type]
+        else:
+            return output_infos
+
+    @classmethod
+    def markdown_docs(cls):
+        """
+        Returns a formatted string containing the documentation for each pipeline operation in the class.
+
+        This class method iterates through the pipeline operations, collects information about their
+        output types and supported pipelines, and formats the documentation accordingly.
+
+        Returns:
+            str: A formatted string containing the documentation for each pipeline operation, including
+                 operation name, usage, return type, and supported pipelines.
+        """
+        output_infos = cls.pipeline_docs()
 
         node_docs = []
         for k, v in output_infos.items():
