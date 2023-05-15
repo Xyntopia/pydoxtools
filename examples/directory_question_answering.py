@@ -6,6 +6,7 @@ import uuid
 
 import chromadb
 import dask
+import numpy as np
 import pandas as pd
 import yaml
 from chromadb.config import Settings
@@ -26,14 +27,35 @@ def generate_function_usage_prompt(func: callable):
     return func.__doc__
 
 
-def add_info_to_collection(collection, doc: Document, type: str):
+def add_info_to_collection(collection, doc: Document, metas: list[dict]):
     collection.add(
         # TODO: embeddings=  #use our own embeddings for specific purposes...
         embeddings=[doc.embedding],
         documents=[doc.full_text],
-        metadatas=[{"information_type": type}],
+        metadatas=metas,
         ids=[uuid.uuid4().hex]
     )
+
+
+def add_question(collection, question, answer):
+    doc = Document(f"question: {question.strip()}\nanswer: {answer.strip()}")
+    add_info_to_collection(
+        collection, doc,
+        [{"information_type": "question", "question": question.strip(), "answer": answer.strip()}])
+
+
+def add_task(collection, task, result):
+    doc = Document(f"task: {question.strip()}\nresult: {result.strip()}")
+    add_info_to_collection(
+        collection, doc,
+        [{"information_type": "task", "task": task.strip(), "result": result.strip()}])
+
+
+def add_data(collection, key, data):
+    doc = Document(f"{key.strip()}: {data.strip()}")
+    add_info_to_collection(
+        collection, doc,
+        [{"information_type": "data", "key": key.strip(), "info": data.strip()}])
 
 
 def task_chat(objective, context, task):
@@ -43,28 +65,28 @@ def task_chat(objective, context, task):
                                         f"# Take into account these previously completed tasks: "
                                         f"\n{context} \n\n"
                                         f"# This is the task: \n{task} \n\n"
-                                        f"# Return the answer without any additional text, "
-                                        f"under any circumstances, in yaml format."
-                                        f" RESPONSE: "})
+                                        f"Provide only the precise information requested without context, "
+                                        f"make sure we can parse the response as yaml. RESPONSE:\n"})
 
 
-def get_context(task: str):
+context_where = [{"information_type": "question"},
+                 {"information_type": "task"},
+                 {"information_type": "info"}]
+
+
+def get_context(task: str, n_results: int = 5):
     context = query(task, where={
-        "$or": [{"information_type": "question"},
-                {"information_type": "task"}]})["documents"]
+        "$or": context_where},
+                    n_results=n_results)["documents"]
     return context
 
 
-def execute_task(objective, task):
-    context = query(task, where={
-        "$or": [{"information_type": "question"},
-                {"information_type": "task"}]})["documents"]
-    msgs = task_chat(objective, context,
-                     task=task)
+def execute_task(objective, task, context_size: int = 5):
+    context = get_context(task, n_results=context_size)[0]
+    msgs = task_chat(
+        objective, "\n---\n".join(context), task=task)
     logger.info(f"execute_task: {msgs[1]['content']}")
     res = openai_chat_completion(msgs, max_tokens=256).content
-    task_pair = Document({"task": task, "result": res})
-    add_info_to_collection(collection, task_pair, "task")
     return res
 
 
@@ -80,7 +102,7 @@ if __name__ == "__main__":
     dask.config.set(scheduler='synchronous')  # overwrite default with single-threaded scheduler for debugging
     # print(client.scheduler_info())
 
-    settings.PDX_ENABLE_DISK_CACHE = True
+    # settings.PDX_ENABLE_DISK_CACHE = True
     # dask.config.set(scheduler='multiprocessing')  # overwrite default with single-threaded scheduler for debugging
 
     client = chromadb.Client(Settings(
@@ -124,10 +146,9 @@ if __name__ == "__main__":
     collection.delete(
         where={"information_type": "task"}
     )
+
     stored_info = \
-        collection.get(
-            where={"$or": [{"information_type": "question"},
-                           {"information_type": "task"}]})["documents"]
+        collection.get(where={"$or": context_where})["documents"]
 
     ######  experiment with the writing process  #####
 
@@ -137,23 +158,51 @@ if __name__ == "__main__":
                "keywords related to the project, " \
                "to help with identifying the relevant files in the directory?"
     answer = "python library, AI, pipelines"
-    qa_pair = {"question ": question.strip(),
-               "answer": answer.strip()}
-    doc = Document(qa_pair)
-    add_info_to_collection(collection, doc, type="question")
+    add_question(collection, question, answer)
 
-    task = "What additional information do you need to create a first outline as a draft? " \
-           "provide it as a list"
+    task = "What additional information do you need to create a first, very short outline as a draft? " \
+           "provide it as a list of questions"
     res = execute_task(objective=objective, task=task)
-    important_things = yaml.unsafe_load(res)
+    unknown_facts_list = yaml.unsafe_load(res)
+    add_task(collection, task, str(unknown_facts_list))
 
-    raise
+    stophere = True
+    if stophere:
+        raise NotImplementedError()
 
-    topic = important_things[0]
-    task = "Create a list of input strings that we can use for an embeddings " \
-           f"based search to find text snippets to get information about the topic: {topic}"
+    question = unknown_facts_list[4]
+    task = "Produce a list of 3-5 word strings which we can convert " \
+           "to embeddings and then use those for a " \
+           f"nearest neighbour search. We need them to be similar to text snippets which are" \
+           f"capable of addressing the question: '{question}'"
     res = execute_task(objective=objective, task=task)
     list_of_search_strings = yaml.unsafe_load(res)
+    add_task(collection, task, str(unknown_facts_list))
+
+    # take the mean of all the above search strings :)
+    embedding = np.mean([Document(q).embedding for q in list_of_search_strings], 0).tolist()
+    # make sure we have no duplicate results
+    res = query(embeddings=embedding, where={"document_type": "text/markdown"})
+    txt = "\n\n".join(list(set(res["documents"][0])))
+
+    anslist = pd.DataFrame(Document(txt).answers(question)[0])
+    if not anslist.empty:
+        ans = anslist.groupby(0).sum().sort_values(by=1, ascending=False).index[0]
+    else:
+        res = execute_task(objective, task=f"answer the following question: '{question}' "
+                                           f"using this text as input: {txt}")
+        ans = res
+    # TODO: ask questions like "is this correct?" or can you provide the name?
+    # ans_parsed = yaml.unsafe_load(ans)
+    add_question(collection, question, ans)
+
+    task = "Create an initial outline for our objective."
+    res = execute_task(objective, task)
+
+    task = "Create a blogpost with the given information about the project."
+    res = execute_task(objective, task)
+
+    # task = f"extract important information as a list from the following text snippets: {}"
 
     df = pd.DataFrame([f.suffix for f in ds.file_path_list])
     df.value_counts()

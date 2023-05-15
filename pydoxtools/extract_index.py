@@ -10,6 +10,7 @@ import numpy as np
 from pydoxtools.document_base import TokenCollection
 from pydoxtools.nlp_utils import calculate_string_embeddings
 from pydoxtools.operators_base import Operator
+from . import list_utils
 
 logger = logging.getLogger(__name__)
 
@@ -208,10 +209,14 @@ class ChromaIndexFromBag(Operator):
 
         def link_to_chroma_collection(chroma_collection):
 
-            def query_chroma(query: str, where=None, n_results=10):
-                query_embedding = query_vectorizer(query)
+            def query_chroma(query: list[str] | str = None, embeddings: list = None, where=None, n_results=10):
+                if embeddings is not None:
+                    query_embeddings = embeddings
+                else:
+                    query = list_utils.iterablefyer(query)
+                    query_embeddings = [query_vectorizer(q).tolist() for q in query]
                 res = chroma_collection.query(
-                    query_embeddings=query_embedding.tolist(),
+                    query_embeddings=query_embeddings,
                     n_results=n_results,
                     where=where or {},  # {"metadata_field": "is_equal_to_this"}
                     # where_document=where or None  # {"$contains": "search_string"}
