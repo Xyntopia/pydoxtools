@@ -305,10 +305,16 @@ if __name__ == "__main__":
         task = "Given this text:\n\n" \
                f"```markdown\n{txt}\n```\n\n" \
                f"Make the text better by executing this task: '{t}' " \
-               f"and integrate it into the given text, but keep the original objective in mind."
+               f"and integrate it into the given text, but keep the overall objective in mind."
         txt = execute_task(objective, task, context_size=10, max_tokens=1000, format="markdown")
         final_result.append(res)
         # tasks = yaml_loader(res)
+
+    task = "Given this text:\n\n" \
+           f"```markdown\n{txt}\n```\n\n" \
+           f"Is it too long?"
+    res = execute_task(objective, task, context_size=0, max_tokens=1000, format="markdown")
+
 
     stophere()
 
