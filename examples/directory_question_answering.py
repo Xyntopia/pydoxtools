@@ -20,11 +20,25 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("pydoxtools.document").setLevel(logging.INFO)
 
+debug_queue = []
+
+
+def stophere():
+    raise NotImplementedError()
+
 
 def generate_function_usage_prompt(func: callable):
     # TODO: summarize function usage, only extract the parameter description
     # func.__doc__
     return func.__doc__
+
+
+def yaml_loader(txt: str):
+    # Remove ```yaml and ``` if they are present in the string
+    txt = txt.strip().replace("```yaml", "").replace("```", "")
+    txt = txt.strip("`")
+    data = yaml.unsafe_load(txt)
+    return data
 
 
 def add_info_to_collection(collection, doc: Document, metas: list[dict]):
@@ -45,7 +59,7 @@ def add_question(collection, question, answer):
 
 
 def add_task(collection, task, result):
-    doc = Document(f"task: {question.strip()}\nresult: {result.strip()}")
+    doc = Document(f"task: {task.strip()}\nresult: {result.strip()}")
     add_info_to_collection(
         collection, doc,
         [{"information_type": "task", "task": task.strip(), "result": result.strip()}])
@@ -58,35 +72,71 @@ def add_data(collection, key, data):
         [{"information_type": "data", "key": key.strip(), "info": data.strip()}])
 
 
-def task_chat(objective, context, task):
-    return ({"role": "system",
-             "content": "You are a helpful assistant that aims to complete one task."},
-            {"role": "user", "content": f"# Overall objective: \n{objective}\n\n"
-                                        f"# Take into account these previously completed tasks: "
-                                        f"\n{context} \n\n"
-                                        f"# This is the task: \n{task} \n\n"
-                                        f"Provide only the precise information requested without context, "
-                                        f"make sure we can parse the response as yaml. RESPONSE:\n"})
+def task_chat(objective, task, context=None, previous_tasks=None, format="yaml"):
+    msgs = []
+    msgs.append({"role": "system",
+                 "content": "You are a helpful assistant that aims to complete one task."})
+    msgs.append({"role": "user",
+                 "content": f"# Overall objective: \n{objective}\n\n"}),
+    if previous_tasks:
+        msgs.append({"role": "user",
+                     "content": f"# Take into account these previously completed tasks"
+                                f"\n\n{previous_tasks} \n\n"}),
+    if context:
+        msgs.append({"role": "user",
+                     "content": f"# Take into account this context"
+                                f"\n\n{context} \n\n"}),
+    msgs.append(
+        {"role": "user", "content": f"# Complete the following task: \n{task} \n\n"
+                                    f"Provide only the precise information requested without context, "
+                                    f"make sure we can parse the response as {format}. RESULT:\n"})
+    return msgs
 
 
-context_where = [{"information_type": "question"},
-                 {"information_type": "task"},
-                 {"information_type": "info"}]
+where_or = lambda x: {"$or": x}
+context_where_all = where_or([{"information_type": "question"},
+                              {"information_type": "task"},
+                              {"information_type": "info"}])
+
+context_where_info = where_or([{"information_type": "question"},
+                               {"information_type": "info"}])
+
+context_where_tasks = {"information_type": "task"}
 
 
-def get_context(task: str, n_results: int = 5):
-    context = query(task, where={
-        "$or": context_where},
+def get_context(task: str, n_results: int = 5, where_clause=context_where_all):
+    context = query(task, where=where_clause,
                     n_results=n_results)["documents"]
     return context
 
 
-def execute_task(objective, task, context_size: int = 5):
-    context = get_context(task, n_results=context_size)[0]
-    msgs = task_chat(
-        objective, "\n---\n".join(context), task=task)
-    logger.info(f"execute_task: {msgs[1]['content']}")
-    res = openai_chat_completion(msgs, max_tokens=256).content
+def execute_task(
+        objective, task,
+        context_size: int = 5,
+        previous_task_size=0,
+        max_tokens=256,
+        format="yaml"
+):
+    if context_size:
+        context = get_context(task,
+                              where_clause=context_where_info,
+                              n_results=context_size)[0]
+    else:
+        context = ""
+    if previous_task_size:
+        previous_tasks = get_context(
+            task, where_clause=context_where_info,
+            n_results=previous_task_size)[0]
+    else:
+        previous_tasks = ""
+    msgs = task_chat(previous_tasks=previous_tasks,
+                     objective=objective,
+                     context="\n---\n".join(context), task=task,
+                     format=format)
+    msg = '\n'.join(m['content'] for m in msgs)
+    logger.info(f"execute_task: {msg}")
+    res = openai_chat_completion(msgs, max_tokens=max_tokens).content
+    debug_queue.append((msgs, res))
     return res
 
 
@@ -148,11 +198,14 @@ if __name__ == "__main__":
     )
 
     stored_info = \
-        collection.get(where={"$or": context_where})["documents"]
+        collection.get(where=context_where_all)["documents"]
 
     ######  experiment with the writing process  #####
 
-    objective = "Write a blog post, about 1 page long, introducing this new library"
+    final_result = []
+
+    objective = "Write a blog post, about 0.5-1 page long, introducing a new library to " \
+                "young developers that are new to AI and LLMs"
 
     question = "Can you please provide the main topic of the project or some primary " \
                "keywords related to the project, " \
@@ -161,46 +214,103 @@ if __name__ == "__main__":
     add_question(collection, question, answer)
 
     task = "What additional information do you need to create a first, very short outline as a draft? " \
-           "provide it as a list of questions"
+           "provide it as a ranked list of questions"
     res = execute_task(objective=objective, task=task)
-    unknown_facts_list = yaml.unsafe_load(res)
-    add_task(collection, task, str(unknown_facts_list))
+    questions = yaml_loader(res)[:5]
+    add_task(collection, task, str(questions))
 
-    stophere = True
-    if stophere:
-        raise NotImplementedError()
+    for question in questions:
+        task = "Produce a list of 3-5 word strings which we can convert " \
+               "to embeddings and then use those for a " \
+               f"nearest neighbour search. We need them to be similar to text snippets which are" \
+               f"capable of addressing the question: '{question}'"
+        res = execute_task(objective=objective, task=task)
+        list_of_search_strings = yaml.unsafe_load(res)
+        add_task(collection, task, str(list_of_search_strings))
 
-    question = unknown_facts_list[4]
-    task = "Produce a list of 3-5 word strings which we can convert " \
-           "to embeddings and then use those for a " \
-           f"nearest neighbour search. We need them to be similar to text snippets which are" \
-           f"capable of addressing the question: '{question}'"
-    res = execute_task(objective=objective, task=task)
-    list_of_search_strings = yaml.unsafe_load(res)
-    add_task(collection, task, str(unknown_facts_list))
+        # take the mean of all the above search strings :)
+        embedding = np.mean([Document(q).embedding for q in list_of_search_strings], 0).tolist()
+        # make sure we have no duplicate results
+        res = query(embeddings=embedding, where={"document_type": "text/markdown"})
+        txt = "\n\n".join(list(set(res["documents"][0])))
 
-    # take the mean of all the above search strings :)
-    embedding = np.mean([Document(q).embedding for q in list_of_search_strings], 0).tolist()
-    # make sure we have no duplicate results
-    res = query(embeddings=embedding, where={"document_type": "text/markdown"})
-    txt = "\n\n".join(list(set(res["documents"][0])))
-
-    anslist = pd.DataFrame(Document(txt).answers(question)[0])
-    if not anslist.empty:
-        ans = anslist.groupby(0).sum().sort_values(by=1, ascending=False).index[0]
-    else:
+        # sometimes we can answer a question only with this
+        # TODO: try to formulate questions in a way that we can answer them with
+        #       only a single word...
+        anslist = pd.DataFrame(Document(txt).answers(question)[0])
+        # if not anslist.empty:
+        #    ans = anslist.groupby(0).sum().sort_values(by=1, ascending=False).index[0]
+        # else:
         res = execute_task(objective, task=f"answer the following question: '{question}' "
                                            f"using this text as input: {txt}")
         ans = res
-    # TODO: ask questions like "is this correct?" or can you provide the name?
-    # ans_parsed = yaml.unsafe_load(ans)
-    add_question(collection, question, ans)
+        # TODO: ask questions like "is this correct?" or can you provide the name?
+        # ans_parsed = yaml.unsafe_load(ans)
+        add_question(collection, question, ans)
 
-    task = "Create an initial outline for our objective."
-    res = execute_task(objective, task)
+    long_text = False  # longer than certain max_tokens
+    if long_text:
+        task = "Create an outline for our objective and format it as a flat yaml dictionary," \
+               "indicating the desired number of words for each section."
+        res = execute_task(objective, task)
+        outline = yaml_loader(res)
+        add_task(collection, task, res)
 
-    task = "Create a blogpost with the given information about the project."
-    res = execute_task(objective, task)
+        sections = []
+        for section_name, word_num in outline.items():
+            task = f"Create a list of keywords for the section: " \
+                   f"{section_name} with approx {word_num} words"
+            res = execute_task(objective, task)
+            section_keywords = yaml_loader(res)
+
+            # take the mean of all the above search strings :)
+            embedding = np.mean([Document(q).embedding for q in section_keywords], 0).tolist()
+            # make sure we have no duplicate results
+            res = query(embeddings=embedding, where={"num_words": {"$gt": 10}})
+            txt = "\n\n".join(list(set(res["documents"][0])))
+
+            task = f"Generate text for the section '{section_name}' with the keywords {section_keywords}. " \
+                   f"and this size: {word_num}. " \
+                   f"The following text sections can give some context. Use them if it makes sense" \
+                   f" to do so:```\n\n{txt}```" \
+                   f" the result should have a heading and be formated in markdown"
+            res = execute_task(objective, task, context_size=0)
+            section_text = yaml_loader(res)
+
+    task = "Complete the overall objective, formulate the text based on answered questions" \
+           " and format it in markdown."
+    res = execute_task(objective, task, context_size=20, max_tokens=1000)
+    txt = res
+    final_result.append(txt)
+
+    stophere()
+
+    task = "Given this text:\n\n" \
+           f"```markdown\n{txt}\n```" \
+           "\n\nlist 5 points of " \
+           "critique about the text"
+    res = execute_task(objective, task, context_size=0, max_tokens=1000)
+    critique = yaml_loader(res)
+
+    task = "Given this text:\n\n" \
+           f"```markdown\n{txt}\n```\n\n" \
+           f"and its critique: {critique}\n\n" \
+           "Generate instructions " \
+           "that would make it better. Sort them by importance and return" \
+           " it as a list of tasks"
+    res = execute_task(objective, task, context_size=0, max_tokens=1000)
+    tasks = yaml_loader(res)
+
+    for t in tasks:
+        task = "Given this text:\n\n" \
+               f"```markdown\n{txt}\n```\n\n" \
+               f"Make the text better by executing this task: '{t}' " \
+               f"and integrate it into the given text, but keep the original objective in mind."
+        txt = execute_task(objective, task, context_size=10, max_tokens=1000, format="markdown")
+        final_result.append(res)
+        # tasks = yaml_loader(res)
+
+    stophere()
 
     # task = f"extract important information as a list from the following text snippets: {}"
 
@@ -212,7 +322,7 @@ if __name__ == "__main__":
            f"a project description, readme, introduction, a manual or similar text. " \
            f"List the top 5 in descending order, file_endings: {file_endings}"
     res = execute_task(objective, task)
-    ranked_file_endings = yaml.unsafe_load(res)
+    ranked_file_endings = yaml_loader(res)
 
     ds.d("filename").compute()
     filtered_files = DocumentBag(ds.paths(
@@ -221,19 +331,19 @@ if __name__ == "__main__":
         wildcard="*" + ranked_file_endings[0]
     )).d("path").compute()
 
-    task = "Create a first outline for the provided objective"
+    task = "Create an outline for the provided objective"
     res = execute_task(objective=objective, task=task)
-    important_things = yaml.unsafe_load(res)
+    important_things = yaml_loader(res)
 
     task = "Create a list of 10 most important things that we need to find information" \
            " for, so that we can fulfill the objective"
     res = execute_task(objective=objective, task=task)
-    important_things = yaml.unsafe_load(res)
+    important_things = yaml_loader(res)
 
     task = "Create a list of input strings that we can use for an embeddings " \
            "based search to find text snippets to get information"
     res = execute_task(objective=objective, task=task)
-    list_of_search_strings = yaml.unsafe_load(res)
+    list_of_search_strings = yaml_loader(res)
 
     get_context(task)
 
