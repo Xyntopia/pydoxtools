@@ -196,18 +196,35 @@ class ChromaIndexFromBag(Operator):
     only initialize it when needed.
     """
 
-    def __call__(self, query_vectorizer: callable, idx_bag: dask.bag.Bag):
+    def __call__(self, query_vectorizer: callable, doc_bag: dask.bag.Bag):
         # add items from bag to chroma piece-by-piece
-        def add_to_chroma(item: dict, chroma_collection):
+        def add_to_chroma(
+                doc: "pydoxtools.Document",
+                chroma_collection,
+                embeddings=None,
+                document=None,
+                metadata=None,
+                ids=None,
+        ):
+            if metadata:
+                metadata = list_utils.iterablefyer(metadata)
+                metas = doc.to_dict(*metadata)
+            else:
+                metas = doc.meta
             chroma_collection.add(
-                # TODO: embeddings=  #use our own embeddings for specific purposes...
-                embeddings=[[float(n) for n in item["embedding"]]],
-                documents=[item["full_text"]],
-                metadatas=[item["meta"]],
-                ids=[uuid.uuid4().hex]
+                embeddings=[[float(n) for n in doc.x(embeddings or "embedding")]],
+                documents=[doc.x(document or "full_text")],
+                metadatas=[metas],
+                ids=[doc.x(ids) if ids else uuid.uuid4().hex]
             )
 
-        def link_to_chroma_collection(chroma_collection):
+        def link_to_chroma_collection(
+                chroma_collection,
+                embeddings=None,
+                document=None,
+                metadata=None,
+                ids=None,
+        ):
 
             def query_chroma(query: list[str] | str = None, embeddings: list = None, where=None, n_results=10):
                 if embeddings is not None:
@@ -226,10 +243,15 @@ class ChromaIndexFromBag(Operator):
             # we are returning a function which does the calculation for all elements
             # bot also leaves the option to only do a small subset for testing purposes
             def compute_index(num=0):
+                config = dict(embeddings=embeddings,
+                              document=document,
+                              metadata=metadata,
+                              ids=ids)
+                map = doc_bag.map(add_to_chroma, chroma_collection, **config)
                 if num:
-                    idx_bag.map(add_to_chroma, chroma_collection).take(num)
+                    map.take(num)
                 else:
-                    idx_bag.map(add_to_chroma, chroma_collection).compute()
+                    map.compute()
 
             return compute_index, query_chroma
 
