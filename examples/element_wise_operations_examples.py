@@ -40,7 +40,7 @@ table = DocumentBag(source=database_source).config(
         # here we can choose to do some fast vectorization by usong only the tokenizer
         vectorizer_only_tokenizer=True,
         vectorizer_model="sentence-transformers/all-MiniLM-L6-v2", ),
-    forgiving_extracts=True,
+    forgiving_extracts=False,
 )
 
 # demonstrate different ways on how we can extract data from documents:
@@ -50,14 +50,35 @@ columns = "url", "scrape_time"  # which column(s) from the SQL table we want to 
 # column = table.e(columns, meta_properties=["index"])  # multiple columns can be specified here.
 a = table.d("data").take(5)
 b = table.bag_apply(lambda d: [d.data["url"], d.data["index"]]).take(5)
-b = table.apply(
+c = table.apply(
     lambda d: dict(url=d.data["url"], ind=d.data["index"]),
     lambda d: {"index": str(d.data["index"]) + d.data["url"]}
 ).take(5)
+d = table.apply(
+    lambda d: [d.data["url"],d.data['scrape_time']],
+    lambda d: {"index": str(d.data["index"]) + d.data["url"]}
+)
+assert d.pipeline_chooser == "<class 'dask.bag.core.Bag'>"
+e = d.take(2)
+# asert that we creaed a "list" in "d"
+assert e[0].document_type == "<class 'list'>"
+f=d.exploded.take(2) # should create documents consisting
 
-c = table.e(["url", "index"]).d("data").take(5)  # automatically create metadata for new documents
-d = table.e("url", meta_properties=["index"]).d("data").take(5)
-d[0]._fobj  # should be an URL
+# create a list of text snippets from html code
+d = table.apply(lambda d: [d.data["raw_html"]])\
+    .apply(lambda d: d.keywords)\
+    .exploded
+
+a=d.take(5)[0]
+
+d = table.apply(lambda d: d.data["raw_html"])\
+    .apply(lambda d: d.text_segments)\
+    .exploded \
+    .d("embedding","meta")
+
+a=d.take(5)[0]
+
+
 # column.take(5)
 
 # query the db:

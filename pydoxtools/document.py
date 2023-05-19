@@ -1,4 +1,4 @@
-import copy
+import functools
 import functools
 import io
 import json
@@ -40,7 +40,7 @@ from .html_utils import get_text_only_blocks
 from .list_utils import remove_list_from_lonely_object
 from .nlp_utils import calculate_string_embeddings, summarize_long_text
 from .operator_huggingface import QamExtractor
-from .operators_base import OperatorException, Alias, FunctionOperator, ElementWiseOperator, Constant, DictSelector, \
+from .operators_base import Alias, FunctionOperator, ElementWiseOperator, Constant, DictSelector, \
     Operator, Configuration
 from .pdf_utils import PDFFileLoader
 
@@ -110,13 +110,15 @@ class DocumentType(Protocol):
     def answers(self, questions: list[str]) -> list[str]: ...
 
 
-class DocumentBag(Protocol):
+class DocumentBagType(Protocol):
     # TODO: define our minimum document output
     #       with downstream
     # TODO: generate this class by going through
     #       x-funcs automatically
     # TODO: we need at least define an interface which is cmopatible with
     #       the document class
+    docs: dask.bag.Bag
+
     def apply(self, questions: list[str]) -> list[str]: ...
 
 
@@ -879,125 +881,6 @@ operations and include the documentation there. Lambda functions should not be u
     """
 
 
-class DocumentBagExtractor(Operator):
-    """
-    This is our "Inception" operator. Basically it does an element-wise operation
-    on items in a dask bag and then creates a new DocumentBag from that. This
-    works similar to pandas dataframes and series. But with documents
-    as a basic datatype.
-    """
-
-    def __init__(self, dask_bag_func: str = None):
-        super().__init__()
-        self._dask_bag_func: str = dask_bag_func
-
-    def __call__(self, dask_bag: Bag, configuration: dict[str, Any], forgiving_extracts: bool,
-                 stats=None, verbosity=None
-                 ) -> Callable[..., "DocumentBag"]:
-        """
-        This function will automatically "jump" over failed extraction operations. The reason
-        for this is, that documents will sometimes send exceptions in cases where a specific value
-        is simply not available. For example it is not possible to extract text from an image
-        without text...
-
-        we have several cases:
-
-        - return a list of items (e.g. example list of text segments)
-        - return a single property (e.g. full_text)
-        - return data from a nested property
-        - return multiple properties (e.g. we could put it in a dictionary)
-        - return a callable (in which case we should call it with args & kwargs!)
-        """
-
-        def safe_extract(
-                d: Document,
-                property: str,
-        ) -> list[Document]:
-            if verbosity:
-                logger.info(f"processing document: {d}")
-            # obj = d.to_dict(property)[property]
-            try:
-                obj = getattr(d, property)
-                if stats is not None:
-                    stats.append(copy.copy(d._stats))
-            except:
-                if not forgiving_extracts:
-                    raise OperatorException(f"could not extract data from {d} in {self}")
-                obj = {"Error": "OperatorException"}
-
-            return obj
-
-        def x_props(d: Document,
-                    doc_props: list[str | dict[str, ...]],
-                    meta_props: list[str | dict[str, ...]]
-                    ) -> list[Document]:
-            """
-            extract doc_props from d and generate a list of new documents with that data.
-
-            Every new document data gets added a list of metadata using "meta_props".
-            """
-            # TODO: support functions with **kwargs where the keys are the
-            #       are the properties and the values the function arguments for the property
-            if verbosity:
-                logger.info(f"processing document: {d}")
-            # obj = d.to_dict(property)[property]
-            prop_list = []
-            for property in doc_props:
-                if isinstance(property, str):
-                    obj = safe_extract(d, property)
-                else:
-                    raise NotImplementedError(
-                        "TODO: extracting callable properties wih arguments isn't supported yet")
-                obj = remove_list_from_lonely_object(obj)
-                prop_list.append(obj)
-
-            meta_dict = {}
-            for property in meta_props:
-                if isinstance(property, str):
-                    obj = safe_extract(d, property)
-                else:
-                    raise NotImplementedError("TODO: extracting callable properties wih arguments isn't supported yet")
-                obj = remove_list_from_lonely_object(obj)
-                if isinstance(obj, dict):
-                    meta_dict.update(obj)
-                else:
-                    meta_dict[property] = obj
-
-            new_docs = []
-            for obj in prop_list:
-                if isinstance(obj, (str, int, float)):
-                    new_docs = [Document(obj, source=d.source,
-                                         document_type="string", meta=meta_dict)
-                                .config(**d.configuration)]
-                elif isinstance(obj, list):
-                    for fobj in obj:
-                        nd = Document(
-                            fobj, source=d.source,
-                            document_type="string", meta=meta_dict
-                        ).config(**d.configuration)
-                        new_docs.append(nd)
-                else:
-                    NotImplemented(f"Can not yet create a document from {property}!")
-
-            return new_docs
-
-        def inception_func(
-                properties: list[str] | str,
-                meta_properties: list[str] | str
-        ) -> DocumentBag:
-            """will create a new document bag from an old documentbag"""
-            properties = list_utils.iterablefyer(properties)
-            meta_properties = list_utils.iterablefyer(meta_properties)
-            new_documents = dask_bag.map(x_props, properties, meta_properties)
-            if self._dask_bag_func:  # e.g. "bag.flatten" the resulting object...
-                new_documents = getattr(new_documents, self._dask_bag_func)()
-            # make sure our new DocumentBag has the same configuration as the old one...
-            db = DocumentBag(new_documents).config(**configuration)
-            return db
-
-        return inception_func
-
-
 class DocumentBagCreator(Operator):
     """
     Basically it creates a Documentbag from two sets of
@@ -1011,77 +894,65 @@ class DocumentBagCreator(Operator):
                  apply_map_func: Callable,
                  configuration: dict[str, Any],
                  ) -> Callable[..., "DocumentBag"]:
-        def inception_func(
+        def doc_creator_func(
                 mapping_func: Callable[[Document], Any],
-                meta_mapping: Callable[[Document], Any],
+                meta_mapping: Callable[[Document], Any] = None,
         ) -> DocumentBag:
             def document_mapping(d: Document):
                 fobj = mapping_func(d)
-                meta_dict = meta_mapping(d)
-                meta_dict = remove_list_from_lonely_object(meta_dict)
+                if meta_mapping:
+                    meta_dict = meta_mapping(d)
+                    meta_dict = remove_list_from_lonely_object(meta_dict)
+                else:
+                    meta_dict = d.meta
 
                 new_doc = Document(
-                    fobj, source=d.source,
-                    document_type="string", meta=meta_dict
+                    fobj, source=d.source, meta=meta_dict
                 ).config(**d.configuration)
 
                 return new_doc
 
             new_documents_bag = apply_map_func(document_mapping)
-            return new_documents_bag
-
-        return inception_func
-
-
-class DocumentBadExplode(Operator):
-    def __call__(self, docs_bag: Bag,
-                 apply_map_func: Callable,
-                 configuration: dict[str, Any],
-                 ) -> Callable[..., "DocumentBag"]:
-        def inception_func(
-                mapping_func: Callable[[Document], Any],
-                meta_mapping: Callable[[Document], Any],
-        ) -> DocumentBag:
-            def document_mapping(d: Document):
-                prop_list = mapping_func(d)
-                meta_dict = meta_mapping(d)
-                meta_dict = remove_list_from_lonely_object(meta_dict)
-
-                new_docs = []
-                for obj in prop_list:
-                    if isinstance(obj, (str, int, float)):
-                        new_docs = [Document(obj, source=d.source,
-                                             document_type="string", meta=meta_dict)
-                                    .config(**d.configuration)]
-                    elif isinstance(obj, list):
-                        for fobj in obj:
-                            nd = Document(
-                                fobj, source=d.source,
-                                document_type="string", meta=meta_dict
-                            ).config(**d.configuration)
-                            new_docs.append(nd)
-                    else:
-                        NotImplemented(f"Can not yet create a document from {property}!")
-
-                return new_docs
-
-            new_documents_bag = docs_bag.map(document_mapping)
-            dask_bag_function = "flatten"  # e.g. "bag.flatten" the resulting object...
-            new_documents = getattr(new_documents_bag, dask_bag_function)()
-            db = DocumentBag(new_documents).config(**configuration)
+            db = DocumentBag(new_documents_bag).config(**configuration)
             return db
 
-        return inception_func
+        return doc_creator_func
+
+
+class DocumentBagExplode(Operator):
+    """
+    This operator wil take a DocumentBag and check whether the documents
+    inside consist of list-data and then split them up into separate documents while
+    flattening the list of lists at the same time.
+    """
+
+    def __call__(
+            self, apply_map_func: Callable,
+            configuration: dict[str, Any]
+    ) -> Callable[..., "DocumentBag"]:
+        def split_func(d: Document) -> list[Document]:
+            if d.document_type == "<class 'list'>":
+                new_docs = []
+                for obj in d.fobj:
+                    new_docs.append(
+                        Document(obj, source=d.source,
+                                 document_type="string", meta=d.meta)
+                        .config(**d.configuration))
+                return new_docs
+            else:
+                return [d]
+
+        new_documents_bag = apply_map_func(split_func)
+        dask_bag_function = "flatten"  # e.g. "bag.flatten" the resulting object...
+        new_documents = getattr(new_documents_bag, dask_bag_function)()
+        db = DocumentBag(new_documents).config(**configuration)
+        return db
 
 
 class DatabaseSource(pydantic.BaseModel):
     connection_string: str
     sql: str
     index_column: str
-
-
-class DocumentBagType(Protocol):
-    docs: dask.bag.Bag
 
 
 class DocumentBag(Pipeline):
@@ -1210,23 +1081,20 @@ class DocumentBag(Pipeline):
             DocumentBagCreator()
             .pipe("configuration", apply_map_func="bag_apply")
             .out("apply"),
-            DocumentBagExtractor("flatten")
-            .pipe("verbosity", "configuration", dask_bag="docs", forgiving_extracts="forgiving_extracts",
-                  stats="_stats")
-            .out("explode").cache(allow_disk_cache=False),
-            Alias(e="explode"),
+            DocumentBagExplode()
+            .pipe("configuration", apply_map_func="bag_apply")
+            .out("exploded").docs(""),
+            Alias(e="exploded"),
             FunctionOperator(lambda x: pd.DataFrame(x).sum())
             .pipe(x="_stats").out("stats").no_cache()
             .docs("gather a number of statistics from documents as a pandas dataframe"),
-            ###### building an index ######
-            FunctionOperator(lambda get_dicts: get_dicts(
-                "source", "meta", "full_text", "embedding"))
-            .pipe("get_dicts").out("idx_dict").cache(allow_disk_cache=False),
-            # TODO: optionally add a custom chromadb as an argument.
             FunctionOperator(lambda dc: lambda query: Document(query).config(**dc).embedding)
-            .pipe(dc="doc_configuration").out("vectorizer").cache(),
+            .pipe(dc="doc_configuration").out("vectorizer").cache()
+            .docs("vectorizes a query, using the document configuration of the Documentbag"
+                  " to determine which model to use."),
+            ###### building an index ######
             ChromaIndexFromBag()
-            .pipe(query_vectorizer="vectorizer", idx_bag="idx_dict")
+            .pipe(query_vectorizer="vectorizer", doc_bag="docs")
             .out("add_to_chroma").cache(allow_disk_cache=False).docs(
                 "in order to build an index in chrome db we need a key, text, embeddings and a key."
                 " Those come from a daskbag with dictionaries with those keys."
@@ -1273,3 +1141,13 @@ class DocumentBag(Pipeline):
             return str(Path)
         else:
             return str(type(self._source))
+
+    def __repr__(self):
+        """
+        Returns:
+            str: A string representation of the instance.
+        """
+        if isinstance(self._source, str | bytes):
+            return f"{self.__module__}.{self.__class__.__name__}({self.source[:10]})"
+        else:
+            return f"{self.__module__}.{self.__class__.__name__}({self.source})"
