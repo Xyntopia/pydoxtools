@@ -196,7 +196,7 @@ def group_by(data: List[Tuple[str, Any]]) -> Dict[str, Any]:
     return groups
 
 
-def remove_lonely_lists(obj):
+def remove_list_from_lonely_object(obj):
     """remove list if obj is a list and only has a single member"""
     try:
         if len(obj) == 1:

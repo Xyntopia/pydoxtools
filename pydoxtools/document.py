@@ -21,7 +21,7 @@ from dask.bag import Bag
 from . import dask_operators
 from . import list_utils
 from . import nlp_utils
-from .dask_operators import SQLTableLoader
+from .dask_operators import SQLTableLoader, DocumentBagMap
 from .document_base import Pipeline, ElementType
 from .extract_classes import LanguageExtractor, TextBlockClassifier
 from .extract_filesystem import FileLoader
@@ -37,7 +37,7 @@ from .extract_spacy import SpacyOperator, extract_spacy_token_vecs, get_spacy_em
 from .extract_tables import ListExtractor, TableCandidateAreasExtractor
 from .extract_textstructure import DocumentElementFilter, TextBoxElementExtractor, TitleExtractor, SectionsExtractor
 from .html_utils import get_text_only_blocks
-from .list_utils import remove_lonely_lists
+from .list_utils import remove_list_from_lonely_object
 from .nlp_utils import calculate_string_embeddings, summarize_long_text
 from .operator_huggingface import QamExtractor
 from .operators_base import OperatorException, Alias, FunctionOperator, ElementWiseOperator, Constant, DictSelector, \
@@ -108,6 +108,16 @@ class DocumentType(Protocol):
     full_text: str
 
     def answers(self, questions: list[str]) -> list[str]: ...
+
+
+class DocumentBag(Protocol):
+    # TODO: define our minimum document output
+    #       with downstream
+    # TODO: generate this class by going through
+    #       x-funcs automatically
+    # TODO: we need at least define an interface which is cmopatible with
+    #       the document class
+    def apply(self, questions: list[str]) -> list[str]: ...
 
 
 def calculate_a_d_ratio(ft: str):
@@ -357,7 +367,6 @@ operations and include the documentation there. Lambda functions should not be u
         # simple dictionary with arbitrary data from python
         "<class 'dict'>": [  # pipeline to handle data based documents
             Alias(raw_content="fobj"),
-            Alias(data="raw_content"),
             FunctionOperator(lambda x: yaml.dump(list_utils.deep_str_convert(x)))
             .pipe(x="data").out("full_text").cache(),
             DictSelector()
@@ -377,7 +386,6 @@ operations and include the documentation there. Lambda functions should not be u
         ],
         "<class 'list'>": [
             Alias(raw_content="fobj"),
-            Alias(data="raw_content"),
             FunctionOperator(lambda x: yaml.dump(list_utils.deep_str_convert(x)))
             .pipe(x="data").out("full_text").cache(),
             FunctionOperator(lambda x: pd.DataFrame([
@@ -394,14 +402,11 @@ operations and include the documentation there. Lambda functions should not be u
             .pipe(fobj="fobj", path="path", document_type="document_type",
                   page_numbers="_page_numbers", max_pages="_max_pages")
             .out("raw_content").cache(),
+            Alias(data="raw_content"),
             Alias(full_text="raw_content"),
             Alias(clean_text="full_text"),
             FunctionOperator(lambda x: {"meta": (x or dict())})
             .pipe(x="_meta").out("meta"),
-
-            # adding a dummy-data operator for downstream-compatibiliy. Not every document has
-            # explicitly defined data associated with it.
-            Constant(data=dict()),
 
             ##### calculate some metadata ####
             FunctionOperator(
@@ -877,22 +882,9 @@ operations and include the documentation there. Lambda functions should not be u
 class DocumentBagExtractor(Operator):
     """
     This is our "Inception" operator. Basically it does an element-wise operation
-    on items in a dask bag and then creates a new DocumentSet from that.
-
-    We would like to create a new Documentset by doing this:
-
-
-    ds = DocumentSet(...)
-    ds2 = ds.map(lambda x: x.dict())  --> gives us ds2 as a new DocumentSet
-
-    or this one:
-
-    ds2 = ds.element_wise_op("property") --> als gives us ds2 as a new DocumentSet, but "easier"
-
-        or this one:
-
-    ds2 = ds.element_wise_op("method", *args, **kwargs) --> als gives us ds2 as a new DocumentSet but
-
+    on items in a dask bag and then creates a new DocumentBag from that. This
+    works similar to pandas dataframes and series. But with documents
+    as a basic datatype.
     """
 
     def __init__(self, dask_bag_func: str = None):
@@ -917,9 +909,9 @@ class DocumentBagExtractor(Operator):
         - return a callable (in which case we should call it with args & kwargs!)
         """
 
-        def x_props_single(
+        def safe_extract(
                 d: Document,
-                property: str, *args, **kwargs
+                property: str,
         ) -> list[Document]:
             if verbosity:
                 logger.info(f"processing document: {d}")
@@ -928,8 +920,6 @@ class DocumentBagExtractor(Operator):
                 obj = getattr(d, property)
                 if stats is not None:
                     stats.append(copy.copy(d._stats))
-                if callable(obj):
-                    obj = obj(*args, **kwargs)
             except:
                 if not forgiving_extracts:
                     raise OperatorException(f"could not extract data from {d} in {self}")
@@ -954,19 +944,20 @@ class DocumentBagExtractor(Operator):
             prop_list = []
             for property in doc_props:
                 if isinstance(property, str):
-                    obj = x_props_single(d, property)
+                    obj = safe_extract(d, property)
                 else:
-                    raise NotImplementedError("TODO: extracting callable properties wih arguments isn't supported yet")
-                obj = remove_lonely_lists(obj)
+                    raise NotImplementedError(
+                        "TODO: extracting callable properties wih arguments isn't supported yet")
+                obj = remove_list_from_lonely_object(obj)
                 prop_list.append(obj)
 
             meta_dict = {}
             for property in meta_props:
                 if isinstance(property, str):
-                    obj = x_props_single(d, property)
+                    obj = safe_extract(d, property)
                 else:
                     raise NotImplementedError("TODO: extracting callable properties wih arguments isn't supported yet")
-                obj = remove_lonely_lists(obj)
+                obj = remove_list_from_lonely_object(obj)
                 if isinstance(obj, dict):
                     meta_dict.update(obj)
                 else:
@@ -991,8 +982,8 @@ class DocumentBagExtractor(Operator):
             return new_docs
 
         def inception_func(
-                properties: list[str | dict[str, Any]] | str,
-                meta_properties: list[str | dict[str, Any]] | str = None
+                properties: list[str] | str,
+                meta_properties: list[str] | str
         ) -> DocumentBag:
             """will create a new document bag from an old documentbag"""
             properties = list_utils.iterablefyer(properties)
@@ -1001,6 +992,82 @@ class DocumentBagExtractor(Operator):
             if self._dask_bag_func:  # e.g. "bag.flatten" the resulting object...
                 new_documents = getattr(new_documents, self._dask_bag_func)()
             # make sure our new DocumentBag has the same configuration as the old one...
+            db = DocumentBag(new_documents).config(**configuration)
+            return db
+
+        return inception_func
+
+
+class DocumentBagCreator(Operator):
+    """
+    Basically it creates a Documentbag from two sets of
+    on documents in a dask bag and then creates a new DocumentBag from that. This
+    works similar to pandas dataframes and series. But with documents
+    as a basic datatype. And apply functions are also required to
+    produce data which can be used as a document again (which is a lot).
+    """
+
+    def __call__(self,
+                 apply_map_func: Callable,
+                 configuration: dict[str, Any],
+                 ) -> Callable[..., "DocumentBag"]:
+        def inception_func(
+                mapping_func: Callable[[Document], Any],
+                meta_mapping: Callable[[Document], Any],
+        ) -> DocumentBag:
+            def document_mapping(d: Document):
+                fobj = mapping_func(d)
+                meta_dict = meta_mapping(d)
+                meta_dict = remove_list_from_lonely_object(meta_dict)
+
+                new_doc = Document(
+                    fobj, source=d.source,
+                    document_type="string", meta=meta_dict
+                ).config(**d.configuration)
+
+                return new_doc
+
+            new_documents_bag = apply_map_func(document_mapping)
+            return new_documents_bag
+
+        return inception_func
+
+
+class DocumentBadExplode(Operator):
+    def __call__(self, docs_bag: Bag,
+                 apply_map_func: Callable,
+                 configuration: dict[str, Any],
+                 ) -> Callable[..., "DocumentBag"]:
+        def inception_func(
+                mapping_func: Callable[[Document], Any],
+                meta_mapping: Callable[[Document], Any],
+        ) -> DocumentBag:
+            def document_mapping(d: Document):
+                prop_list = mapping_func(d)
+                meta_dict = meta_mapping(d)
+                meta_dict = remove_list_from_lonely_object(meta_dict)
+
+                new_docs = []
+                for obj in prop_list:
+                    if isinstance(obj, (str, int, float)):
+                        new_docs = [Document(obj, source=d.source,
+                                             document_type="string", meta=meta_dict)
+                                    .config(**d.configuration)]
+                    elif isinstance(obj, list):
+                        for fobj in obj:
+                            nd = Document(
+                                fobj, source=d.source,
+                                document_type="string", meta=meta_dict
+                            ).config(**d.configuration)
+                            new_docs.append(nd)
+                    else:
+                        NotImplemented(f"Can not yet create a document from {property}!")
+
+                return new_docs
+
+            new_documents_bag = docs_bag.map(document_mapping)
+            dask_bag_function = "flatten"  # e.g. "bag.flatten" the resulting object...
+            new_documents = getattr(new_documents_bag, dask_bag_function)()
             db = DocumentBag(new_documents).config(**configuration)
             return db
 
@@ -1019,38 +1086,20 @@ class DocumentBagType(Protocol):
 
 class DocumentBag(Pipeline):
     """
-    **This class is WIP use with caution**
+    This class is a work-in-progress (WIP), use with caution.
 
-    This class loads an entire set of documents and processes
-    it using a pipeline.
+    The DocumentBag class loads and processes a set of documents using a pipeline.
+    It leverages Dask bags for efficient memory usage and large-scale computations on documents.
 
-    In order to fit into memory we are making extensive use of dask bags to
-    store and make calculations on documents.
+    Notes:
+        - Dask bags documentation can be found [here](https://docs.dask.org/en/stable/bag.html).
+        - Dask dataframes can be used for downstream calculations.
+        - This class helps scale LLM & AI inference to larger workloads.
+        - It uses iterative Dask bags & dataframes to avoid out-of-memory issues.
 
-    docs: is the property which gives access to all the dask bag functions
-
-    For more information check the documentation for dask bags
-    [->here<-](https://docs.dask.org/en/stable/bag.html).
-
-    This has the added benefit that one can use dask dataframes out of the box
-    for downstream calculations!!
-
-    This class is still experimental. Expect more documentation in
-    the near future.
-
-    This class is developed to do work on larger-than-memory datasets and
-    scale LLM & AI inference to very large workloads.
-
-    This class makes mostly use of iterative dask bags & dataframes
-    to avoid out-of-memory problems.
-
-    Why do we need this function?
-
-    --> we could also simply add documents to a dask bag and then use dask bag directly...
-        ... BUT that would mean "a lot" more boilerplate code creating new documents,
-        creating source chains for traceable datasources etc  etc...
-        So the main reason is that we want new bags of documents instead of just bags
-        of arbitrary data.
+    Rationale:
+        This function is needed to create and process new document bags, instead of using Dask bags directly
+        with arbitrary data. It reduces boilerplate code for creating new documents and traceable datasources.
     """
 
     # make sure we can pass configurations to udnerlying documents!
@@ -1143,21 +1192,32 @@ class DocumentBag(Pipeline):
                 "We can pass through a configuration object to Documents that are"
                 " created in our document bag. Any setting that is supported"
                 " by Document can be specified here."),
-            Configuration(forgiving_extracts=True),
+            Configuration(forgiving_extracts=False).docs(
+                "When enabled, if we execute certain batch operations on our"
+                " document bag, this will not stop the extraction, but rather put an error message"
+                " in the document."
+            ),
             Constant(_stats=[]),
             Configuration(verbosity=None),
             dask_operators.BagPropertyExtractor()
             .pipe("verbosity", dask_bag="docs", forgiving_extracts="forgiving_extracts", stats="_stats")
             .out("get_dicts").cache(allow_disk_cache=False),
             Alias(d="get_dicts"),
+            DocumentBagMap()
+            .pipe("verbosity", dask_bag="docs", forgiving_extracts="forgiving_extracts",
+                  stats="_stats")
+            .out("bag_apply"),
+            DocumentBagCreator()
+            .pipe("configuration", apply_map_func="bag_apply")
+            .out("apply"),
             DocumentBagExtractor("flatten")
             .pipe("verbosity", "configuration", dask_bag="docs", forgiving_extracts="forgiving_extracts",
                   stats="_stats")
-            .out("e").cache(allow_disk_cache=False),
+            .out("explode").cache(allow_disk_cache=False),
+            Alias(e="explode"),
             FunctionOperator(lambda x: pd.DataFrame(x).sum())
             .pipe(x="_stats").out("stats").no_cache()
             .docs("gather a number of statistics from documents as a pandas dataframe"),
-
             ###### building an index ######
             FunctionOperator(lambda get_dicts: get_dicts(
                 "source", "meta", "full_text", "embedding"))

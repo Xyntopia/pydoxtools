@@ -4,6 +4,7 @@ from typing import Callable
 
 import dask.bag
 from dask import dataframe
+from dask.bag import Bag
 
 from pydoxtools.document_base import Pipeline
 from pydoxtools.operators_base import Operator, OperatorException
@@ -77,6 +78,8 @@ class BagPropertyExtractor(Operator):
 class SQLTableLoader(Operator):
     """
     Load a table using dask/pandas read_sql
+
+    sql: can either be the entire table or an SQL expression
     """
 
     def __call__(
@@ -87,9 +90,65 @@ class SQLTableLoader(Operator):
         # users = pd.read_sql("users", connection_string)
         # data = pd.read_sql(sql, connection_string)
         # TODO: read in a test row, find out what the index column is and use that automatically
+        # engine = create_engine('mysql+pymysql://root:pass@localhost:3306/mydb')
+        # query = 'SELECT * FROM my_table'
+
+        # try:
         df = dataframe.read_sql_table(sql, connection_string, index_column, bytes_per_chunk=bytes_per_chunk)
+        # except:
+        #    df = pd.read_sql_query(sql=text(query), con=engine.connect())
+
         # npartitions=10, index_col='id'
         # we are not specifying the npartitions or divisions argument
         # so that dask automatically reduces the memory footprint for every partition
         # to about 256 MB.
         return df
+
+
+def safe_mapping(func):
+    def safe_func(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            return str(e)
+
+    return safe_func
+
+
+class DocumentBagMap(Operator):
+    """
+    Basically it applies a function element-wise
+    on documents in a dask bag and then creates a new DocumentBag from that. This
+    works similar to pandas dataframes and series. But with documents
+    as a basic datatype. And apply functions are also required to
+    produce data which can be used as a document again (which is a lot).
+    """
+
+    def __call__(self, dask_bag: Bag, forgiving_extracts: bool,
+                 stats=None, verbosity=None
+                 ) -> Callable[..., dask.bag.Bag]:
+
+        def document_mapping_with_stats(func):
+            """gather statistics from a document mapping function"""
+
+            def stats_mapping(d: Pipeline):
+                res = func(d)
+                if stats is not None:
+                    stats.append(copy.copy(d._stats))
+                return res
+
+            return stats_mapping
+
+        def mapping_creator(
+                mapping_func: Callable
+        ) -> dask.bag.Bag:
+            """will create a new document bag from an input documentbag, using a mapping function"""
+            if forgiving_extracts:
+                mapping_func = safe_mapping(mapping_func)
+            if stats is not None:
+                mapping_func = document_mapping_with_stats(mapping_func)
+
+            new_bag = dask_bag.map(mapping_func)
+            return new_bag
+
+        return mapping_creator
