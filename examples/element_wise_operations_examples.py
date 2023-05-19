@@ -11,9 +11,11 @@ import dask
 
 import pydoxtools
 from pydoxtools import DocumentBag
+from pydoxtools.settings import settings
 
 logger = logging.getLogger(__name__)
 
+settings.PDX_ENABLE_DISK_CACHE = False
 dask.config.set(scheduler='synchronous')  # overwrite default with single-threaded scheduler for debugging
 
 chroma_client = chromadb.Client()
@@ -55,29 +57,32 @@ c = table.apply(
     lambda d: {"index": str(d.data["index"]) + d.data["url"]}
 ).take(5)
 d = table.apply(
-    lambda d: [d.data["url"],d.data['scrape_time']],
+    lambda d: [d.data["url"], d.data['scrape_time']],
     lambda d: {"index": str(d.data["index"]) + d.data["url"]}
 )
 assert d.pipeline_chooser == "<class 'dask.bag.core.Bag'>"
 e = d.take(2)
 # asert that we creaed a "list" in "d"
 assert e[0].document_type == "<class 'list'>"
-f=d.exploded.take(2) # should create documents consisting
+f = d.exploded.take(2)  # should create documents consisting
 
 # create a list of text snippets from html code
-d = table.apply(lambda d: [d.data["raw_html"]])\
-    .apply(lambda d: d.keywords)\
+g = table.apply(lambda d: [d.data["raw_html"]]) \
+    .apply(lambda d: d.keywords) \
     .exploded
+h = g.take(5)[0]
 
-a=d.take(5)[0]
-
-d = table.apply(lambda d: d.data["raw_html"])\
-    .apply(lambda d: d.text_segments)\
+i = table.apply(lambda d: d.data["raw_html"], lambda d: dict(index=d.data["index"])) \
+    .apply("text_segments") \
     .exploded \
-    .d("embedding","meta")
+    .d("embedding", "meta")
+j = i.take(5)[0]
 
-a=d.take(5)[0]
-
+l = table.apply(lambda d: d.data["raw_html"], ["source", "keywords"]) \
+    .apply("text_segments") \
+    .exploded \
+    .d("embedding", "meta")
+l = l.take(5)[0]
 
 # column.take(5)
 

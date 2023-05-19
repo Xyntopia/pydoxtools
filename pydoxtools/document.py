@@ -895,14 +895,24 @@ class DocumentBagCreator(Operator):
                  configuration: dict[str, Any],
                  ) -> Callable[..., "DocumentBag"]:
         def doc_creator_func(
-                mapping_func: Callable[[Document], Any],
-                meta_mapping: Callable[[Document], Any] = None,
+                doc_mapping: Callable[[Document], Any] | str | list[str],
+                meta_mapping: Callable[[Document], Any] | str | list[str] = None,
         ) -> DocumentBag:
             def document_mapping(d: Document):
-                fobj = mapping_func(d)
+                if callable(doc_mapping):
+                    fobj = doc_mapping(d)
+                else:
+                    list_doc_mapping = list_utils.iterablefyer(doc_mapping)
+                    fobj = d.to_dict(*list_doc_mapping)
+
+                fobj = remove_list_from_lonely_object(fobj)
+
                 if meta_mapping:
-                    meta_dict = meta_mapping(d)
-                    meta_dict = remove_list_from_lonely_object(meta_dict)
+                    if callable(meta_mapping):
+                        meta_dict = meta_mapping(d)
+                    else:
+                        list_meta_mapping = list_utils.iterablefyer(meta_mapping)
+                        meta_dict = d.to_dict(*list_meta_mapping)
                 else:
                     meta_dict = d.meta
 
