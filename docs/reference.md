@@ -1,11 +1,5 @@
 # Reference
 
-::: pydoxtools.document
-    options:
-        members:
-            - Document
-            - DocumentBag
-
 ::: pydoxtools.document_base
     options:
         members:

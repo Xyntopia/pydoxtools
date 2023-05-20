@@ -1,6 +1,5 @@
 import io
 import logging
-import mimetypes
 import pathlib
 import pickle
 from pathlib import Path
@@ -12,7 +11,7 @@ import pydoxtools.document
 from pydoxtools.document import Document, DocumentBag
 from pydoxtools.list_utils import flatten, iterablefyer
 from pydoxtools.operators_base import OperatorException
-from pydoxtools.settings import settings, _PYDOXTOOLS_DIR
+from pydoxtools.settings import settings
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("pydoxtools.document").setLevel(logging.INFO)
@@ -249,49 +248,6 @@ def test_pandoc():
     assert len(doc.lists) == 6
 
 
-def test_pipeline_graph():
-    # TODO: generate graphs for all document types
-    for k in Document._pipelines:
-        ending = mimetypes.guess_extension(k, strict=False) or k
-        ending = ending.replace("/", "_")
-        Document.pipeline_graph(
-            image_path=_PYDOXTOOLS_DIR / f"docs/images/document_logic_{ending}.svg",
-            document_logic_id=k
-        )
-
-    for k in DocumentBag._pipelines:
-        DocumentBag.pipeline_graph(
-            image_path=_PYDOXTOOLS_DIR / f"docs/images/documentbag_logic_{k}.svg",
-            document_logic_id=k
-        )
-
-
-def test_documentation_generation():
-    docs = Document.markdown_docs()
-
-    docbag = DocumentBag.markdown_docs()
-
-    pipeline_docs = f"""
-# Pipelines
-
-This documents the output values of the nodes of each pipeline that 
-can be accessed through the pipeline interface.
-
-Pipeline visualizations for every supported file type can be found
-[here](https://github.com/Xyntopia/pydoxtools/tree/gh-pages/images).
-
-## [pydoxtools.Document][]
-
-{docs}
-
-## [pydoxtools.DocumentBag][]
-
-{docbag}
-""".strip()
-    with open(make_path_absolute('../docs/pipelines.md'), "w") as f:
-        f.write(pipeline_docs)
-
-
 def test_pipeline_configuration():
     doc = Document(fobj=make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf")).config(
         qam_model_id='deepset/roberta-base-squad2')
@@ -513,10 +469,6 @@ def test_source_vs_fobj():
 
 
 if __name__ == "__main__":
-    test_disk_cache()
-    test_pipeline_graph()
-    test_documentation_generation()
-
     # a = pd.DataFrame(sd.sents)
     # a[2]
 

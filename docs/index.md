@@ -4,7 +4,7 @@
 
 ## Introduction
 
-The main interface that pydoxtools uses are three classes:
+The main interface that pydoxtools uses consists of three classes:
 
 - [pydoxtools.Document][]
 - [pydoxtools.DocumentBag][]
@@ -18,10 +18,10 @@ And a set of operators:
 
 Document & DocumentSet are both using [pydoxtools.Pipeline][] and
 predefine a complex pipeline to extract data from individual documents or
-a set of documents. A list of all the "out-of-the-box" featurs for each pipeline
+a set of documents. A list of all the "out-of-the-box" features for each pipeline
 can be found in:
 
--> [Pipelines](pipelines)
+-> [pydoxtools.Document][] and [pydoxtools.DocumentBag][] 
 
 In order for this to work, this library has the philosophy that [Document][pydoxtools.Document]
 & [DocumentSet][pydoxtools.DocumentSet]

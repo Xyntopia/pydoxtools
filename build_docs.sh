@@ -6,7 +6,7 @@ cp LICENSE DEVELOPMENT.md docs/
 
 # build images
 cd tests
-python -c "from test_extractor import test_pipeline_graph; test_pipeline_graph()"
+python test_documentation.py
 cd ..
 
 # Build the MkDocs project and deploy to github

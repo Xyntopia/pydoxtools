@@ -4,8 +4,11 @@ repo_url: https://www.github.com/xyntopia/pydoxtools
 nav:
   - Home: index.md
   - Readme: readme_cp.md
-  - Pipelines: pipelines.md
-  - Reference: reference.md
+  - Reference:
+    - Document: document.md
+    - DocumentBag: documentbag.md
+    - Other Classes: reference.md
+
 theme:
   name: material
   palette:
