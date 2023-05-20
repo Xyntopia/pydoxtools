@@ -84,10 +84,6 @@ print(doc.chat_answers(["Answer if a 5-year old would be able to follow these in
 With Pydoxtools, you can easily access and process your documents, perform various extractions,
 and utilize AI models for more advanced analysis.
 
-## Some Features in more Detail
-
-### Large pipelines
-
 ## Some Features in More Detail
 
 ### Large Pipelines

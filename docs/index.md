@@ -1,5 +1,7 @@
 # Welcome to Pydoxtools Documentation!
 
+For a short overview over Pydoxtools, checkout the readme on the project page:
+
 [Readme](readme_cp)
 
 ## Introduction
@@ -53,7 +55,8 @@ custom functionality.
 
 Visualizing pipelines can be incredibly helpful when developing your 
 own pipeline on top of a complex one, such as the document pipeline. 
-You can visualize the extraction logic for different file types as follows:
+You can visualize the extraction logic for different file types from the Document
+class (which is a [pydoxtools.Pipeline][]  itself) as follows:
 
     doc = Document(fobj=make_path_absolute("./data/demo.docx"))
     # for the currently loaded file type:

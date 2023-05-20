@@ -2,8 +2,9 @@ site_name: Pydoxtools
 site_url: https://xyntopia.github.io/pydoxtools
 repo_url: https://www.github.com/xyntopia/pydoxtools
 nav:
-  - Home: index.md
+  - Introduction: index.md
   - Readme: readme_cp.md
+  - Examples:
   - Reference:
     - Document: document.md
     - DocumentBag: documentbag.md
