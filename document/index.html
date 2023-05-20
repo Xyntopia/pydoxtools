@@ -8,20 +8,20 @@
       
       
       
-        <link rel="canonical" href="https://xyntopia.github.io/pydoxtools/pipelines/">
+        <link rel="canonical" href="https://xyntopia.github.io/pydoxtools/document/">
       
       
         <link rel="prev" href="../readme_cp/">
       
       
-        <link rel="next" href="../reference/">
+        <link rel="next" href="../documentbag/">
       
       <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.13">
     
     
       
-        <title>Pipelines - Pydoxtools</title>
+        <title>Document - Pydoxtools</title>
       
     
     
@@ -87,7 +87,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#pipelines" class="md-skip">
+        <a href="#pydoxtoolsdocument" class="md-skip">
           Skip to content
         </a>
       
@@ -122,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Pipelines
+              Document
             
           </span>
         </div>
@@ -265,6 +265,35 @@
     
   
   
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          Reference
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+    
+  
+  
     <li class="md-nav__item md-nav__item--active">
       
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
@@ -274,12 +303,12 @@
       
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
-          Pipelines
+          Document
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
-        Pipelines
+        Document
       </a>
       
         
@@ -298,11 +327,73 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#pydoxtoolsdocument" class="md-nav__link">
+  <a href="#pydoxtools.Document" class="md-nav__link">
     pydoxtools.Document
   </a>
   
     <nav class="md-nav" aria-label="pydoxtools.Document">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pydoxtools.Document--customizing-the-pipeline" class="md-nav__link">
+    Customizing the Pipeline:
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pydoxtools.Document--examples" class="md-nav__link">
+    Examples
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pydoxtools.document.Document.document_type" class="md-nav__link">
+    document_type
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pydoxtools.document.Document.filename" class="md-nav__link">
+    filename
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pydoxtools.document.Document.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pydoxtools.document.Document.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pydoxtools.document.Document.document_type_detection" class="md-nav__link">
+    document_type_detection()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#text-extraction-attributes-and-functions" class="md-nav__link">
+    Text extraction attributes and functions
+  </a>
+  
+    <nav class="md-nav" aria-label="Text extraction attributes and functions">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1045,201 +1136,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#pydoxtoolsdocumentbag" class="md-nav__link">
-    pydoxtools.DocumentBag
-  </a>
-  
-    <nav class="md-nav" aria-label="pydoxtools.DocumentBag">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#doc_configuration" class="md-nav__link">
-    doc_configuration
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#forgiving_extracts" class="md-nav__link">
-    forgiving_extracts
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#_stats" class="md-nav__link">
-    _stats
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#verbosity" class="md-nav__link">
-    verbosity
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#get_dicts" class="md-nav__link">
-    get_dicts
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#d" class="md-nav__link">
-    d
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#bag_apply" class="md-nav__link">
-    bag_apply
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#apply" class="md-nav__link">
-    apply
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#exploded" class="md-nav__link">
-    exploded
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#e" class="md-nav__link">
-    e
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#stats" class="md-nav__link">
-    stats
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#vectorizer_1" class="md-nav__link">
-    vectorizer
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#add_to_chroma" class="md-nav__link">
-    add_to_chroma
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#docs" class="md-nav__link">
-    docs
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#take" class="md-nav__link">
-    take
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#compute" class="md-nav__link">
-    compute
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#sql" class="md-nav__link">
-    sql
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#connection_string" class="md-nav__link">
-    connection_string
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#index_column" class="md-nav__link">
-    index_column
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#bytes_per_chunk" class="md-nav__link">
-    bytes_per_chunk
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#dataframe" class="md-nav__link">
-    dataframe
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#bag" class="md-nav__link">
-    bag
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#root_path" class="md-nav__link">
-    root_path
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#paths" class="md-nav__link">
-    paths
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#file_path_list" class="md-nav__link">
-    file_path_list
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#dir_list" class="md-nav__link">
-    dir_list
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1247,18 +1143,38 @@
     </li>
   
 
-    
-      
-      
-      
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentbag/" class="md-nav__link">
+        DocumentBag
+      </a>
+    </li>
+  
 
+            
+          
+            
+              
   
   
   
     <li class="md-nav__item">
       <a href="../reference/" class="md-nav__link">
-        Reference
+        Other Classes
       </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
     </li>
   
 
@@ -1290,11 +1206,73 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#pydoxtoolsdocument" class="md-nav__link">
+  <a href="#pydoxtools.Document" class="md-nav__link">
     pydoxtools.Document
   </a>
   
     <nav class="md-nav" aria-label="pydoxtools.Document">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pydoxtools.Document--customizing-the-pipeline" class="md-nav__link">
+    Customizing the Pipeline:
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pydoxtools.Document--examples" class="md-nav__link">
+    Examples
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pydoxtools.document.Document.document_type" class="md-nav__link">
+    document_type
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pydoxtools.document.Document.filename" class="md-nav__link">
+    filename
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pydoxtools.document.Document.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pydoxtools.document.Document.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pydoxtools.document.Document.document_type_detection" class="md-nav__link">
+    document_type_detection()
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#text-extraction-attributes-and-functions" class="md-nav__link">
+    Text extraction attributes and functions
+  </a>
+  
+    <nav class="md-nav" aria-label="Text extraction attributes and functions">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2037,201 +2015,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#pydoxtoolsdocumentbag" class="md-nav__link">
-    pydoxtools.DocumentBag
-  </a>
-  
-    <nav class="md-nav" aria-label="pydoxtools.DocumentBag">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#doc_configuration" class="md-nav__link">
-    doc_configuration
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#forgiving_extracts" class="md-nav__link">
-    forgiving_extracts
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#_stats" class="md-nav__link">
-    _stats
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#verbosity" class="md-nav__link">
-    verbosity
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#get_dicts" class="md-nav__link">
-    get_dicts
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#d" class="md-nav__link">
-    d
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#bag_apply" class="md-nav__link">
-    bag_apply
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#apply" class="md-nav__link">
-    apply
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#exploded" class="md-nav__link">
-    exploded
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#e" class="md-nav__link">
-    e
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#stats" class="md-nav__link">
-    stats
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#vectorizer_1" class="md-nav__link">
-    vectorizer
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#add_to_chroma" class="md-nav__link">
-    add_to_chroma
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#docs" class="md-nav__link">
-    docs
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#take" class="md-nav__link">
-    take
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#compute" class="md-nav__link">
-    compute
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#sql" class="md-nav__link">
-    sql
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#connection_string" class="md-nav__link">
-    connection_string
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#index_column" class="md-nav__link">
-    index_column
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#bytes_per_chunk" class="md-nav__link">
-    bytes_per_chunk
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#dataframe" class="md-nav__link">
-    dataframe
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#bag" class="md-nav__link">
-    bag
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#root_path" class="md-nav__link">
-    root_path
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#paths" class="md-nav__link">
-    paths
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#file_path_list" class="md-nav__link">
-    file_path_list
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#dir_list" class="md-nav__link">
-    dir_list
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -2247,12 +2030,326 @@
                   
 
 
-<h1 id="pipelines">Pipelines</h1>
-<p>This documents the output values of the nodes of each pipeline that 
-can be accessed through the pipeline interface.</p>
-<p>Pipeline visualizations for every supported file type can be found
-<a href="https://github.com/Xyntopia/pydoxtools/tree/gh-pages/images">here</a>.</p>
-<h2 id="pydoxtoolsdocument"><a class="autorefs autorefs-internal" href="../reference/#pydoxtools.document.Document">pydoxtools.Document</a></h2>
+<h1 id="pydoxtoolsdocument"><a class="autorefs autorefs-internal" href="#pydoxtools.Document">pydoxtools.Document</a></h1>
+
+
+<div class="doc doc-object doc-class">
+
+
+<a id="pydoxtools.Document"></a>
+  <div class="doc doc-contents first">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="pydoxtools.document_base.Pipeline" href="../reference/#pydoxtools.document_base.Pipeline">Pipeline</a></code></p>
+
+  
+      <p>Basic document pipeline class to analyze documents from all kinds of formats.</p>
+<p>A list and documentation of all document analysis related functions can be found
+<a href="../pipelines">-&gt;here&lt;-</a>.</p>
+<p>The Document class is designed for information extraction from documents. It inherits from the
+<a class="autorefs autorefs-internal" href="../reference/#pydoxtools.document_base.Pipeline">pydoxtools.document_base.Pipeline</a> class and uses a predefined extraction pipeline
+focused on document processing tasks.
+To load a document, create an instance of the Document class with a file path, a file object, a string,
+a URL or give it some data directly as a dict:</p>
+<pre><code>from pydoxtools import Document
+doc = Document(fobj=Path('./data/demo.docx'))
+</code></pre>
+<p>Extracted data can be accessed by calling the <code>x</code> method with the specified
+output in the pipeline:</p>
+<pre><code class="language-python">doc.x(&quot;addresses&quot;)
+doc.x(&quot;entities&quot;)
+doc.x(&quot;full_text&quot;)
+# etc...
+</code></pre>
+<p>Most members can also be called as normal class attributes for easier readability:</p>
+<pre><code class="language-python">doc.addresses
+</code></pre>
+<p>Additionally, it is possible to get the data directly in dict, yaml or json form:</p>
+<pre><code class="language-python">doc.property_dict(&quot;addresses&quot;,&quot;filename&quot;,&quot;keywords&quot;)
+doc.yaml(&quot;addresses&quot;,&quot;filename&quot;,&quot;keywords&quot;)
+doc.json(&quot;addresses&quot;,&quot;filename&quot;,&quot;keywords&quot;)
+</code></pre>
+<p>To retrieve a list of all available extraction data methods, call the <code>x_funcs()</code> method:</p>
+<pre><code class="language-python">doc.x_funcs()
+</code></pre>
+<h3 id="pydoxtools.Document--customizing-the-pipeline">Customizing the Pipeline:</h3>
+<p>The extraction pipeline can be partially overwritten or completely replaced to customize the
+document processing. To customize the pipeline, it's recommended to use the basic document
+pipeline defined in <code>pydoxtools.Document</code> as a starting point and only overwrite parts as needed.</p>
+<p>Inherited classes can override any part of the graph. To exchange, override, extend or introduce
+extraction pipelines for specific file types (including the generic one: "<em>"), such as </em>.html,
+<em>.pdf, </em>.txt, etc., follow the example below.</p>
+<p>TODO: provide more information on how to customize the pipeline and override the graph.</p>
+<h3 id="pydoxtools.Document--examples">Examples</h3>
+<p>The following is an example extension pipeline for an OCR extractor that converts images into
+text and supports file types: ".png", ".jpeg", ".jpg", ".tif", ".tiff":</p>
+<pre><code class="language-python">&quot;image&quot;: [
+        OCRExtractor()
+        .pipe(file=&quot;raw_content&quot;)
+        .out(&quot;ocr_pdf_file&quot;)
+        .cache(),
+    ],
+&quot;.png&quot;: [&quot;image&quot;, &quot;.pdf&quot;],
+&quot;.jpeg&quot;: [&quot;image&quot;, &quot;.pdf&quot;],
+&quot;.jpg&quot;: [&quot;image&quot;, &quot;.pdf&quot;],
+&quot;.tif&quot;: [&quot;image&quot;, &quot;.pdf&quot;],
+&quot;.tiff&quot;: [&quot;image&quot;, &quot;.pdf&quot;],
+&quot;*&quot;: [...]
+</code></pre>
+<p>Each function (or node) in the extraction pipeline connects to other nodes in the pipeline
+through the "pipe" command. Arguments can be overwritten by a new pipeline in inherited
+documents or document types higher up in the hierarchy. The argument precedence is as follows:</p>
+<pre><code>python-class-member &lt; extractor-graph-function &lt; configuration
+</code></pre>
+<p>When creating a new pipeline for documentation purposes, use a function or class for complex
+operations and include the documentation there. Lambda functions should not be used in this case.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="pydoxtools.document.Document.document_type" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">document_type</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>This has to be done in a member function and not
+in the pipeline, because the selection of the pipeline depends on this...</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="pydoxtools.document.Document.filename" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>return filename or some other identifier of a file</p>
+  </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="pydoxtools.document.Document.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">fobj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">meta</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">document_type</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="n">page_numbers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_pages</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Initialize a Document instance.</p>
+<p>Either fobj or source are required. They can both be given. If either of them
+isn't specified the other one is inferred automatically.</p>
+<p>document_type, page_number and max_pages are also not required, but can be used to override
+the default behaviour. specifically document_type can be used manually specify
+the pipeline that should be used.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>fobj</code></td>
+          <td>
+                <code>str | bytes | <span title="pathlib.Path">Path</span> | <span title="typing.IO">IO</span> | dict | list | set</code>
+          </td>
+          <td><p>The file object or data to load. Depending on the type of object passed:
+- If a string or bytes object: the object itself is the document. IN case of a bytes
+     object, the source helps in determining the filetype through file endings.
+- If a string representing a URL: the document will be loaded from the URL.
+- If a pathlib.Path object: load the document from the path.
+- If a file object: load the document from the file object (e.g., bytestream).
+- If a python dict object: interprete a "dict" as a document
+- If a python list object: interprete a "list" as a document</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>source</code></td>
+          <td>
+                <code>str | <span title="pathlib.Path">Path</span></code>
+          </td>
+          <td><p>The source of the extracted data (e.g., URL, 'pdfupload', parent-URL, or a path).
+source is given in addition to fobj it overrides the automatically inferred source.
+A special case applies if our document is a dataobject from a database. In that case
+the index key from the database should be used as source. This facilitates downstream
+tasks immensely where we have to refer back to where the data came from.</p>
+<p>This also applies for "explode" operations on documents where the newly created documents
+will all try to trace their origin using the "source" attribute</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>document_type</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>The document type to directly specify the pipeline to be used. If "auto" is given
+it will try to be inferred automatically. For example in some cases
+we would like to have a string given in fobj not to be loaded as a file
+but actually be used as raw "string" data. In this case we can explicitly
+specify document_type="string"</p></td>
+          <td>
+                <code>&#39;auto&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>meta</code></td>
+          <td>
+                <code>dict[str, str]</code>
+          </td>
+          <td><p>Optionally set document metadata, which can be very useful for downstream
+tasks like building an index.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>page_numbers</code></td>
+          <td>
+                <code>list[int]</code>
+          </td>
+          <td><p>A list of specific pages to extract from the document (e.g., in a PDF).</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>max_pages</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>The maximum number of pages to extract to protect resources.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="pydoxtools.document.Document.__repr__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>str</code></td>          <td>
+          </td>
+          <td><p>A string representation of the instance.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="pydoxtools.document.Document.document_type_detection" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">document_type_detection</span><span class="p">()</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
+  </span>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>This one here is actually important as it detects the
+type of data that we are going to use for out pipeline.
+That is also why this is implemented as a member function and can
+not be pushed in the pipeline itself, because in needs to be run
+in order to select which pipline we are going to use.</p>
+<p>detect doc type based on various criteria
+TODO add a doc-type extractor using for example python-magic</p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div><h2 id="text-extraction-attributes-and-functions">Text extraction attributes and functions</h2>
+<p>The <a class="autorefs autorefs-internal" href="#pydoxtools.Document">pydoxtools.Document</a> is built
+on the <a class="autorefs autorefs-internal" href="../reference/#pydoxtools.document_base.Pipeline">pydoxtools.Pipeline</a> class and most of the text extraction
+functionality makes extensive use of the pipeline features. All attributes
+and functions that are created by the pipeline are documented here.</p>
+<p>Pipeline visualizations for the structure of the Document pipelines for different
+document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree/gh-pages/images">here</a>.</p>
 <h3 id="raw_content">raw_content</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('raw_content')
@@ -3312,274 +3409,6 @@ can be accessed through the pipeline interface.</p>
 : </p>
 <p>supports pipelines
 : <class 'dict'>,application/x-yaml</p>
-<h2 id="pydoxtoolsdocumentbag"><a class="autorefs autorefs-internal" href="../reference/#pydoxtools.document.DocumentBag">pydoxtools.DocumentBag</a></h2>
-<h3 id="doc_configuration">doc_configuration</h3>
-<p>We can pass through a configuration object to Documents that are created in our document bag. Any setting that is supported by Document can be specified here.</p>
-<p>Can be called using:</p>
-<pre><code>&lt;DocumentBag&gt;.x('doc_configuration')
-# or
-&lt;DocumentBag&gt;.doc_configuration
-</code></pre>
-<p>return type
-: </p>
-<p>supports pipelines
-: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'></p>
-<h3 id="forgiving_extracts">forgiving_extracts</h3>
-<p>When enabled, if we execute certain batch operations on our document bag, this will not stop the extraction, but rather put an error message in the document.</p>
-<p>Can be called using:</p>
-<pre><code>&lt;DocumentBag&gt;.x('forgiving_extracts')
-# or
-&lt;DocumentBag&gt;.forgiving_extracts
-</code></pre>
-<p>return type
-: </p>
-<p>supports pipelines
-: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'></p>
-<h3 id="_stats">_stats</h3>
-<p>Can be called using:</p>
-<pre><code>&lt;DocumentBag&gt;.x('_stats')
-# or
-&lt;DocumentBag&gt;._stats
-</code></pre>
-<p>return type
-: </p>
-<p>supports pipelines
-: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'></p>
-<h3 id="verbosity">verbosity</h3>
-<p>Can be called using:</p>
-<pre><code>&lt;DocumentBag&gt;.x('verbosity')
-# or
-&lt;DocumentBag&gt;.verbosity
-</code></pre>
-<p>return type
-: </p>
-<p>supports pipelines
-: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'></p>
-<h3 id="get_dicts">get_dicts</h3>
-<p>Can be called using:</p>
-<pre><code>&lt;DocumentBag&gt;.x('get_dicts')
-# or
-&lt;DocumentBag&gt;.get_dicts
-</code></pre>
-<p>return type
-: typing.Callable[[typing.Any], dask.bag.core.Bag]</p>
-<p>supports pipelines
-: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'></p>
-<h3 id="d">d</h3>
-<p>Can be called using:</p>
-<pre><code>&lt;DocumentBag&gt;.x('d')
-# or
-&lt;DocumentBag&gt;.d
-</code></pre>
-<p>return type
-: </p>
-<p>supports pipelines
-: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'></p>
-<h3 id="bag_apply">bag_apply</h3>
-<p>Can be called using:</p>
-<pre><code>&lt;DocumentBag&gt;.x('bag_apply')
-# or
-&lt;DocumentBag&gt;.bag_apply
-</code></pre>
-<p>return type
-: typing.Callable[..., dask.bag.core.Bag]</p>
-<p>supports pipelines
-: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'></p>
-<h3 id="apply">apply</h3>
-<p>Can be called using:</p>
-<pre><code>&lt;DocumentBag&gt;.x('apply')
-# or
-&lt;DocumentBag&gt;.apply
-</code></pre>
-<p>return type
-: typing.Callable[..., pydoxtools.document.DocumentBag]</p>
-<p>supports pipelines
-: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'></p>
-<h3 id="exploded">exploded</h3>
-<p>Can be called using:</p>
-<pre><code>&lt;DocumentBag&gt;.x('exploded')
-# or
-&lt;DocumentBag&gt;.exploded
-</code></pre>
-<p>return type
-: typing.Callable[..., pydoxtools.document.DocumentBag]</p>
-<p>supports pipelines
-: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'></p>
-<h3 id="e">e</h3>
-<p>Can be called using:</p>
-<pre><code>&lt;DocumentBag&gt;.x('e')
-# or
-&lt;DocumentBag&gt;.e
-</code></pre>
-<p>return type
-: </p>
-<p>supports pipelines
-: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'></p>
-<h3 id="stats">stats</h3>
-<p>gather a number of statistics from documents as a pandas dataframe</p>
-<p>Can be called using:</p>
-<pre><code>&lt;DocumentBag&gt;.x('stats')
-# or
-&lt;DocumentBag&gt;.stats
-</code></pre>
-<p>return type
-: </p>
-<p>supports pipelines
-: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'></p>
-<h3 id="vectorizer_1">vectorizer</h3>
-<p>vectorizes a query, using the document configuration of the Documentbag to determine which model to use.</p>
-<p>Can be called using:</p>
-<pre><code>&lt;DocumentBag&gt;.x('vectorizer')
-# or
-&lt;DocumentBag&gt;.vectorizer
-</code></pre>
-<p>return type
-: </p>
-<p>supports pipelines
-: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'></p>
-<h3 id="add_to_chroma">add_to_chroma</h3>
-<p>in order to build an index in chrome db we need a key, text, embeddings and a key. Those come from a daskbag with dictionaries with those keys. pydoxtools will return two functions which will - create the index- query the index</p>
-<p>Can be called using:</p>
-<pre><code>&lt;DocumentBag&gt;.x('add_to_chroma')
-# or
-&lt;DocumentBag&gt;.add_to_chroma
-</code></pre>
-<p>return type
-: </p>
-<p>supports pipelines
-: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'></p>
-<h3 id="docs">docs</h3>
-<p>create a bag with one document for each file that was foundFrom this point we can hand off the logic to str(Bag) pipeline.</p>
-<p>Can be called using:</p>
-<pre><code>&lt;DocumentBag&gt;.x('docs')
-# or
-&lt;DocumentBag&gt;.docs
-</code></pre>
-<p>return type
-: <class 'dask.bag.core.Bag'></p>
-<p>supports pipelines
-: <class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'></p>
-<h3 id="take">take</h3>
-<p>Can be called using:</p>
-<pre><code>&lt;DocumentBag&gt;.x('take')
-# or
-&lt;DocumentBag&gt;.take
-</code></pre>
-<p>return type
-: </p>
-<p>supports pipelines
-: <class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'></p>
-<h3 id="compute">compute</h3>
-<p>Can be called using:</p>
-<pre><code>&lt;DocumentBag&gt;.x('compute')
-# or
-&lt;DocumentBag&gt;.compute
-</code></pre>
-<p>return type
-: </p>
-<p>supports pipelines
-: <class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'></p>
-<h3 id="sql">sql</h3>
-<p>Can be called using:</p>
-<pre><code>&lt;DocumentBag&gt;.x('sql')
-# or
-&lt;DocumentBag&gt;.sql
-</code></pre>
-<p>return type
-: </p>
-<p>supports pipelines
-: <class 'pydoxtools.document.DatabaseSource'></p>
-<h3 id="connection_string">connection_string</h3>
-<p>Can be called using:</p>
-<pre><code>&lt;DocumentBag&gt;.x('connection_string')
-# or
-&lt;DocumentBag&gt;.connection_string
-</code></pre>
-<p>return type
-: </p>
-<p>supports pipelines
-: <class 'pydoxtools.document.DatabaseSource'></p>
-<h3 id="index_column">index_column</h3>
-<p>Can be called using:</p>
-<pre><code>&lt;DocumentBag&gt;.x('index_column')
-# or
-&lt;DocumentBag&gt;.index_column
-</code></pre>
-<p>return type
-: </p>
-<p>supports pipelines
-: <class 'pydoxtools.document.DatabaseSource'></p>
-<h3 id="bytes_per_chunk">bytes_per_chunk</h3>
-<p>Can be called using:</p>
-<pre><code>&lt;DocumentBag&gt;.x('bytes_per_chunk')
-# or
-&lt;DocumentBag&gt;.bytes_per_chunk
-</code></pre>
-<p>return type
-: </p>
-<p>supports pipelines
-: <class 'pydoxtools.document.DatabaseSource'></p>
-<h3 id="dataframe">dataframe</h3>
-<p>Can be called using:</p>
-<pre><code>&lt;DocumentBag&gt;.x('dataframe')
-# or
-&lt;DocumentBag&gt;.dataframe
-</code></pre>
-<p>return type
-: <class 'dask.dataframe.core.DataFrame'></p>
-<p>supports pipelines
-: <class 'pydoxtools.document.DatabaseSource'></p>
-<h3 id="bag">bag</h3>
-<p>create a dask bag with all the filepaths in it</p>
-<p>Can be called using:</p>
-<pre><code>&lt;DocumentBag&gt;.x('bag')
-# or
-&lt;DocumentBag&gt;.bag
-</code></pre>
-<p>return type
-: </p>
-<p>supports pipelines
-: <class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'></p>
-<h3 id="root_path">root_path</h3>
-<p>Can be called using:</p>
-<pre><code>&lt;DocumentBag&gt;.x('root_path')
-# or
-&lt;DocumentBag&gt;.root_path
-</code></pre>
-<p>return type
-: </p>
-<p>supports pipelines
-: <class 'list'>,<class 'pathlib.Path'></p>
-<h3 id="paths">paths</h3>
-<p>Can be called using:</p>
-<pre><code>&lt;DocumentBag&gt;.x('paths')
-# or
-&lt;DocumentBag&gt;.paths
-</code></pre>
-<p>return type
-: typing.Callable</p>
-<p>supports pipelines
-: <class 'list'>,<class 'pathlib.Path'></p>
-<h3 id="file_path_list">file_path_list</h3>
-<p>Can be called using:</p>
-<pre><code>&lt;DocumentBag&gt;.x('file_path_list')
-# or
-&lt;DocumentBag&gt;.file_path_list
-</code></pre>
-<p>return type
-: <class 'dask.bag.core.Bag'></p>
-<p>supports pipelines
-: <class 'list'>,<class 'pathlib.Path'></p>
-<h3 id="dir_list">dir_list</h3>
-<p>Can be called using:</p>
-<pre><code>&lt;DocumentBag&gt;.x('dir_list')
-# or
-&lt;DocumentBag&gt;.dir_list
-</code></pre>
-<p>return type
-: <class 'dask.bag.core.Bag'></p>
-<p>supports pipelines
-: <class 'list'>,<class 'pathlib.Path'></p>
 
 
   

@@ -11,7 +11,12 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://xyntopia.github.io/pydoxtools/pipelines/</loc>
+         <loc>https://xyntopia.github.io/pydoxtools/document/</loc>
+         <lastmod>2023-05-20</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://xyntopia.github.io/pydoxtools/documentbag/</loc>
          <lastmod>2023-05-20</lastmod>
          <changefreq>daily</changefreq>
     </url>

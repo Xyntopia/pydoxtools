@@ -281,8 +281,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#building-your-own-pipelines-with-llms-large-language-models-and-other-types-of-ai" class="md-nav__link">
-    Building your own Pipelines with LLMs (Large Language Models) and other types of AI
+  <a href="#building-custom-pipelines-with-llms-large-language-models-and-other-ai-tools" class="md-nav__link">
+    Building Custom Pipelines with LLMs (Large Language Models) and other AI Tools
   </a>
   
 </li>
@@ -293,8 +293,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#visualization-of-the-pipelines" class="md-nav__link">
-    Visualization of the Pipelines
+  <a href="#visualizing-pipelines" class="md-nav__link">
+    Visualizing Pipelines
   </a>
   
 </li>
@@ -329,25 +329,72 @@
   
   
   
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          Reference
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
     <li class="md-nav__item">
-      <a href="pipelines/" class="md-nav__link">
-        Pipelines
+      <a href="document/" class="md-nav__link">
+        Document
       </a>
     </li>
   
 
-    
-      
-      
-      
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="documentbag/" class="md-nav__link">
+        DocumentBag
+      </a>
+    </li>
+  
 
+            
+          
+            
+              
   
   
   
     <li class="md-nav__item">
       <a href="reference/" class="md-nav__link">
-        Reference
+        Other Classes
       </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
     </li>
   
 
@@ -394,8 +441,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#building-your-own-pipelines-with-llms-large-language-models-and-other-types-of-ai" class="md-nav__link">
-    Building your own Pipelines with LLMs (Large Language Models) and other types of AI
+  <a href="#building-custom-pipelines-with-llms-large-language-models-and-other-ai-tools" class="md-nav__link">
+    Building Custom Pipelines with LLMs (Large Language Models) and other AI Tools
   </a>
   
 </li>
@@ -406,8 +453,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#visualization-of-the-pipelines" class="md-nav__link">
-    Visualization of the Pipelines
+  <a href="#visualizing-pipelines" class="md-nav__link">
+    Visualizing Pipelines
   </a>
   
 </li>
@@ -430,66 +477,64 @@
 <h1 id="welcome-to-pydoxtools-documentation">Welcome to Pydoxtools Documentation!</h1>
 <p><a href="readme_cp">Readme</a></p>
 <h2 id="introduction">Introduction</h2>
-<p>The main interface that pydoxtools uses are three classes:</p>
+<p>Pydoxtools provides a user-friendly interface for document analysis and 
+manipulation, consisting of three main classes:</p>
 <ul>
-<li><a class="autorefs autorefs-internal" href="reference/#pydoxtools.document.Document">pydoxtools.Document</a></li>
-<li><a class="autorefs autorefs-internal" href="reference/#pydoxtools.document.DocumentBag">pydoxtools.DocumentBag</a></li>
+<li><a class="autorefs autorefs-internal" href="document/#pydoxtools.Document">pydoxtools.Document</a></li>
+<li><a class="autorefs autorefs-internal" href="documentbag/#pydoxtools.DocumentBag">pydoxtools.DocumentBag</a></li>
 <li><a class="autorefs autorefs-internal" href="reference/#pydoxtools.document_base.Pipeline">pydoxtools.Pipeline</a></li>
 </ul>
-<p>And a set of operators:</p>
+<p>Additionally, it offers a collection of operators:</p>
 <ul>
 <li><a class="autorefs autorefs-internal" href="reference/#pydoxtools.operators">pydoxtools.operators</a></li>
 </ul>
 <h3 id="analyzing-documents">Analyzing Documents</h3>
-<p>Document &amp; DocumentSet are both using <a class="autorefs autorefs-internal" href="reference/#pydoxtools.document_base.Pipeline">pydoxtools.Pipeline</a> and
-predefine a complex pipeline to extract data from individual documents or
-a set of documents. A list of all the "out-of-the-box" featurs for each pipeline
-can be found in:</p>
-<p>-&gt; <a href="pipelines">Pipelines</a></p>
-<p>In order for this to work, this library has the philosophy that <a class="autorefs autorefs-internal" href="reference/#pydoxtools.document.Document">Document</a>
-&amp; [DocumentSet][pydoxtools.DocumentSet]
-should always automatically "know" how to organize information internally in a
-sensible way. Pydoxtools will try to keep memory &amp; CPU footprint
-as low as possible. This makes
-the library much easier to use in automated settings together with AI &amp; LLMs. This is
-why it is not possible to configure <em>how</em> documents are loaded with configuration
-parameters. If document data is required to be organized in a
-specific format, this can easily be achieved by chaining them together.</p>
-<h3 id="building-your-own-pipelines-with-llms-large-language-models-and-other-types-of-ai">Building your own Pipelines with LLMs (Large Language Models) and other types of AI</h3>
-<p>the Pipeline class can be used to build complex, custom pipelines which
-have several out-of-the-box features which makes them easy to use in
-modern pipelines involving the use of a lot of AI tools:</p>
+<p>Both, Document and DocumentBag utilize <a class="autorefs autorefs-internal" href="reference/#pydoxtools.document_base.Pipeline">pydoxtools.Pipeline</a> to define a 
+sophisticated pipeline for extracting data from individual or multiple documents. 
+You can find a list of all the built-in features for each pipeline here:</p>
+<p>-&gt; <a class="autorefs autorefs-internal" href="document/#pydoxtools.Document">pydoxtools.Document</a> and <a class="autorefs autorefs-internal" href="documentbag/#pydoxtools.DocumentBag">pydoxtools.DocumentBag</a> </p>
+<p>To ensure seamless operation, Pydoxtools is designed so that 
+<a class="autorefs autorefs-internal" href="document/#pydoxtools.Document">Document</a> and [DocumentSet][pydoxtools.DocumentSet] 
+automatically organize information in a logical manner while minimizing 
+memory and CPU usage. This approach makes the library highly compatible 
+with AI and LLMs in automated settings. As a result, it is not possible 
+to configure <em>how</em> documents are loaded using configuration parameters. 
+However, you can easily achieve specific data organization by chaining documents together.</p>
+<p>TODO:  provide an example</p>
+<h3 id="building-custom-pipelines-with-llms-large-language-models-and-other-ai-tools">Building Custom Pipelines with LLMs (Large Language Models) and other AI Tools</h3>
+<p>The Pipeline class allows you to create complex, custom pipelines that come
+with several built-in features, making them easy to integrate with modern AI tools:</p>
 <ul>
-<li>they can be mixed, extended, (partially) overwritten with other pipelines</li>
-<li>they can export/import their data (yaml, json, python-dict),</li>
-<li>they can be configured &amp; optimized</li>
-<li>they can convert their data into <a class="autorefs autorefs-internal" href="reference/#pydoxtools.document.Document">pydoxtools.Document</a> and [pydoxtools.DocumentSet][]</li>
+<li>Mix, extend, or (partially) overwrite pipelines</li>
+<li>Export/import data (yaml, json, python-dict)</li>
+<li>Configure and optimize pipelines</li>
+<li>Convert data into <a class="autorefs autorefs-internal" href="document/#pydoxtools.Document">pydoxtools.Document</a> and <a class="autorefs autorefs-internal" href="documentbag/#pydoxtools.DocumentBag">pydoxtools.DocumentBag</a></li>
 </ul>
-<p>Additionally, in order to develop a custom pipeline, pydoxtools has a large
-library of <a class="autorefs autorefs-internal" href="reference/#pydoxtools.operators">pydoxtools.operators</a> which can be used to build your custom pipeline.
-It usually makes sense to use <a class="autorefs autorefs-internal" href="reference/#pydoxtools.document.Document">pydoxtools.Document</a> or [pydoxtools.DocumentSet][]
-as a base for a new pipeline and only replace small parts of them in order to
-get desired custom functionality.</p>
-<h2 id="visualization-of-the-pipelines">Visualization of the Pipelines</h2>
-<p>The pipelines can be visualized which helps a lot when developing
-your own pipeline on top of a complex pipeline such as the document pipeline.
-The extraction logic for different file types can be visualized like this:</p>
+<p>To develop a custom pipeline, you can utilize the extensive library of
+<a class="autorefs autorefs-internal" href="reference/#pydoxtools.operators">pydoxtools.operators</a>. It is generally recommended to use 
+<a class="autorefs autorefs-internal" href="document/#pydoxtools.Document">pydoxtools.Document</a> or <a class="autorefs autorefs-internal" href="documentbag/#pydoxtools.DocumentBag">pydoxtools.DocumentBag</a> as a base for 
+a new pipeline and only replace small parts to achieve the desired 
+custom functionality.</p>
+<h2 id="visualizing-pipelines">Visualizing Pipelines</h2>
+<p>Visualizing pipelines can be incredibly helpful when developing your 
+own pipeline on top of a complex one, such as the document pipeline. 
+You can visualize the extraction logic for different file types as follows:</p>
 <pre><code>doc = Document(fobj=make_path_absolute("./data/demo.docx"))
 # for the currently loaded file type:
 doc.logic_graph(image_path=settings._PYDOXTOOLS_DIR / "docs/images/document_logic_docx.svg")
 # for the 
 doc.logic_graph(image_path=settings._PYDOXTOOLS_DIR / "docs/images/document_logic_png.svg", document_logic_id=".png")
 </code></pre>
-<p>This way we can generate the pipelines for different filetypes:</p>
+<p>This allows you to generate pipelines for various file types:</p>
 <ul>
-<li><a href="images/document_logic_docx.svg">docx</a></li>
-<li><a href="images/document_logic_png.svg">png</a>
+<li><a href="images/document_logic_.docx.svg">docx</a></li>
+<li><a href="images/document_logic_.png.svg">png</a>
   (click on links to open the images!)</li>
 </ul>
-<p>Pipelines for every supported file type can be found
+<p>You can find pipelines for every supported file type 
 <a href="https://github.com/Xyntopia/pydoxtools/tree/gh-pages/images">here</a>.</p>
-<p>This also works for custom pipelines!</p>
-<p>In order to learn more continue to: <a href="reference">Reference</a></p>
+<p>This feature is also available for custom pipelines!</p>
+<p>To learn more, continue to: <a href="reference">Reference</a></p>
 
 
   
