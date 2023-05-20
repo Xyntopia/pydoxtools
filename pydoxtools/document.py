@@ -182,7 +182,7 @@ To retrieve a list of all available extraction data methods, call the `x_funcs()
 doc.x_funcs()
 ```
 
-## Customizing the Pipeline:
+## Customizing the Document Pipeline:
 
 The extraction pipeline can be partially overwritten or completely replaced to customize the
 document processing. To customize the pipeline, it's recommended to use the basic document
@@ -194,7 +194,7 @@ extraction pipelines for specific file types (including the generic one: "*"), s
 
 TODO: provide more information on how to customize the pipeline and override the graph.
 
-## Examples
+### Examples
 
 The following is an example extension pipeline for an OCR extractor that converts images into
 text and supports file types: ".png", ".jpeg", ".jpg", ".tif", ".tiff":
