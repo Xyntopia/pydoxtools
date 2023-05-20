@@ -608,7 +608,7 @@ operations and include the documentation there. Lambda functions should not be u
             fobj: str | bytes | Path | IO | dict | list | set = None,
             # TODO: only use Path and declare the variables using pydantic we'll also get validation
             source: str | Path = None,
-            meta: dict[str: str] = None,
+            meta: dict[str, str] = None,
             document_type: str = "auto",
             page_numbers: list[int] = None,
             max_pages: int = None,
