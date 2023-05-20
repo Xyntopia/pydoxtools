@@ -21,10 +21,11 @@ if __name__ == "__main__":
     # in order to "scale up" the operation, we can use dask distributed.
     # As pydoxtools.Document is pickable, this is possible..
     import dask
-    dask.config.set(scheduler='synchronous')  # overwrite default with single-threaded scheduler for debugging
+
+    # dask.config.set(scheduler='synchronous')  # overwrite default with single-threaded scheduler for debugging
     # need to be inside the "__main__".
-    # from dask.distributed import Client
-    #client = Client()  # set up local cluster on your laptop
+    from dask.distributed import Client
+    client = Client()  # set up local cluster on your laptop
 
     # add database information
     # connecting to postgres could be done like this:
@@ -55,16 +56,20 @@ if __name__ == "__main__":
     # returns that as a new DocumentBag
     db_idx = table.apply(new_document=lambda d: [d.data["url"], d.data["scrape_time"]])
 
+    chroma_settings = Settings(
+        chroma_db_impl="duckdb+parquet",
+        persist_directory=str(settings.PDX_CACHE_DIR_BASE / "chromadb")
+    )
+    collection_name = "index"
+
+
     # we can now add the contents of our index-DocumentBagto chromadb
+    # we can either do it manually:
     def insert(docs):
-        chroma_client = chromadb.Client(Settings(
-            chroma_db_impl="duckdb+parquet",
-            persist_directory=str(settings.PDX_CACHE_DIR_BASE / "chromadb")
-        ))
+        chroma_client = chromadb.Client(chroma_settings)
+        collection = chroma_client.get_or_create_collection(name=collection_name)
 
-        collection = chroma_client.get_or_create_collection(name="index")
-
-        for i,doc in enumerate(docs):
+        for i, doc in enumerate(docs):
             collection.add(
                 embeddings=[[float(n) for n in doc.embedding]],
                 documents=[doc.full_text],
@@ -77,21 +82,24 @@ if __name__ == "__main__":
         return range(i)
 
 
-    #with ProgressBar():
-    a = db_idx.docs.map_partitions(insert).take(100)
-        # compute(20)  # choose a number how many rows you would like to add ro your chromadb!
-
-    """
+    # or let pydoxtools do the boilerplate, which
+    # also gives us a query function to automatically convert the vectors:
     compute, query = db_idx.add_to_chroma(
-        collection,
+        chroma_settings, collection_name,
         # embeddings="embedding", # we can customize which embeddings to take here, default is "embedding" of the full text
         # document="full_text", # we can customize which field to take here, default is "full_text"
         metadata="source",  # this is also customizable, the default would simply take the "metadata" of each document
-        ids=None  # we can also create ids from the document for example using the "source" as id or similar
+        # ids=None  # we can also create ids from the document for example using the "source" as id or similar
     )
-    """
 
-    #res = query("raspberry pi products")
+    manual = False
+    with ProgressBar():
+        if manual:
+            a = db_idx.docs.map_partitions(insert).take(20)
+        else:
+            compute(100)  # choose a number how many rows you would like to add ro your chromadb!
+
+    res = query("raspberry pi products")
 
     # query the db:
     # column.query_chroma("product")

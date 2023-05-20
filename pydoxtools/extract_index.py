@@ -7,6 +7,7 @@ import hnswlib
 import networkx as nx
 import numpy as np
 
+import pydoxtools
 from pydoxtools.document_base import TokenCollection
 from pydoxtools.nlp_utils import calculate_string_embeddings
 from pydoxtools.operators_base import Operator
@@ -197,10 +198,19 @@ class ChromaIndexFromBag(Operator):
     """
 
     def __call__(self, query_vectorizer: callable, doc_bag: dask.bag.Bag):
+        import chromadb
+        from chromadb.config import Settings
         # add items from bag to chroma piece-by-piece
+
+        def init_chroma(chroma_settings: Settings, collection_name: str):
+            chroma_client = chromadb.Client(chroma_settings)
+            collection = chroma_client.get_or_create_collection(name=collection_name)
+            return chroma_client, collection
+
         def add_to_chroma(
-                doc: "pydoxtools.Document",
-                chroma_collection,
+                docs: list[pydoxtools.Document],
+                chroma_settings: Settings,
+                collection_name: str,
                 embeddings=None,
                 document=None,
                 metadata=None,
@@ -208,31 +218,56 @@ class ChromaIndexFromBag(Operator):
         ):
             if metadata:
                 metadata = list_utils.iterablefyer(metadata)
-                metas = doc.to_dict(*metadata)
-            else:
-                metas = doc.meta
-            chroma_collection.add(
-                embeddings=[[float(n) for n in doc.x(embeddings or "embedding")]],
-                documents=[doc.x(document or "full_text")],
-                metadatas=[metas],
-                ids=[doc.x(ids) if ids else uuid.uuid4().hex]
-            )
+
+            # we need to initialize a new connection here, so that we can do this in a
+            # distributed manner ;).
+            chroma_client, collection = init_chroma(chroma_settings, collection_name)
+
+            i = 1
+            for i, doc in enumerate(docs):
+                if metadata:
+                    metas = doc.to_dict(*metadata)
+                else:
+                    metas = doc.meta
+
+                collection.add(
+                    embeddings=[[float(n) for n in doc.x(embeddings or "embedding")]],
+                    documents=[doc.x(document or "full_text")],
+                    metadatas=[metas],
+                    ids=[doc.x(ids) if ids else uuid.uuid4().hex]
+                )
+
+            # actually save the data on disk or wherever...
+            chroma_client.persist()
+            return range(i)
 
         def link_to_chroma_collection(
-                chroma_collection,
+                chroma_settings: Settings,
+                collection_name: str,
                 embeddings=None,
                 document=None,
                 metadata=None,
                 ids=None,
         ):
+            _, collection = init_chroma(chroma_settings, collection_name)
 
             def query_chroma(query: list[str] | str = None, embeddings: list = None, where=None, n_results=10):
+                """
+                provide a query function which automatically vectorizes queries with pydoxtools
+                vectorizers
+
+                TODO: automatically add our vectorizer to chromadb, so that chromadb knows how to
+                      vectorize our data...
+                """
                 if embeddings is not None:
                     query_embeddings = embeddings
                 else:
                     query = list_utils.iterablefyer(query)
                     query_embeddings = [query_vectorizer(q).tolist() for q in query]
-                res = chroma_collection.query(
+
+                _, collection = init_chroma(chroma_settings, collection_name)
+
+                res = collection.query(
                     query_embeddings=query_embeddings,
                     n_results=n_results,
                     where=where or {},  # {"metadata_field": "is_equal_to_this"}
@@ -247,7 +282,8 @@ class ChromaIndexFromBag(Operator):
                               document=document,
                               metadata=metadata,
                               ids=ids)
-                map = doc_bag.map(add_to_chroma, chroma_collection, **config)
+                map = doc_bag.map_partitions(
+                    add_to_chroma, chroma_settings, collection_name, **config)
                 if num:
                     map.take(num)
                 else:
