@@ -4,57 +4,56 @@
 
 ## Introduction
 
-The main interface that pydoxtools uses consists of three classes:
+Pydoxtools provides a user-friendly interface for document analysis and 
+manipulation, consisting of three main classes:
 
 - [pydoxtools.Document][]
 - [pydoxtools.DocumentBag][]
 - [pydoxtools.Pipeline][]
 
-And a set of operators:
+Additionally, it offers a collection of operators:
 
 - [pydoxtools.operators][]
 
 ### Analyzing Documents
 
-Document & DocumentSet are both using [pydoxtools.Pipeline][] and
-predefine a complex pipeline to extract data from individual documents or
-a set of documents. A list of all the "out-of-the-box" features for each pipeline
-can be found in:
+Both, Document and DocumentBag utilize [pydoxtools.Pipeline][] to define a 
+sophisticated pipeline for extracting data from individual or multiple documents. 
+You can find a list of all the built-in features for each pipeline here:
 
 -> [pydoxtools.Document][] and [pydoxtools.DocumentBag][] 
 
-In order for this to work, this library has the philosophy that [Document][pydoxtools.Document]
-& [DocumentSet][pydoxtools.DocumentSet]
-should always automatically "know" how to organize information internally in a
-sensible way. Pydoxtools will try to keep memory & CPU footprint
-as low as possible. This makes
-the library much easier to use in automated settings together with AI & LLMs. This is
-why it is not possible to configure *how* documents are loaded with configuration
-parameters. If document data is required to be organized in a
-specific format, this can easily be achieved by chaining them together.
+To ensure seamless operation, Pydoxtools is designed so that 
+[Document][pydoxtools.Document] and [DocumentSet][pydoxtools.DocumentSet] 
+automatically organize information in a logical manner while minimizing 
+memory and CPU usage. This approach makes the library highly compatible 
+with AI and LLMs in automated settings. As a result, it is not possible 
+to configure *how* documents are loaded using configuration parameters. 
+However, you can easily achieve specific data organization by chaining documents together.
 
-### Building your own Pipelines with LLMs (Large Language Models) and other types of AI
+TODO:  provide an example
 
-the Pipeline class can be used to build complex, custom pipelines which
-have several out-of-the-box features which makes them easy to use in
-modern pipelines involving the use of a lot of AI tools:
+### Building Custom Pipelines with LLMs (Large Language Models) and other AI Tools
 
-- they can be mixed, extended, (partially) overwritten with other pipelines
-- they can export/import their data (yaml, json, python-dict),
-- they can be configured & optimized
-- they can convert their data into [pydoxtools.Document][] and [pydoxtools.DocumentSet][]
+The Pipeline class allows you to create complex, custom pipelines that come
+with several built-in features, making them easy to integrate with modern AI tools:
 
-Additionally, in order to develop a custom pipeline, pydoxtools has a large
-library of [pydoxtools.operators][] which can be used to build your custom pipeline.
-It usually makes sense to use [pydoxtools.Document][] or [pydoxtools.DocumentSet][]
-as a base for a new pipeline and only replace small parts of them in order to
-get desired custom functionality.
+- Mix, extend, or (partially) overwrite pipelines
+- Export/import data (yaml, json, python-dict)
+- Configure and optimize pipelines
+- Convert data into [pydoxtools.Document][] and [pydoxtools.DocumentBag][]
 
-## Visualization of the Pipelines
+To develop a custom pipeline, you can utilize the extensive library of
+[pydoxtools.operators][]. It is generally recommended to use 
+[pydoxtools.Document][] or [pydoxtools.DocumentBag][] as a base for 
+a new pipeline and only replace small parts to achieve the desired 
+custom functionality.
 
-The pipelines can be visualized which helps a lot when developing
-your own pipeline on top of a complex pipeline such as the document pipeline.
-The extraction logic for different file types can be visualized like this:
+## Visualizing Pipelines
+
+Visualizing pipelines can be incredibly helpful when developing your 
+own pipeline on top of a complex one, such as the document pipeline. 
+You can visualize the extraction logic for different file types as follows:
 
     doc = Document(fobj=make_path_absolute("./data/demo.docx"))
     # for the currently loaded file type:
@@ -62,17 +61,15 @@ The extraction logic for different file types can be visualized like this:
     # for the 
     doc.logic_graph(image_path=settings._PYDOXTOOLS_DIR / "docs/images/document_logic_png.svg", document_logic_id=".png")
 
-This way we can generate the pipelines for different filetypes:
+This allows you to generate pipelines for various file types:
 
 - [docx](images/document_logic_docx.svg)
 - [png](images/document_logic_png.svg)
   (click on links to open the images!)
 
-Pipelines for every supported file type can be found
+You can find pipelines for every supported file type 
 [here](https://github.com/Xyntopia/pydoxtools/tree/gh-pages/images).
 
-This also works for custom pipelines!
+This feature is also available for custom pipelines!
 
-In order to learn more continue to: [Reference](reference)
- 
-
+To learn more, continue to: [Reference](reference)
