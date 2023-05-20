@@ -21,6 +21,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://xyntopia.github.io/pydoxtools/examples/</loc>
+         <lastmod>2023-05-20</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://xyntopia.github.io/pydoxtools/readme_cp/</loc>
          <lastmod>2023-05-20</lastmod>
          <changefreq>daily</changefreq>
