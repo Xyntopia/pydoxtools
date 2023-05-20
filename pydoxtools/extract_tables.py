@@ -693,8 +693,8 @@ class Table:
                 row_count=table.shape[0],
                 col_count=table.shape[1],
                 empty_cells_sum=empty_cells.values.sum(),
-                empty_cols_count=empty_cells.any(1).sum(),
-                empty_rows_count=empty_cells.any(0).sum(),
+                empty_cols_count=empty_cells.any(axis=1).sum(),
+                empty_rows_count=empty_cells.any(axis=0).sum(),
 
                 # conditional metrics
                 cell_detected_size_sum=0,

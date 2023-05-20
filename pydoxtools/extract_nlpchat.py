@@ -88,7 +88,7 @@ class OpenAIChat(Operator):
                         {"role": "user", "content": f"# Instruction: {task} \n\n"
                                                     f"## Input for the task: {text}.\n\n"
                                                     f"## Output:\n\n"})
-                completion = openai_prompt_with_diskcache(
+                completion = openai_chat_completion_with_diskcache(
                     model_id=model_id, temperature=0.0, messages=msgs
                 )
                 result = completion.choices[0].message

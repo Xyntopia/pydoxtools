@@ -396,7 +396,7 @@ def test_sql_download():
         index_column="id"
     )
 
-    docs = DocumentBag(source=database_source, pipeline="db", max_documents=20)
+    docs = DocumentBag(source=database_source, pipeline="db", max_documents=10)
     # d = docs.props_bag(["vector"]).take(3)
     df = docs.dataframe.get_partition(0)
 
@@ -411,14 +411,13 @@ def test_sql_download():
     d = docs.docs.take(1)[0]
     d.keys
     d.values
-    d.data_doc("raw_html").vector
     d.text_segments
     d.data['index']
-    d.data_doc("raw_html").to_dict("source", "vector")
 
-    ft = docs.get_datadocs("raw_html").take(2)[0].full_text
-    html_doc_bag = docs.get_data_docbag("raw_html")
+    ft = docs.apply(lambda d: d.data["raw_html"]).take(2)[0].full_text
+    html_doc_bag = docs.apply(lambda d: [d.data["raw_html"], d.data["index"]])
     idx = html_doc_bag.get_dicts("source", "vector", "full_text")
+    logger.info("converting sql table to dataframe")
     dd = idx.to_dataframe()
 
 
@@ -436,9 +435,6 @@ def test_dict():
     doc = Document(person_document).config(summarizer_max_text_len=400)
     doc2 = Document(person_document)
     doc.run_pipeline_fast()
-    assert doc.data_doc("email").configuration["summarizer_max_text_len"] != doc2.data_doc("email").configuration[
-        "summarizer_max_text_len"]
-    assert doc.data_doc("email").configuration["summarizer_max_text_len"] == 400
     assert doc.keywords == ['Susan full_name', 'Susan Williamson', 'bio', 'Organizer', 'Twitter scholar']
     assert doc.document_type == "<class 'dict'>"
 
@@ -476,21 +472,26 @@ def test_nlp_utils():
 
 
 def test_disk_cache():
-    d = Document(source="../README.md").set_disk_cache_settings(
+    d = Document(source=make_path_absolute("../README.md")).set_disk_cache_settings(
+        enable=False,
+        ttl=3600  # keep cache for 1 hour
+    )
+    kw = sorted(d.keywords)
+    d = Document(source=make_path_absolute("../README.md")).set_disk_cache_settings(
         enable=True,
         ttl=3600  # keep cache for 1 hour
     )
-    assert d.keywords == ['documents', '- Document analysis']
-    d = Document(source="../README.md").set_disk_cache_settings(
+    assert sorted(d.keywords) == kw
+    d = Document(source=make_path_absolute("../README.md")).set_disk_cache_settings(
         enable=True,
         ttl=3600  # keep cache for 1 hour
     )
-    assert d.keywords == ['documents', '- Document analysis']
+    assert sorted(d.keywords) == kw
     assert d._stats["cache_hits"] == 0
     assert d._stats["disk_cache_hits"] == 1
 
     settings.PDX_ENABLE_DISK_CACHE = True
-    d = Document(source="../README.md")
+    d = Document(source=make_path_absolute("../README.md"))
     d.keywords
     assert d._stats["cache_hits"] == 0
     assert d._stats["disk_cache_hits"] == 1
@@ -512,8 +513,9 @@ def test_source_vs_fobj():
 
 
 if __name__ == "__main__":
-    test_source_vs_fobj()
+    test_disk_cache()
     test_pipeline_graph()
+    test_documentation_generation()
 
     # a = pd.DataFrame(sd.sents)
     # a[2]

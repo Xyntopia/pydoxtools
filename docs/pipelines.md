@@ -22,39 +22,7 @@ return type
 : bytes | str
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
-
-### full_text
-            
-
-
-Can be called using:
-
-    <Document>.x('full_text')
-    # or
-    <Document>.full_text
-
-return type
-: <class 'str'>
-
-supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
-
-### clean_text
-            
-
-
-Can be called using:
-
-    <Document>.x('clean_text')
-    # or
-    <Document>.clean_text
-
-return type
-: <class 'str'>
-
-supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### data
             
@@ -70,7 +38,71 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+
+### full_text
+            
+
+
+Can be called using:
+
+    <Document>.x('full_text')
+    # or
+    <Document>.full_text
+
+return type
+: <class 'str'>
+
+supports pipelines
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+
+### clean_text
+            
+
+
+Can be called using:
+
+    <Document>.x('clean_text')
+    # or
+    <Document>.clean_text
+
+return type
+: <class 'str'>
+
+supports pipelines
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+
+### meta
+            
+
+
+Can be called using:
+
+    <Document>.x('meta')
+    # or
+    <Document>.meta
+
+return type
+: 
+
+supports pipelines
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+
+### file_meta
+            
+some fast-to-calculate metadata information about a file
+
+Can be called using:
+
+    <Document>.x('file_meta')
+    # or
+    <Document>.file_meta
+
+return type
+: 
+
+supports pipelines
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### text_box_elements
             
@@ -86,7 +118,7 @@ return type
 : <class 'pandas.core.frame.DataFrame'>
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### text_box_list
             
@@ -102,7 +134,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### tables_df
             
@@ -118,7 +150,7 @@ return type
 : str | list[str] | list[pandas.core.frame.DataFrame]
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### tables_dict
             
@@ -134,7 +166,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### tables
             
@@ -150,7 +182,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### addresses
             
@@ -166,7 +198,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### num_pages
             
@@ -182,7 +214,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### num_words
             
@@ -198,7 +230,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### num_sents
             
@@ -214,7 +246,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### a_d_ratio
             
@@ -230,7 +262,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### language
             
@@ -246,7 +278,7 @@ return type
 : <class 'str'>
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### spacy_model_size
             
@@ -262,7 +294,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### spacy_model
             
@@ -278,7 +310,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### spacy_doc
             
@@ -294,7 +326,7 @@ return type
 : dict[str, typing.Any]
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### spacy_nlp
             
@@ -310,7 +342,7 @@ return type
 : dict[str, typing.Any]
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### spacy_vectors
             
@@ -326,7 +358,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### spacy_embeddings
             
@@ -342,7 +374,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### spacy_sents
             
@@ -358,7 +390,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### spacy_noun_chunks
             
@@ -374,7 +406,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### entities
             
@@ -390,7 +422,7 @@ return type
 : dict[str, list[str]]
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### url
             
@@ -406,7 +438,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### sents
             
@@ -422,7 +454,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### noun_chunks
             
@@ -438,7 +470,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### vector
             
@@ -454,7 +486,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### sent_vecs
             
@@ -470,7 +502,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### sent_ids
             
@@ -486,7 +518,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### noun_vecs
             
@@ -502,7 +534,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### noun_ids
             
@@ -518,7 +550,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### vectorizer_model
             
@@ -534,7 +566,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### vectorizer_only_tokenizer
             
@@ -550,7 +582,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### vectorizer_overlap_ratio
             
@@ -566,7 +598,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### vec_res
             
@@ -582,7 +614,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### tok_embeddings
             
@@ -598,7 +630,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### tokens
             
@@ -614,7 +646,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### embedding
             
@@ -630,7 +662,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### min_size_text_segment
             
@@ -646,7 +678,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### max_size_text_segment
             
@@ -662,7 +694,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### text_segment_overlap
             
@@ -678,7 +710,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### text_segments
             
@@ -694,7 +726,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### text_segment_vectors
             
@@ -710,7 +742,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### noun_index
             
@@ -726,7 +758,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### vectorizer
             
@@ -742,7 +774,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### noun_query
             
@@ -758,7 +790,7 @@ return type
 : typing.Callable
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### noun_graph
             
@@ -774,7 +806,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### top_k_text_rank_keywords
             
@@ -790,7 +822,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### textrank_keywords
             
@@ -806,7 +838,7 @@ return type
 : set[str]
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### keywords
             
@@ -822,7 +854,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### sent_index
             
@@ -838,7 +870,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### sent_query
             
@@ -854,7 +886,7 @@ return type
 : typing.Callable
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### sent_graph
             
@@ -870,7 +902,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### top_k_text_rank_sentences
             
@@ -886,7 +918,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### textrank_sents
             
@@ -902,7 +934,7 @@ return type
 : set[str]
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### summarizer_model
             
@@ -918,7 +950,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### summarizer_token_overlap
             
@@ -934,7 +966,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### summarizer_max_text_len
             
@@ -950,7 +982,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### slow_summary
             
@@ -966,7 +998,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### qam_model_id
             
@@ -982,7 +1014,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### answers
             
@@ -998,7 +1030,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### openai_chat_model_id
             
@@ -1014,7 +1046,7 @@ return type
 : 
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
 
 ### chat_answers
             
@@ -1030,7 +1062,23 @@ return type
 : typing.Callable[[list[str], list[str] | str], list[str]]
 
 supports pipelines
-: *,<class 'dict'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+: *,<class 'dict'>,<class 'list'>,application/epub+zip,application/pdf,application/vnd.oasis.opendocument.text,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-yaml,image,image/jpeg,image/png,image/tiff,pandoc,text/html,text/markdown,text/rtf
+
+### meta_pdf
+            
+
+
+Can be called using:
+
+    <Document>.x('meta_pdf')
+    # or
+    <Document>.meta_pdf
+
+return type
+: 
+
+supports pipelines
+: application/pdf,image,image/jpeg,image/png,image/tiff
 
 ### page_set
             
@@ -1073,22 +1121,6 @@ Can be called using:
     <Document>.x('elements')
     # or
     <Document>.elements
-
-return type
-: 
-
-supports pipelines
-: application/pdf,image,image/jpeg,image/png,image/tiff
-
-### meta
-            
-
-
-Can be called using:
-
-    <Document>.x('meta')
-    # or
-    <Document>.meta
 
 return type
 : 
@@ -1672,7 +1704,199 @@ return type
 : 
 
 supports pipelines
-: <class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+
+### forgiving_extracts
+            
+When enabled, if we execute certain batch operations on our document bag, this will not stop the extraction, but rather put an error message in the document.
+
+Can be called using:
+
+    <DocumentBag>.x('forgiving_extracts')
+    # or
+    <DocumentBag>.forgiving_extracts
+
+return type
+: 
+
+supports pipelines
+: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+
+### _stats
+            
+
+
+Can be called using:
+
+    <DocumentBag>.x('_stats')
+    # or
+    <DocumentBag>._stats
+
+return type
+: 
+
+supports pipelines
+: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+
+### verbosity
+            
+
+
+Can be called using:
+
+    <DocumentBag>.x('verbosity')
+    # or
+    <DocumentBag>.verbosity
+
+return type
+: 
+
+supports pipelines
+: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+
+### get_dicts
+            
+
+
+Can be called using:
+
+    <DocumentBag>.x('get_dicts')
+    # or
+    <DocumentBag>.get_dicts
+
+return type
+: typing.Callable[[typing.Any], dask.bag.core.Bag]
+
+supports pipelines
+: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+
+### d
+            
+
+
+Can be called using:
+
+    <DocumentBag>.x('d')
+    # or
+    <DocumentBag>.d
+
+return type
+: 
+
+supports pipelines
+: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+
+### bag_apply
+            
+
+
+Can be called using:
+
+    <DocumentBag>.x('bag_apply')
+    # or
+    <DocumentBag>.bag_apply
+
+return type
+: typing.Callable[..., dask.bag.core.Bag]
+
+supports pipelines
+: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+
+### apply
+            
+
+
+Can be called using:
+
+    <DocumentBag>.x('apply')
+    # or
+    <DocumentBag>.apply
+
+return type
+: typing.Callable[..., pydoxtools.document.DocumentBag]
+
+supports pipelines
+: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+
+### exploded
+            
+
+
+Can be called using:
+
+    <DocumentBag>.x('exploded')
+    # or
+    <DocumentBag>.exploded
+
+return type
+: typing.Callable[..., pydoxtools.document.DocumentBag]
+
+supports pipelines
+: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+
+### e
+            
+
+
+Can be called using:
+
+    <DocumentBag>.x('e')
+    # or
+    <DocumentBag>.e
+
+return type
+: 
+
+supports pipelines
+: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+
+### stats
+            
+gather a number of statistics from documents as a pandas dataframe
+
+Can be called using:
+
+    <DocumentBag>.x('stats')
+    # or
+    <DocumentBag>.stats
+
+return type
+: 
+
+supports pipelines
+: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+
+### vectorizer
+            
+vectorizes a query, using the document configuration of the Documentbag to determine which model to use.
+
+Can be called using:
+
+    <DocumentBag>.x('vectorizer')
+    # or
+    <DocumentBag>.vectorizer
+
+return type
+: 
+
+supports pipelines
+: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+
+### add_to_chroma
+            
+in order to build an index in chrome db we need a key, text, embeddings and a key. Those come from a daskbag with dictionaries with those keys. pydoxtools will return two functions which will - create the index- query the index
+
+Can be called using:
+
+    <DocumentBag>.x('add_to_chroma')
+    # or
+    <DocumentBag>.add_to_chroma
+
+return type
+: 
+
+supports pipelines
+: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
 
 ### docs
             
@@ -1715,134 +1939,6 @@ Can be called using:
     <DocumentBag>.x('compute')
     # or
     <DocumentBag>.compute
-
-return type
-: 
-
-supports pipelines
-: <class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
-
-### forgiving_extracts
-            
-
-
-Can be called using:
-
-    <DocumentBag>.x('forgiving_extracts')
-    # or
-    <DocumentBag>.forgiving_extracts
-
-return type
-: 
-
-supports pipelines
-: <class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
-
-### get_dicts
-            
-
-
-Can be called using:
-
-    <DocumentBag>.x('get_dicts')
-    # or
-    <DocumentBag>.get_dicts
-
-return type
-: typing.Callable[[typing.Any], dask.bag.core.Bag]
-
-supports pipelines
-: <class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
-
-### e
-            
-
-
-Can be called using:
-
-    <DocumentBag>.x('e')
-    # or
-    <DocumentBag>.e
-
-return type
-: typing.Callable[..., pydoxtools.document.DocumentBag]
-
-supports pipelines
-: <class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
-
-### idx_dict
-            
-
-
-Can be called using:
-
-    <DocumentBag>.x('idx_dict')
-    # or
-    <DocumentBag>.idx_dict
-
-return type
-: 
-
-supports pipelines
-: <class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
-
-### vectorizer
-            
-
-
-Can be called using:
-
-    <DocumentBag>.x('vectorizer')
-    # or
-    <DocumentBag>.vectorizer
-
-return type
-: 
-
-supports pipelines
-: <class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
-
-### chroma_index
-            
-in order to build an index in chrome db we need a key, text, embeddings and a key. Those come from a daskbag with dictionaries with those keys. Caching is important here in order to retain the index
-
-Can be called using:
-
-    <DocumentBag>.x('chroma_index')
-    # or
-    <DocumentBag>.chroma_index
-
-return type
-: 
-
-supports pipelines
-: <class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
-
-### compute_index
-            
-in order to build an index in chrome db we need a key, text, embeddings and a key. Those come from a daskbag with dictionaries with those keys. Caching is important here in order to retain the index
-
-Can be called using:
-
-    <DocumentBag>.x('compute_index')
-    # or
-    <DocumentBag>.compute_index
-
-return type
-: 
-
-supports pipelines
-: <class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
-
-### query_chroma
-            
-in order to build an index in chrome db we need a key, text, embeddings and a key. Those come from a daskbag with dictionaries with those keys. Caching is important here in order to retain the index
-
-Can be called using:
-
-    <DocumentBag>.x('query_chroma')
-    # or
-    <DocumentBag>.query_chroma
 
 return type
 : 
@@ -1962,6 +2058,22 @@ return type
 supports pipelines
 : <class 'list'>,<class 'pathlib.Path'>
 
+### paths
+            
+
+
+Can be called using:
+
+    <DocumentBag>.x('paths')
+    # or
+    <DocumentBag>.paths
+
+return type
+: typing.Callable
+
+supports pipelines
+: <class 'list'>,<class 'pathlib.Path'>
+
 ### file_path_list
             
 
@@ -1973,7 +2085,7 @@ Can be called using:
     <DocumentBag>.file_path_list
 
 return type
-: <class 'dask.bag.core.Bag'>list[pathlib.Path]
+: <class 'dask.bag.core.Bag'>
 
 supports pipelines
 : <class 'list'>,<class 'pathlib.Path'>
@@ -1989,7 +2101,7 @@ Can be called using:
     <DocumentBag>.dir_list
 
 return type
-: <class 'dask.bag.core.Bag'>list[pathlib.Path]
+: <class 'dask.bag.core.Bag'>
 
 supports pipelines
 : <class 'list'>,<class 'pathlib.Path'>

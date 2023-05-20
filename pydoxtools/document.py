@@ -243,7 +243,7 @@ operations and include the documentation there. Lambda functions should not be u
             .pipe(fobj="fobj").out("raw_content").cache(),
             PDFFileLoader()
             .pipe(fobj="raw_content", page_numbers="_page_numbers", max_pages="_max_pages")
-            .out("pages_bbox", "elements", "meta_pdf", pages="page_set")
+            .out("pages_bbox", "elements", meta="meta_pdf", pages="page_set")
             .cache(),
             FunctionOperator(lambda pages: len(pages))
             .pipe(pages="page_set").out("num_pages").cache(),
@@ -350,7 +350,7 @@ operations and include the documentation there. Lambda functions should not be u
             # now taking the pdf from a different variable
             PDFFileLoader()
             .pipe(fobj="ocr_pdf_file")
-            .out("pages_bbox", "elements", "meta_pdf", pages="page_set")
+            .out("pages_bbox", "elements", meta="meta_pdf", pages="page_set")
             .cache(),
         ],
         # the first base doc types have priority over the last ones
