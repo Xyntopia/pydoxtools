@@ -15,7 +15,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.8">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.13">
     
     
       
@@ -23,7 +23,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ded33207.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.85bb2934.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.a6bdf11c.min.css">
       
       
 
@@ -42,6 +45,8 @@
       <link rel="stylesheet" href="../assets/_mkdocstrings.css">
     
       <link rel="stylesheet" href="../css/mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
     
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -65,11 +70,14 @@
   </head>
   
   
-    <body dir="ltr">
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="indigo">
   
     
-    
-      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
@@ -118,6 +126,8 @@
         </div>
       </div>
     </div>
+    
+      
     
     
     
@@ -374,6 +384,19 @@
     DocumentBag
   </a>
   
+    <nav class="md-nav" aria-label="DocumentBag">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pydoxtools.document.DocumentBag.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -469,8 +492,22 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#pydoxtools.document_base.Pipeline.gather_arguments" class="md-nav__link">
+    gather_arguments()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#pydoxtools.document_base.Pipeline.get_configuration_names" class="md-nav__link">
     get_configuration_names()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pydoxtools.document_base.Pipeline.markdown_docs" class="md-nav__link">
+    markdown_docs()
   </a>
   
 </li>
@@ -513,6 +550,13 @@
           <li class="md-nav__item">
   <a href="#pydoxtools.document_base.Pipeline.run_pipeline_fast" class="md-nav__link">
     run_pipeline_fast()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pydoxtools.document_base.Pipeline.set_disk_cache_settings" class="md-nav__link">
+    set_disk_cache_settings()
   </a>
   
 </li>
@@ -672,6 +716,19 @@
     DocumentBag
   </a>
   
+    <nav class="md-nav" aria-label="DocumentBag">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pydoxtools.document.DocumentBag.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -767,8 +824,22 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#pydoxtools.document_base.Pipeline.gather_arguments" class="md-nav__link">
+    gather_arguments()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#pydoxtools.document_base.Pipeline.get_configuration_names" class="md-nav__link">
     get_configuration_names()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pydoxtools.document_base.Pipeline.markdown_docs" class="md-nav__link">
+    markdown_docs()
   </a>
   
 </li>
@@ -811,6 +882,13 @@
           <li class="md-nav__item">
   <a href="#pydoxtools.document_base.Pipeline.run_pipeline_fast" class="md-nav__link">
     run_pipeline_fast()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pydoxtools.document_base.Pipeline.set_disk_cache_settings" class="md-nav__link">
+    set_disk_cache_settings()
   </a>
   
 </li>
@@ -1036,7 +1114,7 @@ in the pipeline, because the selection of the pipeline depends on this...</p>
 
 
 <h3 id="pydoxtools.document.Document.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">fobj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">document_type</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="n">page_numbers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_pages</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">fobj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">meta</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">document_type</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="n">page_numbers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_pages</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 </h3>
 
@@ -1106,6 +1184,17 @@ but actually be used as raw "string" data. In this case we can explicitly
 specify document_type="string"</p></td>
           <td>
                 <code>&#39;auto&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>meta</code></td>
+          <td>
+                <code>dict[str, str]</code>
+          </td>
+          <td><p>Optionally set document metadata, which can be very useful for downstream
+tasks like building an index.</p></td>
+          <td>
+                <code>None</code>
           </td>
         </tr>
         <tr>
@@ -1221,29 +1310,24 @@ TODO add a doc-type extractor using for example python-magic</p>
         Bases: <code><a class="autorefs autorefs-internal" title="pydoxtools.document_base.Pipeline" href="#pydoxtools.document_base.Pipeline">Pipeline</a></code></p>
 
   
-      <p><strong>This class is WIP use with caution</strong></p>
-<p>This class loads an entire set of documents and processes
-it using a pipeline.</p>
-<p>In order to fit into memory we are making extensive use of dask bags to
-store and make calculations on documents.</p>
-<p>docs: is the property which gives access to all the dask bag functions</p>
-<p>For more information check the documentation for dask bags
-<a href="https://docs.dask.org/en/stable/bag.html">-&gt;here&lt;-</a>.</p>
-<p>This has the added benefit that one can use dask dataframes out of the box
-for downstream calculations!!</p>
-<p>This class is still experimental. Expect more documentation in
-the near future.</p>
-<p>This class is developed to do work on larger-than-memory datasets and
-scale LLM &amp; AI inference to very large workloads.</p>
-<p>This class makes mostly use of iterative dask bags &amp; dataframes
-to avoid out-of-memory problems.</p>
-<p>Why do we need this function?</p>
-<p>--&gt; we could also simply add documents to a dask bag and then use dask bag directly...
-    ... BUT that would mean "a lot" more boilerplate code creating new documents,
-    creating source chains for traceable datasources etc  etc...
-    So the main reason is that we want new bags of documents instead of just bags
-    of arbitrary data.</p>
+      <p>This class is a work-in-progress (WIP), use with caution.</p>
+<p>The DocumentBag class loads and processes a set of documents using a pipeline.
+It leverages Dask bags for efficient memory usage and large-scale computations on documents.</p>
 
+<details class="notes" open>
+  <summary>Notes</summary>
+  <ul>
+<li>Dask bags documentation can be found <a href="https://docs.dask.org/en/stable/bag.html">here</a>.</li>
+<li>Dask dataframes can be used for downstream calculations.</li>
+<li>This class helps scale LLM &amp; AI inference to larger workloads.</li>
+<li>It uses iterative Dask bags &amp; dataframes to avoid out-of-memory issues.</li>
+</ul>
+</details>
+<details class="rationale" open>
+  <summary>Rationale</summary>
+  <p>This function is needed to create and process new document bags, instead of using Dask bags directly
+with arbitrary data. It reduces boilerplate code for creating new documents and traceable datasources.</p>
+</details>
 
 
   
@@ -1257,6 +1341,40 @@ to avoid out-of-memory problems.</p>
 
 
 
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pydoxtools.document.DocumentBag.__repr__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>str</code></td>          <td>
+          </td>
+          <td><p>A string representation of the instance.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
 
 
 
@@ -1328,7 +1446,7 @@ between file types.</p>
         <tr>
           <td><code>_operators</code></td>
           <td>
-                <code>dict[str, list[pydoxtools.<a class="autorefs autorefs-internal" title="pydoxtools.document_base" href="#pydoxtools.document_base">document_base</a>.<span title="pydoxtools.document_base.Operator">Operator</span>]]</code>
+                <code>dict[str, list[pydoxtools.<span title="pydoxtools.operators_base">operators_base</span>.<span title="pydoxtools.operators_base.Operator">Operator</span>]]</code>
           </td>
           <td><p>Stores the definition of the
 pipeline graph, a collection of connected operators/functions that process
@@ -1337,7 +1455,7 @@ data from a document.</p></td>
         <tr>
           <td><code>_pipelines</code></td>
           <td>
-                <code>dict[str, dict[str, pydoxtools.<a class="autorefs autorefs-internal" title="pydoxtools.document_base" href="#pydoxtools.document_base">document_base</a>.<span title="pydoxtools.document_base.Operator">Operator</span>]]</code>
+                <code>dict[str, dict[str, pydoxtools.<span title="pydoxtools.operators_base">operators_base</span>.<span title="pydoxtools.operators_base.Operator">Operator</span>]]</code>
           </td>
           <td><p>Provides access to all
 operator functions by their "out-key" which was defined in _operators.</p></td>
@@ -1345,7 +1463,7 @@ operator functions by their "out-key" which was defined in _operators.</p></td>
     </tbody>
   </table>
 
-<details class="todo">
+<details class="todo" open>
   <summary>Todo</summary>
   <ul>
 <li>Use pandera (https://github.com/unionai-oss/pandera) to validate dataframes
@@ -1434,8 +1552,8 @@ to decide which pipeline they should use.</p>
 <code class="highlight language-python"><span class="n">uuid</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
   </span>
 
 </h3>
@@ -1476,8 +1594,8 @@ accesses.</p>
 <code class="highlight language-python"><span class="n">x_funcs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Operator</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
   </span>
 
 </h3>
@@ -1510,7 +1628,7 @@ for this specific file type/pipeline</p>
 aren't defined on class level, allowing for a convenient
 way to access pipeline operator outputs without needing to call the 'x' method.</p>
 
-<details class="example">
+<details class="example" open>
   <summary>Example</summary>
   <blockquote>
 <blockquote>
@@ -1584,7 +1702,7 @@ instead of document.x('addresses')</p>
 aren't defined on class level, allowing for a convenient
 way to access pipeline operator outputs without needing to call the 'x' method.</p>
 
-<details class="example">
+<details class="example" open>
   <summary>Example</summary>
   <blockquote>
 <blockquote>
@@ -1674,34 +1792,6 @@ of a lambda function in it...</p>
   <div class="doc doc-contents ">
   
       <p>Initializes the Pipeline instance with cache-related attributes.</p>
-
-  <p><strong>Attributes:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>_cache_hits</code></td>
-          <td>
-                <code>int</code>
-          </td>
-          <td><p>Number of cache hits during pipeline execution.</p></td>
-        </tr>
-        <tr>
-          <td><code>_x_func_cache</code></td>
-          <td>
-                <code>dict[pydoxtools.<a class="autorefs autorefs-internal" title="pydoxtools.document_base" href="#pydoxtools.document_base">document_base</a>.<span title="pydoxtools.document_base.Operator">Operator</span>, dict[str, <span title="typing.Any">Any</span>]]</code>
-          </td>
-          <td><p>Cache for operator
-functions to store intermediate results.</p></td>
-        </tr>
-    </tbody>
-  </table>
 
   </div>
 
@@ -1818,7 +1908,7 @@ to be set.</p></td>
     </tbody>
   </table>
 
-<details class="example">
+<details class="example" open>
   <summary>Example</summary>
   <p>pipeline = Pipeline()
 pipeline.config(param1=value1, param2=value2)</p>
@@ -1831,12 +1921,74 @@ pipeline.config(param1=value1, param2=value2)</p>
 
 
 
+<h3 id="pydoxtools.document_base.Pipeline.gather_arguments" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">gather_arguments</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Gathers arguments from the pipeline and class, and maps them to the provided keys of kwargs.</p>
+<p>This method retrieves all required input parameters from _in_mapping, which was declared with "pipe".
+It first checks if the parameter is available as an extractor. If so, it calls the function to get the value.
+Otherwise, it gets the "native" member-variables or other functions if an extractor with that name is not found.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>**kwargs</code></td>
+          <td>
+                <code>dict</code>
+          </td>
+          <td><p>A dictionary containing the keys to be mapped to the corresponding values.</p></td>
+          <td>
+                <code>{}</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>dict</code></td>          <td>
+          </td>
+          <td><p>A dictionary containing the mapped keys and their corresponding values.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
 <h3 id="pydoxtools.document_base.Pipeline.get_configuration_names" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">get_configuration_names</span><span class="p">(</span><span class="n">pipeline</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
       <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
   </span>
 
 </h3>
@@ -1897,26 +2049,8 @@ pipeline.config(param1=value1, param2=value2)</p>
 
 
 
-<h3 id="pydoxtools.document_base.Pipeline.non_interactive_pipeline" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">non_interactive_pipeline</span><span class="p">()</span></code>
-
-</h3>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>return all non-interactive extractors/pipeline nodes</p>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h3 id="pydoxtools.document_base.Pipeline.pipeline_docs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">pipeline_docs</span><span class="p">()</span></code>
+<h3 id="pydoxtools.document_base.Pipeline.markdown_docs" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">markdown_docs</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
@@ -1945,6 +2079,70 @@ output types and supported pipelines, and formats the documentation accordingly.
           </td>
           <td><p>A formatted string containing the documentation for each pipeline operation, including
  operation name, usage, return type, and supported pipelines.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pydoxtools.document_base.Pipeline.non_interactive_pipeline" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">non_interactive_pipeline</span><span class="p">()</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>return all non-interactive extractors/pipeline nodes</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pydoxtools.document_base.Pipeline.pipeline_docs" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">pipeline_docs</span><span class="p">(</span><span class="n">pipeline_type</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Aggregates the pipeline operations and their corresponding types and metadata.</p>
+<p>This method iterates through all the pipelines registered in the class, and gathers
+information about each operation, such as the pipeline types it appears in,
+the return type of the operation, and the operation's docstring.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>output_infos</code></td>          <td>
+                <code>Dict[str, Dict[str, Union[Set, str]]]</code>
+          </td>
+          <td><p>The aggregated information
+about pipeline operations, with operation keys as the top-level keys, and
+metadata such as pipeline types, output types, and descriptions as nested
+dictionaries.</p></td>
         </tr>
     </tbody>
   </table>
@@ -2025,7 +2223,7 @@ output types and supported pipelines, and formats the documentation accordingly.
     </tbody>
   </table>
 
-<details class="notes">
+<details class="notes" open>
   <summary>Notes</summary>
   <p>This method requires the NetworkX and PyGraphviz libraries to be installed.</p>
 </details>
@@ -2114,6 +2312,24 @@ extractor logic is functioning correctly and caching the results if required.</p
 
 
 
+<h3 id="pydoxtools.document_base.Pipeline.set_disk_cache_settings" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_disk_cache_settings</span><span class="p">(</span><span class="n">enable</span><span class="p">,</span> <span class="n">ttl</span><span class="o">=</span><span class="mi">3600</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mi">7</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Sets disk cache settings</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
 <h3 id="pydoxtools.document_base.Pipeline.to_dict" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">to_dict</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
@@ -2159,7 +2375,7 @@ extractor logic is functioning correctly and caching the results if required.</p
     </tbody>
   </table>
 
-<details class="note">
+<details class="note" open>
   <summary>Note</summary>
   <p>This function currently only supports properties that do not require any arguments, such as
 "full_text". Properties like "answers" that return a function requiring arguments cannot be
@@ -2237,7 +2453,7 @@ mapping in </em>*kwargs, and dumps the output as JSON.</p>
     </tbody>
   </table>
 
-<details class="note">
+<details class="note" open>
   <summary>Note</summary>
   <p>This function currently only supports properties that do not require any arguments, such as
 "full_text". Properties like "answers" that return a function requiring arguments cannot be
@@ -2314,7 +2530,7 @@ used with this function.</p>
     </tbody>
   </table>
 
-<details class="note">
+<details class="note" open>
   <summary>Note</summary>
   <p>This function currently only supports properties that do not require any arguments, such as
 "full_text". Properties like "answers" that return a function requiring arguments cannot be
@@ -2416,7 +2632,7 @@ used with this function.</p>
     </tbody>
   </table>
 
-<details class="notes">
+<details class="notes" open>
   <summary>Notes</summary>
   <p>The extractor's parameters can be overridden using <em>args and </em>*kwargs.</p>
 </details>
@@ -2627,7 +2843,7 @@ access.</p>
     <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.51198bba.min.js"></script>
+      <script src="../assets/javascripts/bundle.b4d07000.min.js"></script>
       
     
   </body>
