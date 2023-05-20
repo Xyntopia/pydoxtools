@@ -1,4 +1,4 @@
-🚀 pydoxtools (Python Library) 🚀
+🎩✨📄 pydoxtools (Python Library) 🎩✨📄
 ================================================================================
 
 ![Python](https://img.shields.io/pypi/pyversions/pydoxtools.svg)
@@ -49,10 +49,10 @@ method once it becomes more stable:
 For loading additional file formats (docx, odt, epub) and images, check out
 the additional > [Installation Options](#installation-options) <.
 
-## Teaser
+## 🚀 Teaser 🚀
 
 Experience a new level of convenience and efficiency in handling
-documents with Pydoxtools, and reimagine your data extraction pipelines! 🎩✨📄.
+documents with Pydoxtools, and reimagine your data extraction pipelines!
 
 In this teaser, we'll demonstrate how to create a document, extract
 tables, and ask questions using AI models:
@@ -157,7 +157,7 @@ very limited resources!
 
 ## Installation Options
 
-### Supporting *.docx, *.odt, *.epub
+### Supporting \*.docx, \*.odt, \*.epub
 
 In order to be able to load docx, odt and rtf files, you have to install pandoc.
 Right now, the python pandoc library does not work with pandoc version > 3.0.0. It

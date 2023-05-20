@@ -483,6 +483,11 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
 
         node_docs = []
         for k, v in output_infos.items():
+            return_types = " | ".join(sorted(str(i) for i in v['output_types']))
+            return_types=return_types.replace(">", "\>")
+            pipeline_flows = ", ".join(sorted(v['pipe_types']))
+            pipeline_flows = pipeline_flows.replace(">", "\>")
+
             single_node_doc = f"""### {k}
             
 {v['description']}
@@ -494,10 +499,10 @@ Can be called using:
     <{cls.__name__}>.{k}
 
 return type
-: {"".join(sorted(str(i) for i in v['output_types']))}
+: {return_types}
 
-supports pipelines
-: {",".join(sorted(v['pipe_types']))}"""
+supports pipeline flows:
+: {pipeline_flows}"""
             node_docs.append(single_node_doc)
 
         docs = '\n\n'.join(node_docs)

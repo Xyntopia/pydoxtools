@@ -26,8 +26,8 @@ Can be called using:
 return type
 : 
 
-supports pipelines
-: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+supports pipeline flows:
+: *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### forgiving_extracts
             
@@ -42,8 +42,8 @@ Can be called using:
 return type
 : 
 
-supports pipelines
-: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+supports pipeline flows:
+: *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### _stats
             
@@ -58,8 +58,8 @@ Can be called using:
 return type
 : 
 
-supports pipelines
-: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+supports pipeline flows:
+: *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### verbosity
             
@@ -74,8 +74,8 @@ Can be called using:
 return type
 : 
 
-supports pipelines
-: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+supports pipeline flows:
+: *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### get_dicts
             
@@ -90,8 +90,8 @@ Can be called using:
 return type
 : typing.Callable[[typing.Any], dask.bag.core.Bag]
 
-supports pipelines
-: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+supports pipeline flows:
+: *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### d
             
@@ -106,8 +106,8 @@ Can be called using:
 return type
 : 
 
-supports pipelines
-: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+supports pipeline flows:
+: *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### bag_apply
             
@@ -122,8 +122,8 @@ Can be called using:
 return type
 : typing.Callable[..., dask.bag.core.Bag]
 
-supports pipelines
-: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+supports pipeline flows:
+: *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### apply
             
@@ -138,8 +138,8 @@ Can be called using:
 return type
 : typing.Callable[..., pydoxtools.document.DocumentBag]
 
-supports pipelines
-: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+supports pipeline flows:
+: *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### exploded
             
@@ -154,8 +154,8 @@ Can be called using:
 return type
 : typing.Callable[..., pydoxtools.document.DocumentBag]
 
-supports pipelines
-: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+supports pipeline flows:
+: *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### e
             
@@ -170,8 +170,8 @@ Can be called using:
 return type
 : 
 
-supports pipelines
-: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+supports pipeline flows:
+: *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### stats
             
@@ -186,8 +186,8 @@ Can be called using:
 return type
 : 
 
-supports pipelines
-: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+supports pipeline flows:
+: *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### vectorizer
             
@@ -202,8 +202,8 @@ Can be called using:
 return type
 : 
 
-supports pipelines
-: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+supports pipeline flows:
+: *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### add_to_chroma
             
@@ -218,8 +218,8 @@ Can be called using:
 return type
 : 
 
-supports pipelines
-: *,<class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+supports pipeline flows:
+: *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### docs
             
@@ -232,10 +232,10 @@ Can be called using:
     <DocumentBag>.docs
 
 return type
-: <class 'dask.bag.core.Bag'>
+: <class 'dask.bag.core.Bag'\>
 
-supports pipelines
-: <class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+supports pipeline flows:
+: <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### take
             
@@ -250,8 +250,8 @@ Can be called using:
 return type
 : 
 
-supports pipelines
-: <class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+supports pipeline flows:
+: <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### compute
             
@@ -266,8 +266,8 @@ Can be called using:
 return type
 : 
 
-supports pipelines
-: <class 'dask.bag.core.Bag'>,<class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+supports pipeline flows:
+: <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### sql
             
@@ -282,8 +282,8 @@ Can be called using:
 return type
 : 
 
-supports pipelines
-: <class 'pydoxtools.document.DatabaseSource'>
+supports pipeline flows:
+: <class 'pydoxtools.document.DatabaseSource'\>
 
 ### connection_string
             
@@ -298,8 +298,8 @@ Can be called using:
 return type
 : 
 
-supports pipelines
-: <class 'pydoxtools.document.DatabaseSource'>
+supports pipeline flows:
+: <class 'pydoxtools.document.DatabaseSource'\>
 
 ### index_column
             
@@ -314,8 +314,8 @@ Can be called using:
 return type
 : 
 
-supports pipelines
-: <class 'pydoxtools.document.DatabaseSource'>
+supports pipeline flows:
+: <class 'pydoxtools.document.DatabaseSource'\>
 
 ### bytes_per_chunk
             
@@ -330,8 +330,8 @@ Can be called using:
 return type
 : 
 
-supports pipelines
-: <class 'pydoxtools.document.DatabaseSource'>
+supports pipeline flows:
+: <class 'pydoxtools.document.DatabaseSource'\>
 
 ### dataframe
             
@@ -344,10 +344,10 @@ Can be called using:
     <DocumentBag>.dataframe
 
 return type
-: <class 'dask.dataframe.core.DataFrame'>
+: <class 'dask.dataframe.core.DataFrame'\>
 
-supports pipelines
-: <class 'pydoxtools.document.DatabaseSource'>
+supports pipeline flows:
+: <class 'pydoxtools.document.DatabaseSource'\>
 
 ### bag
             
@@ -362,8 +362,8 @@ Can be called using:
 return type
 : 
 
-supports pipelines
-: <class 'list'>,<class 'pathlib.Path'>,<class 'pydoxtools.document.DatabaseSource'>
+supports pipeline flows:
+: <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### root_path
             
@@ -378,8 +378,8 @@ Can be called using:
 return type
 : 
 
-supports pipelines
-: <class 'list'>,<class 'pathlib.Path'>
+supports pipeline flows:
+: <class 'list'\>, <class 'pathlib.Path'\>
 
 ### paths
             
@@ -394,8 +394,8 @@ Can be called using:
 return type
 : typing.Callable
 
-supports pipelines
-: <class 'list'>,<class 'pathlib.Path'>
+supports pipeline flows:
+: <class 'list'\>, <class 'pathlib.Path'\>
 
 ### file_path_list
             
@@ -408,10 +408,10 @@ Can be called using:
     <DocumentBag>.file_path_list
 
 return type
-: <class 'dask.bag.core.Bag'>
+: <class 'dask.bag.core.Bag'\>
 
-supports pipelines
-: <class 'list'>,<class 'pathlib.Path'>
+supports pipeline flows:
+: <class 'list'\>, <class 'pathlib.Path'\>
 
 ### dir_list
             
@@ -424,7 +424,7 @@ Can be called using:
     <DocumentBag>.dir_list
 
 return type
-: <class 'dask.bag.core.Bag'>
+: <class 'dask.bag.core.Bag'\>
 
-supports pipelines
-: <class 'list'>,<class 'pathlib.Path'>
+supports pipeline flows:
+: <class 'list'\>, <class 'pathlib.Path'\>

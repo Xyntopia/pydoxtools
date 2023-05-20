@@ -6,7 +6,7 @@ cp LICENSE DEVELOPMENT.md docs/
 
 # build images
 cd tests
-python test_documentation.py
+python test_documentation_generation.py
 cd ..
 
 # Build the MkDocs project and deploy to github

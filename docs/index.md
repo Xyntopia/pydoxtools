@@ -26,7 +26,7 @@ You can find a list of all the built-in features for each pipeline here:
 -> [pydoxtools.Document][] and [pydoxtools.DocumentBag][] 
 
 To ensure seamless operation, Pydoxtools is designed so that 
-[Document][pydoxtools.Document] and [DocumentSet][pydoxtools.DocumentSet] 
+[Document][pydoxtools.Document] and [DocumentBag][pydoxtools.DocumentBag] 
 automatically organize information in a logical manner while minimizing 
 memory and CPU usage. This approach makes the library highly compatible 
 with AI and LLMs in automated settings. As a result, it is not possible 

@@ -4,7 +4,7 @@ repo_url: https://www.github.com/xyntopia/pydoxtools
 nav:
   - Introduction: index.md
   - Readme: readme_cp.md
-  - Examples:
+  - Examples: examples.md
   - Reference:
     - Document: document.md
     - DocumentBag: documentbag.md
