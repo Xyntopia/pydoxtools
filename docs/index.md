@@ -63,8 +63,8 @@ You can visualize the extraction logic for different file types as follows:
 
 This allows you to generate pipelines for various file types:
 
-- [docx](images/document_logic_docx.svg)
-- [png](images/document_logic_png.svg)
+- [docx](images/document_logic_.docx.svg)
+- [png](images/document_logic_.png.svg)
   (click on links to open the images!)
 
 You can find pipelines for every supported file type 
