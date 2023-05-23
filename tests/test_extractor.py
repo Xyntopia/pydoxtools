@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 test_files_w_type = {
     # TODO: enable ODP
     # "./data/Doxcavator.odp",
+    "mediawiki": "./data/Starship.xml",
     # images
     "image/png": "./data/north_american_countries.png",
     "image/tiff": "./data/north_american_countries.tif",
@@ -134,12 +135,13 @@ def run_single_non_interactive_document_test(file_name):
 
 
 def test_string_extraction():
-    doc = Document(source=str(make_path_absolute("./data/alan_turing.txt")))
+    file = make_path_absolute("./data/alan_turing.txt")
+    doc = Document(source=str(file))
     doc.document_type
     doc.keywords
     doc.run_pipeline_fast()
 
-    with open(make_path_absolute("./data/alan_turing.txt"), "r") as f:
+    with open(file, "r") as f:
         some_string = f.read()
 
     doc = Document(fobj=some_string)
@@ -468,6 +470,14 @@ def test_source_vs_fobj():
     settings.PDX_ENABLE_DISK_CACHE = False
 
 
+def test_old_bugs():
+    d = Document(make_path_absolute("./data/Starship.xml"))
+    d.document_type
+    d.clean_text
+    # assert d.document_type
+    d.embedding
+
+
 def test_erronous_file():
     d = Document(make_path_absolute('./data/random_not_openable_file.bin'))
     d.document_type
@@ -481,7 +491,7 @@ def test_erronous_file():
 
 
 if __name__ == "__main__":
+    test_document_type_detection()
     # a = pd.DataFrame(sd.sents)
     # a[2]
-
     pass

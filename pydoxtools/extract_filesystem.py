@@ -8,42 +8,32 @@ import chardet
 import pydoxtools.operators_base
 
 
-def force_decode(txt: bytes):
-    if detected_encoding := chardet.detect(txt)['encoding']:
-        try:
-            return txt.decode(detected_encoding)
-        except UnicodeDecodeError:
-            pass
-    return txt.decode("utf-8", errors='replace')
-
-
-class FileLoader(pydoxtools.operators_base.Operator):
-    """Load data from path there should almost always be a "string" as
-    an output here... """
-
-    def __call__(
-            self, fobj: bytes | str | Path | typing.IO, path=None,
-            page_numbers=None, max_pages=None, document_type=None
-    ) -> bytes | str:
-        if path or isinstance(fobj, pathlib.Path):
+def force_decode(txt: bytes | str):
+    if isinstance(txt, bytes):
+        if detected_encoding := chardet.detect(txt)['encoding']:
             try:
-                with open(fobj, "r") as file:
-                    txt = file.read()
-            except:
-                with open(fobj, "rb") as file:
-                    txt = file.read()
-        elif isinstance(fobj, str | bytes):
-            txt = fobj
-        else:
-            txt = fobj.read()
-
-        if isinstance(txt, bytes):
-            if document_type == "text/plain":
-                txt = force_decode(txt)
-
-        # else:
-        #    raise document_base.DocumentTypeError("Can not extract text from unknown document")
+                return txt.decode(detected_encoding)
+            except UnicodeDecodeError:
+                pass
+        return txt.decode("utf-8", errors='replace')
+    else:
         return txt
+
+
+def load_raw_file_content(fobj: bytes | str | Path | typing.IO) -> bytes | str:
+    if isinstance(fobj, pathlib.Path):
+        try:
+            with open(fobj, "r") as file:
+                txt = file.read()
+        except:
+            with open(fobj, "rb") as file:
+                txt = file.read()
+    elif isinstance(fobj, str | bytes):
+        txt = fobj
+    else:
+        txt = fobj.read()
+
+    return txt
 
 
 def is_within_max_depth(path, directory, max_depth):

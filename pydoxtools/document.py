@@ -4,6 +4,7 @@ import io
 import json
 import logging
 import mimetypes
+import re
 from functools import cached_property
 from pathlib import Path
 from typing import IO, Protocol, Any, Callable
@@ -24,8 +25,8 @@ from . import nlp_utils
 from .dask_operators import SQLTableLoader, DocumentBagMap
 from .document_base import Pipeline, ElementType
 from .extract_classes import LanguageExtractor, TextBlockClassifier
-from .extract_filesystem import FileLoader, force_decode
 from .extract_filesystem import PathLoader
+from .extract_filesystem import force_decode, load_raw_file_content
 from .extract_html import HtmlExtractor
 from .extract_index import IndexExtractor, KnnQuery, \
     SimilarityGraph, TextrankOperator, TextPieceSplitter, ChromaIndexFromBag
@@ -55,15 +56,8 @@ def is_url(url):
         return False
 
 
-import re
-
-
 def contains_markdown(text: str | bytes) -> bool:
-    if isinstance(text, bytes):
-        try:
-            text = text.decode('utf-8')
-        except UnicodeDecodeError:
-            return False
+    text = force_decode(text)
 
     markdown_patterns = [
         r'\*{1,2}[^*]+\*{1,2}',  # Bold or italic: *text* or **text**
@@ -82,10 +76,34 @@ def contains_markdown(text: str | bytes) -> bool:
     for pattern in markdown_patterns:
         if re.search(pattern, text, re.MULTILINE):
             match_count += 1
-            if match_count >= 2:
+            if match_count >= 3:
                 return True
 
     return False
+
+
+def is_html_or_xml(file_content):
+    html_pattern = re.compile(r'<!DOCTYPE html.*?>', re.IGNORECASE | re.DOTALL)
+    xml_pattern = re.compile(r'<\?xml.*?\?>', re.IGNORECASE | re.DOTALL)
+
+    is_html = bool(html_pattern.search(file_content))
+    is_xml = bool(xml_pattern.search(file_content))
+
+    if is_html:
+        return 'text/html'
+    elif is_xml:
+        return 'application/xml'
+    else:
+        return 'unknown'
+
+
+def detect_xml_type(file_content):
+    mediawiki_pattern = re.compile(r'<mediawiki xmlns="http://www.mediawiki.org/xml/export-.*?"',
+                                   re.IGNORECASE | re.DOTALL)
+    if bool(mediawiki_pattern.search(file_content)):
+        return "mediawiki"
+    else:
+        return "application/xml"
 
 
 class DocumentTypeError(Exception):
@@ -242,8 +260,6 @@ operations and include the documentation there. Lambda functions should not be u
     _operators = {
         # .pdf
         "application/pdf": [
-            FileLoader()  # pdfs are usually in binary format...
-            .pipe(fobj="fobj").out("raw_content").cache(),
             PDFFileLoader()
             .pipe(fobj="raw_content", page_numbers="_page_numbers", max_pages="_max_pages")
             .out("pages_bbox", "elements", meta="meta_pdf", pages="page_set")
@@ -310,6 +326,8 @@ operations and include the documentation there. Lambda functions should not be u
         "text/rtf": ["pandoc"],
         # .epub
         "application/epub+zip": ["pandoc"],
+        # wikipedia data dump
+        "mediawiki": ["pandoc"],
         # pandoc document conversion pipeline
         "pandoc": [
             PandocLoader()
@@ -372,7 +390,6 @@ operations and include the documentation there. Lambda functions should not be u
         ],
         # simple dictionary with arbitrary data from python
         "<class 'dict'>": [  # pipeline to handle data based documents
-            Alias(raw_content="fobj"),
             FunctionOperator(lambda x: yaml.dump(list_utils.deep_str_convert(x)))
             .pipe(x="data").out("full_text").cache(),
             DictSelector()
@@ -391,7 +408,6 @@ operations and include the documentation there. Lambda functions should not be u
             .pipe(x="data").out("items").no_cache()
         ],
         "<class 'list'>": [
-            Alias(raw_content="fobj"),
             FunctionOperator(lambda x: yaml.dump(list_utils.deep_str_convert(x)))
             .pipe(x="data").out("full_text").cache(),
             FunctionOperator(lambda x: pd.DataFrame([
@@ -403,13 +419,7 @@ operations and include the documentation there. Lambda functions should not be u
         # TODO: json, csv etc...
         # TODO: pptx, odp etc...
         "*": [
-            # Loading text files
-            FileLoader()
-            .pipe(fobj="fobj", path="path", document_type="document_type",
-                  page_numbers="_page_numbers", max_pages="_max_pages")
-            .out("raw_content").cache(),
             Alias(data="raw_content"),
-            Alias(full_text="raw_content"),
             FunctionOperator(lambda x: force_decode(x))
             .pipe(x="raw_content").out("full_text").docs(
                 "will always return a string, no matter what..."),
@@ -718,7 +728,7 @@ operations and include the documentation there. Lambda functions should not be u
     @property
     def filename(self) -> str | None:
         """return filename or some other identifier of a file"""
-        _, filepath = self.document_type_detection()
+        _, filepath, _ = self.document_type_detection()
         if filepath:
             return filepath.name
         else:
@@ -726,8 +736,13 @@ operations and include the documentation there. Lambda functions should not be u
 
     @property
     def path(self):
-        _, filepath = self.document_type_detection()
+        _, filepath, _ = self.document_type_detection()
         return filepath
+
+    @property
+    def raw_content(self):
+        _, _, buffer = self.document_type_detection()
+        return buffer
 
     @property
     def document_type(self):
@@ -737,7 +752,7 @@ operations and include the documentation there. Lambda functions should not be u
         if self._document_type != "auto":
             return self._document_type
         else:
-            doc_type, _ = self.document_type_detection()
+            doc_type, _, _ = self.document_type_detection()
             return doc_type
 
     @staticmethod
@@ -753,7 +768,7 @@ operations and include the documentation there. Lambda functions should not be u
             magic = False
         return magic
 
-    @functools.cache
+    # @functools.cache
     def document_type_detection(self):
         """
         This one here is actually important as it detects the
@@ -765,85 +780,82 @@ operations and include the documentation there. Lambda functions should not be u
         detect doc type based on various criteria
         TODO add a doc-type extractor using for example python-magic
         """
-        buffer = None
         detected_filepath: Path | None = None
-        mimetype = "text/plain"  # use this as a standard mimetype
+        mimetype = "unknown"  # use this as a standard mimetype
 
         magic = Document.magic_library_available()
 
         _fobj = self._fobj or self._source
 
-        # if it works... now, check filetype using python-magic
+        # if it works... now, check filetype by analyzing
+        # the content of a file and load the file itself into
+        # a buffer
         if isinstance(_fobj, (Path, str)):
             # if it's not a file, we take it as a string, but can be overwritten
             # using the document_type variable during initialization
+            buffer = self._fobj
             try:
                 if self._document_type == "string":
                     mimetype = "string"
                 elif Path(_fobj).is_file():  # check if we have an actual file here
-                    if magic:
-                        mimetype = magic.from_file(_fobj, mime=True)
                     detected_filepath = Path(_fobj)
+                    buffer = load_raw_file_content(detected_filepath)
+                    mimetype, _ = mimetypes.guess_type(detected_filepath, strict=False)
+                    if mimetype is None:
+                        if magic:
+                            mimetype = magic.from_file(_fobj, mime=True)
+                        else:
+                            logger.warning("install magic to guess file type!")
                 else:
                     mimetype = "string"
             except OSError:  # could happen if we try to use a string as filename and that is too long
                 mimetype = "string"
 
         elif isinstance(self._fobj, bytes):
+            buffer = self._fobj
             if magic:
-                mimetype = magic.from_buffer(self._fobj, mime=True)
+                mimetype = magic.from_buffer(buffer, mime=True)
             else:
                 logger.warning(f"no filetype specified for {self._source}")
         elif isinstance(self._fobj, io.IOBase):  # might be a streaming object
             # TODO: there is probably a better way to check for many file io objects...
-            if magic:
-                buffer = self._fobj.read(2048)
-                self._fobj.seek(0)  # reset pointer for downstream tasks
-                mimetype = magic.from_buffer(buffer, mime=True)
-
+            buffer = self._fobj.read()
+            self._fobj.seek(0)  # reset pointer for downstream tasks
             try:
                 detected_filepath = Path(self._fobj.name)
             except:
                 pass
+            if magic:
+                mimetype = magic.from_buffer(buffer, mime=True)
+            elif detected_filepath:
+                mimetype, _ = mimetypes.guess_type(detected_filepath, strict=False)
         elif isinstance(self._fobj, (dict, list, set)):
             mimetype = str(type(self._fobj))
+            buffer = self._fobj
         else:
             mimetype = str(type(self._fobj))
+            buffer = self._fobj
+
+        if mimetype == "unknown" and self._source:
+            mimetype, encoding = mimetypes.guess_type(self._source, strict=False)
 
         # do some more checks on problems that we have encountered when using "magic"
         if mimetype == "application/json":
-            if buffer:
-                jsonstr = self._fobj.read()
-                self._fobj.seek(0)
-            elif detected_filepath:
-                with open(self._fobj, "r") as f:
-                    # TODO: can we make this "lazy" basically throw anexception later, so that the document_type
-                    #       can change iterativly?
-                    jsonstr = f.read()
-            else:
-                jsonstr = self._fobj
-
             try:
-                json.loads(jsonstr)
+                json.loads(buffer)
             except json.decoder.JSONDecodeError:
                 mimetype = "text/plain"
 
-        # if file is text based or json etc... do some more checks!
+        # do some more checks for several special cases hat we found using
+        # the file-ending as a first check
         # the file ending becomes a lot more important in this case!
-        if mimetype == "text/plain":
-            # it's hard to check for the actual filetype here with python magic, so we
-            # fall back to using the extension itself
-            if detected_filepath or self._source:
-                mimetype, encoding = mimetypes.guess_type(detected_filepath or self._source, strict=False)
-            elif isinstance(self._fobj, (bytes, str)):
-                if contains_markdown(self._fobj):
-                    mimetype = "text/markdown"
-            elif isinstance(self._fobj, io.IOBase):  # might be a streaming object
-                # TODO: there is probably a better way to check for many file io objects...
-                buffer = self._fobj.read(2048)
-                self._fobj.seek(0)
-                if contains_markdown(buffer):
-                    mimetype = "text/markdown"
+        if mimetype == "text/html":
+            mimetype = is_html_or_xml(force_decode(buffer))
+        if mimetype in ("application/xml", "unknown"):
+            mimetype = detect_xml_type(force_decode(buffer))
+        if mimetype in ("text/plain", "unknown"):
+            if contains_markdown(force_decode(buffer)):
+                mimetype = "text/markdown"
 
         # do a mapping to standardize file type detection a bit more:
         mimetype = {
@@ -851,7 +863,7 @@ operations and include the documentation there. Lambda functions should not be u
             None: 'UNKNOWN'  # TODO: try to not make everything that we "don't know" a text-file...
         }.get(mimetype, mimetype)
 
-        return mimetype, detected_filepath
+        return mimetype, detected_filepath, buffer
 
     # TODO: implement a logic on what to do if
     #       mimetypes and magic don't agree'
