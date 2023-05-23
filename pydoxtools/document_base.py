@@ -484,7 +484,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         node_docs = []
         for k, v in output_infos.items():
             return_types = " | ".join(sorted(str(i) for i in v['output_types']))
-            return_types=return_types.replace(">", "\>")
+            return_types = return_types.replace(">", "\>")
             pipeline_flows = ", ".join(sorted(v['pipe_types']))
             pipeline_flows = pipeline_flows.replace(">", "\>")
 
@@ -608,7 +608,13 @@ supports pipeline flows:
             # if we haven't gotten the result from cache yet...
             if finished_calculation == False:
                 mapped_kwargs = self.gather_arguments(**operator_function._in_mapping)
-                res = operator_function(**mapped_kwargs)
+                if operator_function._default:
+                    try:
+                        res = operator_function(**mapped_kwargs)
+                    except:
+                        res = operator_function._default
+                else:
+                    res = operator_function(**mapped_kwargs)
                 # and save the result in both caches
                 if operator_function._cache:
                     self._cache[dict_cache_key] = res

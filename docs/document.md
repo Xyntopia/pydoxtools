@@ -46,7 +46,7 @@ supports pipeline flows:
 
 ### full_text
             
-
+will always return a string, no matter what...
 
 Can be called using:
 
@@ -270,7 +270,7 @@ supports pipeline flows:
 
 ### language
             
-
+Detect language of a document, return 'unknown' in case of an error
 
 Can be called using:
 

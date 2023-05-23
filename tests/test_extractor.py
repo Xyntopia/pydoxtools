@@ -18,6 +18,8 @@ logging.getLogger("pydoxtools.document").setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 
 test_files_w_type = {
+    # TODO: enable ODP
+    # "./data/Doxcavator.odp",
     # images
     "image/png": "./data/north_american_countries.png",
     "image/tiff": "./data/north_american_countries.tif",
@@ -34,8 +36,6 @@ test_files_w_type = {
                         "./data/List of North American countries by population - Wikipedia.pdf"],
     "text/plain": ["./data/alan_turing.txt"],
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "./data/demo.docx",
-    # TODO: enable ODP
-    # "./data/Doxcavator.odp",
     # TODO: enable pptx
     # "./data/Doxcavator.pptx",
     "application/vnd.oasis.opendocument.text": "./data/test.odt",
@@ -466,6 +466,18 @@ def test_source_vs_fobj():
     assert nd1.full_text == "abcdef"
     assert nd2.full_text == "123456"
     settings.PDX_ENABLE_DISK_CACHE = False
+
+
+def test_erronous_file():
+    d = Document(make_path_absolute('./data/random_not_openable_file.bin'))
+    d.document_type
+    d.text_segments
+    d = Document(make_path_absolute('./data/Doxcavator.odp'))
+    d.document_type
+    d.text_segments
+    d = Document(make_path_absolute('./data/erronous_pdf.pdf'))
+    assert d.document_type != 'application/pdf'
+    d.text_segments
 
 
 if __name__ == "__main__":

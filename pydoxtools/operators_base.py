@@ -57,6 +57,7 @@ class Operator(ABC):
         self._out_mapping: dict[str, str] = {}
         self._cache = False  # TODO: switch to "True" by default
         self._allow_disk_cache = True
+        self._default = None
         self.__node_doc__ = ""
 
     @abc.abstractmethod
@@ -85,6 +86,16 @@ class Operator(ABC):
         #       variable names of the extractor?
         self._out_mapping = kwargs
         self._out_mapping.update({k: k for k in args})
+        return self
+
+    def default(self, default: Any):
+        """
+        indicate a default value that we would like to have in case
+        our function has an exception...
+
+        (for example if we can not detect a language, because document is to short)
+        """
+        self._default = default
         return self
 
     def cache(self, allow_disk_cache=True):
@@ -130,12 +141,19 @@ class Constant(Operator):
 class FunctionOperator(Operator):
     """Wrap an arbitrary function as an Operator"""
 
-    def __init__(self, func):
+    def __init__(self, func, default_return_value: Any = None):
         super().__init__()
         self._func = func
+        self._default_return_value = default_return_value
 
     def __call__(self, *args, **kwargs):
-        return self._func(*args, **kwargs)
+        try:
+            return self._func(*args, **kwargs)
+        except Exception as err:
+            if self._default_return_value:
+                return self._default_return_value
+            else:
+                raise err
 
 
 class ElementWiseOperator(Operator):

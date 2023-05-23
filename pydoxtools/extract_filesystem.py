@@ -8,8 +8,18 @@ import chardet
 import pydoxtools.operators_base
 
 
+def force_decode(txt: bytes):
+    if detected_encoding := chardet.detect(txt)['encoding']:
+        try:
+            return txt.decode(detected_encoding)
+        except UnicodeDecodeError:
+            pass
+    return txt.decode("utf-8", errors='replace')
+
+
 class FileLoader(pydoxtools.operators_base.Operator):
-    """Load data from path"""
+    """Load data from path there should almost always be a "string" as
+    an output here... """
 
     def __call__(
             self, fobj: bytes | str | Path | typing.IO, path=None,
@@ -29,11 +39,7 @@ class FileLoader(pydoxtools.operators_base.Operator):
 
         if isinstance(txt, bytes):
             if document_type == "text/plain":
-                if detected_encoding := chardet.detect(txt)['encoding']:
-                    try:
-                        txt = txt.decode(detected_encoding)
-                    except UnicodeDecodeError:
-                        txt = txt.decode("utf-8", errors='replace')
+                txt = force_decode(txt)
 
         # else:
         #    raise document_base.DocumentTypeError("Can not extract text from unknown document")

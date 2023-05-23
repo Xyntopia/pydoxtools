@@ -24,7 +24,7 @@ from . import nlp_utils
 from .dask_operators import SQLTableLoader, DocumentBagMap
 from .document_base import Pipeline, ElementType
 from .extract_classes import LanguageExtractor, TextBlockClassifier
-from .extract_filesystem import FileLoader
+from .extract_filesystem import FileLoader, force_decode
 from .extract_filesystem import PathLoader
 from .extract_html import HtmlExtractor
 from .extract_index import IndexExtractor, KnnQuery, \
@@ -131,7 +131,10 @@ def calculate_a_d_ratio(ft: str):
     alphas = sum(1 for c in ft if c.isalpha())
     digits = sum(1 for c in ft if c.isdigit())
 
-    ratio = alphas / (alphas + digits)
+    if alphas or digits:
+        ratio = alphas / (alphas + digits)
+    else:
+        ratio = 0.5
     return ratio
 
 
@@ -326,7 +329,8 @@ operations and include the documentation there. Lambda functions should not be u
             .pipe(df="text_box_elements").out("sections").cache(),
             PandocConverter()  # clean for downstram processing tasks
             .pipe(output_format="clean_format", pandoc_document="pandoc_document")
-            .out("clean_text").cache(),
+            .out("clean_text").cache().docs(
+                "for some downstream tasks, it is better to have pure text, without any sructural elements in it"),
             PandocBlocks()
             .pipe(pandoc_document="pandoc_document").out("pandoc_blocks").cache(),
             PandocOperator(method="headers")
@@ -406,6 +410,9 @@ operations and include the documentation there. Lambda functions should not be u
             .out("raw_content").cache(),
             Alias(data="raw_content"),
             Alias(full_text="raw_content"),
+            FunctionOperator(lambda x: force_decode(x))
+            .pipe(x="raw_content").out("full_text").docs(
+                "will always return a string, no matter what..."),
             Alias(clean_text="full_text"),
             FunctionOperator(lambda x: {"meta": (x or dict())})
             .pipe(x="_meta").out("meta"),
@@ -449,8 +456,11 @@ operations and include the documentation there. Lambda functions should not be u
             .pipe("spacy_sents").out("num_sents").no_cache(),
             FunctionOperator(calculate_a_d_ratio)
             .pipe(ft="full_text").out("a_d_ratio").cache(),
-            FunctionOperator(lambda full_text: langdetect.detect(full_text))
-            .pipe("full_text").out("language").cache(),
+            FunctionOperator(
+                lambda full_text: langdetect.detect(full_text)
+            ).pipe("full_text").out("language").cache()
+            .default("unknown").docs(
+                "Detect language of a document, return 'unknown' in case of an error"),
 
             #########  SPACY WRAPPERS  #############
             Configuration(spacy_model_size="md", spacy_model="auto"),
@@ -893,12 +903,14 @@ class DocumentBagCreator(Operator):
     def __call__(self,
                  apply_map_func: Callable,
                  configuration: dict[str, Any],
+                 forgiving_extracts: bool,
                  ) -> Callable[..., "DocumentBag"]:
         def doc_creator_func(
                 new_document: Callable[[Document], Any] | str | list[str],
                 document_metas: Callable[[Document], Any] | str | list[str] = None,
         ) -> DocumentBag:
-            def document_mapping(d: Document):
+
+            def extract(d):
                 if callable(new_document):
                     fobj = new_document(d)
                 else:
@@ -913,8 +925,22 @@ class DocumentBagCreator(Operator):
                     else:
                         list_meta_mapping = list_utils.iterablefyer(document_metas)
                         meta_dict = d.to_dict(*list_meta_mapping)
+                    if len(meta_dict) == 1:
+                        meta_dict = next(iter(meta_dict.values()))
                 else:
                     meta_dict = d.meta
+
+                return fobj, meta_dict
+
+            def document_mapping(d: Document):
+                if forgiving_extracts:
+                    try:
+                        fobj, meta_dict = extract(d)
+                    except Exception as err:
+                        fobj = ""
+                        meta_dict = {"Error": str(err)}
+                else:
+                    fobj, meta_dict = extract(d)
 
                 new_doc = Document(
                     fobj, source=d.source, meta=meta_dict
@@ -1089,7 +1115,7 @@ class DocumentBag(Pipeline):
                   stats="_stats")
             .out("bag_apply"),
             DocumentBagCreator()
-            .pipe("configuration", apply_map_func="bag_apply")
+            .pipe("configuration", apply_map_func="bag_apply", forgiving_extracts="forgiving_extracts")
             .out("apply"),
             DocumentBagExplode()
             .pipe("configuration", apply_map_func="bag_apply")
