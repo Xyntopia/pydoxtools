@@ -958,7 +958,7 @@ class DocumentBagCreator(Operator):
                     try:
                         fobj, meta_dict = extract(d)
                     except Exception as err:
-                        fobj = ""
+                        fobj = str(err)
                         meta_dict = {"Error": str(err)}
                 else:
                     fobj, meta_dict = extract(d)
