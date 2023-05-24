@@ -75,8 +75,9 @@ class AgentBase:
         self._debug_queue = []
         self._final_result = ""
         self._data_source: pdx.DocumentBag | None = data_source
-        # we need to delete all previously stored information
-        # in most cases to make our information search more efficient and deduplicate information
+        # we need to delete all previously stored "dynamic" information generated
+        # by the agent in most cases to make our information
+        # search more efficient and deduplicate information
         # TODO: make agents reuse information in the future!
         if startfresh:
             self.chromadb_collection.delete(where=self._context_where_all)
@@ -161,7 +162,8 @@ class AgentBase:
             context_size: int = 5,
             previous_task_size=0,
             max_tokens=256,
-            format="yaml"
+            formatting="yaml",
+            save_task=False
     ):
         if context_size:
             context = self.get_context(task,
@@ -169,6 +171,8 @@ class AgentBase:
                                        n_results=context_size)[0]
         else:
             context = ""
+        # TODO: if we had this exact task in an earlier iteration..
+        #       evaluate if we have to do it again or already have our answer...
         if previous_task_size:
             previous_tasks = self.get_context(
                 task, where_clause=self._context_where_info,
@@ -177,11 +181,22 @@ class AgentBase:
             previous_tasks = ""
         msgs = self.task_chat(previous_tasks=previous_tasks,
                               context="\n---\n".join(context), task=task,
-                              format=format)
+                              format=formatting)
         msg = '\n'.join(m['content'] for m in msgs)
         logger.info(f"execute_task: {msg}")
         res = openai_chat_completion(msgs, max_tokens=max_tokens).content
         self._debug_queue.append((msgs, res))
+        if formatting == "yaml":
+            res = yaml_loader(res)
+        if formatting == "txt":
+            res = res
+        if formatting == "markdown":
+            res = res
+        else:
+            logger.warning(f"Formatting: {formatting} is unknown!")
+            pass  # do nothing ;)
+        if save_task:
+            self.add_task(task, str(res))
         return res
 
     def research_questions(self, questions):
@@ -193,8 +208,7 @@ class AgentBase:
                "to embeddings and then use those for a " \
                f"nearest neighbour search. We need them to be similar to text snippets which are" \
                f"capable of addressing the question: '{question}'"
-        res = self.execute_task(task=task)
-        list_of_search_strings = yaml.unsafe_load(res)
+        list_of_search_strings = self.execute_task(task=task, formatting="yaml")
         self.add_task(task, str(list_of_search_strings))
 
         # TODO: think about how we can integrate this below with Document...
@@ -219,7 +233,7 @@ class AgentBase:
         #    ans = anslist.groupby(0).sum().sort_values(by=1, ascending=False).index[0]
         # else:
         res = self.execute_task(task=f"answer the following question: '{question}' "
-                                     f"using this text as input: {txt}")
+                                     f"using this text as input: {txt}", formatting="txt")
         ans = res
         # TODO: ask questions like "is this correct?" or can you provide the name?
         # ans_parsed = yaml.unsafe_load(ans)
