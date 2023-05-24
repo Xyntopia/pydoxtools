@@ -5,11 +5,9 @@ import logging
 
 import chromadb
 import dask
-import numpy as np
 from chromadb.config import Settings
-from dask.diagnostics import ProgressBar
 
-from pydoxtools import DocumentBag, Document
+import pydoxtools as pdx
 from pydoxtools import agent as ag
 from pydoxtools.settings import settings
 
@@ -21,26 +19,6 @@ logging.getLogger("pydoxtools.document").setLevel(logging.INFO)
 def stophere():
     raise NotImplementedError()
 
-
-"""
-TODO: integrate this...
-df = pd.DataFrame([f.suffix for f in ds.file_path_list])
-df.value_counts()
-file_endings = "\n".join([f for f in df[0].unique()])
-
-task = f"rank the file-endings which are most relevant for finding " \
-       f"a project description, readme, introduction, a manual or similar text. " \
-       f"List the top 5 in descending order, file_endings: {file_endings}"
-res = execute_task(objective, task)
-ranked_file_endings = yaml_loader(res)
-
-ds.d("filename").compute()
-filtered_files = DocumentBag(ds.paths(
-    max_depth=2,
-    mode="files",
-    wildcard="*" + ranked_file_endings[0]
-)).d("path").compute()
-"""
 
 if __name__ == "__main__":
     # from dask.distributed import Client
@@ -59,13 +37,13 @@ if __name__ == "__main__":
         anonymized_telemetry=False
     )
     collection_name = "blog_index"
-    client = chromadb.Client(chroma_settings)
-    info_collection = client.get_or_create_collection(name=collection_name)
 
+    # create our source of information. It creates a list of documents
+    # in pydoxtools called "DocumentBag" and
     root_dir = "../../pydoxtools"
-    ds = DocumentBag(
+    ds = pdx.DocumentBag(
         source=root_dir,
-        exclude=[
+        exclude=[  # ignore some files which make the indexing rather inefficient
             '.git/', '.idea/', '/node_modules', '/dist',
             '/__pycache__/', '.pytest_cache/', '.chroma', '.svg', '.lock',
             "/site/"
@@ -73,48 +51,18 @@ if __name__ == "__main__":
         forgiving_extracts=True
     )
 
-    idx = ds.apply(new_document='text_segments', document_metas="file_meta")
-    idx = idx.exploded
-    compute, _ = idx.add_to_chroma(
-        chroma_settings, collection_name)  # remove number to calculate for all files!
-
-    # create the index if we run it for the first time!
-    # need_index = False if collection.count() > 0 else True
-    need_index = False
-    if need_index:
-        # collection = client.get_collection(name="index")
-        client.delete_collection(name=collection_name)
-        client.persist()
-        collection = client.get_or_create_collection(name=collection_name)
-        with ProgressBar():
-            # idx.idx_dict.take(200, npartitions=3)  # remove number to calculate for all files!
-            # idx.idx_dict.compute()
-            compute()
-
-    # after saving everything we need to re-load the client/collection back into memory...
-    client = chromadb.Client(chroma_settings)
-    info_collection = client.get_or_create_collection(name=collection_name)
-
     ######  Start the writing process  #####
     final_result = []
 
-    info_collection.delete(where=ag.AgentBase._context_where_all)
-    # TODO: do this in a cli..
     agent = ag.AgentBase(
-        chromadb_collection=info_collection,
+        vector_store=chroma_settings,
         objective="Write a blog post, introducing a new library (which was developed by us, "
-                  "the company 'Xyntopia') to " \
+                  "the company 'Xyntopia') to "
                   "visitors of our corporate webpage, which might want to use the pydoxtools library but "
                   "have no idea about programming. Make sure, the text is about half a page long.",
-        documents=ds
+        data_source=ds
     )
-
-    info_collection.upsert(
-        embeddings=[Document("alright, what is this").embedding.tolist()],
-        documents=["test"],
-        metadatas=[{"test": "True"}],
-        ids=["12345"]
-    )
+    agent.pre_compute_index()
 
     # first, add a basic answer, to get the algorithm startet more quickly :).
     agent.add_question(question="Can you please provide the main topic of the project or some primary " \
@@ -128,39 +76,11 @@ if __name__ == "__main__":
     questions = ag.yaml_loader(res)[:5]
     agent.add_task(task, str(questions))
 
-    # research question in index...
+    # research question in our index...
     for question in questions:
         agent.research_question(question)
 
-    long_text = False  # longer than certain max_tokens
-    if long_text:
-        task = "Create an outline for our objective and format it as a flat yaml dictionary," \
-               "indicating the desired number of words for each section."
-        res = agent.execute_task(task)
-        outline = ag.yaml_loader(res)
-        agent.add_task(task, res)
-
-        sections = []
-        for section_name, word_num in outline.items():
-            task = f"Create a list of keywords for the section: " \
-                   f"{section_name} with approx {word_num} words"
-            res = agent.execute_task(task)
-            section_keywords = ag.yaml_loader(res)
-
-            # take the mean of all the above search strings :)
-            embedding = np.mean([Document(q).embedding for q in section_keywords], 0).tolist()
-            # make sure we have no duplicate results
-            res = query(embeddings=embedding, where={"num_words": {"$gt": 10}})
-            txt = "\n\n".join(list(set(res["documents"][0])))
-
-            task = f"Generate text for the section '{section_name}' with the keywords {section_keywords}. " \
-                   f"and this size: {word_num}. " \
-                   f"The following text sections can give some context. Use them if it makes sense" \
-                   f" to do so:```\n\n{txt}```" \
-                   f" the result should have a heading and be formated in markdown"
-            res = agent.execute_task(task, context_size=0)
-            section_text = ag.yaml_loader(res)
-
+    # now write the text
     task = "Complete the overall objective, formulate the text based on answered questions" \
            " and format it in markdown."
     res = agent.execute_task(task, context_size=20, max_tokens=1000)

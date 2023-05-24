@@ -1,7 +1,9 @@
+import functools
 import logging
 import uuid
 
 import chromadb
+import dask.diagnostics
 import numpy as np
 import yaml
 
@@ -40,7 +42,10 @@ where_or = lambda x: {"$or": x}
 
 
 class AgentBase:
-    # TODO: define BlogWritingAgent as a pipeline as well!!
+    # TODO: define BlogWritingAgent as a pipeline as well?
+    #       not sure, yet, if we would benefit from this here...
+    #       might make sense in the future, if we have multiple
+    #       agents for different tasks...
 
     _context_where_all = where_or([{"information_type": "question"},
                                    {"information_type": "task"},
@@ -51,41 +56,75 @@ class AgentBase:
 
     _context_where_tasks = {"information_type": "task"}
 
-    def __init__(self,
-                 objective: str,
-                 chromadb_collection: chromadb.api.models.Collection.Collection,
-                 documents: pdx.DocumentBag
-                 ):
-        self._chromadb_collection = chromadb_collection
+    def __init__(
+            self,
+            objective: str,
+            # TODO: support multiple datasources
+            data_source: pdx.DocumentBag,
+            vector_store: chromadb.config.Settings,
+            startfresh: bool = True,
+            privacy_mode="non_proviate_llm_queries"
+    ):
+        if not isinstance(vector_store, chromadb.config.Settings):
+            raise NotImplementedError("Other vectorstores besides chromadb are WIP!")
+        if privacy_mode != "non_proviate_llm_queries":
+            raise RuntimeError("You have to have 'Alpaca' model installed in order"
+                               "to run other privacy modes...")
+        self.vector_store = vector_store
         self._objective = objective
         self._debug_queue = []
         self._final_result = ""
-        self._documents: pdx.DocumentBag = documents  # TOOD: get rid of this and create it inside chromadb by passing it a vectorizer...
+        self._data_source: pdx.DocumentBag | None = data_source
+        # we need to delete all previously stored information
+        # in most cases to make our information search more efficient and deduplicate information
+        # TODO: make agents reuse information in the future!
+        if startfresh:
+            self.chromadb_collection.delete(where=self._context_where_all)
+
+    @property
+    def collection_name(self):
+        return "pdx_agent_index"
+
+    def reload_vector_store(self):
+        """sometimes we need to reload the vector store. For example if we have added nwe data from
+        a different thread..."""
+        del self.chromadb_client
+        del self.chromadb_collection
+
+    @functools.cached_property
+    def chromadb_client(self):
+        client = chromadb.Client(self.vector_store)
+        return client
+
+    @functools.cached_property
+    def chromadb_collection(self):
+        info_collection = self.chromadb_client.get_or_create_collection(name=self.collection_name)
+        return info_collection
 
     @property
     def vectorize(self):
-        return self._documents.vectorizer
+        return self._data_source.vectorizer
 
     @property
     def documents(self):
-        return self._documents
+        return self._data_source
 
     def add_question(self, question, answer):
         doc = self.documents.Document(f"question: {question.strip()}\nanswer: {answer.strip()}")
         add_info_to_collection(
-            self._chromadb_collection, doc,
+            self.chromadb_collection, doc,
             [{"information_type": "question", "question": question.strip(), "answer": answer.strip()}])
 
     def add_task(self, task, result):
         doc = self.documents.Document(f"task: {task.strip()}\nresult: {result.strip()}")
         add_info_to_collection(
-            self._chromadb_collection, doc,
+            self.chromadb_collection, doc,
             [{"information_type": "task", "task": task.strip(), "result": result.strip()}])
 
     def add_data(self, key, data):
         doc = self.documents.Document(f"{key.strip()}: {data.strip()}")
         add_info_to_collection(
-            self._chromadb_collection, doc,
+            self.chromadb_collection, doc,
             [{"information_type": "data", "key": key.strip(), "info": data.strip()}])
 
     def task_chat(self, task, context=None, previous_tasks=None, format="yaml"):
@@ -110,7 +149,7 @@ class AgentBase:
 
     def get_context(self, task: str, n_results: int = 5, where_clause=None):
         where_clause = where_clause or self._context_where_all
-        context = self._chromadb_collection.query(
+        context = self.chromadb_collection.query(
             query_embeddings=[self.vectorize(task).tolist()],
             where=where_clause,
             n_results=n_results)["documents"]
@@ -161,7 +200,7 @@ class AgentBase:
         # TODO: make sure we are searching more documents than just this one...
         # TODO: let the AI choose which document types we will search through to answer
         #       this question...
-        res = self._chromadb_collection.query(
+        res = self.chromadb_collection.query(
             query_embeddings=[embedding],
             where={"document_type": "text/markdown"},
             n_results=5)
@@ -182,3 +221,22 @@ class AgentBase:
         # ans_parsed = yaml.unsafe_load(ans)
         self.add_question(question, ans)
         return ans
+
+    def pre_compute_index(self):
+        """Create an index from our datasource by splitting it up into !"""
+        # TODO: use "generalized" metadata..   to make sure we can also
+        #       use information stored in databases for example...
+        idx = self._data_source.apply(new_document='text_segments', document_metas="file_meta")
+        idx = idx.exploded
+        compute, _ = idx.add_to_chroma(self.vector_store, self.collection_name)
+
+        # create the index if we run it for the first time!
+        # collection = client.get_collection(name="index")
+        self.chromadb_client.delete_collection(name=self.collection_name)
+        self.chromadb_client.persist()
+        with dask.diagnostics.ProgressBar():
+            # idx.idx_dict.take(200, npartitions=3)  # remove number to calculate for all files!
+            # idx.idx_dict.compute()
+            compute()
+
+        self.reload_vector_store()

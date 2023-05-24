@@ -189,6 +189,22 @@ return type
 supports pipeline flows:
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
+### Document
+            
+Get a factory for pre-configured documents. Can be called just like [pydoxtools.Document][] class, but automatically gets assigned the same configuration as all Documents in this bag
+
+Can be called using:
+
+    <DocumentBag>.x('Document')
+    # or
+    <DocumentBag>.Document
+
+return type
+: 
+
+supports pipeline flows:
+: *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
+
 ### vectorizer
             
 vectorizes a query, using the document configuration of the Documentbag to determine which model to use.
