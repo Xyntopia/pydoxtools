@@ -246,11 +246,17 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
     _operators: dict[str, list[Operator]] = {}
     _pipelines: dict[str, dict[str, Operator]] = {}
 
-    def __init__(self):
+    def __init__(self, **configuration):
         """
         Initializes the Pipeline instance with cache-related attributes.
+
+        **configuration: A dictionary of key-value pairs representing the configuration
+                settings for the pipeline. Each key is a string representing the name
+                of the configuration setting, and the value is the corresponding value
+                to be set.
         """
         self._configuration = {}
+        self._configuration.update(configuration)
         self._stats = dict(
             cache_hits=0,
             disk_cache_hits=0,
@@ -287,30 +293,6 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
     def _disk_cache(self) -> dict[Operator, dict[str, Any]] | Cache:
         cache = Cache(settings.PDX_CACHE_DIR_BASE / "pipelines")
         return cache
-
-    def config(self, **configuration: Any) -> "Pipeline":
-        """
-        Set configuration parameters for a pipeline.
-
-        Args:
-            **configuration: A dictionary of key-value pairs representing the configuration
-                settings for the pipeline. Each key is a string representing the name
-                of the configuration setting, and the value is the corresponding value
-                to be set.
-
-        Returns:
-            self: A reference to the current pipeline instance, allowing for method chaining.
-
-        Example:
-            pipeline = Pipeline()
-            pipeline.config(param1=value1, param2=value2)
-        """
-        # replace configuration objects in the pipeine with
-        # our own configuration objects with correct keys
-        self._configuration = configuration
-
-        # Return the current pipeline instance for method chaining
-        return self
 
     @property
     def configuration(self):

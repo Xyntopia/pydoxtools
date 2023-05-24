@@ -33,7 +33,7 @@ class TextPieceSplitter(Operator):
 
     def __call__(
             self, full_text, min_size: int = 256, max_size: int = 512,
-            large_segment_overlap=0.3
+            large_segment_overlap=0.3, max_text_segment_num=100,
     ):
         # TODO: also accept text elements which have bounding boxes for better text box identification.
         # TODO: identify tables and convert them into a readable format.
@@ -59,6 +59,9 @@ class TextPieceSplitter(Operator):
             else:
                 pieces.append(new_segment.strip())
             new_segment = ""
+
+            if len(pieces) > max_text_segment_num:
+                break
 
         # Append the last piece if it's not empty
         if new_segment.strip():

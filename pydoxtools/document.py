@@ -545,13 +545,15 @@ operations and include the documentation there. Lambda functions should not be u
             Configuration(
                 min_size_text_segment=256,
                 max_size_text_segment=512,
-                text_segment_overlap=0.3
+                text_segment_overlap=0.3,
+                max_text_segment_num=100,
             ).docs("controls the text segmentation for knowledge bases"
                    "overlap is only relevant for large text segmenets that need to"
                    "be split up into smaller pieces."),
             TextPieceSplitter()
             .pipe(min_size="min_size_text_segment", max_size="max_size_text_segment",
-                  large_segment_overlap="text_segment_overlap", full_text="full_text")
+                  large_segment_overlap="text_segment_overlap", full_text="full_text",
+                  max_text_segment_num="max_text_segment_num")
             .out("text_segments").cache(),
             ElementWiseOperator(calculate_string_embeddings, return_iterator=False)
             .pipe(
@@ -632,6 +634,8 @@ operations and include the documentation there. Lambda functions should not be u
             document_type: str = "auto",
             page_numbers: list[int] = None,
             max_pages: int = None,
+            configuration: dict = None,
+            **kwargs,
     ):
         """Initialize a Document instance.
 
@@ -680,9 +684,14 @@ operations and include the documentation there. Lambda functions should not be u
             max_pages:
                 The maximum number of pages to extract to protect resources.
 
+            configuration:
+                configuration dictionary for the pipeline
         """
 
-        super().__init__()
+        doc_configuration = {}
+        doc_configuration.update(configuration or {})
+        doc_configuration.update(kwargs)
+        super().__init__(**doc_configuration)
 
         # TODO: move this code into its own little extractor...
         #       can also be made better with pydantic ;).
@@ -955,13 +964,12 @@ class DocumentBagCreator(Operator):
                     fobj, meta_dict = extract(d)
 
                 new_doc = Document(
-                    fobj, source=d.source, meta=meta_dict
-                ).config(**d.configuration)
+                    fobj, source=d.source, meta=meta_dict, configuration=d.configuration)
 
                 return new_doc
 
             new_documents_bag = apply_map_func(document_mapping)
-            db = DocumentBag(new_documents_bag).config(**configuration)
+            db = DocumentBag(new_documents_bag, configuration=configuration)
             return db
 
         return doc_creator_func
@@ -984,8 +992,9 @@ class DocumentBagExplode(Operator):
                 for obj in d.fobj:
                     new_docs.append(
                         Document(obj, source=d.source,
-                                 document_type="string", meta=d.meta)
-                        .config(**d.configuration))
+                                 document_type="string", meta=d.meta,
+                                 configuration=d.configuration
+                                 ))
                 return new_docs
             else:
                 return [d]
@@ -993,7 +1002,7 @@ class DocumentBagExplode(Operator):
         new_documents_bag = apply_map_func(split_func)
         dask_bag_function = "flatten"  # e.g. "bag.flatten" the resulting object...
         new_documents = getattr(new_documents_bag, dask_bag_function)()
-        db = DocumentBag(new_documents).config(**configuration)
+        db = DocumentBag(new_documents, configuration=configuration)
         return db
 
 
@@ -1097,7 +1106,7 @@ class DocumentBag(Pipeline):
             FunctionOperator(lambda x: dask.bag.from_sequence(x, partition_size=10))
             .pipe(x="file_path_list").out("bag").cache().docs(
                 "create a dask bag with all the filepaths in it"),
-            dask_operators.BagMapOperator(lambda x, c: Document(x).config(**c))
+            dask_operators.BagMapOperator(lambda x, c: Document(x, configuration=c))
             .pipe(dask_bag="bag", c="doc_configuration").out("docs").cache().docs(
                 "create a bag with one document for each file that was found"
                 "From this point we can hand off the logic to str(Bag) pipeline."),
@@ -1161,10 +1170,15 @@ class DocumentBag(Pipeline):
             pipeline: str = None,
             exclude: list[str] = None,
             max_documents: int = None,
+            configuration: dict = None,
+            **kwargs
     ):
         # TODO: add "overwrite" parameter where we basically say that DocumentBag should
         #       automatically overwrite configurations of documents it creates
-        super().__init__()
+        docbag_configuration = {}
+        docbag_configuration.update(configuration or {})
+        docbag_configuration.update(kwargs)
+        super().__init__(**docbag_configuration)
         self._exclude = tuple(exclude or [])
         # TODO: _pipeline isn't used yet
         self._pipeline = pipeline or "directory"
