@@ -3,7 +3,6 @@ then answer questions about it"""
 
 import logging
 
-import chromadb
 import dask
 from chromadb.config import Settings
 
@@ -14,11 +13,6 @@ from pydoxtools.settings import settings
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("pydoxtools.document").setLevel(logging.INFO)
-
-
-def stophere():
-    raise NotImplementedError()
-
 
 if __name__ == "__main__":
     # from dask.distributed import Client
@@ -40,6 +34,7 @@ if __name__ == "__main__":
 
     # create our source of information. It creates a list of documents
     # in pydoxtools called "DocumentBag" and
+    # here we choose to use pydoxtools itself as an information source!
     root_dir = "../../pydoxtools"
     ds = pdx.DocumentBag(
         source=root_dir,
@@ -64,7 +59,8 @@ if __name__ == "__main__":
     )
     agent.pre_compute_index()
 
-    # first, add a basic answer, to get the algorithm startet more quickly :).
+    # first, add a basic answer, to get the algorithm started a bit more quickly :) we could gather this information
+    # from the CLI for example...
     agent.add_question(question="Can you please provide the main topic of the project or some primary " \
                                 "keywords related to the project, " \
                                 "to help with identifying the relevant files in the directory?",
@@ -75,10 +71,7 @@ if __name__ == "__main__":
     res = agent.execute_task(task)
     questions = ag.yaml_loader(res)[:5]
     agent.add_task(task, str(questions))
-
-    # research question in our index...
-    for question in questions:
-        agent.research_question(question)
+    agent.research_questions(questions)
 
     # now write the text
     task = "Complete the overall objective, formulate the text based on answered questions" \
@@ -111,9 +104,3 @@ if __name__ == "__main__":
         txt = agent.execute_task(task, context_size=10, max_tokens=1000, format="markdown")
         final_result.append(res)
         # tasks = yaml_loader(res)
-
-    # test the final result
-    task = "Given this text:\n\n" \
-           f"```markdown\n{txt}\n```\n\n" \
-           f"Is it too long?"
-    res = agent.execute_task(task, context_size=0, max_tokens=1000, format="markdown")

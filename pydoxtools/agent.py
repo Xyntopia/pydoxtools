@@ -184,6 +184,10 @@ class AgentBase:
         self._debug_queue.append((msgs, res))
         return res
 
+    def research_questions(self, questions):
+        for question in questions:
+            self.research_question(question)
+
     def research_question(self, question):
         task = "Produce a list of 3-5 word strings which we can convert " \
                "to embeddings and then use those for a " \
