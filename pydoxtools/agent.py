@@ -1,10 +1,14 @@
+import logging
 import uuid
 
+import chromadb
 import numpy as np
 import yaml
 
-from pydoxtools import Document
+import pydoxtools as pdx
 from pydoxtools.extract_nlpchat import openai_chat_completion
+
+logger = logging.getLogger(__name__)
 
 
 def generate_function_usage_prompt(func: callable):
@@ -21,10 +25,11 @@ def yaml_loader(txt: str):
     return data
 
 
-def add_info_to_collection(collection, doc: Document, metas: list[dict]):
+def add_info_to_collection(collection, doc: pdx.Document, metas: list[dict]):
     collection.add(
         # TODO: embeddings=  #use our own embeddings for specific purposes...
-        embeddings=[doc.embedding],
+        embeddings=[float(v) for v in doc.embedding],
+        # embeddings=[copy.copy(doc.embedding.tolist())],
         documents=[doc.full_text],
         metadatas=metas,
         ids=[uuid.uuid4().hex]
@@ -46,28 +51,41 @@ class AgentBase:
 
     _context_where_tasks = {"information_type": "task"}
 
-    def __init__(self, chromadb_collection, objective):
+    def __init__(self,
+                 objective: str,
+                 chromadb_collection: chromadb.api.models.Collection.Collection,
+                 documents: pdx.DocumentBag
+                 ):
         self._chromadb_collection = chromadb_collection
         self._objective = objective
         self._debug_queue = []
         self._final_result = ""
+        self._documents: pdx.DocumentBag = documents  # TOOD: get rid of this and create it inside chromadb by passing it a vectorizer...
+
+    @property
+    def vectorize(self):
+        return self._documents.vectorizer
+
+    @property
+    def documents(self):
+        return self._documents
 
     def add_question(self, question, answer):
-        doc = Document(f"question: {question.strip()}\nanswer: {answer.strip()}")
+        doc = self.documents.Document(f"question: {question.strip()}\nanswer: {answer.strip()}")
         add_info_to_collection(
             self._chromadb_collection, doc,
             [{"information_type": "question", "question": question.strip(), "answer": answer.strip()}])
 
     def add_task(self, task, result):
-        doc = Document(f"task: {task.strip()}\nresult: {result.strip()}")
+        doc = self.documents.Document(f"task: {task.strip()}\nresult: {result.strip()}")
         add_info_to_collection(
             self._chromadb_collection, doc,
             [{"information_type": "task", "task": task.strip(), "result": result.strip()}])
 
     def add_data(self, key, data):
-        doc = Document(f"{key.strip()}: {data.strip()}")
+        doc = self.documents.Document(f"{key.strip()}: {data.strip()}")
         add_info_to_collection(
-            collection, doc,
+            self._chromadb_collection, doc,
             [{"information_type": "data", "key": key.strip(), "info": data.strip()}])
 
     def task_chat(self, task, context=None, previous_tasks=None, format="yaml"):
@@ -92,8 +110,10 @@ class AgentBase:
 
     def get_context(self, task: str, n_results: int = 5, where_clause=None):
         where_clause = where_clause or self._context_where_all
-        context = query(task, where=where_clause,
-                        n_results=n_results)["documents"]
+        context = self._chromadb_collection.query(
+            query_embeddings=[self.vectorize(task).tolist()],
+            where=where_clause,
+            n_results=n_results)["documents"]
         return context
 
     def execute_task(
@@ -136,10 +156,15 @@ class AgentBase:
 
         # TODO: think about how we can integrate this below with Document...
         # take the mean of all the above search strings :)
-        embedding = np.mean([Document(q).embedding for q in list_of_search_strings], 0).tolist()
+        embedding: list[float] = np.mean([self.vectorize(q) for q in list_of_search_strings], 0).tolist()
         # make sure we have no duplicate results
         # TODO: make sure we are searching more documents than just this one...
-        res = query(embeddings=embedding, where={"document_type": "text/markdown"})
+        # TODO: let the AI choose which document types we will search through to answer
+        #       this question...
+        res = self._chromadb_collection.query(
+            query_embeddings=[embedding],
+            where={"document_type": "text/markdown"},
+            n_results=5)
         txt = "\n\n".join(list(set(res["documents"][0])))
 
         # sometimes we can answer a question only with this
@@ -150,8 +175,8 @@ class AgentBase:
         # if not anslist.empty:
         #    ans = anslist.groupby(0).sum().sort_values(by=1, ascending=False).index[0]
         # else:
-        res = agent.execute_task(task=f"answer the following question: '{question}' "
-                                      f"using this text as input: {txt}")
+        res = self.execute_task(task=f"answer the following question: '{question}' "
+                                     f"using this text as input: {txt}")
         ans = res
         # TODO: ask questions like "is this correct?" or can you provide the name?
         # ans_parsed = yaml.unsafe_load(ans)

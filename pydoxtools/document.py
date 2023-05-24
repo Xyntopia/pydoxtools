@@ -1058,8 +1058,7 @@ class DocumentBag(Pipeline):
             .pipe(x="dataframe")
             .out("bag").cache(),
             dask_operators.BagMapOperator(lambda y, c: Document(
-                y, source=str(y.get('index', None))
-            ).config(**c))
+                y, source=str(y.get('index', None)), configuration=c))
             .pipe(dask_bag="bag", c="doc_configuration").out("docs").cache().docs(
                 "Create a dask bag of one data document for each row of the source table"),
         ],
@@ -1145,8 +1144,15 @@ class DocumentBag(Pipeline):
             FunctionOperator(lambda x: pd.DataFrame(x).sum())
             .pipe(x="_stats").out("stats").no_cache()
             .docs("gather a number of statistics from documents as a pandas dataframe"),
-            FunctionOperator(lambda dc: lambda query: Document(query).config(**dc).embedding)
-            .pipe(dc="doc_configuration").out("vectorizer").cache()
+            FunctionOperator(
+                lambda x: lambda *args, **kwargs: Document(
+                    *args, **kwargs, configuration=x))
+            .pipe(x="doc_configuration").out("Document").docs(
+                "Get a factory for pre-configured documents. Can be called just like"
+                " [pydoxtools.Document][] class, but automatically gets assigned the"
+                " same configuration as all Documents in this bag"),
+            FunctionOperator(lambda doc: lambda text: doc(text).embedding)
+            .pipe(doc="Document").out("vectorizer").cache()
             .docs("vectorizes a query, using the document configuration of the Documentbag"
                   " to determine which model to use."),
             ###### building an index ######

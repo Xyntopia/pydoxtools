@@ -202,17 +202,18 @@ class ChromaIndexFromBag(Operator):
 
     def __call__(self, query_vectorizer: callable, doc_bag: dask.bag.Bag):
         import chromadb
-        from chromadb.config import Settings
-        # add items from bag to chroma piece-by-piece
+        import chromadb.config
 
-        def init_chroma(chroma_settings: Settings, collection_name: str):
+        def init_chroma(chroma_settings: chromadb.config.Settings, collection_name: str):
+            # add items from bag to chroma piece-by-piece
+
             chroma_client = chromadb.Client(chroma_settings)
             collection = chroma_client.get_or_create_collection(name=collection_name)
             return chroma_client, collection
 
         def add_to_chroma(
                 docs: list[pydoxtools.Document],
-                chroma_settings: Settings,
+                chroma_settings: chromadb.config.Settings,
                 collection_name: str,
                 embeddings=None,
                 document=None,
@@ -245,15 +246,13 @@ class ChromaIndexFromBag(Operator):
             return range(i)
 
         def link_to_chroma_collection(
-                chroma_settings: Settings,
+                chroma_settings: chromadb.config.Settings,
                 collection_name: str,
                 embeddings=None,
                 document=None,
                 metadata=None,
                 ids=None,
         ):
-            _, collection = init_chroma(chroma_settings, collection_name)
-
             def query_chroma(query: list[str] | str = None, embeddings: list = None, where=None, n_results=10):
                 """
                 provide a query function which automatically vectorizes queries with pydoxtools

@@ -10,7 +10,7 @@ from chromadb.config import Settings
 from dask.diagnostics import ProgressBar
 
 from pydoxtools import DocumentBag, Document
-from pydoxtools.agent import yaml_loader, AgentBase
+from pydoxtools import agent as ag
 from pydoxtools.settings import settings
 
 logger = logging.getLogger(__name__)
@@ -55,11 +55,12 @@ if __name__ == "__main__":
 
     chroma_settings = Settings(
         chroma_db_impl="duckdb+parquet",
-        persist_directory=str(settings.PDX_CACHE_DIR_BASE / "chromadb")
+        persist_directory=str(settings.PDX_CACHE_DIR_BASE / "chromadb"),
+        anonymized_telemetry=False
     )
     collection_name = "blog_index"
     client = chromadb.Client(chroma_settings)
-    collection = client.get_or_create_collection(name=collection_name)
+    info_collection = client.get_or_create_collection(name=collection_name)
 
     root_dir = "../../pydoxtools"
     ds = DocumentBag(
@@ -74,7 +75,7 @@ if __name__ == "__main__":
 
     idx = ds.apply(new_document='text_segments', document_metas="file_meta")
     idx = idx.exploded
-    compute, query = idx.add_to_chroma(
+    compute, _ = idx.add_to_chroma(
         chroma_settings, collection_name)  # remove number to calculate for all files!
 
     # create the index if we run it for the first time!
@@ -90,20 +91,29 @@ if __name__ == "__main__":
             # idx.idx_dict.compute()
             compute()
 
-    # make sure we save the index on harddisk!
-    client.persist()
+    # after saving everything we need to re-load the client/collection back into memory...
+    client = chromadb.Client(chroma_settings)
+    info_collection = client.get_or_create_collection(name=collection_name)
 
     ######  Start the writing process  #####
-
     final_result = []
 
+    info_collection.delete(where=ag.AgentBase._context_where_all)
     # TODO: do this in a cli..
-    agent = AgentBase(
-        chromadb_collection=collection,
+    agent = ag.AgentBase(
+        chromadb_collection=info_collection,
         objective="Write a blog post, introducing a new library (which was developed by us, "
                   "the company 'Xyntopia') to " \
                   "visitors of our corporate webpage, which might want to use the pydoxtools library but "
-                  "have no idea about programming. Make sure, the text is about half a page long."
+                  "have no idea about programming. Make sure, the text is about half a page long.",
+        documents=ds
+    )
+
+    info_collection.upsert(
+        embeddings=[Document("alright, what is this").embedding.tolist()],
+        documents=["test"],
+        metadatas=[{"test": "True"}],
+        ids=["12345"]
     )
 
     # first, add a basic answer, to get the algorithm startet more quickly :).
@@ -115,7 +125,7 @@ if __name__ == "__main__":
     task = "What additional information do you need to create a first, very short outline as a draft? " \
            "provide it as a ranked list of questions"
     res = agent.execute_task(task)
-    questions = yaml_loader(res)[:5]
+    questions = ag.yaml_loader(res)[:5]
     agent.add_task(task, str(questions))
 
     # research question in index...
@@ -127,7 +137,7 @@ if __name__ == "__main__":
         task = "Create an outline for our objective and format it as a flat yaml dictionary," \
                "indicating the desired number of words for each section."
         res = agent.execute_task(task)
-        outline = yaml_loader(res)
+        outline = ag.yaml_loader(res)
         agent.add_task(task, res)
 
         sections = []
@@ -135,7 +145,7 @@ if __name__ == "__main__":
             task = f"Create a list of keywords for the section: " \
                    f"{section_name} with approx {word_num} words"
             res = agent.execute_task(task)
-            section_keywords = yaml_loader(res)
+            section_keywords = ag.yaml_loader(res)
 
             # take the mean of all the above search strings :)
             embedding = np.mean([Document(q).embedding for q in section_keywords], 0).tolist()
@@ -149,7 +159,7 @@ if __name__ == "__main__":
                    f" to do so:```\n\n{txt}```" \
                    f" the result should have a heading and be formated in markdown"
             res = agent.execute_task(task, context_size=0)
-            section_text = yaml_loader(res)
+            section_text = ag.yaml_loader(res)
 
     task = "Complete the overall objective, formulate the text based on answered questions" \
            " and format it in markdown."
@@ -162,7 +172,7 @@ if __name__ == "__main__":
            "\n\nlist 5 points of " \
            "critique about the text"
     res = agent.execute_task(task, context_size=0, max_tokens=1000)
-    critique = yaml_loader(res)
+    critique = ag.yaml_loader(res)
 
     task = "Given this text:\n\n" \
            f"```markdown\n{txt}\n```\n\n" \
@@ -171,7 +181,7 @@ if __name__ == "__main__":
            "that would make it better. Sort them by importance and return" \
            " it as a list of tasks"
     res = agent.execute_task(task, context_size=0, max_tokens=1000)
-    tasks = yaml_loader(res)
+    tasks = ag.yaml_loader(res)
 
     for t in tasks:
         task = "Given this text:\n\n" \
