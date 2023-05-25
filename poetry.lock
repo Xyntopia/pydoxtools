@@ -7788,9 +7788,9 @@ cffi = ["cffi (>=1.11)"]
 [extras]
 all = ["chromadb"]
 etl = ["beautifulsoup4", "dask", "extruct", "goose3", "hnswlib", "langdetect", "networkx", "openai", "pandas", "pandoc", "pdfminer.six", "pytesseract", "python-pptx", "quantities", "quantulum3", "readability-lxml", "spacy", "stemming", "tldextract", "urlextract"]
-inference = ["beautifulsoup4", "hnswlib", "pandas", "pytorch-lightning", "scikit-learn", "spacy", "torch", "tqdm", "transformers", "urlextract"]
+inference = ["beautifulsoup4", "chromadb", "hnswlib", "pandas", "pytorch-lightning", "scikit-learn", "spacy", "torch", "tqdm", "transformers", "urlextract"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4.0" # python version constraints are caused by scipy
-content-hash = "c70bfa3d8c6d65b77e76ecee9fb73b69cb694af243773b783e56dae483324301"
+content-hash = "a8c66a8d5a3bf5654e41b4ae96e9f9146ba408f004a74414bc9e5b0a69a711d4"

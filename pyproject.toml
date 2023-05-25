@@ -68,7 +68,7 @@ etl = ["goose3", "langdetect", "tldextract", "spacy", "pdfminer.six",
 ]
 # TODO: rename & regroups extras (e.g. light, medium average or something like that...)
 inference = ["transformers", "scikit-learn", "tqdm", "torch", "pytorch-lightning", "spacy",
-    "beautifulsoup4", "pandas", "urlextract", "hnswlib"]
+    "beautifulsoup4", "pandas", "urlextract", "hnswlib", "chromadb"]
 
 all = ["chromadb"]
 
