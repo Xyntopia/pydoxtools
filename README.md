@@ -66,8 +66,13 @@ doc = pdx.Document("https://www.raspberrypi.org/app/uploads/2012/12/quick-start-
 # List available extraction functions
 print(doc.x_funcs)
 
-# Extract tables from the PDF as a pandas DataFrame
-print(doc.tables_df)
+# get all tables from a single document:
+print(doc.tables)
+
+# Extract the first 20 tables that we can find in a directory (this might take a while,
+# make sure, to only choose a small directory for testing purposes)
+docs = pdx.DocumentBag("./my_directory_with_documents", forgiving_extracts=True)
+print(docs.bag_apply(["tables_df", "filename"]).take(20))
 
 # Ask a question about the documents using a local Q&A model
 print(doc.answers(["how much ram does it have?"]))
@@ -145,7 +150,8 @@ very limited resources!
 
 ## Use Cases
 
-- analyze documents using any model from huggingface...
+- create new documents from unstructured information
+- analyze documents using any model from huggingface
 - analyze documents using a custom model
 - download a pdf from URL
 - generate document keywords

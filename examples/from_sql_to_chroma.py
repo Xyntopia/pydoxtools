@@ -99,7 +99,7 @@ if __name__ == "__main__":
         else:
             compute(100)  # choose a number how many rows you would like to add ro your chromadb!
 
-    res = query("raspberry pi products")
+    res = query("raspberry pi products", n_results=20)
 
     # query the db:
     # column.query_chroma("product")
