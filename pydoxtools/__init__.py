@@ -1,4 +1,6 @@
-__version__ = '0.5.1'
+import importlib.metadata
+
+__version__ = importlib.metadata.version("pydoxtools")
 
 import logging
 
