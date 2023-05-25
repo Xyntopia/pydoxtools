@@ -510,6 +510,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../agent/" class="md-nav__link">
+        Agent
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../reference/" class="md-nav__link">
         Other Classes
       </a>
@@ -759,8 +773,13 @@ doc = pdx.Document(&quot;https://www.raspberrypi.org/app/uploads/2012/12/quick-s
 # List available extraction functions
 print(doc.x_funcs)
 
-# Extract tables from the PDF as a pandas DataFrame
-print(doc.tables_df)
+# get all tables from a single document:
+print(doc.tables)
+
+# Extract the first 20 tables that we can find in a directory (this might take a while,
+# make sure, to only choose a small directory for testing purposes)
+docs = pdx.DocumentBag(&quot;./my_directory_with_documents&quot;, forgiving_extracts=True)
+print(docs.bag_apply([&quot;tables_df&quot;, &quot;filename&quot;]).take(20))
 
 # Ask a question about the documents using a local Q&amp;A model
 print(doc.answers([&quot;how much ram does it have?&quot;]))
@@ -823,7 +842,8 @@ very limited resources!</p>
 <h3 id="todo-describe-more-of-the-features-here">TODO: Describe more of the features here...</h3>
 <h2 id="use-cases">Use Cases</h2>
 <ul>
-<li>analyze documents using any model from huggingface...</li>
+<li>create new documents from unstructured information</li>
+<li>analyze documents using any model from huggingface</li>
 <li>analyze documents using a custom model</li>
 <li>download a pdf from URL</li>
 <li>generate document keywords</li>

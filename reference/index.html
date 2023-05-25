@@ -11,7 +11,7 @@
         <link rel="canonical" href="https://xyntopia.github.io/pydoxtools/reference/">
       
       
-        <link rel="prev" href="../documentbag/">
+        <link rel="prev" href="../agent/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -332,6 +332,20 @@
               
   
   
+  
+    <li class="md-nav__item">
+      <a href="../agent/" class="md-nav__link">
+        Agent
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
     
   
   
@@ -448,13 +462,6 @@
           <li class="md-nav__item">
   <a href="#pydoxtools.document_base.Pipeline.__setstate__" class="md-nav__link">
     __setstate__()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#pydoxtools.document_base.Pipeline.config" class="md-nav__link">
-    config()
   </a>
   
 </li>
@@ -698,13 +705,6 @@
           <li class="md-nav__item">
   <a href="#pydoxtools.document_base.Pipeline.__setstate__" class="md-nav__link">
     __setstate__()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#pydoxtools.document_base.Pipeline.config" class="md-nav__link">
-    config()
   </a>
   
 </li>
@@ -1235,7 +1235,7 @@ of a lambda function in it...</p>
 
 
 <h3 id="pydoxtools.document_base.Pipeline.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">()</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">configuration</span><span class="p">)</span></code>
 
 </h3>
 
@@ -1243,6 +1243,10 @@ of a lambda function in it...</p>
   <div class="doc doc-contents ">
   
       <p>Initializes the Pipeline instance with cache-related attributes.</p>
+<p>**configuration: A dictionary of key-value pairs representing the configuration
+        settings for the pipeline. Each key is a string representing the name
+        of the configuration setting, and the value is the corresponding value
+        to be set.</p>
 
   </div>
 
@@ -1296,74 +1300,6 @@ of a lambda function in it...</p>
   
       <p>we need to restore _x_func_cache for pickling to work...</p>
 
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h3 id="pydoxtools.document_base.Pipeline.config" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">config</span><span class="p">(</span><span class="o">**</span><span class="n">configuration</span><span class="p">)</span></code>
-
-</h3>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Set configuration parameters for a pipeline.</p>
-
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>**configuration</code></td>
-          <td>
-                <code><span title="typing.Any">Any</span></code>
-          </td>
-          <td><p>A dictionary of key-value pairs representing the configuration
-settings for the pipeline. Each key is a string representing the name
-of the configuration setting, and the value is the corresponding value
-to be set.</p></td>
-          <td>
-                <code>{}</code>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-<th>Name</th>        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-<td><code>self</code></td>          <td>
-                <code><a class="autorefs autorefs-internal" title="pydoxtools.document_base.Pipeline" href="#pydoxtools.document_base.Pipeline">Pipeline</a></code>
-          </td>
-          <td><p>A reference to the current pipeline instance, allowing for method chaining.</p></td>
-        </tr>
-    </tbody>
-  </table>
-
-<details class="example" open>
-  <summary>Example</summary>
-  <p>pipeline = Pipeline()
-pipeline.config(param1=value1, param2=value2)</p>
-</details>
   </div>
 
 </div>
@@ -1438,8 +1374,8 @@ Otherwise, it gets the "native" member-variables or other functions if an extrac
 <code class="highlight language-python"><span class="n">get_configuration_names</span><span class="p">(</span><span class="n">pipeline</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
       <small class="doc doc-label doc-label-cached"><code>cached</code></small>
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
   </span>
 
 </h3>

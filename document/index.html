@@ -350,16 +350,22 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#pydoxtools.Document--customizing-the-pipeline" class="md-nav__link">
-    Customizing the Pipeline:
+  <a href="#pydoxtools.Document--customizing-the-document-pipeline" class="md-nav__link">
+    Customizing the Document Pipeline:
   </a>
   
-</li>
+    <nav class="md-nav" aria-label="Customizing the Document Pipeline:">
+      <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#pydoxtools.Document--examples" class="md-nav__link">
     Examples
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -410,13 +416,6 @@
   
     <nav class="md-nav" aria-label="Text extraction attributes and functions">
       <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#raw_content" class="md-nav__link">
-    raw_content
-  </a>
-  
-</li>
         
           <li class="md-nav__item">
   <a href="#data" class="md-nav__link">
@@ -715,6 +714,13 @@
           <li class="md-nav__item">
   <a href="#text_segment_overlap" class="md-nav__link">
     text_segment_overlap
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#max_text_segment_num" class="md-nav__link">
+    max_text_segment_num
   </a>
   
 </li>
@@ -1180,6 +1186,20 @@
   
   
     <li class="md-nav__item">
+      <a href="../agent/" class="md-nav__link">
+        Agent
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../reference/" class="md-nav__link">
         Other Classes
       </a>
@@ -1229,16 +1249,22 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#pydoxtools.Document--customizing-the-pipeline" class="md-nav__link">
-    Customizing the Pipeline:
+  <a href="#pydoxtools.Document--customizing-the-document-pipeline" class="md-nav__link">
+    Customizing the Document Pipeline:
   </a>
   
-</li>
+    <nav class="md-nav" aria-label="Customizing the Document Pipeline:">
+      <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#pydoxtools.Document--examples" class="md-nav__link">
     Examples
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -1289,13 +1315,6 @@
   
     <nav class="md-nav" aria-label="Text extraction attributes and functions">
       <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#raw_content" class="md-nav__link">
-    raw_content
-  </a>
-  
-</li>
         
           <li class="md-nav__item">
   <a href="#data" class="md-nav__link">
@@ -1594,6 +1613,13 @@
           <li class="md-nav__item">
   <a href="#text_segment_overlap" class="md-nav__link">
     text_segment_overlap
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#max_text_segment_num" class="md-nav__link">
+    max_text_segment_num
   </a>
   
 </li>
@@ -2086,7 +2112,7 @@ doc.json(&quot;addresses&quot;,&quot;filename&quot;,&quot;keywords&quot;)
 <p>To retrieve a list of all available extraction data methods, call the <code>x_funcs()</code> method:</p>
 <pre><code class="language-python">doc.x_funcs()
 </code></pre>
-<h3 id="pydoxtools.Document--customizing-the-pipeline">Customizing the Pipeline:</h3>
+<h3 id="pydoxtools.Document--customizing-the-document-pipeline">Customizing the Document Pipeline:</h3>
 <p>The extraction pipeline can be partially overwritten or completely replaced to customize the
 document processing. To customize the pipeline, it's recommended to use the basic document
 pipeline defined in <code>pydoxtools.Document</code> as a starting point and only overwrite parts as needed.</p>
@@ -2094,7 +2120,7 @@ pipeline defined in <code>pydoxtools.Document</code> as a starting point and onl
 extraction pipelines for specific file types (including the generic one: "<em>"), such as </em>.html,
 <em>.pdf, </em>.txt, etc., follow the example below.</p>
 <p>TODO: provide more information on how to customize the pipeline and override the graph.</p>
-<h3 id="pydoxtools.Document--examples">Examples</h3>
+<h4 id="pydoxtools.Document--examples">Examples</h4>
 <p>The following is an example extension pipeline for an OCR extractor that converts images into
 text and supports file types: ".png", ".jpeg", ".jpg", ".tif", ".tiff":</p>
 <pre><code class="language-python">&quot;image&quot;: [
@@ -2180,7 +2206,7 @@ in the pipeline, because the selection of the pipeline depends on this...</p>
 
 
 <h2 id="pydoxtools.document.Document.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">fobj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">meta</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">document_type</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="n">page_numbers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_pages</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">fobj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">meta</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">document_type</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="n">page_numbers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_pages</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">configuration</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 </h2>
 
@@ -2283,6 +2309,16 @@ tasks like building an index.</p></td>
                 <code>None</code>
           </td>
         </tr>
+        <tr>
+          <td><code>configuration</code></td>
+          <td>
+                <code>dict</code>
+          </td>
+          <td><p>configuration dictionary for the pipeline</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
     </tbody>
   </table>
 
@@ -2330,10 +2366,6 @@ tasks like building an index.</p></td>
 
 <h2 id="pydoxtools.document.Document.document_type_detection" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">document_type_detection</span><span class="p">()</span></code>
-  
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-cached"><code>cached</code></small>
-  </span>
 
 </h2>
 
@@ -2365,16 +2397,6 @@ functionality makes extensive use of the pipeline features. All attributes
 and functions that are created by the pipeline are documented here.</p>
 <p>Pipeline visualizations for the structure of the Document pipelines for different
 document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree/gh-pages/images">here</a>.</p>
-<h3 id="raw_content">raw_content</h3>
-<p>Can be called using:</p>
-<pre><code>&lt;Document&gt;.x('raw_content')
-# or
-&lt;Document&gt;.raw_content
-</code></pre>
-<p>return type
-: bytes | str</p>
-<p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="data">data</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('data')
@@ -2384,8 +2406,9 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="full_text">full_text</h3>
+<p>will always return a string, no matter what...</p>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('full_text')
 # or
@@ -2394,7 +2417,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : &lt;class 'str'></p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="clean_text">clean_text</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('clean_text')
@@ -2404,7 +2427,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : &lt;class 'str'></p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="meta">meta</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('meta')
@@ -2414,7 +2437,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="file_meta">file_meta</h3>
 <p>some fast-to-calculate metadata information about a file</p>
 <p>Can be called using:</p>
@@ -2425,7 +2448,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="text_box_elements">text_box_elements</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('text_box_elements')
@@ -2435,7 +2458,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : &lt;class 'pandas.core.frame.DataFrame'></p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="text_box_list">text_box_list</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('text_box_list')
@@ -2445,7 +2468,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="tables_df">tables_df</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('tables_df')
@@ -2455,7 +2478,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : str | list[str] | list[pandas.core.frame.DataFrame]</p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="tables_dict">tables_dict</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('tables_dict')
@@ -2465,7 +2488,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="tables">tables</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('tables')
@@ -2475,7 +2498,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="addresses">addresses</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('addresses')
@@ -2485,7 +2508,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="num_pages">num_pages</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('num_pages')
@@ -2495,7 +2518,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="num_words">num_words</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('num_words')
@@ -2505,7 +2528,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="num_sents">num_sents</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('num_sents')
@@ -2515,7 +2538,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="a_d_ratio">a_d_ratio</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('a_d_ratio')
@@ -2525,8 +2548,9 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="language">language</h3>
+<p>Detect language of a document, return 'unknown' in case of an error</p>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('language')
 # or
@@ -2535,7 +2559,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : &lt;class 'str'></p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="spacy_model_size">spacy_model_size</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('spacy_model_size')
@@ -2545,7 +2569,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="spacy_model">spacy_model</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('spacy_model')
@@ -2555,7 +2579,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="spacy_doc">spacy_doc</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('spacy_doc')
@@ -2565,7 +2589,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : dict[str, typing.Any]</p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="spacy_nlp">spacy_nlp</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('spacy_nlp')
@@ -2575,7 +2599,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : dict[str, typing.Any]</p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="spacy_vectors">spacy_vectors</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('spacy_vectors')
@@ -2585,7 +2609,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="spacy_embeddings">spacy_embeddings</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('spacy_embeddings')
@@ -2595,7 +2619,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="spacy_sents">spacy_sents</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('spacy_sents')
@@ -2605,7 +2629,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="spacy_noun_chunks">spacy_noun_chunks</h3>
 <p>exracts nounchunks from spacy. Will not be cached because it is allin the spacy doc already</p>
 <p>Can be called using:</p>
@@ -2616,7 +2640,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="entities">entities</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('entities')
@@ -2626,7 +2650,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : dict[str, list[str]]</p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="url">url</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('url')
@@ -2636,7 +2660,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="sents">sents</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('sents')
@@ -2646,7 +2670,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="noun_chunks">noun_chunks</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('noun_chunks')
@@ -2656,7 +2680,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="vector">vector</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('vector')
@@ -2666,7 +2690,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="sent_vecs">sent_vecs</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('sent_vecs')
@@ -2676,7 +2700,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="sent_ids">sent_ids</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('sent_ids')
@@ -2686,7 +2710,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="noun_vecs">noun_vecs</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('noun_vecs')
@@ -2696,7 +2720,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="noun_ids">noun_ids</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('noun_ids')
@@ -2706,7 +2730,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="vectorizer_model">vectorizer_model</h3>
 <p>Choose the embeddings model (huggingface-style) and if we wantto do the vectorization using only the tokenizer. Using only thetokenizer is MUCH faster and uses lower CPU than creating actualcontextual embeddings using the model. BUt is also lower qualitybecause it lacks the context.</p>
 <p>Can be called using:</p>
@@ -2717,7 +2741,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="vectorizer_only_tokenizer">vectorizer_only_tokenizer</h3>
 <p>Choose the embeddings model (huggingface-style) and if we wantto do the vectorization using only the tokenizer. Using only thetokenizer is MUCH faster and uses lower CPU than creating actualcontextual embeddings using the model. BUt is also lower qualitybecause it lacks the context.</p>
 <p>Can be called using:</p>
@@ -2728,7 +2752,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="vectorizer_overlap_ratio">vectorizer_overlap_ratio</h3>
 <p>Choose the embeddings model (huggingface-style) and if we wantto do the vectorization using only the tokenizer. Using only thetokenizer is MUCH faster and uses lower CPU than creating actualcontextual embeddings using the model. BUt is also lower qualitybecause it lacks the context.</p>
 <p>Can be called using:</p>
@@ -2739,7 +2763,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="vec_res">vec_res</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('vec_res')
@@ -2749,7 +2773,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="tok_embeddings">tok_embeddings</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('tok_embeddings')
@@ -2759,7 +2783,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="tokens">tokens</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('tokens')
@@ -2769,7 +2793,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="embedding">embedding</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('embedding')
@@ -2779,7 +2803,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="min_size_text_segment">min_size_text_segment</h3>
 <p>controls the text segmentation for knowledge basesoverlap is only relevant for large text segmenets that need tobe split up into smaller pieces.</p>
 <p>Can be called using:</p>
@@ -2790,7 +2814,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="max_size_text_segment">max_size_text_segment</h3>
 <p>controls the text segmentation for knowledge basesoverlap is only relevant for large text segmenets that need tobe split up into smaller pieces.</p>
 <p>Can be called using:</p>
@@ -2801,7 +2825,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="text_segment_overlap">text_segment_overlap</h3>
 <p>controls the text segmentation for knowledge basesoverlap is only relevant for large text segmenets that need tobe split up into smaller pieces.</p>
 <p>Can be called using:</p>
@@ -2812,7 +2836,18 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
+<h3 id="max_text_segment_num">max_text_segment_num</h3>
+<p>controls the text segmentation for knowledge basesoverlap is only relevant for large text segmenets that need tobe split up into smaller pieces.</p>
+<p>Can be called using:</p>
+<pre><code>&lt;Document&gt;.x('max_text_segment_num')
+# or
+&lt;Document&gt;.max_text_segment_num
+</code></pre>
+<p>return type
+: </p>
+<p>supports pipeline flows:
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="text_segments">text_segments</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('text_segments')
@@ -2822,7 +2857,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="text_segment_vectors">text_segment_vectors</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('text_segment_vectors')
@@ -2832,7 +2867,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="noun_index">noun_index</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('noun_index')
@@ -2842,7 +2877,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="vectorizer">vectorizer</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('vectorizer')
@@ -2852,7 +2887,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="noun_query">noun_query</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('noun_query')
@@ -2862,7 +2897,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : typing.Callable</p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="noun_graph">noun_graph</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('noun_graph')
@@ -2872,7 +2907,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="top_k_text_rank_keywords">top_k_text_rank_keywords</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('top_k_text_rank_keywords')
@@ -2882,7 +2917,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="textrank_keywords">textrank_keywords</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('textrank_keywords')
@@ -2892,7 +2927,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : set[str]</p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="keywords">keywords</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('keywords')
@@ -2902,7 +2937,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="sent_index">sent_index</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('sent_index')
@@ -2912,7 +2947,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="sent_query">sent_query</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('sent_query')
@@ -2922,7 +2957,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : typing.Callable</p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="sent_graph">sent_graph</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('sent_graph')
@@ -2932,7 +2967,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="top_k_text_rank_sentences">top_k_text_rank_sentences</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('top_k_text_rank_sentences')
@@ -2942,7 +2977,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="textrank_sents">textrank_sents</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('textrank_sents')
@@ -2952,7 +2987,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : set[str]</p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="summarizer_model">summarizer_model</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('summarizer_model')
@@ -2962,7 +2997,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="summarizer_token_overlap">summarizer_token_overlap</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('summarizer_token_overlap')
@@ -2972,7 +3007,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="summarizer_max_text_len">summarizer_max_text_len</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('summarizer_max_text_len')
@@ -2982,7 +3017,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="slow_summary">slow_summary</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('slow_summary')
@@ -2992,7 +3027,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="qam_model_id">qam_model_id</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('qam_model_id')
@@ -3002,7 +3037,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="answers">answers</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('answers')
@@ -3012,7 +3047,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="openai_chat_model_id">openai_chat_model_id</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('openai_chat_model_id')
@@ -3022,7 +3057,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="chat_answers">chat_answers</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('chat_answers')
@@ -3032,7 +3067,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : typing.Callable[[list[str], list[str] | str], list[str]]</p>
 <p>supports pipeline flows:
-: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, pandoc, text/html, text/markdown, text/rtf</p>
+: *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
 <h3 id="meta_pdf">meta_pdf</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('meta_pdf')
@@ -3102,7 +3137,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : str | list[str] | list[pandas.core.frame.DataFrame]</p>
 <p>supports pipeline flows:
-: application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, image, image/jpeg, image/png, image/tiff, pandoc, text/markdown, text/rtf</p>
+: application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/markdown, text/rtf</p>
 <h3 id="table_box_levels">table_box_levels</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('table_box_levels')
@@ -3292,7 +3327,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : Pandoc(Meta, [Block])</p>
 <p>supports pipeline flows:
-: application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, pandoc, text/markdown, text/rtf</p>
+: application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, mediawiki, pandoc, text/markdown, text/rtf</p>
 <h3 id="full_text_format">full_text_format</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('full_text_format')
@@ -3302,7 +3337,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, pandoc, text/markdown, text/rtf</p>
+: application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, mediawiki, pandoc, text/markdown, text/rtf</p>
 <h3 id="convert_to">convert_to</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('convert_to')
@@ -3312,7 +3347,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, pandoc, text/markdown, text/rtf</p>
+: application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, mediawiki, pandoc, text/markdown, text/rtf</p>
 <h3 id="clean_format">clean_format</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('clean_format')
@@ -3322,7 +3357,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, pandoc, text/markdown, text/rtf</p>
+: application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, mediawiki, pandoc, text/markdown, text/rtf</p>
 <h3 id="sections">sections</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('sections')
@@ -3332,7 +3367,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : </p>
 <p>supports pipeline flows:
-: application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, pandoc, text/markdown, text/rtf</p>
+: application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, mediawiki, pandoc, text/markdown, text/rtf</p>
 <h3 id="pandoc_blocks">pandoc_blocks</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('pandoc_blocks')
@@ -3342,7 +3377,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : list['pandoc.types.Block']</p>
 <p>supports pipeline flows:
-: application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, pandoc, text/markdown, text/rtf</p>
+: application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, mediawiki, pandoc, text/markdown, text/rtf</p>
 <h3 id="headers">headers</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('headers')
@@ -3352,7 +3387,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>return type
 : str | list[str] | list[pandas.core.frame.DataFrame]</p>
 <p>supports pipeline flows:
-: application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, pandoc, text/markdown, text/rtf</p>
+: application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, mediawiki, pandoc, text/markdown, text/rtf</p>
 <h3 id="ocr_lang">ocr_lang</h3>
 <p>Can be called using:</p>
 <pre><code>&lt;Document&gt;.x('ocr_lang')
