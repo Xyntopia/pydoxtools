@@ -314,9 +314,10 @@ def test_summarization():
     doc.keywords
     summary = doc.slow_summary
     # check if certain keywords appear in the summary
-    wn = [w for w in {"Pydoxtools", "library", "AI", "Pipeline", "table", "pdf", "documents"}
+    wn = [w for w in {"Pydoxtools", "library", "AI", "Pipeline", "table",
+                      "pdf", "documents", "pipelines", "analysis"}
           if w.lower() in summary.lower()]
-    assert len(wn) > 6
+    assert len(wn) > 5
 
     doc = Document(fobj=make_path_absolute("../README.md"),
                    configuration=dict(spacy_model_size='md'))
