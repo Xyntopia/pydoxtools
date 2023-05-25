@@ -1,3 +1,4 @@
+import functools
 import logging
 import uuid
 from typing import Callable
@@ -204,10 +205,22 @@ class ChromaIndexFromBag(Operator):
         import chromadb
         import chromadb.config
 
-        def init_chroma(chroma_settings: chromadb.config.Settings, collection_name: str):
-            # add items from bag to chroma piece-by-piece
+        @functools.cache
+        def init_chroma(chroma_settings: chromadb.config.Settings = None, collection_name: str = None):
+            """
+            This function is cached, so that we can use an in-memory database
+            with the query function and keep it persistant for multiple injection
+            operations with "add_to_chroma". As soon as we use dask with multiple processes, we need
+            to have a persistant database though!!  make sure, we can somehow detect this...
 
-            chroma_client = chromadb.Client(chroma_settings)
+            TODO: document the above a bit more prominent!!
+            """
+            # add items from bag to chroma piece-by-piece
+            if chroma_settings:
+                chroma_client = chromadb.Client(chroma_settings)
+            else:
+                chroma_client = chromadb.Client()
+            collection_name = collection_name or "in_memory_default"
             collection = chroma_client.get_or_create_collection(name=collection_name)
             return chroma_client, collection
 
@@ -242,12 +255,15 @@ class ChromaIndexFromBag(Operator):
                 )
 
             # actually save the data on disk or wherever...
-            chroma_client.persist()
+            try:
+                chroma_client.persist()
+            except NotImplementedError:
+                pass  # probably we are trying to persist our in-memory database here...
             return range(i)
 
         def link_to_chroma_collection(
-                chroma_settings: chromadb.config.Settings,
-                collection_name: str,
+                chroma_settings: chromadb.config.Settings = None,
+                collection_name: str = None,
                 embeddings=None,
                 document=None,
                 metadata=None,

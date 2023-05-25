@@ -184,8 +184,8 @@ def test_table_extraction():
 
 def test_qam_machine():
     doc = Document(
-        fobj=make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf")
-    ).config(qam_model_id='deepset/minilm-uncased-squad2')
+        fobj=make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"),
+        configuration=dict(qam_model_id='deepset/minilm-uncased-squad2'))
     answers = doc.answers(questions=(
         'what is this the product name?',
         'who build the product?',
@@ -251,11 +251,10 @@ def test_pandoc():
 
 
 def test_pipeline_configuration():
-    doc = Document(fobj=make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf")).config(
-        qam_model_id='deepset/roberta-base-squad2')
+    doc = Document(fobj=make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"),
+                   configuration=dict(
+                       qam_model_id='deepset/roberta-base-squad2'))
     ans = doc.x('answers')(questions=('what is the address?',))
-    # doc.config(qam_model_id='some_model_that_doesn_t_exist')
-    # ans = doc.x('answers')(questions=('what is the address?',))
 
 
 def test_url_download():
@@ -269,11 +268,13 @@ def test_url_download():
 
 
 def test_ocr_and_exceptions():
-    doc = Document(fobj=make_path_absolute("./data/north_american_countries.tif")).config(ocr_on=True)
+    doc = Document(fobj=make_path_absolute("./data/north_american_countries.tif"),
+                   configuration=dict(ocr_on=True))
     doc.full_text
 
     with pytest.raises(OperatorException) as exc_info:
-        doc = Document(fobj=make_path_absolute("./data/north_american_countries.tif")).config(ocr_on=False)
+        doc = Document(fobj=make_path_absolute("./data/north_american_countries.tif"),
+                       configuration=dict(ocr_on=False))
         doc.full_text
         assert exc_info.args == ('could not get ocr_pdf_file!',)
 
@@ -281,7 +282,8 @@ def test_ocr_and_exceptions():
 # TODO: add tests for dict & yaml
 def test_yaml_json_dict_prop_dict():
     # document chaining
-    doc = Document(fobj=make_path_absolute("../README.md")).config(spacy_model_size='trf')
+    doc = Document(fobj=make_path_absolute("../README.md"),
+                   configuration=dict(spacy_model_size='trf'))
     doc.to_dict(
         "document_type",
         "num_words",
@@ -305,7 +307,8 @@ def test_yaml_json_dict_prop_dict():
 
 
 def test_summarization():
-    doc = Document(fobj=make_path_absolute("../README.md")).config(spacy_model_size='trf')
+    doc = Document(fobj=make_path_absolute("../README.md"),
+                   configuration=dict(spacy_model_size='trf'))
     doc.configuration
     doc.full_text
     doc.keywords
@@ -315,7 +318,8 @@ def test_summarization():
           if w.lower() in summary.lower()]
     assert len(wn) > 6
 
-    doc = Document(fobj=make_path_absolute("../README.md")).config(spacy_model_size='md')
+    doc = Document(fobj=make_path_absolute("../README.md"),
+                   configuration=dict(spacy_model_size='md'))
     doc.keywords
     doc.textrank_sents
 
@@ -390,7 +394,8 @@ def test_dict():
                        'twitter_handle': 'sWilliamson',
                        'bio': 'Friendly music geek. Organizer. Twitter scholar. Creator. General food nerd. '
                               'Future teen idol. Thinker.'}
-    doc = Document(person_document).config(summarizer_max_text_len=400)
+    doc = Document(person_document,
+                   configuration=dict(summarizer_max_text_len=400))
     doc2 = Document(person_document)
     doc.run_pipeline_fast()
     assert doc.keywords == ['Susan full_name', 'Susan Williamson', 'bio', 'Organizer', 'Twitter scholar']
@@ -401,11 +406,11 @@ def test_nlp_utils():
     from pydoxtools import nlp_utils as nu
     import time
 
-    doc = Document(make_path_absolute("../README.md")).config(
-        vectorizer_only_tokenizer=False,
-        vectorizer_model="sentence-transformers/all-MiniLM-L6-v2"
-    )
-
+    doc = Document(make_path_absolute("../README.md"),
+                   configuration=dict(
+                       vectorizer_only_tokenizer=False,
+                       vectorizer_model="sentence-transformers/all-MiniLM-L6-v2"
+                   ))
     defconf = doc.get_configuration_names("*")
     b = doc.configuration
 
@@ -463,8 +468,10 @@ def test_source_vs_fobj():
     d = Document(fobj)
     d.full_text
     # ts = d.text_segments
-    nd1 = Document("abcdef", source=d.source, document_type="string").config(**d.configuration)
-    nd2 = Document("123456", source=d.source, document_type="string").config(**d.configuration)
+    nd1 = Document("abcdef", source=d.source, document_type="string",
+                   configuration=d.configuration)
+    nd2 = Document("123456", source=d.source, document_type="string",
+                   configuration=d.configuration)
     assert nd1.full_text == "abcdef"
     assert nd2.full_text == "123456"
     settings.PDX_ENABLE_DISK_CACHE = False
