@@ -7786,10 +7786,11 @@ cffi = {version = ">=1.11", markers = "platform_python_implementation == \"PyPy\
 cffi = ["cffi (>=1.11)"]
 
 [extras]
+all = ["chromadb"]
 etl = ["beautifulsoup4", "dask", "extruct", "goose3", "hnswlib", "langdetect", "networkx", "openai", "pandas", "pandoc", "pdfminer.six", "pytesseract", "python-pptx", "quantities", "quantulum3", "readability-lxml", "spacy", "stemming", "tldextract", "urlextract"]
 inference = ["beautifulsoup4", "hnswlib", "pandas", "pytorch-lightning", "scikit-learn", "spacy", "torch", "tqdm", "transformers", "urlextract"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4.0" # python version constraints are caused by scipy
-content-hash = "ce00ed5af7b6808216bed063b9a127ae3df0385ab161cd3bed88e9b6173157bb"
+content-hash = "c70bfa3d8c6d65b77e76ecee9fb73b69cb694af243773b783e56dae483324301"
