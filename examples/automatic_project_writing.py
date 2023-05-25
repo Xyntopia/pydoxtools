@@ -95,4 +95,3 @@ if __name__ == "__main__":
                f"and integrate it into the given text, but keep the overall objective in mind."
         txt = agent.execute_task(task, context_size=10, max_tokens=1000, formatting="markdown")
         final_result.append([task, txt])
-        # tasks = yaml_loader(res)

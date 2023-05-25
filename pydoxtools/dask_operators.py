@@ -6,8 +6,9 @@ import dask.bag
 from dask import dataframe
 from dask.bag import Bag
 
-from pydoxtools.document_base import Pipeline
-from pydoxtools.operators_base import Operator, OperatorException
+from . import list_utils
+from .document_base import Pipeline
+from .operators_base import Operator, OperatorException
 
 
 class BagMapOperator(Operator):
@@ -139,10 +140,26 @@ class DocumentBagMap(Operator):
 
             return stats_mapping
 
+        def extract_func_creator(props: list[str]):
+            def extract(d):
+                list_doc_mapping = list_utils.iterablefyer(props)
+                fobj = d.to_dict(*list_doc_mapping)
+                fobj = list_utils.remove_list_from_lonely_object(fobj)
+                return fobj
+
+            return extract
+
         def mapping_creator(
-                mapping_func: Callable
+                mapping_func: Callable | str | list[str]
         ) -> dask.bag.Bag:
-            """will create a new document bag from an input documentbag, using a mapping function"""
+            """
+            will create a new document bag from an input documentbag, using a mapping function.
+
+            The mapping functions has to accept a pydoxtools.Document as input.
+            """
+            if not callable(mapping_func):
+                props = list_utils.iterablefyer(mapping_func)
+                mapping_func = extract_func_creator(props)
             if forgiving_extracts:
                 mapping_func = safe_mapping(mapping_func)
             if stats is not None:

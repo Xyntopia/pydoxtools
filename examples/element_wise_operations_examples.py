@@ -37,13 +37,14 @@ database_source = pydoxtools.document.DatabaseSource(
 # which we will ingest into the vector store.
 # or as a one-liner:
 #   DocumentBag(source=database_source).get_data_docbag(column).get_dicts("source", "full_text", "vector")
-table = DocumentBag(source=database_source).config(
+table = DocumentBag(source=database_source,
+                    configuration=dict(
     doc_configuration=dict(
         # here we can choose to do some fast vectorization by usong only the tokenizer
         vectorizer_only_tokenizer=True,
         vectorizer_model="sentence-transformers/all-MiniLM-L6-v2", ),
     forgiving_extracts=False,
-)
+))
 
 # demonstrate different ways on how we can extract data from documents:
 # table.take(5)[0].data.keys()
