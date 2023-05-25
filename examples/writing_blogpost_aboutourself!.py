@@ -47,7 +47,7 @@ if __name__ == "__main__":
     ######  Start the writing process  #####
     final_result = []
 
-    agent = ag.AgentBase(
+    agent = ag.Agent(
         vector_store=chroma_settings,
         objective="Write a blog post, introducing a new library (which was developed by us, "
                   "the company 'Xyntopia') to "
@@ -68,7 +68,8 @@ if __name__ == "__main__":
     questions = agent.execute_task(
         task="What additional information do you need to create a first, very short outline as a draft? " \
              "provide it as a ranked list of questions", save_task=True)
-    agent.research_questions(questions[:5])  # we only use he first 5 questions to make it faster ;).
+    # we only use he first 5 questions to make it faster ;).
+    agent.research_questions(questions[:5], allowed_documents=["text/markdown"])
 
     # now write the text
     txt = agent.execute_task(task="Complete the overall objective, formulate the text "
@@ -93,5 +94,5 @@ if __name__ == "__main__":
                f"Make the text better by executing this task: '{t}' " \
                f"and integrate it into the given text, but keep the overall objective in mind."
         txt = agent.execute_task(task, context_size=10, max_tokens=1000, formatting="markdown")
-        final_result.append(txt)
+        final_result.append([task, txt])
         # tasks = yaml_loader(res)

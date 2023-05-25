@@ -38,10 +38,14 @@ def add_info_to_collection(collection, doc: pdx.Document, metas: list[dict]):
     )
 
 
-where_or = lambda x: {"$or": x}
+def where_or(x):
+    if len(x) > 1:
+        return {"$or": x}
+    elif len(x) == 1:
+        return x[0]
 
 
-class AgentBase:
+class Agent:
     # TODO: define BlogWritingAgent as a pipeline as well?
     #       not sure, yet, if we would benefit from this here...
     #       might make sense in the future, if we have multiple
@@ -199,11 +203,11 @@ class AgentBase:
             self.add_task(task, str(res))
         return res
 
-    def research_questions(self, questions):
+    def research_questions(self, questions, allowed_documents: list[str] | None = None):
         for question in questions:
-            self.research_question(question)
+            self.research_question(question, allowed_documents=allowed_documents)
 
-    def research_question(self, question):
+    def research_question(self, question, allowed_documents: list[str] | None = None):
         task = "Produce a list of 3-5 word strings which we can convert " \
                "to embeddings and then use those for a " \
                f"nearest neighbour search. We need them to be similar to text snippets which are" \
@@ -218,9 +222,13 @@ class AgentBase:
         # TODO: make sure we are searching more documents than just this one...
         # TODO: let the AI choose which document types we will search through to answer
         #       this question...
+        if allowed_documents:
+            where = where_or([{"document_type": dtype} for dtype in allowed_documents])
+        else:
+            where = None
         res = self.chromadb_collection.query(
             query_embeddings=[embedding],
-            where={"document_type": "text/markdown"},
+            where=where,
             n_results=5)
         txt = "\n\n".join(list(set(res["documents"][0])))
 
