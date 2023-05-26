@@ -1,4 +1,3 @@
-import functools
 import logging
 import uuid
 from typing import Callable
@@ -205,7 +204,6 @@ class ChromaIndexFromBag(Operator):
         import chromadb
         import chromadb.config
 
-        @functools.cache
         def init_chroma(chroma_settings: chromadb.config.Settings = None, collection_name: str = None):
             """
             This function is cached, so that we can use an in-memory database
