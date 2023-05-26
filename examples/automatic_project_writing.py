@@ -1,5 +1,7 @@
-"""Demonstrate how to load a directory into an index and
-then answer questions about it"""
+"""
+Demonstrate how to load a directory into an index amd then write
+about it.
+"""
 
 import logging
 

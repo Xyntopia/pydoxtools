@@ -212,6 +212,9 @@ class ChromaIndexFromBag(Operator):
             to have a persistant database though!!  make sure, we can somehow detect this...
 
             TODO: document the above a bit more prominent!!
+            TODO: we would like to cache this function locally in memory for faster
+                  access, but chromadb.conf.Settings is not hashable. so we need a different
+                  solution here...
             """
             # add items from bag to chroma piece-by-piece
             if chroma_settings:

@@ -192,9 +192,9 @@ class Agent:
         self._debug_queue.append((msgs, res))
         if formatting == "yaml":
             res = yaml_loader(res)
-        if formatting == "txt":
+        elif formatting == "txt":
             res = res
-        if formatting == "markdown":
+        elif formatting == "markdown":
             res = res
         else:
             logger.warning(f"Formatting: {formatting} is unknown!")
