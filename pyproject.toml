@@ -70,8 +70,6 @@ etl = ["goose3", "langdetect", "tldextract", "spacy", "pdfminer.six",
 inference = ["transformers", "scikit-learn", "tqdm", "torch", "pytorch-lightning", "spacy",
     "beautifulsoup4", "pandas", "urlextract", "hnswlib", "chromadb"]
 
-all = ["chromadb"]
-
 [tool.poetry.group.colab]
 optional = true
 
