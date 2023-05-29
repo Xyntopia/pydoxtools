@@ -208,12 +208,21 @@ def test_address_extraction():
 def test_chat_gpt():
     import openai
     doc = Document(
-        fobj=make_path_absolute("./data/sample.rtf")
+        fobj=make_path_absolute("./data/sample.rtf"),
+        chat_model_id='gpt-3.5-turbo'
     )
     try:
         ans = doc.chat_answers(["what is the text about?"])
     except openai.error.AuthenticationError:
         logger.info("openai chat test omitted, due to lack of API key.")
+
+
+def test_gpt4all():
+    doc = Document(
+        fobj=make_path_absolute("./data/sample.rtf"),
+        chat_model_id='ggml-mpt-7b-instruct'
+    )
+    ans = doc.chat_answers(["what is the text about?"])
 
 
 def test_pandoc():
@@ -499,7 +508,6 @@ def test_erronous_file():
 
 
 if __name__ == "__main__":
-    test_document_type_detection()
     # a = pd.DataFrame(sd.sents)
     # a[2]
     pass

@@ -30,7 +30,7 @@ from .extract_filesystem import force_decode, load_raw_file_content
 from .extract_html import HtmlExtractor
 from .extract_index import IndexExtractor, KnnQuery, \
     SimilarityGraph, TextrankOperator, TextPieceSplitter, ChromaIndexFromBag
-from .extract_nlpchat import OpenAIChat
+from .extract_nlpchat import LLMChat
 from .extract_objects import EntityExtractor
 from .extract_ocr import OCRExtractor
 from .extract_pandoc import PandocLoader, PandocOperator, PandocConverter, PandocBlocks, PandocToPdxConverter
@@ -619,8 +619,18 @@ operations and include the documentation there. Lambda functions should not be u
             .pipe(property_dict="to_dict", trf_model_id="qam_model_id").out("answers").cache(),
 
             ########### Chat AI ##################
-            Configuration(openai_chat_model_id="gpt-3.5-turbo"),
-            OpenAIChat().pipe(property_dict="to_dict", model_id="openai_chat_model_id")
+            Configuration(chat_model_id="gpt-3.5-turbo").docs(
+                "In order to use openai-chatgpt, you can use 'gpt-3.5-turbo'."
+                "The standard model that can be used right now is 'ggml-mpt-7b-chat' "
+                "which runs locally and can be used for commercial purposes"
+                "Additionally, we support gpt4all models. Currently available"
+                "models are: ggml-gpt4all-j-v1.3-groovy.bin, ggml-gpt4all-l13b-snoozy.bin, "
+                "ggml-mpt-7b-chat.bin, ggml-gpt4all-j-v1.2-jazzy.bin, ggml-gpt4all-j-v1.1-breezy.bin, "
+                "ggml-gpt4all-j.bin, ggml-vicuna-7b-1.1-q4_2.bin, ggml-vicuna-13b-1.1-q4_2.bin, "
+                "ggml-wizardLM-7B.q4_2.bin, ggml-stable-vicuna-13B.q4_2.bin, ggml-mpt-7b-base.bin, "
+                "ggml-nous-gpt4-vicuna-13b.bin, ggml-mpt-7b-instruct.bin, ggml-wizard-13b-uncensored.bin"
+            ),
+            LLMChat().pipe(property_dict="to_dict", model_id="chat_model_id")
             .out("chat_answers").cache()
         ]
     }

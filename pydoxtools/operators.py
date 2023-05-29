@@ -8,7 +8,7 @@ from operators_base import FunctionOperator, ElementWiseOperator, Alias, Forgivi
 from operator_huggingface import HuggingfacePipeline, QamExtractor
 from extract_filesystem import FileLoader, PathLoader, Path
 from extract_ocr import OCRExtractor
-from extract_nlpchat import OpenAIChat
+from extract_nlpchat import LLMChat
 from extract_pandoc import PandocLoader, PandocOperator, PandocConverter, PandocBlocks
 from extract_html import HtmlExtractor
 from extract_classes import LanguageExtractor, TextBlockClassifier
