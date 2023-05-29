@@ -132,24 +132,36 @@ class LLMAgent:
             self.chromadb_collection, doc,
             [{"information_type": "data", "key": key.strip(), "info": data.strip()}])
 
-    def task_chat(self, task, context=None, previous_tasks=None, format="yaml"):
+    def task_chat(self, task, context=None, previous_tasks=None, format="yaml", method="prompt"):
         msgs = []
         msgs.append({"role": "system",
                      "content": "You are a helpful assistant that aims to complete one task."})
-        msgs.append({"role": "user",
-                     "content": f"# Overall objective: \n{self._objective}\n\n"}),
-        if previous_tasks:
+        if method == "chat":
             msgs.append({"role": "user",
-                         "content": f"# Take into account these previously completed tasks"
-                                    f"\n\n{previous_tasks} \n\n"}),
-        if context:
-            msgs.append({"role": "user",
-                         "content": f"# Take into account this context"
-                                    f"\n\n{context} \n\n"}),
-        msgs.append(
-            {"role": "user", "content": f"# Complete the following task: \n{task} \n\n"
-                                        f"Provide only the precise information requested without context, "
-                                        f"make sure we can parse the response as {format}. RESULT:\n"})
+                         "content": f"# Overall objective: \n{self._objective}\n\n"}),
+            if previous_tasks:
+                msgs.append({"role": "user",
+                             "content": f"# Take into account these previously completed tasks"
+                                        f"\n\n{previous_tasks} \n\n"}),
+            if context:
+                msgs.append({"role": "user",
+                             "content": f"# Take into account this context"
+                                        f"\n\n{context} \n\n"}),
+            msgs.append(
+                {"role": "user", "content": f"# Complete the following task: \n{task} \n\n"
+                                            f"Provide only the precise information requested without context, "
+                                            f"make sure we can parse the response as {format}. RESULT:\n"})
+        else:
+            msg = f"# Considering the overall objective: \n{self._objective}\n\n"
+            if previous_tasks:
+                msg += f"# Take into account these previously completed tasks:\n\n{previous_tasks} \n\n"
+            if context:
+                msg += f"# Take into account this context:\n\n{context} \n\n"
+            msg += f"# Complete the following task: \n{task} \n\n" \
+                   f"Provide only the precise information requested without context, " \
+                   f"make sure we can parse the response as {format}. RESULT:\n"
+            msgs.append(
+                {"role": "user", "content": msg})
         return msgs
 
     def get_context(self, task: str, n_results: int = 5, where_clause=None):
@@ -158,6 +170,11 @@ class LLMAgent:
             query_embeddings=[self.vectorize(task).tolist()],
             where=where_clause,
             n_results=n_results)["documents"]
+        return context
+
+    def get_data(self, where_clause):
+        context = self.chromadb_collection.get(
+            where=where_clause)
         return context
 
     def execute_task(
