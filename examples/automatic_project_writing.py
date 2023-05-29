@@ -30,7 +30,6 @@ if __name__ == "__main__":
         persist_directory=str(settings.PDX_CACHE_DIR_BASE / "chromadb"),
         anonymized_telemetry=False
     )
-    collection_name = "blog_index"
 
     # create our source of information. It creates a list of documents
     # in pydoxtools called "pydoxtools.DocumentBag" (which itself holds a list of pydoxtools.Document) and
@@ -49,7 +48,7 @@ if __name__ == "__main__":
     ######  Start the writing process  #####
     final_result = []
 
-    agent = ag.Agent(
+    agent = ag.LLMAgent(
         vector_store=chroma_settings,
         objective="Write a blog post, introducing a new library (which was developed by us, "
                   "the company 'Xyntopia') to "

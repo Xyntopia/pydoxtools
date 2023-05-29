@@ -45,7 +45,7 @@ def where_or(x):
         return x[0]
 
 
-class Agent:
+class LLMAgent:
     # TODO: define BlogWritingAgent as a pipeline as well?
     #       not sure, yet, if we would benefit from this here...
     #       might make sense in the future, if we have multiple
@@ -67,11 +67,11 @@ class Agent:
             data_source: pdx.DocumentBag,
             vector_store: chromadb.config.Settings,
             startfresh: bool = True,
-            privacy_mode="non_proviate_llm_queries"
+            privacy_mode="non_private_llm_queries"
     ):
         if not isinstance(vector_store, chromadb.config.Settings):
             raise NotImplementedError("Other vectorstores besides chromadb are WIP!")
-        if privacy_mode != "non_proviate_llm_queries":
+        if privacy_mode != "non_private_llm_queries":
             raise RuntimeError("You have to have 'Alpaca' model installed in order"
                                "to run other privacy modes...")
         self.vector_store = vector_store
@@ -179,7 +179,7 @@ class Agent:
         #       evaluate if we have to do it again or already have our answer...
         if previous_task_size:
             previous_tasks = self.get_context(
-                task, where_clause=self._context_where_info,
+                task, where_clause=self._context_where_tasks,
                 n_results=previous_task_size)[0]
         else:
             previous_tasks = ""
@@ -240,6 +240,7 @@ class Agent:
         # if not anslist.empty:
         #    ans = anslist.groupby(0).sum().sort_values(by=1, ascending=False).index[0]
         # else:
+        # TODO: should we save the question?
         res = self.execute_task(task=f"answer the following question: '{question}' "
                                      f"using this text as input: {txt}", formatting="txt")
         ans = res
