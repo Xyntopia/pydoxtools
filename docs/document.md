@@ -1036,15 +1036,15 @@ return type
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
-### openai_chat_model_id
+### chat_model_id
             
-
+In order to use openai-chatgpt, you can use 'gpt-3.5-turbo'.The standard model that can be used right now is 'ggml-mpt-7b-chat' which runs locally and can be used for commercial purposesAdditionally, we support gpt4all models. Currently availablemodels are: ggml-gpt4all-j-v1.3-groovy.bin, ggml-gpt4all-l13b-snoozy.bin, ggml-mpt-7b-chat.bin, ggml-gpt4all-j-v1.2-jazzy.bin, ggml-gpt4all-j-v1.1-breezy.bin, ggml-gpt4all-j.bin, ggml-vicuna-7b-1.1-q4_2.bin, ggml-vicuna-13b-1.1-q4_2.bin, ggml-wizardLM-7B.q4_2.bin, ggml-stable-vicuna-13B.q4_2.bin, ggml-mpt-7b-base.bin, ggml-nous-gpt4-vicuna-13b.bin, ggml-mpt-7b-instruct.bin, ggml-wizard-13b-uncensored.bin
 
 Can be called using:
 
-    <Document>.x('openai_chat_model_id')
+    <Document>.x('chat_model_id')
     # or
-    <Document>.openai_chat_model_id
+    <Document>.chat_model_id
 
 return type
 : 
