@@ -866,8 +866,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#openai_chat_model_id" class="md-nav__link">
-    openai_chat_model_id
+  <a href="#chat_model_id" class="md-nav__link">
+    chat_model_id
   </a>
   
 </li>
@@ -1765,8 +1765,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#openai_chat_model_id" class="md-nav__link">
-    openai_chat_model_id
+  <a href="#chat_model_id" class="md-nav__link">
+    chat_model_id
   </a>
   
 </li>
@@ -3048,11 +3048,12 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 : </p>
 <p>supports pipeline flows:
 : *, &lt;class 'dict'>, &lt;class 'list'>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf</p>
-<h3 id="openai_chat_model_id">openai_chat_model_id</h3>
+<h3 id="chat_model_id">chat_model_id</h3>
+<p>In order to use openai-chatgpt, you can use 'gpt-3.5-turbo'.The standard model that can be used right now is 'ggml-mpt-7b-chat' which runs locally and can be used for commercial purposesAdditionally, we support gpt4all models. Currently availablemodels are: ggml-gpt4all-j-v1.3-groovy.bin, ggml-gpt4all-l13b-snoozy.bin, ggml-mpt-7b-chat.bin, ggml-gpt4all-j-v1.2-jazzy.bin, ggml-gpt4all-j-v1.1-breezy.bin, ggml-gpt4all-j.bin, ggml-vicuna-7b-1.1-q4_2.bin, ggml-vicuna-13b-1.1-q4_2.bin, ggml-wizardLM-7B.q4_2.bin, ggml-stable-vicuna-13B.q4_2.bin, ggml-mpt-7b-base.bin, ggml-nous-gpt4-vicuna-13b.bin, ggml-mpt-7b-instruct.bin, ggml-wizard-13b-uncensored.bin</p>
 <p>Can be called using:</p>
-<pre><code>&lt;Document&gt;.x('openai_chat_model_id')
+<pre><code>&lt;Document&gt;.x('chat_model_id')
 # or
-&lt;Document&gt;.openai_chat_model_id
+&lt;Document&gt;.chat_model_id
 </code></pre>
 <p>return type
 : </p>
