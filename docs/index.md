@@ -12,7 +12,7 @@ manipulation, consisting of four main classes:
 - [pydoxtools.Document][]
 - [pydoxtools.DocumentBag][]
 - [pydoxtools.Pipeline][]
-- [pydoxtools.Agent][]
+- [pydoxtools.LLMAgent][]
 
 Additionally, it offers a collection of operators:
 
