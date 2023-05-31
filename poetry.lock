@@ -1934,6 +1934,26 @@ arabic = ["nltk"]
 chinese = ["jieba"]
 
 [[package]]
+name = "gpt4all"
+version = "0.2.3"
+description = "Python bindings for GPT4All"
+category = "main"
+optional = true
+python-versions = ">=3.8"
+files = [
+    {file = "gpt4all-0.2.3-py3-none-macosx_10_9_universal2.whl", hash = "sha256:8eabb8ec0b2f52bfa89a21acb75daba3dab2c5b3aeca3a10d22483b85b7ca95f"},
+    {file = "gpt4all-0.2.3-py3-none-manylinux1_x86_64.whl", hash = "sha256:d2256ba1dc579c9871a9371bb7e3e4ccec670806d68b419e6811cfec0ada34c9"},
+    {file = "gpt4all-0.2.3-py3-none-win_amd64.whl", hash = "sha256:5ffc7f54e72bcd390f19073092d882349fb00611ec2604a242c55b3d1967df57"},
+]
+
+[package.dependencies]
+requests = "*"
+tqdm = "*"
+
+[package.extras]
+dev = ["mkautodoc", "mkdocs-jupyter", "mkdocs-material", "mkdocstrings[python]", "pytest", "setuptools", "twine", "wheel"]
+
+[[package]]
 name = "greenlet"
 version = "2.0.2"
 description = "Lightweight in-process concurrent programming"
@@ -7786,11 +7806,10 @@ cffi = {version = ">=1.11", markers = "platform_python_implementation == \"PyPy\
 cffi = ["cffi (>=1.11)"]
 
 [extras]
-all = ["chromadb"]
 etl = ["beautifulsoup4", "dask", "extruct", "goose3", "hnswlib", "langdetect", "networkx", "openai", "pandas", "pandoc", "pdfminer.six", "pytesseract", "python-pptx", "quantities", "quantulum3", "readability-lxml", "spacy", "stemming", "tldextract", "urlextract"]
-inference = ["beautifulsoup4", "chromadb", "hnswlib", "pandas", "pytorch-lightning", "scikit-learn", "spacy", "torch", "tqdm", "transformers", "urlextract"]
+inference = ["beautifulsoup4", "chromadb", "gpt4all", "hnswlib", "pandas", "pytorch-lightning", "scikit-learn", "spacy", "torch", "tqdm", "transformers", "urlextract"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4.0" # python version constraints are caused by scipy
-content-hash = "a8c66a8d5a3bf5654e41b4ae96e9f9146ba408f004a74414bc9e5b0a69a711d4"
+content-hash = "2dfb4b9189db301a9e91588afe545b7e2f4cb334a2c95c05a1614164b2d32212"

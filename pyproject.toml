@@ -58,6 +58,7 @@ dask = {extras = ["complete"], version = "^2023.4.1", optional = true}
 diskcache = "^5.6.1"
 chardet = "^5.1.0"
 chromadb = {version = "^0.3.23", optional = true}
+gpt4all = {version = "^0.2.3", optional = true}
 
 [tool.poetry.extras]
 # extraction-transformation-load facilities
@@ -68,7 +69,7 @@ etl = ["goose3", "langdetect", "tldextract", "spacy", "pdfminer.six",
 ]
 # TODO: rename & regroups extras (e.g. light, medium average or something like that...)
 inference = ["transformers", "scikit-learn", "tqdm", "torch", "pytorch-lightning", "spacy",
-    "beautifulsoup4", "pandas", "urlextract", "hnswlib", "chromadb"]
+    "beautifulsoup4", "pandas", "urlextract", "hnswlib", "chromadb", "gpt4all"]
 
 [tool.poetry.group.colab]
 optional = true
