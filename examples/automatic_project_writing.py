@@ -78,21 +78,21 @@ if __name__ == "__main__":
                              context_size=20, max_tokens=1000, formatting="txt")
     final_result.append(txt)  # add a first draft to the result
 
-    critique = agent.execute_task(task="Given this text:\n\n```markdown\n{txt}\n```"
+    critique = agent.execute_task(task=f"Given this text:\n\n```markdown\n{txt}\n```"
                                        "\n\nlist 5 points of critique about the text",
                                   context_size=0, max_tokens=1000)
 
     tasks = agent.execute_task(
-        task="Given this text:\n\n```markdown\n{txt}\n```\n\n"
+        task=f"Given this text:\n\n```markdown\n{txt}\n```\n\n"
              f"and its critique: {critique}\n\n"
-             "Generate instructions that would make it better. "
-             "Sort them by importance and return it as a list of tasks",
+             "Generate specific instructions for an AI to make the given text better. "
+             "Sort them by importance and return them as a flat list of tasks",
         context_size=0, max_tokens=1000)
 
     for t in tasks:
         task = "Given this text:\n\n" \
                f"```markdown\n{txt}\n```\n\n" \
-               f"Make the text better by executing this task: '{t}' " \
-               f"and integrate it into the given text, but keep the overall objective in mind."
+               f"Improve the text by modifying it according to this task: '{t}' " \
+               f"Also pay attention to the overall objective. "
         txt = agent.execute_task(task, context_size=10, max_tokens=1000, formatting="markdown")
         final_result.append([task, txt])

@@ -85,6 +85,7 @@ class LLMAgent:
         # TODO: make agents reuse information in the future!
         if startfresh:
             self.chromadb_collection.delete(where=self._context_where_all)
+            self.chromadb_client.persist()
 
     @property
     def collection_name(self):
