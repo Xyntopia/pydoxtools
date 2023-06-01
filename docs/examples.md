@@ -8,11 +8,16 @@ for the wwriting part and a [pydoxtools.DocumentBag][] for information retrieval
 
 here is the link to the notebook:
 
-- [https://github.com/Xyntopia/pydoxtools/blob/main/examples/automated_blog_writing.ipynb]()
+- open directly in colab to play around with it:  
+  <a target="_blank" href="https://colab.research.google.com/github/Xyntopia/pydoxtools/blob/main/examples/automated_blog_writing.ipynb">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
+</a>
+- on github: [https://github.com/Xyntopia/pydoxtools/blob/main/examples/automated_blog_writing.ipynb](https://github.com/Xyntopia/pydoxtools/blob/main/examples/automated_blog_writing.ipynb)
+
 
 And the same thing in about 100 lines of code:
 
-- [https://github.com/Xyntopia/pydoxtools/blob/main/examples/automatic_project_writing.py]()
+- [https://github.com/Xyntopia/pydoxtools/blob/main/examples/automatic_project_writing.py](https://github.com/Xyntopia/pydoxtools/blob/main/examples/automatic_project_writing.py)
 
 ## TODO: add examples in more detail
 
