@@ -12,7 +12,7 @@ keywords = ["AI", "document-analysis", "LLM", "NLP", "ML"]
 
 
 [tool.poetry.dependencies]
-python = ">=3.10,<4.0" # python version constraints are caused by scipy
+python = ">=3.8,<4.0" # python version constraints are caused by scipy
 goose3 = { optional = true, version = ">=3.1.6" }
 # we are using this version of readability as the other version has a little bug...
 readability-lxml = { optional = true, version = ">=0.8.1" }
