@@ -188,9 +188,10 @@ class LLMAgent:
             save_task=False
     ):
         if context_size:
-            context = self.get_context(task,
-                                       where_clause=self._context_where_info,
-                                       n_results=context_size)[0]
+            context = self.get_context(
+                task,
+                where_clause=self._context_where_info,
+                n_results=context_size)[0]
         else:
             context = ""
         # TODO: if we had this exact task in an earlier iteration..
@@ -259,6 +260,7 @@ class LLMAgent:
         #    ans = anslist.groupby(0).sum().sort_values(by=1, ascending=False).index[0]
         # else:
         # TODO: should we save the question?
+        """If you don't know the answer, just say that you don't know, don't try to make up an answer."""
         res = self.execute_task(task=f"answer the following question: '{question}' "
                                      f"using this text as input: {txt}", formatting="txt")
         ans = res
