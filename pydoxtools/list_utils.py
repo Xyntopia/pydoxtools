@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Thu Apr  9 22:12:25 2020
 # TODO write file description
@@ -92,10 +91,10 @@ def flatten_unique(x):
 
 
 def flatten_dict(
-        dct: Dict[str, Any],
+        dct: dict[str, Any],
         prefix: str = '',
         separator: str = '.'
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Flattens a nested dictionary structure into a single-level dictionary.
 
@@ -185,7 +184,7 @@ def deep_str_convert(obj: Any) -> Any:
     return res
 
 
-def group_by(data: List[Tuple[str, Any]]) -> Dict[str, Any]:
+def group_by(data: list[tuple[str, Any]]) -> dict[str, Any]:
     """group data given as a list of tuples where the first element of the tuple
     specfies the group key.
     """

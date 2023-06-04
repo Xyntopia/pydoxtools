@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Mon Mar 30 15:29:52 2020
 
@@ -18,6 +17,8 @@ TODO: think about how to disribute functions between nlp_utils and
       classifier
 """
 
+from __future__ import annotations  # this is so, that we can use python3.10 annotations..
+
 import functools
 import logging
 from difflib import SequenceMatcher
@@ -28,7 +29,6 @@ import pandas as pd
 import sklearn as sk
 import sklearn.linear_model
 import torch
-from pydantic import BaseModel
 from scipy.spatial.distance import pdist, squareform
 from tqdm import tqdm
 from transformers import AutoTokenizer, AutoModel, AutoModelForQuestionAnswering
@@ -61,7 +61,7 @@ def load_tokenizer(model_id):
     return tokenizer
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def load_model(model_id: str) -> Any:
     logger.info(f"load model {model_id} on device: {device}")
     # model = AutoModelForQuestionAnswering.from_pretrained(model_id, output_hidden_states=True)
@@ -320,7 +320,7 @@ def vecseq_similarity(vs, search_vec):
     return cos_compare(vs, [search_vec])
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def get_vocabulary(model_id: str):
     """make sure the vocabulary only gets loaded once
     TODO: implement more vocabularies"""
@@ -454,14 +454,14 @@ def convert_ids_to_string(model_id: str, ids):
     return tokenizer.convert_tokens_to_string(a)
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def load_pipeline(pipeline_type: str, model_id: str):
     from transformers import pipeline
     pipeline_instance = pipeline(pipeline_type, model=model_id)
     return pipeline_instance
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def load_qa_models(model_id: str):
     # TODO: only load model "id" and use that id
     #        with transformers AutoModel etc...

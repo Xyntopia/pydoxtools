@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Mon Dec 16 12:07:52 2019
 
@@ -8,6 +7,9 @@ Created on Mon Dec 16 12:07:52 2019
 # alternatives to camelot:
 # https://github.com/tabulapdf/tabula for "stream-tables"
 # 
+
+
+from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
 
 import functools

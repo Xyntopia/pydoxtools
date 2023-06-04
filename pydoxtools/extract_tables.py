@@ -1,3 +1,6 @@
+from __future__ import annotations  # this is so, that we can use python3.10 annotations..
+
+
 import functools
 import hashlib
 import logging
@@ -325,7 +328,7 @@ class Table:
         le_bb = np.array([self.df_le.x0.min(), self.df_le.y0.min(), self.df_le.x1.max(), self.df_le.y1.max()])
         return np.array([*np.vstack([ge_bb[:2], le_bb[:2]]).min(0), *np.vstack([ge_bb[2:], le_bb[2:]]).max(0)])
 
-    @functools.lru_cache()
+    @functools.lru_cache
     def detect_cells(self, steps=None) -> pd.DataFrame:
         """
         This algorithm works by slowly scanning through a table bottom-to-top first
@@ -487,7 +490,7 @@ class Table:
         else:
             return pd.DataFrame(cells)
 
-    @functools.lru_cache()
+    @functools.lru_cache
     def convert_cells_to_df(self) -> typing.Tuple[pd.DataFrame, typing.Tuple]:
         """
         TODO: make the algorithm work with non-graphical tables as well by searching for rows/columns/cells
@@ -557,7 +560,7 @@ class Table:
 
         # remove some special characters and normalize whitespace
         # to get a good md5 sum for these tables...
-        tokentable = table.replace({'<.?s>': '', '\s+': ' '}, regex=True)
+        tokentable = table.replace({'<.?s>': '', r'\s+': ' '}, regex=True)
         tablestr = str(tokentable.values.tolist())
         md5 = hashlib.md5(tablestr.encode('utf-8')).hexdigest()
 

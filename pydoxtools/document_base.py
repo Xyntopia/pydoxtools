@@ -1,8 +1,11 @@
+from __future__ import annotations  # this is so, that we can use python3.10 annotations..
+
 import functools
 import json
 import logging
 import pathlib
 import pickle
+import sys
 import uuid
 from dataclasses import dataclass
 from enum import Enum
@@ -23,8 +26,13 @@ from .settings import settings
 
 logger = logging.getLogger(__name__)
 
+if sys.version_info.minor < 10:
+    slot_args = dict()
+else:
+    slot_args = dict(slots=True)
 
-@dataclass(eq=True, frozen=True, slots=True)
+
+@dataclass(eq=True, frozen=True, **slot_args)
 class Font:
     name: str
     size: float
@@ -37,7 +45,7 @@ class ElementType(Enum):
     Image = 3
 
 
-@dataclass(slots=True)
+@dataclass(**slot_args)
 class DocumentElement:
     type: ElementType
     p_num: int | None = None
@@ -63,7 +71,7 @@ class DocumentElement:
 
 
 class TokenCollection:
-    def __init__(self, tokens: List[spacy.tokens.Token]):
+    def __init__(self, tokens: list[spacy.tokens.Token]):
         self._tokens = tokens
 
     @cached_property
@@ -114,7 +122,7 @@ class MetaPipelineClassConfiguration(type):
     def __new__(cls, clsname, bases, attrs):
         start_time = time()
         # construct our class
-        new_class: Pipeline.__class__ = super(MetaPipelineClassConfiguration, cls).__new__(
+        new_class: Pipeline.__class__ = super().__new__(
             cls, clsname, bases, attrs)
 
         if hasattr(new_class, "_operators"):
@@ -363,7 +371,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
 
         return deep_str_convert(properties)
 
-    @functools.cache
+    @functools.lru_cache
     def to_dataframe(self, *args, **kwargs):
         dictlist = self.to_dict(*args, **kwargs)
         df = pd.DataFrame(dictlist)
@@ -466,9 +474,9 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         node_docs = []
         for k, v in output_infos.items():
             return_types = " | ".join(sorted(str(i) for i in v['output_types']))
-            return_types = return_types.replace(">", "\>")
+            return_types = return_types.replace(">", r"\>")
             pipeline_flows = ", ".join(sorted(v['pipe_types']))
-            pipeline_flows = pipeline_flows.replace(">", "\>")
+            pipeline_flows = pipeline_flows.replace(">", r"\>")
 
             single_node_doc = f"""### {k}
             

@@ -4,10 +4,11 @@ a set of generic pipeline operators that can
 be used inside of a pipeline class definition
 to create your own pipelines.
 """
+from __future__ import annotations  # this is so, that we can use python3.10 annotations..
+
 import abc
 import typing
 from abc import ABC
-
 from typing import Callable, Iterable, Any
 
 

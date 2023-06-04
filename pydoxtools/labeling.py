@@ -4,6 +4,9 @@ in our jupyter notebooks...  They are not intended for production
 use.
 """
 
+from __future__ import annotations  # this is so, that we can use python3.10 annotations..
+
+
 import concurrent.futures
 import concurrent.futures
 import functools
@@ -97,7 +100,7 @@ def detect_tables(
 md5_cols = ["md5", "page", "file"]
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def load_tables_from_csv():
     """TODO: move this into an extractor!!"""
     table_data = settings.TRAINING_DATA_DIR / "pdfs/tabledata.csv"

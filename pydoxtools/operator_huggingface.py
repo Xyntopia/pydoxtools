@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Huggingface related code
 
 Enables loading of mdoels from huggingface for all kinds of purposes
 """
+
+from __future__ import annotations  # this is so, that we can use python3.10 annotations..
+
 
 import functools
 import logging

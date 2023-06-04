@@ -16,7 +16,7 @@ import torch
 
 from .settings import settings
 
-_asciichars = ''.join(sorted(set(chr(i) for i in range(32, 128)).union(string.printable)))
+_asciichars = ''.join(sorted({chr(i) for i in range(32, 128)}.union(string.printable)))
 
 
 def rand_chars(char_dict: dict) -> typing.Callable[[], str]:
@@ -128,7 +128,7 @@ class BusinessAddressGenerator(GeneratorMixin):
         self._rand_str_perc = rand_str_perc  # probability to use radom strings in certain areas
         self._osm_perc = osm_perc  # probability to use openstreetmap data
         self._fieldname_prob = fieldname_prob  # probability to use a fieldname in front of an address line
-        self._f: "faker.Faker" | None = None
+        self._f: faker.Faker | None = None
         self._type: str = type
 
     @cached_property

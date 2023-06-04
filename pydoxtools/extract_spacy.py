@@ -1,3 +1,6 @@
+from __future__ import annotations  # this is so, that we can use python3.10 annotations..
+
+
 import functools
 import logging
 import subprocess
@@ -61,7 +64,7 @@ def get_spacy_model_id(model_language, size="sm") -> Optional[str]:
         return f'xx_sent_ud_sm'
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def load_cached_spacy_model(model_id: str) -> Language:
     """
     load spacy nlp model and in case of a transformer model add custom vector pipeline...

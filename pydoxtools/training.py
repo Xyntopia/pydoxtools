@@ -1,3 +1,6 @@
+
+from __future__ import annotations  # this is so, that we can use python3.10 annotations..
+
 import datetime
 import functools
 import logging
@@ -19,7 +22,7 @@ from pydoxtools.settings import settings
 logger = logging.getLogger(__name__)
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def load_labeled_webpages():
     trainingfiles = file_utils.get_nested_paths(settings.TRAINING_DATA_DIR, "trainingitem*.parquet")
 
@@ -53,7 +56,7 @@ def load_labeled_webpages():
     return df
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def load_labeled_pdf_files(label_subset=None) -> pd.DataFrame:
     """
     This function loads the pdfs from the training data and
@@ -103,7 +106,7 @@ class PdfVectorDataSet(torch.utils.data.Dataset):
         return len(self.labels)
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def prepare_pdf_training():
     """
     loads textblock data, enriches it with addresses and
@@ -152,7 +155,7 @@ def prepare_pdf_training():
     return train_loader, test_loader, model
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def prepare_page_training():
     """
     Prepares training data, loaders and model parameters
@@ -326,7 +329,7 @@ def prepare_textblock_training(
     return train_loader, validation_loader, model, trainer
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def prepare_url_training():
     # TODO:  use our textblock classifier for this!
     df = load_labeled_webpages()

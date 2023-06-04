@@ -1,3 +1,6 @@
+from __future__ import annotations  # this is so, that we can use python3.10 annotations..
+
+
 import functools
 import functools
 import io
@@ -309,7 +312,7 @@ operations and include the documentation there. Lambda functions should not be u
             .pipe(x="raw_content").out("text_box_elements"),
             FunctionOperator(lambda t, s: [t, s])
             .pipe(t="title", s="short_title").out("titles").cache(),
-            FunctionOperator(lambda x: set(w.strip() for w in x.split(",")))
+            FunctionOperator(lambda x: {w.strip() for w in x.split(",")})
             .pipe(x="html_keywords_str").out("html_keywords").cache(),
 
             ########### AGGREGATION ##############
@@ -728,7 +731,7 @@ operations and include the documentation there. Lambda functions should not be u
             except:
                 pass
 
-    @functools.cache
+    @functools.lru_cache
     def _key(self):
         return (self.__class__.__name__, str(self._configuration), self._fobj, self._source,
                 self._document_type, self._page_numbers, self._max_pages)

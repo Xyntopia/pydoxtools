@@ -1,3 +1,5 @@
+from __future__ import annotations  # this is so, that we can use python3.10 annotations..
+
 import functools
 import pathlib
 import typing
@@ -23,7 +25,7 @@ def force_decode(txt: bytes | str):
 def load_raw_file_content(fobj: bytes | str | Path | typing.IO) -> bytes | str:
     if isinstance(fobj, pathlib.Path):
         try:
-            with open(fobj, "r") as file:
+            with open(fobj) as file:
                 txt = file.read()
         except:
             with open(fobj, "rb") as file:

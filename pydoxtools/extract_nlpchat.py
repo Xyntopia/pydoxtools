@@ -1,3 +1,5 @@
+from __future__ import annotations  # this is so, that we can use python3.10 annotations..
+
 import functools
 from typing import Callable
 
@@ -50,7 +52,7 @@ def openai_chat_completion(msgs, model_id='gpt-3.5-turbo', max_tokens=256):
     return result
 
 
-@functools.cache
+@functools.lru_cache
 def get_gpt4model(model_id):
     from gpt4all import GPT4All
     # gptj = GPT4All("ggml-gpt4all-j-v1.3-groovy")
@@ -58,13 +60,13 @@ def get_gpt4model(model_id):
     return gptj
 
 
-@functools.cache
+@functools.lru_cache
 def gpt4_models():
     from gpt4all import GPT4All
     return [m["filename"].strip('.bin') for m in GPT4All.list_models()]
 
 
-@cache.memoize()
+@functools.lru_cache
 def gpt4allchat(messages, model_id="ggml-mpt-7b-instruct", max_tokens=256, *args, **kwargs):
     gptj = get_gpt4model(model_id)
     res = gptj.chat_completion(messages, default_prompt_footer=False, default_prompt_header=False)

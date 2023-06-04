@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Mon Apr  6 22:01:10 2020
 TODO write file description
 """
+from __future__ import annotations  # this is so, that we can use python3.10 annotations..
+
+
 
 import abc
 import functools
@@ -63,7 +65,7 @@ class string_vectorizer(torch.nn.Module):
     """
 
     def __init__(self):
-        super(string_vectorizer, self).__init__()
+        super().__init__()
         self.model_name = settings.PDXT_STANDARD_TOKENIZER  # name of model used for initialization
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         embedding_num, embedding_dim = 119547, 768  # size of multilingual BERT vocabulary
@@ -147,7 +149,7 @@ class classifier_functions:
 
 class lightning_training_procedures(pytorch_lightning.LightningModule):
     def __init__(self):
-        super(lightning_training_procedures, self).__init__()
+        super().__init__()
         self.histograms = True
         self._hp_metric = None
 
@@ -300,7 +302,7 @@ class txt_block_classifier(
             hp_metric=None,
             embeddings_mode=None
     ):
-        super(txt_block_classifier, self).__init__()
+        super().__init__()
 
         # we are saving all hyperparameters from above in the model checkpoint this way...
         self.save_hyperparameters()
@@ -501,7 +503,7 @@ class urlClassifier(
     """
 
     def __init__(self, classes):
-        super(urlClassifier, self).__init__()
+        super().__init__()
         self.save_hyperparameters()
         self.classes_ = list(classes)
         self.classmap_ = dict(enumerate(classes))
@@ -542,7 +544,7 @@ class pageClassifier(
     __version__ = "CCXv2002007"
 
     def __init__(self, classmap, scaling):
-        super(pageClassifier, self).__init__()
+        super().__init__()
         self.save_hyperparameters()
         self.classmap_ = classmap
         self.classmapinv_ = {v: k for k, v in classmap.items()}
@@ -621,7 +623,7 @@ class pdfClassifier(
     __version__ = "txt20200807"
 
     def __init__(self, classmap):
-        super(pdfClassifier, self).__init__()
+        super().__init__()
         self.save_hyperparameters()  # save classmap
         self.cached = False
         self.classmap_ = classmap
@@ -701,7 +703,7 @@ class pdfClassifier(
         return torch.stack(x)
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def load_classifier(name):
     logger.info(f"loading classifier: {name}")
     if name == "text_block":
@@ -717,7 +719,7 @@ def load_classifier(name):
     return net
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def gen_meta_info(url, htmlstr) -> torch.tensor:
     """
     Generates some meta-info mainly based

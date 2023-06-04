@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+# !/usr/bin/env python3
 """
 Created on Mon Apr  6 21:57:32 2020
 # TODO write file description
 # TODO split up file in "cleaning" and "extraction" functions
 """
+from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
 import logging
 import os
@@ -105,12 +105,12 @@ def url_join(url1, url2):
     joins two urls while removing double-slashes
     """
     # TODO: remove double slashes from URL with http
-    url1, url2 = [url.replace("//", "/") if url[:4] != "http"
-                  else url[:7] + url[7:].replace("//", "/") for url in [url1, url2]]
+    url1, url2 = (url.replace("//", "/") if url[:4] != "http"
+                  else url[:7] + url[7:].replace("//", "/") for url in [url1, url2])
     return urllib.parse.urljoin(url1, url2)
 
 
-def get_pdf_links(html) -> List[str]:
+def get_pdf_links(html) -> list[str]:
     linklist = []
     soup = BeautifulSoup(html, 'lxml')
     for link in soup.find_all('a', href=True):

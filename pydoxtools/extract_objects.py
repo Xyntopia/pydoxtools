@@ -1,3 +1,5 @@
+from __future__ import annotations  # this is so, that we can use python3.10 annotations..
+
 from typing import Any
 
 import pandas as pd
