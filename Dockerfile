@@ -164,6 +164,8 @@ RUN apt-get update && \
 RUN pip install -U "pydoxtools[etl,inference] @ git+https://github.com/xyntopia/pydoxtools.git@python3.8_support"
 RUN git clone --recurse-submodules -b python3.8_support https://github.com/xyntopia/pydoxtools.git
 RUN pip install pytest
+RUN wget https://github.com/jgm/pandoc/releases/download/2.19.2/pandoc-2.19.2-1-amd64.deb
+RUN dpkg -i pandoc-2.19.2-1-amd64.deb
 
 # -------------------------- run tests --------------------------------------
 
