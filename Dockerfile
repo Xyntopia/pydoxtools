@@ -146,7 +146,7 @@ ENTRYPOINT [ "jupyter", "lab", "--allow-root", "--ip", "0.0.0.0", "--no-browser"
 
 # -------------------------- pip install test --------------------------------------
 
-FROM python:3.11-slim as pip-test
+FROM python:3.8-slim as test3.8
 
 RUN apt-get update && \
     DEBIAN_FRONTEND="noninteractive" apt-get install --no-install-recommends -y \
@@ -158,3 +158,18 @@ RUN apt-get update && \
     && apt-get clean autoclean \
     && apt-get autoremove --yes \
     && rm -rf /var/lib/{apt,dpkg,cache,log}/
+
+#RUN pip install pydoxtools
+# install from github project itself
+RUN pip install -U "pydoxtools[etl,inference] @ git+https://github.com/xyntopia/pydoxtools.git@python3.8_support"
+RUN git clone --recurse-submodules -b python3.8_support https://github.com/xyntopia/pydoxtools.git
+RUN pip install pytest
+
+# -------------------------- run tests --------------------------------------
+
+FROM test3.8 as test_local
+
+COPY . /pydoxtools/
+WORKDIR pydoxtools
+RUN pip install .
+RUN pytest

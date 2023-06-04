@@ -19,10 +19,15 @@ services:
     #volumes:
     #  - $HOME/comcharax_data:/root/comcharax_data
 
-  tester:
+  test3.8:
     image: yeus/pydoxtools_testing:latest
     build:
       context: .
-      target: pip-test
+      target: test3.8
 
+  test_local:
+    image: yeus/pydoxtools_test_local:latest
+    build:
+      context: .
+      target: test_local
 
