@@ -13,7 +13,7 @@ import numbers
 from collections.abc import Iterable, Mapping, MutableMapping
 from itertools import groupby
 from operator import itemgetter
-from typing import List, Tuple, Any, Dict
+from typing import Any, Dict
 
 import pandas as pd
 

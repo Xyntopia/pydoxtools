@@ -3,7 +3,6 @@ Potentially cython-optimizable code for geometric calculations should go here.
 """
 from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
-
 import difflib
 import functools
 import typing
@@ -664,10 +663,11 @@ def boundarybox_intersection_query(bbs, bbox, tol=1.0):
     """
     # valid_areas.loc[valid_areas.x0>bbox[0]].loc[valid_areas.x1<bbox[2]]
     # in order to increase the speed we filter with several .loc operations
-    indices =  bbs.loc[bbs.y1 > (bbox[1] - tol)].loc[bbs.y0 < (bbox[3] + tol)] \
+    indices = bbs.loc[bbs.y1 > (bbox[1] - tol)].loc[bbs.y0 < (bbox[3] + tol)] \
         .loc[bbs.x1 > (bbox[0] - tol)].loc[bbs.x0 < (bbox[2] + tol)].index
 
     return indices
+
 
 # TODO: check in different location whether it makes sense that
 #       we use a custom distance function in order to improve clustering

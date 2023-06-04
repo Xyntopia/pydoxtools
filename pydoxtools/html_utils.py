@@ -12,7 +12,6 @@ import re
 import tempfile
 import urllib
 import webbrowser
-from typing import List
 from urllib.parse import urlparse
 
 import pandas as pd

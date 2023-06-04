@@ -5,8 +5,6 @@ TODO write file description
 """
 from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
-
-
 import abc
 import functools
 import logging
@@ -436,7 +434,7 @@ class txt_block_classifier(
         # normalize meta data on string length
         counts_norm = counts / (str_lens + 0.0001)  # adding 0.0001 to prevent div errors
         # len(s) / 2000,  # normalize size with 2000 (approx 1 pages = 1.0)
-        meta = torch.cat([counts_norm, str_lens/2000], 1)
+        meta = torch.cat([counts_norm, str_lens / 2000], 1)
 
         if self.hparams.embeddings_dim:
             # TODO: add optional str.strip here... (deactivated during training to improve speed)

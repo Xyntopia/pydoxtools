@@ -11,7 +11,6 @@ Created on Mon Dec 16 12:07:52 2019
 
 from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
-
 import functools
 import io
 import logging
@@ -31,7 +30,6 @@ from pdfminer.layout import LTTextContainer
 from pdfminer.pdfinterp import resolve1
 from pdfminer.pdfparser import PDFParser
 
-import pydoxtools.document_base
 import pydoxtools.operators_base
 from pydoxtools import document_base, list_utils
 

@@ -25,7 +25,6 @@ properties (calculated & stored) are indicated by lower letters
 
 from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
-
 import datetime
 import gzip
 import logging

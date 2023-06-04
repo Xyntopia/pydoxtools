@@ -134,4 +134,4 @@ tesseract2langdetect = {
     "yor": None,
 }
 
-langdetect2tesseract = {v:k for k, v in tesseract2langdetect.items() if v}
+langdetect2tesseract = {v: k for k, v in tesseract2langdetect.items() if v}

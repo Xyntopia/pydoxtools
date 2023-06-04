@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
 from time import time
-from typing import List, Any, get_type_hints
+from typing import Any, get_type_hints
 
 import networkx as nx
 import numpy as np

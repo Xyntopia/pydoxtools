@@ -1,6 +1,5 @@
 from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
-
 import functools
 import hashlib
 import logging
@@ -19,9 +18,9 @@ import pydoxtools.document_base
 import pydoxtools.operators_base
 from pydoxtools import cluster_utils as gu
 from pydoxtools.cluster_utils import pairwise_txtbox_dist, box_cols, y1, x0, x1, boundarybox_intersection_query
-from pydoxtools.operators_base import Operator
 from pydoxtools.extract_html import extract_lists, extract_tables
 from pydoxtools.extract_textstructure import _line2txt
+from pydoxtools.operators_base import Operator
 
 logger = logging.getLogger(__name__)
 
@@ -475,7 +474,7 @@ class Table:
                 h_row_elem.loc[y0_h_elem - elem_scan_tol:y0_h_elem + max_v_line_thickness,
                 ["x0", "x1", "y0"]].rename(columns={"y0": "y"}),
                 h_row_elem.loc[idx[:, y0_h_elem - elem_scan_tol:y0_h_elem + max_v_line_thickness],
-                               ["x0", "x1", "y1"]].rename(columns={"y1": "y"})
+                ["x0", "x1", "y1"]].rename(columns={"y1": "y"})
             ]).droplevel(["y0", "y1"]).sort_index().drop_duplicates(["x0", "x1"])
 
             new_cells, still_open = _close_open_cells(

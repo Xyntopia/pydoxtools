@@ -7,7 +7,6 @@ Created on Tue Apr 28 21:55:35 2020
 
 from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
-
 import logging
 import os
 from pathlib import Path

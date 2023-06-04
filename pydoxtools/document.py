@@ -1,7 +1,5 @@
 from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
-
-import functools
 import functools
 import io
 import json
@@ -656,7 +654,7 @@ operations and include the documentation there. Lambda functions should not be u
         isn't specified the other one is inferred automatically.
 
         document_type, page_number and max_pages are also not required, but can be used to override
-        the default behaviour. specifically document_type can be used manually specify
+        the default behaviour. specifically document_tgiype can be used manually specify
         the pipeline that should be used.
 
         Args:
@@ -778,7 +776,7 @@ operations and include the documentation there. Lambda functions should not be u
             return doc_type
 
     @staticmethod
-    @functools.cache  # make sure we only run it once..
+    @functools.lru_cache  # make sure we only run it once..
     def magic_library_available():
         try:
             import magic
@@ -790,7 +788,7 @@ operations and include the documentation there. Lambda functions should not be u
             magic = False
         return magic
 
-    # @functools.cache
+    @functools.lru_cache
     def document_type_detection(self):
         """
         This one here is actually important as it detects the

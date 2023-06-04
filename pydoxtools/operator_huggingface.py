@@ -7,7 +7,6 @@ Enables loading of mdoels from huggingface for all kinds of purposes
 
 from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
-
 import functools
 import logging
 from typing import Dict, List, Tuple, Callable
@@ -15,9 +14,9 @@ from typing import Dict, List, Tuple, Callable
 import torch
 
 from pydoxtools import nlp_utils
-from pydoxtools.operators_base import Operator
 from pydoxtools.list_utils import iterablefyer
 from pydoxtools.nlp_utils import tokenize_windows
+from pydoxtools.operators_base import Operator
 
 logger = logging.getLogger(__name__)
 

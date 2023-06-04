@@ -1,6 +1,5 @@
 from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
-
 import io
 import logging
 
@@ -39,7 +38,7 @@ class OCRExtractor(Operator):
                 lang = langdetect.detect(text)
             except langdetect.lang_detect_exception.LangDetectException as err:
                 if err.args[0] == 'No features in text.':
-                    lang = "en" #simply use english as a language
+                    lang = "en"  # simply use english as a language
                 else:
                     raise OCRException("could not detect language !!!")
             # get the corresponding language for tesseract

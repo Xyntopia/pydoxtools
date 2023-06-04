@@ -1,10 +1,6 @@
 from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
-
-from abc import get_cache_token
-from collections import namedtuple
 # import types, weakref  # Deferred to single_dispatch()
-from reprlib import recursive_repr
 from _thread import RLock
 
 # TODO: remove the following function if we update our python requirements to be
@@ -15,6 +11,8 @@ from _thread import RLock
 #       where a decorated property automatically gets updated once
 #       one of its underlying functions gets updated...
 _NOT_FOUND = object()
+
+
 class cached_property:
     def __init__(self, func):
         self.func = func
