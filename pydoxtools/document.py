@@ -900,7 +900,7 @@ operations and include the documentation there. Lambda functions should not be u
         Returns:
             str: A string representation of the instance.
         """
-        if isinstance(self._source, str | bytes):
+        if isinstance(self._source, (str,bytes)):
             return f"{self.__module__}.{self.__class__.__name__}(source={self.source[:10]})"
         else:
             return f"{self.__module__}.{self.__class__.__name__}(source={self.source})"
