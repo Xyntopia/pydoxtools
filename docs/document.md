@@ -311,7 +311,7 @@ Can be called using:
     <Document>.spacy_doc
 
 return type
-: dict[str, typing.Any]
+: typing.Dict[str, typing.Any]
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -327,7 +327,7 @@ Can be called using:
     <Document>.spacy_nlp
 
 return type
-: dict[str, typing.Any]
+: typing.Dict[str, typing.Any]
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf

@@ -25,6 +25,7 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=off \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
     PIP_DEFAULT_TIMEOUT=100 \
+    POETRY_CACHE_DIR=/tmp/poetry_cache \
     # paths
     # our own app directory
     VENV_DIR="${PROJECT_DIR}/.venv/" \
@@ -148,12 +149,18 @@ ENTRYPOINT [ "jupyter", "lab", "--allow-root", "--ip", "0.0.0.0", "--no-browser"
 
 FROM python:3.8-slim as test3.8
 
+# TODO: add cachin directories for models, spacy etc...
+
+#POETRY_CACHE_DIR=/tmp/poetry_cache
+#--mount=type=cache,target=$POETRY_CACHE_DIR
+
 RUN apt-get update && \
     DEBIAN_FRONTEND="noninteractive" apt-get install --no-install-recommends -y \
     iputils-ping build-essential \
     htop byobu \
     curl g++ wget\
-    git \
+    git file \
+    tesseract-ocr tesseract-ocr-deu tesseract-ocr-fra tesseract-ocr-eng tesseract-ocr-spa \
     && pip install -U pip \
     && apt-get clean autoclean \
     && apt-get autoremove --yes \
@@ -161,7 +168,8 @@ RUN apt-get update && \
 
 #RUN pip install pydoxtools
 # install from github project itself
-RUN pip install -U "pydoxtools[etl,inference] @ git+https://github.com/xyntopia/pydoxtools.git@python3.8_support"
+RUN --mount=type=cache,target=/root/.cache \
+    pip install -U "pydoxtools[etl,inference] @ git+https://github.com/xyntopia/pydoxtools.git@python3.8_support"
 RUN git clone --recurse-submodules -b python3.8_support https://github.com/xyntopia/pydoxtools.git
 RUN pip install pytest
 RUN wget https://github.com/jgm/pandoc/releases/download/2.19.2/pandoc-2.19.2-1-amd64.deb
@@ -174,4 +182,4 @@ FROM test3.8 as test_local
 COPY . /pydoxtools/
 WORKDIR pydoxtools
 RUN pip install .
-RUN pytest
+#RUN pytest

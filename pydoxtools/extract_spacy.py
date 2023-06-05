@@ -1,8 +1,7 @@
-from __future__ import annotations  # this is so, that we can use python3.10 annotations..
-
 import functools
 import logging
 import subprocess
+import typing
 from typing import Optional, Any
 
 import numpy as np
@@ -22,7 +21,7 @@ def download_model(model_id: str):
     # spacy.load("en_core_web_sm")
 
 
-def extract_noun_chunks(spacy_doc) -> list[TokenCollection]:
+def extract_noun_chunks(spacy_doc) -> typing.List[TokenCollection]:
     token_list = []
     for nc in spacy_doc.noun_chunks:
         tc = TokenCollection([t for t in nc if t.pos_ not in ["DET", "SPACE", "PRON"]])
@@ -154,7 +153,7 @@ class SpacyOperator(Operator):
             language: str,
             spacy_model: str,
             model_size: str
-    ) -> dict[str, Any]:
+    ) -> typing.Dict[str, Any]:
         """Load a document using spacy"""
         if spacy_model == "auto":
             nlp_modelid = get_spacy_model_id(language, model_size)
