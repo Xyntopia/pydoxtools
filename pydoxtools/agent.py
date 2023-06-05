@@ -11,6 +11,7 @@ import yaml
 
 import pydoxtools as pdx
 from pydoxtools.extract_nlpchat import openai_chat_completion
+import typing
 
 logger = logging.getLogger(__name__)
 
@@ -188,7 +189,7 @@ class LLMAgent:
             max_tokens=256,
             formatting="yaml",
             save_task=False
-    ):
+    ) -> typing.Any:
         if context_size:
             context = self.get_context(
                 task,
