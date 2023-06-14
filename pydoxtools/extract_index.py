@@ -8,6 +8,7 @@ import dask.bag
 import hnswlib
 import networkx as nx
 import numpy as np
+import pydantic
 
 import pydoxtools
 from pydoxtools.document_base import TokenCollection
@@ -131,12 +132,17 @@ class IndexExtractor(Operator):
 
 
 class KnnQuery(Operator):
+    class callable_params(pydoxtools.operators_base.OperatorParams):
+        txt: str | np.ndarray | TokenCollection
+        k: int = 5
+        indices = False
+
     def __call__(
             self,
             index: hnswlib.Index,
             idx_values: list,
             vectorizer: Callable,  # e.g. lambda spacy_nlp, txt: spacy_nlp spacy_nlp(txt).vector
-    ) -> Callable:
+    ) -> Callable[..., list[tuple]]:
         def knn_query(txt: str | np.ndarray | TokenCollection, k: int = 5, indices=False) -> list[tuple]:
             if isinstance(txt, str):
                 search_vec = vectorizer(txt)

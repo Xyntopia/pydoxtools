@@ -11,6 +11,8 @@ import typing
 from abc import ABC
 from typing import Callable, Iterable, Any
 
+import pydantic
+
 
 class Operator(ABC):
     """Base class to build extraction logic for information extraction from
@@ -155,6 +157,18 @@ class FunctionOperator(Operator):
                 return self._default_return_value
             else:
                 raise err
+
+
+class OperatorParams(pydantic.BaseModel):
+    """
+    Use this Operator for functions which return a callable function.
+    This function helps in making the signature of the returned function available!
+
+    If we define an operator like this, when defining the
+    """
+
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class ElementWiseOperator(Operator):

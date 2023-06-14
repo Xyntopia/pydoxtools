@@ -1,5 +1,6 @@
 from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
+import copy
 import io
 import logging
 import pathlib
@@ -507,6 +508,11 @@ def test_erronous_file():
     d = Document(make_path_absolute('./data/erronous_pdf.pdf'))
     assert d.document_type != 'application/pdf'
     d.text_segments
+
+
+def test_json_schema():
+    test = Document.Model()
+
 
 
 if __name__ == "__main__":

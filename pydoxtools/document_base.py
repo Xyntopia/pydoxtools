@@ -1,7 +1,9 @@
 from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
 import functools
+import typing
 import json
+import pydantic
 import logging
 import pathlib
 import pickle
@@ -427,7 +429,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         NotImplementedError("TODO: search for functions that are type hinted as callable")
 
     @classmethod
-    def pipeline_docs(cls, pipeline_type=None):
+    def pipeline_docs(cls, pipeline_type=None) -> dict[str, dict[str, Any]]:
         """
         Aggregates the pipeline operations and their corresponding types and metadata.
 
@@ -450,6 +452,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
                 if return_type := get_type_hints(op.__class__.__call__).get("return", None):
                     oi["output_types"].add(return_type)
                 oi["description"] = op.__node_doc__
+                oi["callable_params"] = getattr(op, "callable_params", None)
                 output_infos[op_k] = oi
 
         if pipeline_type:
@@ -647,6 +650,51 @@ supports pipeline flows:
             return self.x(property)
         except KeyError:
             return default_return
+
+    @classmethod
+    def operator_types(cls, json_schema=False):
+        """
+        This function returns a pydantic model of the pipeline.
+
+        json_schema: if this is set to True, we make sure that only valid json
+                     schema types are included in the model.
+                     The typical use case is to expose the pipeline via this
+                     model to an http API e.g. through fastapi. In this
+                     case we should only allow types that are valid json schema.
+                     Therefore, this is set to "False" by default.
+        """
+        # get types
+        types = cls.pipeline_docs()
+        operator_signatures = {}
+        for k, v in types.items():
+            operator_types = tuple(t for t in v['output_types']) or typing.Any
+            if isinstance(operator_types, typing.Tuple):
+                operator_types = typing.Union[operator_types]
+            # check if we can generate json schema otherwise omit value:
+            try:
+                pydantic.schema_json_of(operator_types)
+            except:
+                if json_schema:
+                    # if a model should be a valid json schema, omit the definition
+                    continue
+            arg = (typing.Optional[operator_types],
+                   pydantic.Field(
+                       None, description=v['description'],
+                       callable_params=v['callable_params']
+                   ))
+            operator_signatures[k] = arg
+
+        return operator_signatures
+
+    @classmethod
+    def Model(cls):
+        operator_signatures = cls.operator_types(json_schema=True)
+
+        class Config:
+            arbitrary_types_allowed = True
+
+        PydanticModel = pydantic.create_model(cls.__name__, **operator_signatures, __config__=Config)
+        return PydanticModel
 
     def __getitem__(self, extract_name) -> Any:
         """
