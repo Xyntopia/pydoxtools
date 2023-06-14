@@ -72,7 +72,7 @@ class DocumentElementFilter(pydoxtools.operators_base.Operator):
         super().__init__()
         self.element_type = element_type
 
-    def __call__(self, elements: pd.DataFrame):
+    def __call__(self, elements: pd.DataFrame) -> pd.DataFrame:
         df = elements.loc[elements["type"] == self.element_type].copy()
         return df
 

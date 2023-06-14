@@ -1,6 +1,7 @@
 from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
 import logging
+import typing
 
 import langdetect
 import pandas as pd
@@ -26,7 +27,7 @@ class TextBlockClassifier(Operator):
     def __init__(self):
         super().__init__()
 
-    def __call__(self, text_box_elements: pd.DataFrame):
+    def __call__(self, text_box_elements: pd.DataFrame) -> list[str]:
         tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
         model_name = "txtblockclassifier"
         model_dir = settings.PDX_MODEL_DIR / model_name

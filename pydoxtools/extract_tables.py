@@ -200,7 +200,7 @@ class ListExtractor(Operator):
     Extract lines that might be part of a "list".
     """
 
-    def __call__(self, line_elements: pd.DataFrame):
+    def __call__(self, line_elements: pd.DataFrame) -> pd.DataFrame:
         # search for lines that are part of lists
         # play around with this expression here: https://regex101.com/r/xrnKlm/1
         degree_search = r"^[\-\*∙•](?![\d\-]+\s?(?:(?:[°˚][CKF]?)|[℃℉]))"
