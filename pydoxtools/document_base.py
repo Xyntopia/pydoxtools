@@ -447,10 +447,14 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         # aggregate information
         for pipeline_id, ops in cls._pipelines.items():
             for op_k, op in ops.items():
+                # BUG: TODO: find a better method here than just "overwriting" operator information
+                #       for different pipelines
                 oi: dict[str, set] = output_infos.get(op_k, None) or dict(pipe_types=set(), output_types=set())
                 oi["pipe_types"].add(pipeline_id)
-                if return_type := get_type_hints(op.__class__.__call__).get("return", None):
-                    oi["output_types"].add(return_type)
+                if return_type := op.return_type:
+                    oi["output_types"].add(return_type.get(op_k))
+                else:
+                    oi["output_types"].add(typing.Any)
                 oi["description"] = op.__node_doc__
                 oi["callable_params"] = getattr(op, "callable_params", None)
                 output_infos[op_k] = oi
@@ -654,7 +658,8 @@ supports pipeline flows:
     @classmethod
     def operator_types(cls, json_schema=False):
         """
-        This function returns a pydantic model of the pipeline.
+        This function returns a dictionary of operators with their types
+        which is suitable for declaring a pydantic model.
 
         json_schema: if this is set to True, we make sure that only valid json
                      schema types are included in the model.

@@ -5,6 +5,7 @@ import io
 import logging
 import pathlib
 import pickle
+import typing
 from pathlib import Path
 
 import pytest
@@ -513,6 +514,28 @@ def test_erronous_file():
 def test_json_schema():
     test = Document.Model()
 
+
+def test_typing():
+    # TODO: actually test the types with some asserts...
+    import typing
+    from pydoxtools.operators_base import FunctionOperator
+    from typing_inspect import get_generic_type, get_generic_bases, is_generic_type, is_callable_type
+    d = Document("asasd")
+    docs = Document.pipeline_docs()
+    optypes = Document.operator_types()
+    m = Document.Model()()
+    func = d._pipelines["*"]["full_text"]
+    func = d._pipelines["*"]["a_d_ratio"]
+    func = d._pipelines["*"]["embedding"]
+    # func = d._pipelines["*"]["full_text"]
+    # func = d._pipelines["*"]["chat_answers"]
+    # t=func[str]("asdas")
+    # a=func("asdasdas2123")
+    func.return_type
+    # typing.get_type_hints(func._func)
+    # typing.get_type_hints(func.__call__)['return']
+    f = FunctionOperator[float](lambda x: 1)
+    Document.Model
 
 
 if __name__ == "__main__":

@@ -122,7 +122,7 @@ class TextBoxElementExtractor(pydoxtools.operators_base.Operator):
     TODO: do some schema validation on the pandas dataframes...
     """
 
-    def __call__(self, line_elements: pd.DataFrame):
+    def __call__(self, line_elements: pd.DataFrame) -> dict[str, pd.DataFrame | None]:
         if "boxnum" in line_elements:
             bg = group_elements(line_elements, ['p_num', 'boxnum'], agg="boxes_from_lines_w_bb")
             return dict(text_box_elements=bg)

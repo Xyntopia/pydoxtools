@@ -7,14 +7,17 @@ to create your own pipelines.
 from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
 import abc
+import functools
 import typing
 from abc import ABC
 from typing import Callable, Iterable, Any
 
 import pydantic
 
+OperatorReturnType = typing.TypeVar('OperatorReturnType')
 
-class Operator(ABC):
+
+class Operator(ABC, typing.Generic[OperatorReturnType]):
     """Base class to build extraction logic for information extraction from
     unstructured documents and loading files
 
@@ -48,6 +51,13 @@ class Operator(ABC):
     If the same parameters are also set in doc.pipe the parameters are
     optional and will only be taken if explicitly set through doc.config(...).
 
+    For Operator.out and Operator.pipe mappings, the "keys" always
+    refer to the parameter names *inside* the operator and the "values"
+    refer to the parameter names *outside* in the pipeline and the names
+    accessible to other Operators. This distinction is important
+    as we might use one Operator with different configurations and want to
+    avoid variable collisions in the pipeline.
+
     TODO: explain configuration parameters
     """
 
@@ -58,13 +68,59 @@ class Operator(ABC):
         # try to keep __init__ with no arguments for Operator..
         self._in_mapping: dict[str, str] = {}
         self._out_mapping: dict[str, str] = {}
+        self._output_type: tuple[Any] = tuple()
         self._cache = False  # TODO: switch to "True" by default
         self._allow_disk_cache = True
         self._default = None
         self.__node_doc__ = ""
 
+    def map_output_types(self, output_type):
+        """map a list of output types to our output keys for type checking
+        purposes"""
+        out_keys = self._out_mapping.values()
+        if not isinstance(output_type, tuple):
+            # if the output isn't in a tuple
+            # if we have an output type like list[int] we want it to be enclosed in a tuple
+            output_type = (output_type,)
+        if dict == typing.get_origin(output_type[0]) and (len(output_type) == 1):
+            output_type = (typing.get_args(output_type[0])[1],)
+        typing_dict = dict(zip(out_keys, output_type))
+        return typing_dict
+
+    @functools.cached_property
+    def return_type(self) -> dict[Any]:
+        """
+        this property returns the type that was specified for the function operator
+
+        key: we can choose from an output dictionary, for which key we would like to have
+             the return type.
+        """
+
+        # TODO: what do we do if callable is a dict?? --> incorporate that!
+        #       we need to check output valus and map output value dictionary
+        #       to types
+        if self._output_type:
+            typing_dict = self.map_output_types(self._output_type)
+            return typing_dict
+
+        if type_hints := typing.get_type_hints(self.__call__):
+            output_type = type_hints.get('return', typing.Any)
+            if output_type != CallableType:
+                # TODO: make all output types a type of something like "operator.result".
+                #       this is important, this way we can
+                #       break the implicit dependency here between dict types which get mapped
+                #       in the pipeline.x() function. Where a dict automatically gets mapped
+                #       to the output map
+                return self.map_output_types((output_type,))
+
+        if typed_class := getattr(self, "__orig_class__", None):
+            output_type = typing.get_args(typed_class)
+            return self.map_output_types(output_type)
+
+        return {}
+
     @abc.abstractmethod
-    def __call__(self, *args, **kwargs) -> dict[str, typing.Any] | Any:
+    def __call__(self, *args, **kwargs) -> OperatorReturnType:
         pass
 
     def pipe(self, *args, **kwargs):
@@ -73,17 +129,25 @@ class Operator(ABC):
 
         keys: are the actual function parameters of the extractor function
         values: are the outside function names
-
         """
         self._in_mapping = kwargs
         self._in_mapping.update({k: k for k in args})
+        return self
+
+    def t(self, *output_type):
+        """declare an optional return type which is used for documentation & downstream tasks"""
+        self._output_type = output_type
         return self
 
     def out(self, *args, **kwargs):
         """
         configure output parameter mappings to this function
 
-        keys: are the
+        every string in *args will map the output from this operator to
+        a variable with the same name in the pipeline.
+
+        every mapping in **kwargs will map the "key" of the output of
+        the operator to the "value" inside the pipeline
         """
         # TODO: rename to "name" because this actually represents the
         #       variable names of the extractor?
@@ -117,7 +181,12 @@ class Operator(ABC):
 
 
 class Alias(Operator):
-    """Connect extractor variables with Aliases"""
+    """
+    Connect extractor variables with Aliases
+
+    Alias will map "values" to "keys". So speaking in pipeline terms, "keys" are the downstream
+    variable names.
+    """
 
     def __init__(self, **kwargs):
         super().__init__()
@@ -141,15 +210,35 @@ class Constant(Operator):
         return self.const_result
 
 
-class FunctionOperator(Operator):
+CallableType = typing.TypeVar('CallableType')
+
+
+class FunctionOperator(Operator[CallableType]):
     """Wrap an arbitrary function as an Operator"""
 
-    def __init__(self, func, default_return_value: Any = None):
+    def __init__(
+            self,
+            func: typing.Callable[..., CallableType],
+            fallback_return_value: Any = None
+    ):
         super().__init__()
         self._func = func
-        self._default_return_value = default_return_value
+        self._default_return_value = fallback_return_value
 
-    def __call__(self, *args, **kwargs):
+    @functools.cached_property
+    def return_type(self):
+        """this property returns the type that was specified for he function operator"""
+        if return_type := super().return_type:
+            return return_type
+
+        if type_hints := typing.get_type_hints(self._func):
+            output_types = type_hints.get('return', typing.Any)
+            typing_dict = self.map_output_types((output_types,))
+            return typing_dict
+
+        return self.map_output_types((typing.Any,))
+
+    def __call__(self, *args, **kwargs) -> CallableType:
         try:
             return self._func(*args, **kwargs)
         except Exception as err:

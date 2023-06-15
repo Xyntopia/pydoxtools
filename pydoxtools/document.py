@@ -6,6 +6,7 @@ import json
 import logging
 import mimetypes
 import re
+import typing
 from functools import cached_property
 from pathlib import Path
 from typing import IO, Protocol, Any, Callable
@@ -141,7 +142,7 @@ class DocumentBagType(Protocol):
     def apply(self, questions: list[str]) -> list[str]: ...
 
 
-def calculate_a_d_ratio(ft: str):
+def calculate_a_d_ratio(ft: str) -> float:
     """
     calculate the retaio of digits vs alphabeticsin a string
 
@@ -265,7 +266,7 @@ operations and include the documentation there. Lambda functions should not be u
             .pipe(fobj="raw_content", page_numbers="_page_numbers", max_pages="_max_pages")
             .out("pages_bbox", "elements", meta="meta_pdf", pages="page_set")
             .cache(),
-            FunctionOperator(lambda pages: len(pages))
+            FunctionOperator(lambda pages: len(pages)).t(int)
             .pipe(pages="page_set").out("num_pages").cache(),
             # TODO: move these filters etc... into a generalized text-structure pipeline!
             #  we are converting pandoc elements into the same thing
@@ -279,15 +280,15 @@ operations and include the documentation there. Lambda functions should not be u
             TableCandidateAreasExtractor()
             .pipe("graphic_elements", "line_elements", "pages_bbox", "text_box_elements", "filename")
             .out("table_candidates", box_levels="table_box_levels").cache(),
-            FunctionOperator(lambda candidates: [t.df for t in candidates if t.is_valid])
+            FunctionOperator[list[pd.DataFrame]](lambda candidates: [t.df for t in candidates if t.is_valid])
             .pipe(candidates="table_candidates").out("table_df0").cache(),
-            FunctionOperator(lambda table_df0, lists: table_df0 + [lists]).cache()
+            FunctionOperator[list[pd.DataFrame]](lambda table_df0, lists: table_df0 + [lists]).cache()
             .pipe("table_df0", "lists").out("tables_df").cache(),
             TextBoxElementExtractor()
             .pipe("line_elements").out("text_box_elements").cache(),
-            FunctionOperator(lambda df: df.get("text", None).to_list())
+            FunctionOperator[list[str]](lambda df: df.get("text", None).to_list())
             .pipe(df="text_box_elements").out("text_box_list").cache(),
-            FunctionOperator(lambda tb: "\n\n".join(tb))
+            FunctionOperator(lambda tb: "\n\n".join(tb)).t(str)
             .pipe(tb="text_box_list").out("full_text").cache(),
             TitleExtractor()
             .pipe("line_elements").out("titles", "side_titles").cache(),
@@ -305,7 +306,7 @@ operations and include the documentation there. Lambda functions should not be u
             .pipe(article="goose_article").out("urls").cache(),
             FunctionOperator(lambda article: article.top_image)
             .pipe(article="goose_article").out("main_image").cache(),
-            Alias(full_text="main_content"),
+            Alias(full_text="main_content").t(str),
             FunctionOperator(lambda x: pd.DataFrame(get_text_only_blocks(x), columns=["text"])).cache()
             .pipe(x="raw_content").out("text_box_elements"),
             FunctionOperator(lambda t, s: [t, s])
@@ -337,7 +338,7 @@ operations and include the documentation there. Lambda functions should not be u
             Configuration(full_text_format="markdown"),
             PandocConverter()
             .pipe(output_format="full_text_format", pandoc_document="pandoc_document")
-            .out("full_text").cache(),
+            .out("full_text").t(str).cache(),
             FunctionOperator(lambda x: lambda o: PandocConverter()(x, output_format=o))
             .pipe(x="pandoc_document").out("convert_to").cache(),
             Constant(clean_format="plain"),
@@ -391,7 +392,7 @@ operations and include the documentation there. Lambda functions should not be u
         ],
         # simple dictionary with arbitrary data from python
         "<class 'dict'>": [  # pipeline to handle data based documents
-            FunctionOperator(lambda x: yaml.dump(list_utils.deep_str_convert(x)))
+            FunctionOperator(lambda x: yaml.dump(list_utils.deep_str_convert(x))).t(str)
             .pipe(x="data").out("full_text").cache(),
             DictSelector()
             .pipe(selectable="data").out("data_sel").cache().docs(
@@ -409,7 +410,7 @@ operations and include the documentation there. Lambda functions should not be u
             .pipe(x="data").out("items").no_cache()
         ],
         "<class 'list'>": [
-            FunctionOperator(lambda x: yaml.dump(list_utils.deep_str_convert(x)))
+            FunctionOperator(lambda x: yaml.dump(list_utils.deep_str_convert(x))).t(str)
             .pipe(x="data").out("full_text").cache(),
             FunctionOperator(lambda x: pd.DataFrame([
                 list_utils.deep_str_convert(v) for v in x],
@@ -420,12 +421,12 @@ operations and include the documentation there. Lambda functions should not be u
         # TODO: json, csv etc...
         # TODO: pptx, odp etc...
         "*": [
-            Alias(data="raw_content"),
-            FunctionOperator(lambda x: force_decode(x))
+            Alias(data="raw_content").t(Any),
+            FunctionOperator(lambda x: force_decode(x)).t(str)
             .pipe(x="raw_content").out("full_text").docs(
                 "will always return a string, no matter what..."),
-            Alias(clean_text="full_text"),
-            FunctionOperator(lambda x: {"meta": (x or dict())})
+            Alias(clean_text="full_text").t(str),
+            FunctionOperator(lambda x: {"meta": (x or dict())}).t(dict[str, Any])
             .pipe(x="_meta").out("meta"),
 
             ##### calculate some metadata ####
@@ -441,30 +442,31 @@ operations and include the documentation there. Lambda functions should not be u
                     # "num_sents",
                     "a_d_ratio",
                     "language")))
-            .pipe(x="to_dict").out("file_meta").cache().docs(
+            .pipe(x="to_dict").t(dict[str, Any])
+            .out("file_meta").cache().docs(
                 "some fast-to-calculate metadata information about a file"),
 
             ## Standard text splitter for splitting text along lines...
             FunctionOperator(lambda x: pd.DataFrame(x.split("\n\n"), columns=["text"]))
-            .pipe(x="full_text").out("text_box_elements").cache(),
-            FunctionOperator(lambda df: df.get("text", None).to_list())
+            .pipe(x="full_text").out("text_box_elements").t(pd.DataFrame).cache(),
+            FunctionOperator(lambda df: df.get("text", None).to_list()).t(list[str])
             .pipe(df="text_box_elements").out("text_box_list").cache(),
             # TODO: replace this with a real, generic table detection
             #       e.g. running the text through pandoc or scan for html tables
             Constant(tables_df=[]),
             FunctionOperator(lambda tables_df: [df.to_dict('index') for df in tables_df]).cache()
-            .pipe("tables_df").out("tables_dict"),
+            .pipe("tables_df").out("tables_dict").t(list[dict]),
             Alias(tables="tables_dict"),
             TextBlockClassifier()
             .pipe("text_box_elements").out("addresses").cache(),
 
             ## calculate some metadata values
             FunctionOperator(lambda full_text: 1 + (len(full_text) // 1000))
-            .pipe("full_text").out("num_pages").cache(),
+            .pipe("full_text").out("num_pages").cache().t(int),
             FunctionOperator(lambda clean_text: len(clean_text.split()))
-            .pipe("clean_text").out("num_words").cache(),
+            .pipe("clean_text").out("num_words").cache().t(int),
             FunctionOperator(lambda spacy_sents: len(spacy_sents))
-            .pipe("spacy_sents").out("num_sents").no_cache(),
+            .pipe("spacy_sents").out("num_sents").no_cache().t(int),
             FunctionOperator(calculate_a_d_ratio)
             .pipe(ft="full_text").out("a_d_ratio").cache(),
             FunctionOperator(
@@ -539,7 +541,7 @@ operations and include the documentation there. Lambda functions should not be u
             .out("vec_res").cache(),
             FunctionOperator(lambda x: dict(emb=x[0], tok=x[1]))
             .pipe(x="vec_res").out(emb="tok_embeddings", tok="tokens").no_cache(),
-            FunctionOperator(lambda x: x.mean(0))
+            FunctionOperator[list[float]](lambda x: x.mean(0))
             .pipe(x="tok_embeddings").out("embedding").cache(),
 
             ########### SEGMENT_INDEX ##########
@@ -900,7 +902,7 @@ operations and include the documentation there. Lambda functions should not be u
         Returns:
             str: A string representation of the instance.
         """
-        if isinstance(self._source, (str,bytes)):
+        if isinstance(self._source, (str, bytes)):
             return f"{self.__module__}.{self.__class__.__name__}(source={self.source[:10]})"
         else:
             return f"{self.__module__}.{self.__class__.__name__}(source={self.source})"

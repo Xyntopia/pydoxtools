@@ -6,6 +6,7 @@ from typing import Optional, Any
 
 import numpy as np
 import spacy
+import torch
 from spacy import Language
 from spacy.tokens import Doc, Token, Span
 
@@ -31,7 +32,7 @@ def extract_noun_chunks(spacy_doc) -> typing.List[TokenCollection]:
     return token_list
 
 
-def extract_spacy_token_vecs(spacy_doc):
+def extract_spacy_token_vecs(spacy_doc) -> torch.Tensor | Any:
     if spacy_doc.has_vector:
         return spacy_doc.tensor
     else:
