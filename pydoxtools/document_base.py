@@ -445,18 +445,23 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         """
         output_infos = {}
         # aggregate information
+        op: Operator
         for pipeline_id, ops in cls._pipelines.items():
             for op_k, op in ops.items():
                 # BUG: TODO: find a better method here than just "overwriting" operator information
                 #       for different pipelines
-                oi: dict[str, set] = output_infos.get(op_k, None) or dict(pipe_types=set(), output_types=set())
+                oi: dict[str, set] = output_infos.get(op_k, None) or dict(
+                    pipe_types=set(), output_types=set(), operator_class=set())
                 oi["pipe_types"].add(pipeline_id)
                 if return_type := op.return_type:
-                    oi["output_types"].add(return_type.get(op_k))
+                    oi["output_types"].add(return_type[op_k])
                 else:
                     oi["output_types"].add(typing.Any)
+                # TODO: merge multiple descriptions by making clear which description is for which pipeline type.
                 oi["description"] = op.__node_doc__
+                # TODO: merge multiple callable params by pipeline type.
                 oi["callable_params"] = getattr(op, "callable_params", None)
+                oi["operator_class"].add(op.__class__)
                 output_infos[op_k] = oi
 
         if pipeline_type:
@@ -685,7 +690,8 @@ supports pipeline flows:
             arg = (typing.Optional[operator_types],
                    pydantic.Field(
                        None, description=v['description'],
-                       callable_params=v['callable_params']
+                       callable_params=v['callable_params'],
+                       operator_class=v['operator_class']
                    ))
             operator_signatures[k] = arg
 

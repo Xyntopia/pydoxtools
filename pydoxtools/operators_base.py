@@ -8,6 +8,7 @@ from __future__ import annotations  # this is so, that we can use python3.10 ann
 
 import abc
 import functools
+import itertools
 import typing
 from abc import ABC
 from typing import Callable, Iterable, Any
@@ -83,8 +84,15 @@ class Operator(ABC, typing.Generic[OperatorReturnType]):
             # if we have an output type like list[int] we want it to be enclosed in a tuple
             output_type = (output_type,)
         if dict == typing.get_origin(output_type[0]) and (len(output_type) == 1):
-            output_type = (typing.get_args(output_type[0])[1],)
-        typing_dict = dict(zip(out_keys, output_type))
+            # extract new output type from dict
+            noutput_type = (typing.get_args(output_type[0])[1],)
+        else:
+            noutput_type = output_type
+
+        if (len(noutput_type) < len(out_keys)) and len(noutput_type) == 1:
+            typing_dict = dict(itertools.zip_longest(out_keys, noutput_type, fillvalue=noutput_type[0]))
+        else:
+            typing_dict = dict(zip(out_keys, noutput_type, strict=True))
         return typing_dict
 
     @functools.cached_property

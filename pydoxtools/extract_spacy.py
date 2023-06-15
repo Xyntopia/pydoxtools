@@ -154,7 +154,7 @@ class SpacyOperator(Operator):
             language: str,
             spacy_model: str,
             model_size: str
-    ) -> typing.Dict[str, Any]:
+    ) -> typing.Dict[str, Language | Doc]:
         """Load a document using spacy"""
         if spacy_model == "auto":
             nlp_modelid = get_spacy_model_id(language, model_size)
