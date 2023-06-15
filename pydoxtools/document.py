@@ -401,7 +401,7 @@ operations and include the documentation there. Lambda functions should not be u
                 str(k) + ": " + str(v) for k, v in list_utils.flatten_dict(x).items()],
                 columns=["text"]
             )).pipe(x="data").out("text_box_elements").cache(),
-            Alias(text_segments="text_box_list"),
+            Alias(text_segments="text_box_list").t(list[str]),
             FunctionOperator(lambda x: x.keys())
             .pipe(x="data").out("keys").no_cache(),
             FunctionOperator(lambda x: x.values())
@@ -416,18 +416,18 @@ operations and include the documentation there. Lambda functions should not be u
                 list_utils.deep_str_convert(v) for v in x],
                 columns=["text"]
             )).pipe(x="data").out("text_box_elements").cache(),
-            Alias(text_segments="text_box_list"),
+            Alias(text_segments="text_box_list").t(list[str]),
         ],
         # TODO: json, csv etc...
         # TODO: pptx, odp etc...
         "*": [
-            Alias(data="raw_content").t(Any),
+            Alias(data="raw_content").t(Any).docs("The unprocessed data."),
             FunctionOperator(lambda x: force_decode(x)).t(str)
             .pipe(x="raw_content").out("full_text").docs(
-                "will always return a string, no matter what..."),
+                "Full text as a string value"),
             Alias(clean_text="full_text").t(str),
             FunctionOperator(lambda x: {"meta": (x or dict())}).t(dict[str, Any])
-            .pipe(x="_meta").out("meta"),
+            .pipe(x="_meta").out("meta").docs("Metadata of the document"),
 
             ##### calculate some metadata ####
             FunctionOperator(
@@ -444,18 +444,22 @@ operations and include the documentation there. Lambda functions should not be u
                     "language")))
             .pipe(x="to_dict").t(dict[str, Any])
             .out("file_meta").cache().docs(
-                "some fast-to-calculate metadata information about a file"),
+                "Some fast-to-calculate metadata information about a document"),
 
             ## Standard text splitter for splitting text along lines...
             FunctionOperator(lambda x: pd.DataFrame(x.split("\n\n"), columns=["text"]))
-            .pipe(x="full_text").out("text_box_elements").t(pd.DataFrame).cache(),
+            .pipe(x="full_text").out("text_box_elements").t(pd.DataFrame).cache()
+            .docs("Text boxes extracted as a pandas Dataframe with some additional metadata"),
             FunctionOperator(lambda df: df.get("text", None).to_list()).t(list[str])
-            .pipe(df="text_box_elements").out("text_box_list").cache(),
+            .pipe(df="text_box_elements").out("text_box_list").cache()
+            .docs("Text boxes as a list"),
             # TODO: replace this with a real, generic table detection
             #       e.g. running the text through pandoc or scan for html tables
             Constant(tables_df=[]),
+            # TODO: define datatype correctly
             FunctionOperator(lambda tables_df: [df.to_dict('index') for df in tables_df]).cache()
-            .pipe("tables_df").out("tables_dict").t(list[dict]),
+            .pipe("tables_df").out("tables_dict").t(list[dict])
+            .docs("List of Table"),
             Alias(tables="tables_dict"),
             TextBlockClassifier()
             .pipe("text_box_elements").out("addresses").cache(),
@@ -466,9 +470,11 @@ operations and include the documentation there. Lambda functions should not be u
             FunctionOperator(lambda clean_text: len(clean_text.split()))
             .pipe("clean_text").out("num_words").cache().t(int),
             FunctionOperator(lambda spacy_sents: len(spacy_sents))
-            .pipe("spacy_sents").out("num_sents").no_cache().t(int),
+            .pipe("spacy_sents").out("num_sents").no_cache().t(int)
+            .docs("number of sentences"),
             FunctionOperator(calculate_a_d_ratio)
-            .pipe(ft="full_text").out("a_d_ratio").cache(),
+            .pipe(ft="full_text").out("a_d_ratio").cache()
+            .docs("Letter/digit ratio of the text"),
             FunctionOperator(
                 lambda full_text: langdetect.detect(full_text)
             ).pipe("full_text").out("language").cache()
@@ -481,13 +487,17 @@ operations and include the documentation there. Lambda functions should not be u
             .pipe(
                 "language", "spacy_model",
                 full_text="clean_text", model_size="spacy_model_size"
-            ).out(doc="spacy_doc", nlp="spacy_nlp").cache(),
+            ).out(doc="spacy_doc", nlp="spacy_nlp").cache()
+            .docs("Spacy Document and Language Model for this document"),
             FunctionOperator(extract_spacy_token_vecs)
-            .pipe("spacy_doc").out("spacy_vectors"),
+            .pipe("spacy_doc").out("spacy_vectors")
+            .docs("Vectors for all tokens calculated by spacy"),
             FunctionOperator(get_spacy_embeddings)
-            .pipe("spacy_nlp").out("spacy_embeddings"),
+            .pipe("spacy_nlp").out("spacy_embeddings")
+            .docs("Embeddings calculated by a spacy transformer"),
             FunctionOperator(lambda spacy_doc: list(spacy_doc.sents))
-            .pipe("spacy_doc").out("spacy_sents"),
+            .pipe("spacy_doc").out("spacy_sents").t(list[str])
+            .docs("List of sentences by spacy nlp framework"),
             FunctionOperator(extract_noun_chunks)
             .pipe("spacy_doc").out("spacy_noun_chunks")
             .docs("exracts nounchunks from spacy. Will not be cached because it is all"
@@ -495,18 +505,20 @@ operations and include the documentation there. Lambda functions should not be u
             ########## END OF SPACY ################
 
             EntityExtractor().cache()
-            .pipe("spacy_doc").out("entities").cache(),
+            .pipe("spacy_doc").out("entities").cache()
+            .docs("Extract entities from text"),
             # TODO: try to implement as much as possible from the constants below for all documentypes
             #       summary, urls, main_image, keywords, final_url, pdf_links, schemadata, tables_df
             # TODO: implement summarizer based on textrank
-            Alias(url="source"),
+            Alias(url="source").docs("Url of this document"),
 
             ########### VECTORIZATION (SPACY) ##########
-            Alias(sents="spacy_sents"),
-            Alias(noun_chunks="spacy_noun_chunks"),
+            Alias(sents="spacy_sents").docs("Sentences of this document"),
+            Alias(noun_chunks="spacy_noun_chunks").docs("Noun chunks of this documents"),
 
             FunctionOperator(lambda x: x.vector)
-            .pipe(x="spacy_doc").out("vector").cache(),
+            .pipe(x="spacy_doc").out("vector").cache()
+            .docs("Embeddings from spacy"),
             # TODO: make this configurable.. either we want
             #       to use spacy for this or we would rather have a huggingface
             #       model doing this...
@@ -514,12 +526,14 @@ operations and include the documentation there. Lambda functions should not be u
                 lambda x: dict(
                     sent_vecs=np.array([e.vector for e in x]),
                     sent_ids=list(range(len(x)))))
-            .pipe(x="sents").out("sent_vecs", "sent_ids").cache(),
+            .pipe(x="sents").out("sent_vecs", "sent_ids").cache()
+            .docs("Vectors for sentences & sentence_ids"),
             FunctionOperator(
                 lambda x: dict(
                     noun_vecs=np.array([e.vector for e in x]),
                     noun_ids=list(range(len(x)))))
-            .pipe(x="noun_chunks").out("noun_vecs", "noun_ids").cache(),
+            .pipe(x="noun_chunks").out("noun_vecs", "noun_ids").cache()
+            .docs("Vectors for nouns and corresponding noun ids in order to find them in the spacy document"),
 
             ########### VECTORIZATION (Huggingface) ##########
             Alias(sents="spacy_sents"),
@@ -538,11 +552,14 @@ operations and include the documentation there. Lambda functions should not be u
                     text=x, model_id=m, only_tokenizer=t, overlap_ratio=o)
             ).pipe(x="full_text", m="vectorizer_model",
                    t="vectorizer_only_tokenizer", o="vectorizer_overlap_ratio")
-            .out("vec_res").cache(),
+            .out("vec_res").cache()
+            .docs("Calculate context-based vectors for the entire text"),
             FunctionOperator(lambda x: dict(emb=x[0], tok=x[1]))
-            .pipe(x="vec_res").out(emb="tok_embeddings", tok="tokens").no_cache(),
+            .pipe(x="vec_res").out(emb="tok_embeddings", tok="tokens").no_cache()
+            .docs("Get the tokenized text"),
             FunctionOperator[list[float]](lambda x: x.mean(0))
-            .pipe(x="tok_embeddings").out("embedding").cache(),
+            .pipe(x="tok_embeddings").out("embedding").cache()
+            .docs("Get an embedding for the entire text"),
 
             ########### SEGMENT_INDEX ##########
             Configuration(

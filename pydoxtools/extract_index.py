@@ -37,7 +37,7 @@ class TextPieceSplitter(Operator):
     def __call__(
             self, full_text, min_size: int = 256, max_size: int = 512,
             large_segment_overlap=0.3, max_text_segment_num=100,
-    ):
+    ) -> list[str]:
         # TODO: also accept text elements which have bounding boxes for better text box identification.
         # TODO: identify tables and convert them into a readable format.
         # TODO: identify other things such as images, plots etc..  and convert them into
