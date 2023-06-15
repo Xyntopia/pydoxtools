@@ -429,7 +429,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         NotImplementedError("TODO: search for functions that are type hinted as callable")
 
     @classmethod
-    def pipeline_docs(cls, pipeline_type=None) -> dict[str, dict[str, Any]]:
+    def operator_infos(cls, pipeline_type=None) -> dict[str, dict[str, Any]]:
         """
         Aggregates the pipeline operations and their corresponding types and metadata.
 
@@ -476,7 +476,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
             str: A formatted string containing the documentation for each pipeline operation, including
                  operation name, usage, return type, and supported pipelines.
         """
-        output_infos = cls.pipeline_docs()
+        output_infos = cls.operator_infos()
 
         node_docs = []
         for k, v in output_infos.items():
@@ -669,7 +669,7 @@ supports pipeline flows:
                      Therefore, this is set to "False" by default.
         """
         # get types
-        types = cls.pipeline_docs()
+        types = cls.operator_infos()
         operator_signatures = {}
         for k, v in types.items():
             operator_types = tuple(t for t in v['output_types']) or typing.Any

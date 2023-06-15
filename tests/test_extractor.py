@@ -521,7 +521,7 @@ def test_typing():
     from pydoxtools.operators_base import FunctionOperator
     from typing_inspect import get_generic_type, get_generic_bases, is_generic_type, is_callable_type
     d = Document("asasd")
-    docs = Document.pipeline_docs()
+    docs = Document.operator_infos()
     optypes = Document.operator_types()
     m = Document.Model()()
     func = d._pipelines["*"]["full_text"]
