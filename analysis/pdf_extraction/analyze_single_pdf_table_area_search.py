@@ -7,9 +7,9 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.13.6
+#       jupytext_version: 1.14.5
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
@@ -17,7 +17,7 @@
 # %% [markdown]
 # # Analyze the extraction of tables from pdfs
 
-# %% tags=[]
+# %%
 import sys
 
 import pydoxtools.extract_tables
@@ -88,7 +88,7 @@ print(pdf_file)
 # - get the variance of the histogram and use that as a metric...  tables should hae a pretty low
 #   variance, as the elements are distributed more equally than with a figure
 
-# %% [markdown] tags=[]
+# %% [markdown]
 # ## detect vertical & horizontal lines
 
 # %% [markdown]
@@ -117,10 +117,10 @@ boxes, box_levels = p.detect_table_area_candidates()
 #p.tables
 #pdfi.table_metrics_X()
 
-# %% [markdown] tags=[]
+# %% [markdown]
 # ## plot results
 
-# %% tags=[]
+# %%
 # vda.plot_boxes(
 #    df_le[vda.box_cols].values,
 #    groups = df_le["hm"].values,

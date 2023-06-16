@@ -7,9 +7,9 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.13.6
+#       jupytext_version: 1.14.5
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
@@ -20,7 +20,7 @@
 # Check out how characters & textlines/textboxes are getting extracted from pdfs. For example
 # their positions
 
-# %% tags=[]
+# %%
 import sys
 
 sys.path.append("..")
@@ -42,9 +42,11 @@ from pydoxtools import cluster_utils as gu
 import numpy as np
 import pandas as pd
 
-box_cols = pdf_utils.box_cols
+import pydoxtools.cluster_utils
+box_cols = pydoxtools.cluster_utils.box_cols
 from pydoxtools.settings import settings
 import torch
+import pathlib
 from IPython.display import display, HTML
 
 from tqdm import tqdm
@@ -52,7 +54,6 @@ from tqdm import tqdm
 tqdm.pandas()
 
 pdf_utils._set_log_levels()
-memory = settings.get_memory_cache()
 
 
 def pretty_print(df):
@@ -74,11 +75,13 @@ x0,y0,x1,y1 = 1,2,3,4
 #     gs -o repaired.pdf -sDEVICE=pdfwrite output.pdf
 
 # %%
-pdf_file = settings.TRAINING_DATA_DIR / "pdfs/datasheet/2239470.28.pdf"
+training_data = pathlib.Path.home() / "comcharax/data"
+page = 17
+pdf_file = training_data / "sparepartsnow/06_Kraftspannfutter_Zylinder_Luenetten_2020.01_de_web.pdf"
 print(pdf_file)
 
 # %%
-pdfi = pdf_utils.PDFDocumentOld(pdf_file)
+pdf = pydoxtools.Document(pdf_file, page_numbers=[page])
 # pdfi.tables
 # p.tables
 # pdfi.table_metrics_X()
@@ -96,43 +99,67 @@ pdfi = pdf_utils.PDFDocumentOld(pdf_file)
 # %% [markdown]
 # ## manually extract text
 
-# %% [markdown] tags=[] jp-MarkdownHeadingCollapsed=true
+# %% [markdown]
 # ## plot textboxes & characters
 
 # %%
-t = pdfi.table_objs[0]
-t.df_words
+# %prun pdf.elements.iloc[0]
 
 # %%
-t.df
+pdf.elements.boxnum.unique()
 
-# %% tags=[]
-# vda.plot_boxes(
-#    dfl[vda.box_cols].values,
+# %%
+pdf.elements.shape
+
+# %%
+#print(pdf.full_text)
+
+# %%
+pdf.elements[box_cols].values
+
+# %%
+import pdf2image
+images = pdf2image.convert_from_path(pdf.fobj, dpi=240,first_page=16,last_page=17, use_cropbox=True)
+images[1]
+
+# %%
+import pydoxtools.extract_textstructure as ts
+df = gu.boundarybox_query(pdf.elements,[600,400,700,500])
+df = ts.group_elements(df, ["boxnum"], "boxes_from_lines_w_bb")
+print("\n".join(df.text))
+
+# %%
+boundarybox_query
+
+# %%
+vda.plot_boxes(
+    df.values,
 #    groups = dfl["hm"].values,
-#    bbox = None, dpi=250)#p.page_bbox)
+    bbox = [600,400,700,500], 
+    dpi=250
+)#p.page_bbox)
 
-print(pdf_file)
+# %%
+#print(pdf_file)
 p = pdfi.pages[0]
 area = pdfi.table_objs[0].bbox + [-10, -10, 10, 10]
 #p = pdfi.pages[page]
 boxes, box_levels = p.detect_table_area_candidates()
-images = vda.cached_pdf2image(pdfi.fobj)
 
+# %%
+images[page]
+
+# %%
 ERROR = np.array([[199.79,  522.362, 291.686, 579.698]])
 
 vda.plot_box_layers(
     box_layers=[
         [p.df_ge[vda.box_cols].values, vda.LayerProps(alpha=0.1, color="red", filled=False)],
-        [p.df_le[vda.box_cols].values, vda.LayerProps(alpha=0.1, color="blue")],
-        [t.df_ch[vda.box_cols].values, vda.LayerProps(alpha=1.0, color="yellow", filled=False)],
-        [t.df_words[vda.box_cols].values, vda.LayerProps(alpha=0.3, color="random", filled=True)]
+        #[p.df_le[vda.box_cols].values, vda.LayerProps(alpha=0.1, color="blue")],
+        #[t.df_ch[vda.box_cols].values, vda.LayerProps(alpha=1.0, color="yellow", filled=False)],
+        #[t.df_words[vda.box_cols].values, vda.LayerProps(alpha=0.3, color="random", filled=True)]
     ],
     bbox=area, dpi=250,
-    image=images[0],
+    image=images[page],
     image_box=p.page_bbox,
 ),
-
-# %%
-
-# %%
