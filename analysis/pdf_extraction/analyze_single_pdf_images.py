@@ -76,13 +76,13 @@ x0,y0,x1,y1 = 1,2,3,4
 
 # %%
 training_data = pathlib.Path.home() / "comcharax/data"
-page = 15
+pages = [11,15]
 pdf_file = training_data / "sparepartsnow/06_Kraftspannfutter_Zylinder_Luenetten_2020.01_de_web.pdf"
 print(pdf_file)
 
 # %%
 #pdf = pydoxtools.Document(pdf_utils.repair_pdf(pdf_file), page_numbers=[page])
-pdf = pydoxtools.Document(pdf_utils.repair_pdf(pdf_file), page_numbers=[page])
+pdf = pydoxtools.Document(pdf_utils.repair_pdf(pdf_file), page_numbers=pages)
 # pdfi.tables
 # p.tables
 # pdfi.table_metrics_X()
@@ -107,46 +107,6 @@ pdf = pydoxtools.Document(pdf_utils.repair_pdf(pdf_file), page_numbers=[page])
 pdf.images
 
 # %%
-# %prun pdf.elements.iloc[0]
-
-# %%
-pdf.elements.iloc[0]
-raise
-
-# %%
-#images[1]
-
-# %%
-#import pydoxtools.extract_textstructure as ts
-#df = gu.boundarybox_query(pdf.elements,[600,400,700,500])
-#df = ts.group_elements(df, ["boxnum"], "boxes_from_lines_w_bb")
-#print("\n".join(df.text))
-
-# %%
-vda.plot_boxes(
-    pdf.elements[box_cols].values,
-#    groups = dfl["hm"].values,
-    #bbox = [600,400,700,500], 
-    #dpi=250
-)#p.page_bbox)
-
-# %%
-pdf.pages_bbox
-
-# %%
-print(pdf.full_text)
-
-# %%
-vda.plot_box_layers(
-    box_layers=[
-        [pdf.elements[box_cols].values, vda.LayerProps(alpha=0.1, color="red", filled=False)],
-        #[p.df_le[vda.box_cols].values, vda.LayerProps(alpha=0.1, color="blue")],
-        #[t.df_ch[vda.box_cols].values, vda.LayerProps(alpha=1.0, color="yellow", filled=False)],
-        #[t.df_words[vda.box_cols].values, vda.LayerProps(alpha=0.3, color="random", filled=True)]
-    ],
-    bbox=pdf.pages_bbox[page], dpi=250,
-    image=images[0],
-    image_box=pdf.pages_bbox[page],
-),
+pdf.images[15]
 
 # %%

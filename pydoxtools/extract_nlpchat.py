@@ -122,7 +122,7 @@ class LLMChat(Operator):
                     completion = gpt4allchat(
                         model_id=model_id, temperature=0.0, messages=msgs
                     )
-                    res = ["choices"][0]['message']['content']
+                    result = completion["choices"][0]['message']['content']
                 else:
                     NotImplementedError(f"We can currently not handle the model {model_id}")
 

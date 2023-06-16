@@ -45,7 +45,7 @@ from .nlp_utils import calculate_string_embeddings, summarize_long_text
 from .operator_huggingface import QamExtractor
 from .operators_base import Alias, FunctionOperator, ElementWiseOperator, Constant, DictSelector, \
     Operator, Configuration
-from .pdf_utils import PDFFileLoader
+from .pdf_utils import PDFFileLoader, PDFImageRenderer
 
 logger = logging.getLogger(__name__)
 
@@ -266,6 +266,11 @@ operations and include the documentation there. Lambda functions should not be u
             .pipe(fobj="raw_content", page_numbers="_page_numbers", max_pages="_max_pages")
             .out("pages_bbox", "elements", meta="meta_pdf", pages="page_set")
             .cache(),
+            Configuration(image_dpi=200)
+            .docs("The dpi when rendering the document"),
+            PDFImageRenderer()
+            .pipe(fobj="raw_content", dpi="image_dpi", page_numbers="page_set")
+            .out("images").cache(),
             FunctionOperator(lambda pages: len(pages)).t(int)
             .pipe(pages="page_set").out("num_pages").cache(),
             # TODO: move these filters etc... into a generalized text-structure pipeline!

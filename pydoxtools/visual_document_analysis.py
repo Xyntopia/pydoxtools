@@ -49,6 +49,17 @@ def color_from_string(text) -> np.array:
 
 
 class LayerProps(pydantic.BaseModel):
+    """
+    A class to represent the properties of a layer in a plot.
+
+    Attributes:
+        linewidth (float): The width of the lines in the plot. Default is 0.2.
+        alpha (float): The transparency of the lines in the plot. Default is 0.5.
+        linestyle (str): The style of the lines in the plot. Default is "-".
+        color (Optional[Union[Tuple[int, int, int], str]]): The color of the lines in the plot. Default is None.
+        filled (bool): Whether the boxes in the plot should be filled. Default is True.
+        box_numbers (bool): Whether to display box numbers in the plot. Default is False.
+    """
     linewidth: float = 0.2
     alpha: float = 0.5
     linestyle: str = "-"
@@ -64,6 +75,20 @@ def plot_boxes(
         ax=None, groups: typing.List = None,
         dpi=120
 ):
+    """
+    Plots boxes with the given properties.
+
+    Args:
+        boxes (np.array): An array of boxes to plot.
+        bbox (List, optional): The bounding box of the plot. Default is None.
+        layer_props (LayerProps, optional): The properties of the layer in the plot. Default is None.
+        ax (optional): The matplotlib axis to plot on. Default is None.
+        groups (List, optional): The groups of boxes to plot. Default is None.
+        dpi (int, optional): The resolution of the plot. Default is 120.
+
+    Returns:
+        ax: The matplotlib axis with the plotted boxes.
+    """
     box_polygons = boxes[:, [x0, y0, x1, y0, x1, y1, x0, y1]].reshape(-1, 4, 2)
 
     if not layer_props:
@@ -113,7 +138,17 @@ def plot_box_layers(
         dpi=120
 ):
     """
-    draw several box_layers
+    Plots several box layers on the same plot.
+
+    Args:
+        box_layers (List): A list of box layers to plot.
+        image (Any, optional): The background image for the plot. This could be a rendering of a pdf file for example.
+        image_box (List, optional): The bounding box of the image. Default is None.
+        bbox (List, optional): The bounding box of the plot. Default is None.
+        dpi (int, optional): The resolution of the plot. Default is 120.
+
+    Returns:
+        fig: The matplotlib figure with the plotted box layers.
     """
     fig, ax = plt.subplots(dpi=dpi)
     ax.set_xlim(bbox[x0], bbox[x1])

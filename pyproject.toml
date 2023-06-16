@@ -65,7 +65,8 @@ gpt4all = {version = "^0.2.3", optional = true}
 etl = ["goose3", "langdetect", "tldextract", "spacy", "pdfminer.six",
     "extruct", "urlextract", "quantulum3", "stemming",
     "quantities", "readability-lxml", "pandas", "beautifulsoup4", "hnswlib",
-    "networkx", "openai", "textract", "pandoc", "python-pptx", "dask", "pytesseract"
+    "networkx", "openai", "textract", "pandoc", "python-pptx", "dask", "pytesseract",
+    "pdf2image"
 ]
 # TODO: rename & regroups extras (e.g. light, medium average or something like that...)
 inference = ["transformers", "scikit-learn", "tqdm", "torch", "pytorch-lightning", "spacy",

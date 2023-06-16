@@ -73,7 +73,7 @@ class Operator(ABC, typing.Generic[OperatorReturnType]):
         self._cache = False  # TODO: switch to "True" by default
         self._allow_disk_cache = True
         self._default = None
-        self.__node_doc__ = ""
+        self.__node_doc__ = self.__doc__
 
     def map_output_types(self, output_type):
         """map a list of output types to our output keys for type checking

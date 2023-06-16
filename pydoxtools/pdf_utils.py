@@ -11,6 +11,16 @@ Created on Mon Dec 16 12:07:52 2019
 
 from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
+from io import StringIO
+
+from pdfminer.converter import TextConverter
+from pdfminer.layout import LAParams
+import pdf2image
+import PIL
+from pdfminer.pdfdocument import PDFDocument
+from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
+from pdfminer.pdfpage import PDFPage
+from pdfminer.pdfparser import PDFParser
 import functools
 import io
 import logging
@@ -56,9 +66,12 @@ idx = pd.IndexSlice
 def _set_log_levels():
     """default loglevels of the libraries used here are very verbose...
     so we can optionally decrease the verbosity here"""
-    logging.getLogger('pdfminer.pdfinterp').setLevel(logging.WARNING)
-    logging.getLogger('pdfminer.pdfdocument').setLevel(logging.WARNING)
-    logging.getLogger('pdfminer').setLevel(logging.WARNING)
+    # logging.getLogger('pdfminer.pdfinterp').setLevel(logging.WARNING)
+    # logging.getLogger('pdfminer.pdfdocument').setLevel(logging.WARNING)
+    # logging.getLogger('pdfminer').setLevel(logging.WARNING)
+    pdflogs = [logging.getLogger(name) for name in logging.root.manager.loggerDict if name.startswith('pdfminer')]
+    for ll in pdflogs:
+        ll.setLevel(logging.WARNING)
     # logging.getLogger('camelot').setLevel(logging.WARNING) #not needed anymore...
 
 
@@ -135,6 +148,19 @@ def repair_pdf_if_damaged(function):
     return wrapper
 
 
+class PDFImageRenderer(pydoxtools.operators_base.Operator):
+    """Take a document PDF and render an image from it."""
+
+    def __call__(self, fobj: bytes, dpi: int, page_numbers: list[int]) -> dict[str, dict[PIL.Image]]:
+        images = {}
+        for page in page_numbers:
+            image = pdf2image.convert_from_bytes(
+                fobj, dpi=240, first_page=page + 1, last_page=page + 1, use_cropbox=False
+            )
+            images[page] = image[0]
+        return dict(images=images)
+
+
 def meta_infos(f: io.IOBase):
     parser = PDFParser(f)
 
@@ -170,7 +196,8 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
 
     def __init__(
             self,
-            laparams=LAParams(),
+            # laparams=LAParams(detect_vertical=True, boxes_flow=-1.0, all_texts=False),
+            laparams=LAParams(detect_vertical=True),
             **kwargs
     ):
         """
@@ -183,7 +210,7 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
            word_margin=0.1,  # 0.1, max distance between words in line
            line_margin=0.5,  # 0.5, max distance between lines in box
            boxes_flow=+0.5,  # 0.5, box order
-           detect_vertical=False,
+           detect_vertical=True,
            all_texts=False
         )
         """
@@ -192,7 +219,7 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
 
     def __call__(self, fobj: bytes, page_numbers=None, max_pages=0):
         doc_obj = io.BytesIO(fobj)
-        docelements, extracted_page_numbers, pages_bbox = self.extract_pdf_elements(
+        docelements, extracted_page_numbers, pages_bbox = self.extract_pdf_elements_pdfsix_version(
             doc_obj, page_numbers, max_pages)
         meta = meta_infos(doc_obj)
 
@@ -204,6 +231,25 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
         )
 
     def extract_pdf_elements(self, fobj, page_numbers, max_pages):
+        """
+        extract pdf elements "manually"  which should be a bit faster due
+        to better textbox algorithms
+        """
+        output_string = StringIO()
+        with open('samples/simple1.pdf', 'rb') as in_file:
+            parser = PDFParser(in_file)
+            doc = PDFDocument(parser)
+            rsrcmgr = PDFResourceManager()
+            device = TextConverter(rsrcmgr, output_string, laparams=LAParams())
+            interpreter = PDFPageInterpreter(rsrcmgr, device)
+            for page in PDFPage.create_pages(doc):
+                interpreter.process_page(page)
+
+        print(output_string.getvalue())
+
+        pass
+
+    def extract_pdf_elements_pdfsix_version(self, fobj, page_numbers, max_pages):
         """
         extracts all text lines from a pdf and annotates them with various features.
         TODO: make use of other pdf-pobjects as well (images, figures, drawings  etc...)
@@ -224,14 +270,19 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
                                          laparams=self._laparams,
                                          page_numbers=page_numbers,
                                          maxpages=max_pages):
-            extracted_page_numbers.add(page_layout.pageid)
-            pages_bbox[page_layout.pageid] = page_layout.bbox
+            if page_numbers:
+                page_num = page_numbers[page_layout.pageid - 1]
+            else:
+                page_num = page_layout.pageid
+            extracted_page_numbers.add(page_num)
+            pages_bbox[page_num] = page_layout.bbox
+            # len(page_layout)
             # iterate through all page elements and translate them
             # TODO: make sure we adhere to a common schema for all file types here...
             for boxnum, element in enumerate(page_layout):
                 if isinstance(element, LTCurve):  # LTCurve are rectangles AND lines
                     # docelements should be compatible with document_base.DocumentElement
-                    docelements.append(dict(
+                    docelement = dict(
                         type=document_base.ElementType.Graphic,
                         gobj=element,
                         linewidth=element.linewidth,
@@ -240,13 +291,13 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
                         stroke=element.stroke,
                         fill=element.fill,
                         evenodd=element.evenodd,
-                        p_num=page_layout.pageid,
+                        p_num=page_num,
                         boxnum=boxnum,
                         x0=element.x0,
                         y0=element.y0,
                         x1=element.x1,
                         y1=element.y1
-                    ))
+                    )
                 elif isinstance(element, LTTextContainer):
                     if isinstance(element, LTTextLine):
                         element = [element]
@@ -263,19 +314,19 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
                         # extract metadata
                         # TODO: move most of these function to a "feature-generation-function"
                         # which extracts the information directly from the LTTextLine object
-                        docelements.append(dict(
+                        docelement = dict(
                             type=document_base.ElementType.Text,
                             lineobj=text_line,
                             rawtext=linetext,
                             font_infos=fontset,
-                            p_num=page_layout.pageid,
+                            p_num=page_num,
                             linenum=linenum,
                             boxnum=boxnum,
                             x0=text_line.x0,
                             y0=text_line.y0,
                             x1=text_line.x1,
                             y1=text_line.y1
-                        ))
+                        )
                 elif isinstance(element, LTFigure):
                     # TODO: use pdfminer.six to also group Char in LTFigure
                     # TODO: extract text from figures as well...
@@ -285,6 +336,11 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
                     # es = list(list_utils.flatten(element))
                     # import pdfminer.converter
                     pass
+
+                if element:
+                    docelements.append(docelement)
+
+            logger.debug(f"process page {page_num}")
 
         # TODO: validate pandas dataframe using document_base.DocumentElement
         docelementsframe = pd.DataFrame.from_records(docelements)

@@ -538,6 +538,14 @@ def test_typing():
     Document.Model
 
 
+def test_image_generation():
+    file = make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf")
+    pdf = Document(file)
+    pdf.x("images")
+
+def test_pdf_pages():
+    pass
+
 if __name__ == "__main__":
     # a = pd.DataFrame(sd.sents)
     # a[2]
