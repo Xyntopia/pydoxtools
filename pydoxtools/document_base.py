@@ -458,7 +458,11 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
                 else:
                     oi["output_types"].add(typing.Any)
                 # TODO: merge multiple descriptions by making clear which description is for which pipeline type.
-                oi["description"] = op.__node_doc__
+                try:
+                    oi["description"] = op.documentation[op_k]
+                except TypeError:
+                    oi["description"] = op.documentation
+                oi["description"] = oi["description"].strip()
                 # TODO: merge multiple callable params by pipeline type.
                 oi["callable_params"] = getattr(op, "callable_params", None)
                 oi["operator_class"].add(op.__class__)

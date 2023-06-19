@@ -69,16 +69,20 @@ class Operator(ABC, typing.Generic[OperatorReturnType]):
         # try to keep __init__ with no arguments for Operator..
         self._in_mapping: dict[str, str] = {}
         self._out_mapping: dict[str, str] = {}
-        self._output_type: tuple[Any] = tuple()
+        self._output_type: dict[str, Any] | Any = {}
         self._cache = False  # TODO: switch to "True" by default
         self._allow_disk_cache = True
         self._default = None
-        self.__node_doc__ = self.__doc__
+        self.__node_doc__: str | dict[str, str] = self.__doc__
 
     def map_output_types(self, output_type):
-        """map a list of output types to our output keys for type checking
-        purposes"""
-        out_keys = self._out_mapping.values()
+        """
+        map a list of output types to our output keys for type checking
+        purposes
+        """
+        if isinstance(output_type, dict):
+            return {v: output_type[k] for k, v in self._out_mapping.items()}
+
         if not isinstance(output_type, tuple):
             # if the output isn't in a tuple
             # if we have an output type like list[int] we want it to be enclosed in a tuple
@@ -89,6 +93,7 @@ class Operator(ABC, typing.Generic[OperatorReturnType]):
         else:
             noutput_type = output_type
 
+        out_keys = self._out_mapping.values()
         if (len(noutput_type) < len(out_keys)) and len(noutput_type) == 1:
             typing_dict = dict(itertools.zip_longest(out_keys, noutput_type, fillvalue=noutput_type[0]))
         else:
@@ -142,9 +147,12 @@ class Operator(ABC, typing.Generic[OperatorReturnType]):
         self._in_mapping.update({k: k for k in args})
         return self
 
-    def t(self, *output_type):
+    def t(self, output_type=None, **output_types_dict):
         """declare an optional return type which is used for documentation & downstream tasks"""
-        self._output_type = output_type
+        if output_type:
+            self._output_type = output_types_dict
+        else:
+            self._output_type = output_types_dict
         return self
 
     def out(self, *args, **kwargs):
@@ -183,8 +191,26 @@ class Operator(ABC, typing.Generic[OperatorReturnType]):
         self._cache = False
         return self
 
-    def docs(self, doc_str: str = ""):
-        self.__node_doc__ = doc_str
+    @property
+    def documentation(self):
+        """return docs mapped to output of operator in pipeline"""
+        if isinstance(self.__node_doc__, dict):
+            return {v: self.__node_doc__[k] for k, v in self._out_mapping.items()}
+        else:
+            return self.__node_doc__ or ""
+
+    def docs(self, doc_str: str = "", **kwdocstr: str):
+        """
+        Document the operator output.
+
+        Be careful that the order of "docs" is the same as the
+        """
+        # if our operator has multiple outputs, we can
+        # document each individual output here...
+        if kwdocstr:
+            self.__node_doc__ = kwdocstr
+        else:
+            self.__node_doc__ = doc_str
         return self
 
 
@@ -235,7 +261,7 @@ class FunctionOperator(Operator[CallableType]):
 
     @functools.cached_property
     def return_type(self):
-        """this property returns the type that was specified for he function operator"""
+        """this property returns the type that was specified for the function operator"""
         if return_type := super().return_type:
             return return_type
 

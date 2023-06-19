@@ -566,5 +566,4 @@ def test_pdf_text_extraction():
 if __name__ == "__main__":
     # a = pd.DataFrame(sd.sents)
     # a[2]
-    test_pdf_text_extraction()
     pass

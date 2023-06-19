@@ -264,8 +264,7 @@ operations and include the documentation there. Lambda functions should not be u
         "application/pdf": [
             PDFFileLoader()
             .pipe(fobj="raw_content", page_numbers="_page_numbers", max_pages="_max_pages")
-            .out("pages_bbox", "elements", meta="meta_pdf", pages="page_set")
-            .cache(),
+            .out("pages_bbox", "elements", meta="meta_pdf", pages="page_set").cache().docs(),
             Configuration(image_dpi=200)
             .docs("The dpi when rendering the document"),
             PDFImageRenderer()
@@ -287,8 +286,16 @@ operations and include the documentation there. Lambda functions should not be u
             TableCandidateAreasExtractor()
             .pipe("graphic_elements", "line_elements", "pages_bbox", "text_box_elements", "filename")
             .out("table_candidates", box_levels="table_box_levels").cache(),
-            FunctionOperator[list[pd.DataFrame]](lambda candidates: [t.df for t in candidates if t.is_valid])
-            .pipe(candidates="table_candidates").out("table_df0").cache(),
+            FunctionOperator[list[pd.DataFrame]](
+                lambda candidates: {
+                    "table_df0": [t.df for t in candidates if t.is_valid],
+                    "table_areas": [t._initial_area for t in candidates if t.is_valid]
+                }).pipe(candidates="table_candidates")
+            .out("table_df0", "table_areas").cache()
+            .docs(
+                table_df0="Filter valid tables from table candidates by looking if meaningful values can be extracted",
+                table_areas="Areas of all detected tables"
+            ),
             FunctionOperator[list[pd.DataFrame]](lambda table_df0, lists: table_df0 + [lists]).cache()
             .pipe("table_df0", "lists").out("tables_df").cache(),
             TextBoxElementExtractor()

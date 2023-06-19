@@ -11,6 +11,7 @@ Created on Mon Dec 16 12:07:52 2019
 
 from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
+import typing
 from io import StringIO
 
 from pdfminer.converter import TextConverter
@@ -217,6 +218,19 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
         """
         super().__init__()
         self._laparams = laparams
+        self.docs(
+            pages_bbox="Return the 'mediabox' property of the pdf page which gives"
+                       " the size of the page of a pdf in 72 dpi,"
+                       " which is the standard unit of measurement in pdfs.",
+            meta="Extract metadata from pdf",
+            pages="A list of the extracted pages of the pdf",
+            elements="Extract a list of textelements from pdf: Textlines, Graphics, Figures")
+        self.t(
+            meta=typing.Any,
+            elements=pd.DataFrame,
+            pages=set[int],
+            pages_bbox=np.ndarray
+        )
 
     def __call__(self, fobj: bytes, page_numbers=None, max_pages=0):
         doc_obj = io.BytesIO(fobj)
