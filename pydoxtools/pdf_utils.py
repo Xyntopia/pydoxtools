@@ -22,6 +22,7 @@ from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.pdfpage import PDFPage
 from pdfminer.pdfparser import PDFParser
 import functools
+import numpy as np
 import io
 import logging
 from pathlib import Path
@@ -35,7 +36,7 @@ import pdfminer.psparser
 import pikepdf
 from pdfminer.high_level import extract_pages
 from pdfminer.layout import LAParams
-from pdfminer.layout import LTChar, LTCurve, LTFigure, LTTextLine
+from pdfminer.layout import LTChar, LTCurve, LTFigure, LTTextLine, LTAnno
 from pdfminer.layout import LTTextContainer
 from pdfminer.pdfinterp import resolve1
 from pdfminer.pdfparser import PDFParser
@@ -235,23 +236,44 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
         extract pdf elements "manually"  which should be a bit faster due
         to better textbox algorithms
         """
+
+        # read the docs here:   https://euske.github.io/pdfminer/programming.html#overview
         output_string = StringIO()
         with open('samples/simple1.pdf', 'rb') as in_file:
             parser = PDFParser(in_file)
             doc = PDFDocument(parser)
-            rsrcmgr = PDFResourceManager()
+            rsrcmgr = PDFResourceManager(caching=True)
+            #    device = PDFPageAggregator(resource_manager, laparams=laparams)
             device = TextConverter(rsrcmgr, output_string, laparams=LAParams())
+
             interpreter = PDFPageInterpreter(rsrcmgr, device)
             for page in PDFPage.create_pages(doc):
                 interpreter.process_page(page)
 
         print(output_string.getvalue())
 
+        """
+        with open_filename(pdf_file, "rb") as fp:
+            fp = cast(BinaryIO, fp)  # we opened in binary mode
+            resource_manager = PDFResourceManager(caching=caching)
+            device = PDFPageAggregator(resource_manager, laparams=laparams)
+            interpreter = PDFPageInterpreter(resource_manager, device)
+            for page in PDFPage.get_pages(
+                    fp, page_numbers, maxpages=maxpages, password=password, caching=caching
+            ):
+                interpreter.process_page(page)
+                layout = device.get_result()
+                yield layout
+        """
+
         pass
 
     def extract_pdf_elements_pdfsix_version(self, fobj, page_numbers, max_pages):
         """
         extracts all text lines from a pdf and annotates them with various features.
+
+        This is the "out-of-the-box" version of pdfminer.six it is sometimes very slow.
+        Specifically for PDFs with a lot of graphic elements and small, distributed textboxes.
         TODO: make use of other pdf-pobjects as well (images, figures, drawings  etc...)
         TODO: check for already extracted pages and only extract missing ones...
         TODO: implement our own algorithm in order to identify textboxes...  the pdfminer.six
@@ -275,14 +297,15 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
             else:
                 page_num = page_layout.pageid
             extracted_page_numbers.add(page_num)
-            pages_bbox[page_num] = page_layout.bbox
+            pages_bbox[page_num] = np.array(page_layout.bbox)
             # len(page_layout)
             # iterate through all page elements and translate them
             # TODO: make sure we adhere to a common schema for all file types here...
             for boxnum, element in enumerate(page_layout):
+                docelement = None
                 if isinstance(element, LTCurve):  # LTCurve are rectangles AND lines
                     # docelements should be compatible with document_base.DocumentElement
-                    docelement = dict(
+                    docelement = document_base.DocumentElement(
                         type=document_base.ElementType.Graphic,
                         gobj=element,
                         linewidth=element.linewidth,
@@ -298,9 +321,11 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
                         x1=element.x1,
                         y1=element.y1
                     )
+                    docelements.append(docelement)
                 elif isinstance(element, LTTextContainer):
                     if isinstance(element, LTTextLine):
                         element = [element]
+                    # linetext = ""
                     for linenum, text_line in enumerate(element):
                         fontset = set()
                         # TODO: this could be moved somewhere else and probably be made more efficient
@@ -310,11 +335,17 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
                                     character.fontname, character.size,
                                     str(character.graphicstate.ncolor))
                                 fontset.add(charfont)
-                        linetext = text_line.get_text()
+                            elif isinstance(character, LTAnno):
+                                continue
+                            else:  # couldbe LTAnno,
+                                pass
+                        linetext = text_line.get_text().strip()
+                        if linetext.strip() == "":
+                            continue
                         # extract metadata
                         # TODO: move most of these function to a "feature-generation-function"
                         # which extracts the information directly from the LTTextLine object
-                        docelement = dict(
+                        docelement = document_base.DocumentElement(
                             type=document_base.ElementType.Text,
                             lineobj=text_line,
                             rawtext=linetext,
@@ -327,22 +358,24 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
                             x1=text_line.x1,
                             y1=text_line.y1
                         )
+                        docelements.append(docelement)
                 elif isinstance(element, LTFigure):
-                    # TODO: use pdfminer.six to also group Char in LTFigure
-                    # TODO: extract text from figures as well...
-                    # chars =[e for e in list_utils.flatten(element, max_level=1)):
-                    # list(list_utils.flatten(element, max_level=1))
-                    # txt = "".join(e.get_text() for e in list_utils.flatten(element) if isinstance(e, LTChar))
-                    # es = list(list_utils.flatten(element))
-                    # import pdfminer.converter
-                    pass
-
-                if element:
+                    docelement = document_base.DocumentElement(
+                        type=document_base.ElementType.Image,
+                        p_num=page_num,
+                        boxnum=boxnum,
+                        x0=element.x0,
+                        y0=element.y0,
+                        x1=element.x1,
+                        y1=element.y1
+                    )
                     docelements.append(docelement)
+                else:
+                    continue
 
             logger.debug(f"process page {page_num}")
 
         # TODO: validate pandas dataframe using document_base.DocumentElement
-        docelementsframe = pd.DataFrame.from_records(docelements)
+        docelementsframe = pd.DataFrame(docelements)
 
         return docelementsframe, extracted_page_numbers, pages_bbox

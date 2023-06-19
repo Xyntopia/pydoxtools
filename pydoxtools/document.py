@@ -280,6 +280,8 @@ operations and include the documentation there. Lambda functions should not be u
             .pipe("elements").out("line_elements").cache(),
             DocumentElementFilter(element_type=ElementType.Graphic)
             .pipe("elements").out("graphic_elements").cache(),
+            DocumentElementFilter(element_type=ElementType.Image)
+            .pipe("elements").out("image_elements").cache(),
             ListExtractor().cache()
             .pipe("line_elements").out("lists"),
             TableCandidateAreasExtractor()

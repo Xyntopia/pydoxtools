@@ -543,10 +543,28 @@ def test_image_generation():
     pdf = Document(file)
     pdf.x("images")
 
+
 def test_pdf_pages():
     pass
+
+
+def test_pdf_text_extraction():
+    from pdfminer.high_level import extract_text
+
+    training_data = pathlib.Path.home() / "comcharax/data"
+    page = 15
+    pdf_file = training_data / "sparepartsnow/06_Kraftspannfutter_Zylinder_Luenetten_2020.01_de_web.pdf"
+    # %% jupyter={"outputs_hidden": true}
+
+    #text = extract_text(pdf_file, page_numbers=[page])
+    #print(text)
+
+    pdf = Document(pdf_file, page_numbers=[page])
+    pdf.full_text
+
 
 if __name__ == "__main__":
     # a = pd.DataFrame(sd.sents)
     # a[2]
+    test_pdf_text_extraction()
     pass

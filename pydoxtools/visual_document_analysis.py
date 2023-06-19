@@ -156,7 +156,7 @@ def plot_box_layers(
     plt.gca().set_aspect('equal', adjustable='box')  # set x & y scale the same
 
     if image is not None:
-        if image_box:
+        if image_box is not None:
             img_extent = [image_box[0], image_box[2], image_box[1], image_box[3]]
         else:
             img_extent = [bbox[0], bbox[2], bbox[1], bbox[3]]
