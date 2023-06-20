@@ -1,0 +1,926 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://xyntopia.github.io/pydoxtools/examples/automated_blog_writing/">
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.13">
+    
+    
+      
+        <title>Pydoxtools: Automated, LLM based article writing with information retrieval from a directory of files in fewer than 100 lines of code! - Pydoxtools</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.85bb2934.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.a6bdf11c.min.css">
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../css/mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+
+  <script id="__analytics">function __md_analytics(){function n(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],n("js",new Date),n("config","G-27JXS58V30"),document.addEventListener("DOMContentLoaded",function(){document.forms.search&&document.forms.search.query.addEventListener("blur",function(){this.value&&n("event","search",{search_term:this.value})}),document$.subscribe(function(){var a=document.forms.feedback;if(void 0!==a)for(var e of a.querySelectorAll("[type=submit]"))e.addEventListener("click",function(e){e.preventDefault();var t=document.location.pathname,e=this.getAttribute("data-md-value");n("event","feedback",{page:t,data:e}),a.firstElementChild.disabled=!0;e=a.querySelector(".md-feedback__note [data-md-value='"+e+"']");e&&(e.hidden=!1)}),a.hidden=!1}),location$.subscribe(function(e){n("config","G-27JXS58V30",{page_path:e.pathname})})});var e=document.createElement("script");e.async=!0,e.src="https://www.googletagmanager.com/gtag/js?id=G-27JXS58V30",document.getElementById("__analytics").insertAdjacentElement("afterEnd",e)}</script>
+
+  
+    <script>var consent;"undefined"==typeof __md_analytics||(consent=__md_get("__consent"))&&consent.analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="indigo">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#pydoxtools-automated-llm-based-article-writing-with-information-retrieval-from-a-directory-of-files-in-fewer-than-100-lines-of-code" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Pydoxtools" class="md-header__button md-logo" aria-label="Pydoxtools" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Pydoxtools
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Pydoxtools: Automated, LLM based article writing with information retrieval from a directory of files in fewer than 100 lines of code!
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://www.github.com/xyntopia/pydoxtools" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Www
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Pydoxtools" class="md-nav__button md-logo" aria-label="Pydoxtools" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    Pydoxtools
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://www.github.com/xyntopia/pydoxtools" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Www
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Introduction
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../readme_cp/" class="md-nav__link">
+        Readme
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        Examples
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          Reference
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../document/" class="md-nav__link">
+        Document
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentbag/" class="md-nav__link">
+        DocumentBag
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../agent/" class="md-nav__link">
+        Agent
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/" class="md-nav__link">
+        Other Classes
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#costs-and-api-key" class="md-nav__link">
+    Costs and API Key
+  </a>
+  
+    <nav class="md-nav" aria-label="Costs and API Key">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#safeguarding-your-api-key-in-google-colab" class="md-nav__link">
+    Safeguarding Your API Key in Google Colab
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    Installation
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    configuration
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#download-our-project" class="md-nav__link">
+    download our project
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#index-initialization" class="md-nav__link">
+    Index initialization
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#initialize-agent-give-it-a-writing-objective-and-compute-the-index" class="md-nav__link">
+    Initialize agent, give it a writing objective and compute the index
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#search-for-relevant-information" class="md-nav__link">
+    Search for relevant Information
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#final-text" class="md-nav__link">
+    Final text
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#introduction-to-pydoxtools" class="md-nav__link">
+    Introduction to Pydoxtools
+  </a>
+  
+    <nav class="md-nav" aria-label="Introduction to Pydoxtools">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#purpose-of-pydoxtools" class="md-nav__link">
+    Purpose of Pydoxtools
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#benefits-for-non-programmers" class="md-nav__link">
+    Benefits for Non-Programmers
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#usage-in-ai-pipelines" class="md-nav__link">
+    Usage in AI Pipelines
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limitations" class="md-nav__link">
+    Limitations
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#target-audience" class="md-nav__link">
+    Target Audience
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    Conclusion
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="pydoxtools-automated-llm-based-article-writing-with-information-retrieval-from-a-directory-of-files-in-fewer-than-100-lines-of-code">Pydoxtools: Automated, LLM based article writing with information retrieval from a directory of files in fewer than 100 lines of code!</h1>
+<p>At Xyntopia, we are excited to introduce our latest creation, Pydoxtools - a versatile Python library designed to streamline AI-powered document processing and information retrieval. This library is perfect for users who are new to programming and want to harness the power of AI in their projects.</p>
+<p>This article showcases an efficient method to automate article writing for your project using ChatGPT and Pydoxtools in fewer than 100 lines of code. The script demonstrates the following key functionalities:</p>
+<ul>
+<li>Indexing a directory containing files with PyDoxTools</li>
+<li>Employing an agent for information retrieval within those files</li>
+<li>Auto-generating a text based on a set objective</li>
+</ul>
+<p>You can execute this notebook or simply refer to our concise script, which executes these steps in less than 100 lines of code:</p>
+<p>https://github.com/Xyntopia/pydoxtools/blob/main/examples/automatic_project_writing.py</p>
+<p>or open this notebook in colab:</p>
+<p>https://colab.research.google.com/github/Xyntopia/pydoxtools/blob/main/examples/automated_blog_writing.ipynb</p>
+<h2 id="costs-and-api-key">Costs and API Key</h2>
+<p>Please note that ChatGPT is a paid service, and running the script once will cost you about 2-5 cents. To use ChatGPT, you will need to generate an OpenAI API key by registering an account at https://platform.openai.com/account/api-keys. Remember to keep your API key secure and do not share it with anyone.</p>
+<p>We are working on an implementation which makes use of open source models which can do the same for free, locally on your computer. Additionally, Pydoxtools automatically caches all calls to ChatGPT. So subsequent runs usually turn out to be a little cheaper.</p>
+<h3 id="safeguarding-your-api-key-in-google-colab">Safeguarding Your API Key in Google Colab</h3>
+<p>When working with sensitive information like API keys, it's crucial to ensure their security. In Google Colab, you can save your API key in a separate file, allowing you to share the notebook without exposing the key. To do this, follow these simple steps:</p>
+<ol>
+<li>Execute the cell below to create a new file in your Colab environment. This file will store your API key, and it will be deleted automatically when the Colab runtime is terminated.</li>
+</ol>
+<pre><code class="language-python">!touch /tmp/openai_api_key
+</code></pre>
+<ol>
+<li>
+<p>Click on the following link to open the newly created file by clicking on the following link in colab: /tmp/openai_api_key</p>
+</li>
+<li>
+<p>Copy and paste your API key into the file, then save it.</p>
+</li>
+</ol>
+<p>By following these steps, you can ensure the security of your API key while still being able to share your notebook with others. Happy coding!</p>
+<h2 id="installation">Installation</h2>
+<p>Follow these simple steps to install and configure Pydoxtools for your projects:</p>
+<ol>
+<li>Install the Pydoxtools library by running the following command:</li>
+</ol>
+<pre><code class="language-python">%%capture
+# if we want to install directly from our repository:
+#!pip install -U --force-reinstall --no-deps &quot;pydoxtools[etl,inference] @ git+https://github.com/xyntopia/pydoxtools.git&quot;
+!pip install -U pydoxtools[etl,inference]==0.6.3
+</code></pre>
+<p>After installation, restart the runtime to load the newly installed libraries into Jupyter.</p>
+<ol>
+<li>Now we are loading the OPENAI_API_KEY from our file.</li>
+</ol>
+<pre><code class="language-python">#load the key as an environment variable:
+import os
+# load the key
+with open('/tmp/openai_api_key') as f:
+  os.environ['OPENAI_API_KEY']=f.read()
+</code></pre>
+<ol>
+<li>now we can initialize pydoxtools which will automatically make use of the OPENAI_API_KEY</li>
+</ol>
+<pre><code class="language-python">import logging
+
+import dask
+from chromadb.config import Settings
+
+import pydoxtools as pdx
+from pydoxtools import agent as ag
+from pydoxtools.settings import settings
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+logging.getLogger(&quot;pydoxtools.document&quot;).setLevel(logging.INFO)
+</code></pre>
+<pre><code>WARNING:pydoxtools.extract_pandoc:installed pandoc version 2.5, which doesn't support rtf file format!in order to be able to use rtf, you need to install a pandoc version &gt;= 2.14.2Checkout this link here: https://github.com/jgm/pandoc/releases/tag/2.19.2
+</code></pre>
+<h2 id="configuration">configuration</h2>
+<p>Pydoxtools can be configured in various ways for this example we are using two settings:</p>
+<ul>
+<li>Pydoxtools uses dask in the background to handle large indexes and databases. We could even index terabytes of data this way! For this example though, we are setting the dask scheduler to "synchronous" so that we can see everything thats happening locally and make it easy to debug the script.</li>
+<li>Pydoxtools has a caching mechanism which caches calls to pydoxtoos.Document. This helps during development for much faster execution on subsequent runs (for example the vector index creation or extraction of other information from documents).</li>
+</ul>
+<pre><code class="language-python"># pydoxtools.DocumentBag uses a dask scheduler for parallel computing
+# in the background. For easier debugging, we set this to &quot;synchronous&quot;
+dask.config.set(scheduler='synchronous')
+# dask.config.set(scheduler='multiprocessing') # can als be used...
+
+settings.PDX_ENABLE_DISK_CACHE = True  # turn on caching for pydoxtools
+</code></pre>
+<h2 id="download-our-project">download our project</h2>
+<p>In order for our program to work, we need to provide the AI with information. In this case we are using files in a directory as a source of information! We are simply downloading the "Pydoxtools" project from github. Essentialy pydoxtools is writing about itself :-). You could also mount a google drive here or simply load a folder on your computer if you're running this notebook locally on your computer.'</p>
+<pre><code class="language-python">!cd /content
+!git clone https://github.com/Xyntopia/pydoxtools.git
+</code></pre>
+<pre><code>fatal: destination path 'pydoxtools' already exists and is not an empty directory.
+</code></pre>
+<h2 id="index-initialization">Index initialization</h2>
+<p>In order for an LLM like ChatGPT to retrieve the information it needs to be saved in a "vectorformat". This way we can retrieve relevant information using nearest neighbour search. We are using ChromaDB here for this purpose, but there are many other choices available.</p>
+<pre><code class="language-python">##### Use chromadb as a vectorstore #####
+chroma_settings = Settings(
+    chroma_db_impl=&quot;duckdb+parquet&quot;,
+    persist_directory=str(settings.PDX_CACHE_DIR_BASE / &quot;chromadb&quot;),
+    anonymized_telemetry=False
+)
+
+# create our source of information. It creates a list of documents
+# in pydoxtools called &quot;pydoxtools.DocumentBag&quot; (which itself holds a list of pydoxtools.Document) and
+# here we choose to use pydoxtools itself as an information source!
+root_dir = &quot;/content/pydoxtools&quot;
+ds = pdx.DocumentBag(
+    source=root_dir,
+    exclude=[  # ignore some files which make the indexing rather inefficient
+        '.git/', '.idea/', '/node_modules', '/dist',
+        '/__pycache__/', '.pytest_cache/', '.chroma', '.svg', '.lock',
+        &quot;/site/&quot;
+    ],
+    forgiving_extracts=True
+)
+
+</code></pre>
+<h2 id="initialize-agent-give-it-a-writing-objective-and-compute-the-index">Initialize agent, give it a writing objective and compute the index</h2>
+<p>Now that we have everything setup, we can initialize our LLM Agent with the provided information.
+For the <a href="https://github.com/Xyntopia/pydoxtools">pydoxtools</a> project in this example, computing the index will take about 5-10 minutes. In total there will be about 4000 text snippets in the vector index for the  project after finishing the computation.. When using the pydoxtools cache, subsequent calculations will be much faster (~1 min).</p>
+<pre><code class="language-python">final_result = []
+
+agent = ag.LLMAgent(
+    vector_store=chroma_settings,
+    objective=&quot;Write a blog post, introducing a new library (which was developed by us, &quot;
+              &quot;the company 'Xyntopia') to &quot;
+              &quot;visitors of our corporate webpage, which might want to use the pydoxtools library but &quot;
+              &quot;have no idea about programming. Make sure, the text is about half a page long.&quot;,
+    data_source=ds
+)
+agent.pre_compute_index()
+</code></pre>
+<pre><code>WARNING:chromadb.api.models.Collection:No embedding_function provided, using default embedding function: DefaultEmbeddingFunction https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
+
+
+[                                        ] | 0% Completed | 221.54 us
+
+WARNING:chromadb.api.models.Collection:No embedding_function provided, using default embedding function: DefaultEmbeddingFunction https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
+
+
+[                                        ] | 0% Completed | 938.02 ms
+
+WARNING:chromadb.api.models.Collection:No embedding_function provided, using default embedding function: DefaultEmbeddingFunction https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
+
+
+[####                                    ] | 10% Completed | 2.89 s
+
+WARNING:chromadb.api.models.Collection:No embedding_function provided, using default embedding function: DefaultEmbeddingFunction https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
+
+
+[########                                ] | 20% Completed | 4.53 s
+
+WARNING:chromadb.api.models.Collection:No embedding_function provided, using default embedding function: DefaultEmbeddingFunction https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
+
+
+[################                        ] | 40% Completed | 6.79 s
+
+WARNING:chromadb.api.models.Collection:No embedding_function provided, using default embedding function: DefaultEmbeddingFunction https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
+
+
+[####################                    ] | 50% Completed | 10.61 s
+
+WARNING:chromadb.api.models.Collection:No embedding_function provided, using default embedding function: DefaultEmbeddingFunction https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
+
+
+[########################                ] | 60% Completed | 13.09 s
+
+WARNING:chromadb.api.models.Collection:No embedding_function provided, using default embedding function: DefaultEmbeddingFunction https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
+
+
+[############################            ] | 70% Completed | 27.41 s
+
+WARNING:chromadb.api.models.Collection:No embedding_function provided, using default embedding function: DefaultEmbeddingFunction https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
+
+
+[################################        ] | 80% Completed | 37.35 s
+
+WARNING:chromadb.api.models.Collection:No embedding_function provided, using default embedding function: DefaultEmbeddingFunction https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
+
+
+[####################################    ] | 90% Completed | 51.05 s
+
+WARNING:chromadb.api.models.Collection:No embedding_function provided, using default embedding function: DefaultEmbeddingFunction https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
+
+
+[########################################] | 100% Completed | 60.10 s
+</code></pre>
+<h2 id="search-for-relevant-information">Search for relevant Information</h2>
+<p>The agent is able to store information as question/answer pairs and makes use of that information when executing tasks. In order to get our algorithm running a bit more quickly, we answer a basic question manually, to get the algorithm started more quickly... In a real app you could ask questions like this in a user-dialog.</p>
+<pre><code class="language-python">agent.add_question(question=&quot;Can you please provide the main topic of the project or some primary &quot;
+                            &quot;keywords related to the project, &quot;
+                            &quot;to help with identifying the relevant files in the directory?&quot;,
+                    answer=&quot;python library, AI, pipelines&quot;)
+</code></pre>
+<pre><code>WARNING:chromadb.api.models.Collection:No embedding_function provided, using default embedding function: DefaultEmbeddingFunction https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
+</code></pre>
+<p>Having this information, we ask the agent to come up with a few more questions that it needs to answer before being able to write the article.</p>
+<pre><code class="language-python"># first, gather some basic information...
+questions = agent.execute_task(
+  task=&quot;What additional information do you need to create a first, very short outline as a draft? &quot; \
+        &quot;provide it as a ranked list of questions&quot;, save_task=True)
+</code></pre>
+<pre><code class="language-python">print(&quot;\n&quot;.join(questions))
+</code></pre>
+<pre><code>What is the name of the new library developed by Xyntopia?
+What is the purpose of the pydoxtools library?
+What are some examples of how the pydoxtools library can be used in AI pipelines?
+What are some benefits of using the pydoxtools library for non-programmers?
+What are some potential drawbacks or limitations of the pydoxtools library?
+</code></pre>
+<p>Having created this list of questions, we can now ask the agent to research them by itself. It will automatically
+use the index we computed above for this task.</p>
+<pre><code class="language-python"># we only use the first 5 provided questions to make it faster ;).
+agent.research_questions(questions[:5], allowed_documents=[&quot;text/markdown&quot;])
+</code></pre>
+<pre><code>Token indices sequence length is longer than the specified maximum sequence length for this model (871 &gt; 512). Running this sequence through the model will result in indexing errors
+</code></pre>
+<p>After retrieving this information we can tell the agent t write the text. We tell it to automatically make use of the information by setting the "context_size" parameter to a value greater than 0. This represents the pieces of stored information that it will use to fulfill the task.</p>
+<pre><code class="language-python">txt = agent.execute_task(task=&quot;Complete the overall objective, formulate the text &quot;
+                              &quot;based on answered questions and format it in markdown.&quot;,
+                          context_size=20, max_tokens=1000, formatting=&quot;txt&quot;)
+final_result.append(txt)  # add a first draft to the result
+</code></pre>
+<p>Having our first draft of the text, lets critize it to improve the quality! Then with this
+critique create a new list of tasks that we can give to the agent to execute one-by-one. Gradually improving our text. </p>
+<pre><code class="language-python">critique = agent.execute_task(task=&quot;Given this text:\n\n```markdown\n{txt}\n```&quot;
+                                    &quot;\n\nlist 5 points of critique about the text&quot;,
+                              context_size=0, max_tokens=1000)
+
+tasks = agent.execute_task(
+    task=&quot;Given this text:\n\n```markdown\n{txt}\n```\n\n&quot;
+          f&quot;and its critique: {critique}\n\n&quot;
+          &quot;Generate instructions that would make it better. &quot;
+          &quot;Sort them by importance and return it as a list of tasks&quot;,
+    context_size=0, max_tokens=1000)
+
+for t in tasks:
+    task = &quot;Given this text:\n\n&quot; \
+            f&quot;```markdown\n{txt}\n```\n\n&quot; \
+            f&quot;Make the text better by executing this task: '{t}' &quot; \
+            f&quot;and integrate it into the given text, but keep the overall objective in mind.&quot;
+    txt = agent.execute_task(task, context_size=10, max_tokens=1000, formatting=&quot;markdown&quot;)
+    final_result.append([task, txt])
+</code></pre>
+<pre><code class="language-python">print(&quot;\n&quot;.join(str(t) for t in tasks))
+</code></pre>
+<pre><code>{'Specify the text length': 'Write a blog post that is approximately half a page long.'}
+{'Define the target audience': 'Introduce the pydoxtools library to visitors of our corporate webpage who are interested in using it but have no programming experience.'}
+{'Mention the name of the library': 'Introduce our new library, pydoxtools, to readers.'}
+{'Explain the benefits of using the library': 'Highlight the advantages of using pydoxtools, such as simplifying documentation generation and improving workflow efficiency.'}
+{'Include a call-to-action or next steps for the reader': 'Encourage readers to try out pydoxtools by providing a link to download the library and offering support resources for beginners.'}
+</code></pre>
+<pre><code class="language-python"># for debugging, you can see all intermediate results, simply uncomment the variable to check:
+
+#final_result  # for the evolution of the final text
+#agent._debug_queue  # in order to check all requests made to llms and vectorstores etc...
+</code></pre>
+<h2 id="final-text">Final text</h2>
+<p>After all the processing is finally done, here is the final text:</p>
+<pre><code class="language-python">from IPython.display import display, Markdown, Latex
+Markdown(txt.strip(&quot;`&quot;).replace(&quot;markdown&quot;,&quot;&quot;))
+</code></pre>
+<h2 id="introduction-to-pydoxtools">Introduction to Pydoxtools</h2>
+<p>Introduce our new library, pydoxtools, to readers. Pydoxtools is a Python library developed by Xyntopia that provides a sophisticated interface for reading and writing documents, designed to work with AI models such as GPT, Alpaca, and Huggingface. The library aims to simplify the process of building custom pipelines with LLMs and other AI tools, making it easy to integrate modern AI tools and reimagine data extraction pipelines.</p>
+<h3 id="purpose-of-pydoxtools">Purpose of Pydoxtools</h3>
+<p>The purpose of the pydoxtools library is to provide functionalities such as pipeline management, integration with AI models, low-resource (PDF) table extraction without configuration and expensive layout detection algorithms, document analysis and question-answering, support for most document formats, vector index creation, entity and address identification, list and keyword extraction, data normalization, translation, and cleaning.</p>
+<h3 id="benefits-for-non-programmers">Benefits for Non-Programmers</h3>
+<p>Pydoxtools is a great tool for non-programmers who want to extract data from documents. It offers low-resource (PDF) table extraction without configuration and expensive layout detection algorithms, document analysis and question-answering, support for most document formats, vector index creation, entity and address identification, list and keyword extraction, data normalization, translation, and cleaning. The library also allows for the creation of custom pipelines with LLMs and other AI tools, making it easy to integrate modern AI tools and reimagine data extraction pipelines. </p>
+<p>Some benefits of using the pydoxtools library for non-programmers include simplifying documentation generation and improving workflow efficiency.</p>
+<h3 id="usage-in-ai-pipelines">Usage in AI Pipelines</h3>
+<p>Pydoxtools can be used in AI pipelines for low-resource (PDF) table extraction without configuration and expensive layout detection algorithms, document analysis and question-answering, support for most document formats, vector index creation, entity and address identification, list and keyword extraction, data normalization, translation, and cleaning. The library also allows for the creation of custom pipelines with LLMs and other AI tools, making it easy to integrate modern AI tools and reimagine data extraction pipelines.</p>
+<h3 id="limitations">Limitations</h3>
+<p>There is no mention of any potential drawbacks or limitations of the pydoxtools library in the provided text. </p>
+<h3 id="target-audience">Target Audience</h3>
+<p>This blog post is intended for visitors of our corporate webpage who are interested in using the pydoxtools library but have no programming experience.</p>
+<p>Encourage readers to try out pydoxtools by providing a link to download the library and offering support resources for beginners. If you are interested in using Pydoxtools, you can find more information on our corporate webpage.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>Pydoxtools is a powerful and user-friendly Python library that makes it easy to harness the power of AI for document processing and information retrieval. Whether you are new to programming or an experienced developer, Pydoxtools can help you streamline your projects and achieve your goals. Give it a try today and experience the benefits for yourself!</p>
+<p>Get more information under the following links:</p>
+<ul>
+<li><a href="">https://pydoxtools.xyntopia.com</a></li>
+<li><a href="">https://github.com/xyntopia/pydoxtools</a></li>
+<li><a href="https://www.xyntopia.com/#pydoxtools---information-extraction-and-document-synthesis-library">https://www.xyntopia.com</a></li>
+</ul>
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-consent" data-md-component="consent" id="__consent" hidden>
+        <div class="md-consent__overlay"></div>
+        <aside class="md-consent__inner">
+          <form class="md-consent__form md-grid md-typeset" name="consent">
+            
+
+  
+    
+  
+
+
+  
+    
+  
+
+
+
+  
+
+
+<h4>Cookie consent</h4>
+<p>We use cookies to recognize your repeated visits and preferences, as well as to measure the effectiveness of our documentation and whether users find what they're searching for. With your consent, you're helping us to make our documentation better.</p>
+<input class="md-toggle" type="checkbox" id="__settings" >
+<div class="md-consent__settings">
+  <ul class="task-list">
+    
+      
+      
+        
+        
+      
+      <li class="task-list-item">
+        <label class="task-list-control">
+          <input type="checkbox" name="analytics" checked>
+          <span class="task-list-indicator"></span>
+          Google Analytics
+        </label>
+      </li>
+    
+      
+      
+        
+        
+      
+      <li class="task-list-item">
+        <label class="task-list-control">
+          <input type="checkbox" name="github" checked>
+          <span class="task-list-indicator"></span>
+          GitHub
+        </label>
+      </li>
+    
+  </ul>
+</div>
+<div class="md-consent__controls">
+  
+    
+      <button class="md-button md-button--primary">Accept</button>
+    
+    
+    
+  
+    
+    
+    
+      <label class="md-button" for="__settings">Manage settings</label>
+    
+  
+</div>
+          </form>
+        </aside>
+      </div>
+      <script>var consent=__md_get("__consent");if(consent)for(var input of document.forms.consent.elements)input.name&&(input.checked=consent[input.name]||!1);else"file:"!==location.protocol&&setTimeout(function(){document.querySelector("[data-md-component=consent]").hidden=!1},250);var action,form=document.forms.consent;for(action of["submit","reset"])form.addEventListener(action,function(e){if(e.preventDefault(),"reset"===e.type)for(var n of document.forms.consent.elements)n.name&&(n.checked=!1);__md_set("__consent",Object.fromEntries(Array.from(new FormData(form).keys()).map(function(e){return[e,!0]}))),location.hash="",location.reload()})</script>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.b4d07000.min.js"></script>
+      
+    
+  </body>
+</html>

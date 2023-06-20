@@ -970,7 +970,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 &lt;DocumentBag&gt;.doc_configuration
 </code></pre>
 <p>return type
-: </p>
+: typing.Any</p>
 <p>supports pipeline flows:
 : *, &lt;class 'dask.bag.core.Bag'>, &lt;class 'list'>, &lt;class 'pathlib.Path'>, &lt;class 'pydoxtools.document.DatabaseSource'></p>
 <h3 id="forgiving_extracts">forgiving_extracts</h3>
@@ -981,30 +981,37 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 &lt;DocumentBag&gt;.forgiving_extracts
 </code></pre>
 <p>return type
-: </p>
+: typing.Any</p>
 <p>supports pipeline flows:
 : *, &lt;class 'dask.bag.core.Bag'>, &lt;class 'list'>, &lt;class 'pathlib.Path'>, &lt;class 'pydoxtools.document.DatabaseSource'></p>
 <h3 id="_stats">_stats</h3>
+<p>A constant value</p>
 <p>Can be called using:</p>
 <pre><code>&lt;DocumentBag&gt;.x('_stats')
 # or
 &lt;DocumentBag&gt;._stats
 </code></pre>
 <p>return type
-: </p>
+: typing.Any</p>
 <p>supports pipeline flows:
 : *, &lt;class 'dask.bag.core.Bag'>, &lt;class 'list'>, &lt;class 'pathlib.Path'>, &lt;class 'pydoxtools.document.DatabaseSource'></p>
 <h3 id="verbosity">verbosity</h3>
+<p>Configuration for values:</p>
+<ul>
+<li>verbosity = None (default)</li>
+</ul>
 <p>Can be called using:</p>
 <pre><code>&lt;DocumentBag&gt;.x('verbosity')
 # or
 &lt;DocumentBag&gt;.verbosity
 </code></pre>
 <p>return type
-: </p>
+: typing.Any</p>
 <p>supports pipeline flows:
 : *, &lt;class 'dask.bag.core.Bag'>, &lt;class 'list'>, &lt;class 'pathlib.Path'>, &lt;class 'pydoxtools.document.DatabaseSource'></p>
 <h3 id="get_dicts">get_dicts</h3>
+<p>Returns a function closure which returns a bag of the specified
+    property of the enclosed documents.</p>
 <p>Can be called using:</p>
 <pre><code>&lt;DocumentBag&gt;.x('get_dicts')
 # or
@@ -1015,16 +1022,25 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>supports pipeline flows:
 : *, &lt;class 'dask.bag.core.Bag'>, &lt;class 'list'>, &lt;class 'pathlib.Path'>, &lt;class 'pydoxtools.document.DatabaseSource'></p>
 <h3 id="d">d</h3>
+<p>Alias for: </p>
+<ul>
+<li>get_dicts-&gt;d (output)</li>
+</ul>
 <p>Can be called using:</p>
 <pre><code>&lt;DocumentBag&gt;.x('d')
 # or
 &lt;DocumentBag&gt;.d
 </code></pre>
 <p>return type
-: </p>
+: typing.Any</p>
 <p>supports pipeline flows:
 : *, &lt;class 'dask.bag.core.Bag'>, &lt;class 'list'>, &lt;class 'pathlib.Path'>, &lt;class 'pydoxtools.document.DatabaseSource'></p>
 <h3 id="bag_apply">bag_apply</h3>
+<p>Basically it applies a function element-wise
+    on documents in a dask bag and then creates a new DocumentBag from that. This
+    works similar to pandas dataframes and series. But with documents
+    as a basic datatype. And apply functions are also required to
+    produce data which can be used as a document again (which is a lot).</p>
 <p>Can be called using:</p>
 <pre><code>&lt;DocumentBag&gt;.x('bag_apply')
 # or
@@ -1035,6 +1051,11 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>supports pipeline flows:
 : *, &lt;class 'dask.bag.core.Bag'>, &lt;class 'list'>, &lt;class 'pathlib.Path'>, &lt;class 'pydoxtools.document.DatabaseSource'></p>
 <h3 id="apply">apply</h3>
+<p>Basically it creates a Documentbag from two sets of
+    on documents in a dask bag and then creates a new DocumentBag from that. This
+    works similar to pandas dataframes and series. But with documents
+    as a basic datatype. And apply functions are also required to
+    produce data which can be used as a document again (which is a lot).</p>
 <p>Can be called using:</p>
 <pre><code>&lt;DocumentBag&gt;.x('apply')
 # or
@@ -1055,13 +1076,17 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>supports pipeline flows:
 : *, &lt;class 'dask.bag.core.Bag'>, &lt;class 'list'>, &lt;class 'pathlib.Path'>, &lt;class 'pydoxtools.document.DatabaseSource'></p>
 <h3 id="e">e</h3>
+<p>Alias for: </p>
+<ul>
+<li>exploded-&gt;e (output)</li>
+</ul>
 <p>Can be called using:</p>
 <pre><code>&lt;DocumentBag&gt;.x('e')
 # or
 &lt;DocumentBag&gt;.e
 </code></pre>
 <p>return type
-: </p>
+: typing.Any</p>
 <p>supports pipeline flows:
 : *, &lt;class 'dask.bag.core.Bag'>, &lt;class 'list'>, &lt;class 'pathlib.Path'>, &lt;class 'pydoxtools.document.DatabaseSource'></p>
 <h3 id="stats">stats</h3>
@@ -1072,7 +1097,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 &lt;DocumentBag&gt;.stats
 </code></pre>
 <p>return type
-: </p>
+: typing.Any</p>
 <p>supports pipeline flows:
 : *, &lt;class 'dask.bag.core.Bag'>, &lt;class 'list'>, &lt;class 'pathlib.Path'>, &lt;class 'pydoxtools.document.DatabaseSource'></p>
 <h3 id="document">Document</h3>
@@ -1083,7 +1108,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 &lt;DocumentBag&gt;.Document
 </code></pre>
 <p>return type
-: </p>
+: typing.Any</p>
 <p>supports pipeline flows:
 : *, &lt;class 'dask.bag.core.Bag'>, &lt;class 'list'>, &lt;class 'pathlib.Path'>, &lt;class 'pydoxtools.document.DatabaseSource'></p>
 <h3 id="vectorizer">vectorizer</h3>
@@ -1094,7 +1119,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 &lt;DocumentBag&gt;.vectorizer
 </code></pre>
 <p>return type
-: </p>
+: typing.Any</p>
 <p>supports pipeline flows:
 : *, &lt;class 'dask.bag.core.Bag'>, &lt;class 'list'>, &lt;class 'pathlib.Path'>, &lt;class 'pydoxtools.document.DatabaseSource'></p>
 <h3 id="add_to_chroma">add_to_chroma</h3>
@@ -1105,7 +1130,7 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 &lt;DocumentBag&gt;.add_to_chroma
 </code></pre>
 <p>return type
-: </p>
+: typing.Any</p>
 <p>supports pipeline flows:
 : *, &lt;class 'dask.bag.core.Bag'>, &lt;class 'list'>, &lt;class 'pathlib.Path'>, &lt;class 'pydoxtools.document.DatabaseSource'></p>
 <h3 id="docs">docs</h3>
@@ -1116,70 +1141,82 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 &lt;DocumentBag&gt;.docs
 </code></pre>
 <p>return type
-: &lt;class 'dask.bag.core.Bag'></p>
+: &lt;class 'dask.bag.core.Bag'> | typing.Any</p>
 <p>supports pipeline flows:
 : &lt;class 'dask.bag.core.Bag'>, &lt;class 'list'>, &lt;class 'pathlib.Path'>, &lt;class 'pydoxtools.document.DatabaseSource'></p>
 <h3 id="take">take</h3>
+<p>No documentation</p>
 <p>Can be called using:</p>
 <pre><code>&lt;DocumentBag&gt;.x('take')
 # or
 &lt;DocumentBag&gt;.take
 </code></pre>
 <p>return type
-: </p>
+: typing.Any</p>
 <p>supports pipeline flows:
 : &lt;class 'dask.bag.core.Bag'>, &lt;class 'list'>, &lt;class 'pathlib.Path'>, &lt;class 'pydoxtools.document.DatabaseSource'></p>
 <h3 id="compute">compute</h3>
+<p>No documentation</p>
 <p>Can be called using:</p>
 <pre><code>&lt;DocumentBag&gt;.x('compute')
 # or
 &lt;DocumentBag&gt;.compute
 </code></pre>
 <p>return type
-: </p>
+: typing.Any</p>
 <p>supports pipeline flows:
 : &lt;class 'dask.bag.core.Bag'>, &lt;class 'list'>, &lt;class 'pathlib.Path'>, &lt;class 'pydoxtools.document.DatabaseSource'></p>
 <h3 id="sql">sql</h3>
+<p>No documentation</p>
 <p>Can be called using:</p>
 <pre><code>&lt;DocumentBag&gt;.x('sql')
 # or
 &lt;DocumentBag&gt;.sql
 </code></pre>
 <p>return type
-: </p>
+: typing.Any</p>
 <p>supports pipeline flows:
 : &lt;class 'pydoxtools.document.DatabaseSource'></p>
 <h3 id="connection_string">connection_string</h3>
+<p>No documentation</p>
 <p>Can be called using:</p>
 <pre><code>&lt;DocumentBag&gt;.x('connection_string')
 # or
 &lt;DocumentBag&gt;.connection_string
 </code></pre>
 <p>return type
-: </p>
+: typing.Any</p>
 <p>supports pipeline flows:
 : &lt;class 'pydoxtools.document.DatabaseSource'></p>
 <h3 id="index_column">index_column</h3>
+<p>No documentation</p>
 <p>Can be called using:</p>
 <pre><code>&lt;DocumentBag&gt;.x('index_column')
 # or
 &lt;DocumentBag&gt;.index_column
 </code></pre>
 <p>return type
-: </p>
+: typing.Any</p>
 <p>supports pipeline flows:
 : &lt;class 'pydoxtools.document.DatabaseSource'></p>
 <h3 id="bytes_per_chunk">bytes_per_chunk</h3>
+<p>Configuration for values:</p>
+<ul>
+<li>bytes_per_chunk = 256 MiB (default)</li>
+</ul>
 <p>Can be called using:</p>
 <pre><code>&lt;DocumentBag&gt;.x('bytes_per_chunk')
 # or
 &lt;DocumentBag&gt;.bytes_per_chunk
 </code></pre>
 <p>return type
-: </p>
+: typing.Any</p>
 <p>supports pipeline flows:
 : &lt;class 'pydoxtools.document.DatabaseSource'></p>
 <h3 id="dataframe">dataframe</h3>
+<p>Load a table using dask/pandas read_sql</p>
+<pre><code>sql: can either be the entire table or an SQL expression
+</code></pre>
 <p>Can be called using:</p>
 <pre><code>&lt;DocumentBag&gt;.x('dataframe')
 # or
@@ -1197,17 +1234,21 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 &lt;DocumentBag&gt;.bag
 </code></pre>
 <p>return type
-: </p>
+: typing.Any</p>
 <p>supports pipeline flows:
 : &lt;class 'list'>, &lt;class 'pathlib.Path'>, &lt;class 'pydoxtools.document.DatabaseSource'></p>
 <h3 id="root_path">root_path</h3>
+<p>Alias for: </p>
+<ul>
+<li>source-&gt;root_path (output)</li>
+</ul>
 <p>Can be called using:</p>
 <pre><code>&lt;DocumentBag&gt;.x('root_path')
 # or
 &lt;DocumentBag&gt;.root_path
 </code></pre>
 <p>return type
-: </p>
+: typing.Any</p>
 <p>supports pipeline flows:
 : &lt;class 'list'>, &lt;class 'pathlib.Path'></p>
 <h3 id="paths">paths</h3>
@@ -1221,23 +1262,25 @@ document types can be found <a href="https://github.com/Xyntopia/pydoxtools/tree
 <p>supports pipeline flows:
 : &lt;class 'list'>, &lt;class 'pathlib.Path'></p>
 <h3 id="file_path_list">file_path_list</h3>
+<p>No documentation</p>
 <p>Can be called using:</p>
 <pre><code>&lt;DocumentBag&gt;.x('file_path_list')
 # or
 &lt;DocumentBag&gt;.file_path_list
 </code></pre>
 <p>return type
-: &lt;class 'dask.bag.core.Bag'></p>
+: &lt;class 'dask.bag.core.Bag'> | typing.Any</p>
 <p>supports pipeline flows:
 : &lt;class 'list'>, &lt;class 'pathlib.Path'></p>
 <h3 id="dir_list">dir_list</h3>
+<p>No documentation</p>
 <p>Can be called using:</p>
 <pre><code>&lt;DocumentBag&gt;.x('dir_list')
 # or
 &lt;DocumentBag&gt;.dir_list
 </code></pre>
 <p>return type
-: &lt;class 'dask.bag.core.Bag'></p>
+: &lt;class 'dask.bag.core.Bag'> | typing.Any</p>
 <p>supports pipeline flows:
 : &lt;class 'list'>, &lt;class 'pathlib.Path'></p>
 

@@ -495,8 +495,15 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#pydoxtools.document_base.Pipeline.pipeline_docs" class="md-nav__link">
-    pipeline_docs()
+  <a href="#pydoxtools.document_base.Pipeline.operator_infos" class="md-nav__link">
+    operator_infos()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pydoxtools.document_base.Pipeline.operator_types" class="md-nav__link">
+    operator_types()
   </a>
   
 </li>
@@ -738,8 +745,15 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#pydoxtools.document_base.Pipeline.pipeline_docs" class="md-nav__link">
-    pipeline_docs()
+  <a href="#pydoxtools.document_base.Pipeline.operator_infos" class="md-nav__link">
+    operator_infos()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pydoxtools.document_base.Pipeline.operator_types" class="md-nav__link">
+    operator_types()
   </a>
   
 </li>
@@ -1003,8 +1017,8 @@ to decide which pipeline they should use.</p>
 <code class="highlight language-python"><span class="n">uuid</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-cached"><code>cached</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 </h3>
@@ -1045,8 +1059,8 @@ accesses.</p>
 <code class="highlight language-python"><span class="n">x_funcs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Operator</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-cached"><code>cached</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 </h3>
@@ -1223,8 +1237,8 @@ instead of document.x('addresses')</p>
   <div class="doc doc-contents ">
   
       <p>return necessary variables for pickling, ensuring that
-we leave out everything that can potentiall have some sort
-of a lambda function in it...</p>
+we leave out everything that can potentially have
+a lambda function in it...</p>
 
   </div>
 
@@ -1374,8 +1388,8 @@ Otherwise, it gets the "native" member-variables or other functions if an extrac
 <code class="highlight language-python"><span class="n">get_configuration_names</span><span class="p">(</span><span class="n">pipeline</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
       <small class="doc doc-label doc-label-cached"><code>cached</code></small>
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
   </span>
 
 </h3>
@@ -1496,8 +1510,8 @@ output types and supported pipelines, and formats the documentation accordingly.
 
 
 
-<h3 id="pydoxtools.document_base.Pipeline.pipeline_docs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">pipeline_docs</span><span class="p">(</span><span class="n">pipeline_type</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<h3 id="pydoxtools.document_base.Pipeline.operator_infos" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">operator_infos</span><span class="p">(</span><span class="n">pipeline_type</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
@@ -1534,6 +1548,37 @@ dictionaries.</p></td>
     </tbody>
   </table>
 
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="pydoxtools.document_base.Pipeline.operator_types" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">operator_types</span><span class="p">(</span><span class="n">json_schema</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>This function returns a dictionary of operators with their types
+which is suitable for declaring a pydantic model.</p>
+
+<details class="json_schema" open>
+  <summary>if this is set to True, we make sure that only valid json</summary>
+  <p>schema types are included in the model.
+The typical use case is to expose the pipeline via this
+model to an http API e.g. through fastapi. In this
+case we should only allow types that are valid json schema.
+Therefore, this is set to "False" by default.</p>
+</details>
   </div>
 
 </div>
@@ -1950,7 +1995,7 @@ used with this function.</p>
 
 
 <h3 id="pydoxtools.document_base.Pipeline.x" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">x</span><span class="p">(</span><span class="n">operator_name</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">x</span><span class="p">(</span><span class="n">operator_name</span><span class="p">,</span> <span class="n">disk_cache</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 </h3>
 
@@ -1976,6 +2021,17 @@ used with this function.</p>
                 <code>str</code>
           </td>
           <td><p>The name of the extractor to be called.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>cache</code></td>
+          <td>
+          </td>
+          <td><p>if we want to cache the call. We can explicitly tell
+    the pipeline to cache a call. to make caching more efficient
+    by only caching the calls we want.</p></td>
           <td>
               <em>required</em>
           </td>
