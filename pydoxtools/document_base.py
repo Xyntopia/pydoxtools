@@ -532,21 +532,18 @@ supports pipeline flows:
         # get all required input parameters from _in_mapping which was declared with "pipe"
         for k, v in kwargs.items():
             # first check if parameter is available as an extractor
-            if v in self.x_funcs:
-                # then call the function to get the value
-                mapped_kwargs[k] = self.x(v)
-            else:
-                # get "native" member-variables or other functions
-                # if not found an extractor with that name
-                mapped_kwargs[k] = getattr(self, v)
+            mapped_kwargs[k] = self.x(v)
         return mapped_kwargs
 
-    def x(self, operator_name: str) -> Any:
+    def x(self, operator_name: str, disk_cache: bool = False) -> Any:
         """
         Calls an extractor from the defined pipeline and returns the result.
 
         Args:
             operator_name (str): The name of the extractor to be called.
+            cache: if we want to cache the call. We can explicitly tell
+                    the pipeline to cache a call. to make caching more efficient
+                    by only caching the calls we want.
 
         Returns:
             Any: The result of the extractor after processing the document.
@@ -561,11 +558,12 @@ supports pipeline flows:
         if operator_name in self._configuration:
             return self._configuration[operator_name]
         elif not (operator_function := self.x_funcs.get(operator_name, None)):
-            return self.__dict__[operator_name]  # choose the class' own properties as a fallback
+            return getattr(self, operator_name)  # choose the class' own properties as a fallback
 
         try:
             # whether function should be cached or not...
             finished_calculation = False
+            use_disk_cache = self._disk_cache_enabled or disk_cache
             # taking the operator_function instead of the output as a key makes everything here more
             # efficient, because we don't have to store the output for individual
             # keys in case a function has multiple keys as an output...
@@ -585,7 +583,7 @@ supports pipeline flows:
                     finished_calculation = True
 
                 # TODO: hash pandas.util.hash_pandas_object for mapped kwargs key
-                if (not finished_calculation) and self._disk_cache_enabled \
+                if (not finished_calculation) and use_disk_cache \
                         and operator_function._allow_disk_cache:
                     # We are creating a key using a hash value
                     # for this specific instance of a pipeline object.
@@ -624,7 +622,7 @@ supports pipeline flows:
                 # and save the result in both caches
                 if operator_function._cache:
                     self._cache[dict_cache_key] = res
-                    if self._disk_cache_enabled and disk_cache_key:
+                    if use_disk_cache and disk_cache_key:
                         try:
                             # self._disk_cache.set(disk_cache_key, res, expire=self._disk_cache_ttl)
                             self._disk_cache.set(disk_cache_key, res)
@@ -754,8 +752,8 @@ supports pipeline flows:
     def __getstate__(self):
         """
         return necessary variables for pickling, ensuring that
-        we leave out everything that can potentiall have some sort
-        of a lambda function in it...
+        we leave out everything that can potentially have
+        a lambda function in it...
         """
         state = self.__dict__.copy()
         drop_vars = [
