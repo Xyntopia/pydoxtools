@@ -226,6 +226,7 @@ class Alias(Operator):
         super().__init__()
         self.pipe(**{v: v for k, v in kwargs.items()})
         self.out(**{v: k for k, v in kwargs.items()})
+        self.__node_doc__ = "Alias for: \n\n" + "\n".join(f"* {v}->{k} (output)" for k, v in kwargs.items())
 
     def __call__(self, **kwargs):
         return kwargs
@@ -239,6 +240,7 @@ class Constant(Operator):
         self.const_result = kwargs
         self.out(**{k: k for k in kwargs})
         self.no_cache()
+        self.__node_doc__ = "A constant value"
 
     def __call__(self):
         return self.const_result
@@ -248,7 +250,8 @@ CallableType = typing.TypeVar('CallableType')
 
 
 class FunctionOperator(Operator[CallableType]):
-    """Wrap an arbitrary function as an Operator"""
+    """Generic class which wraps an arbitrary
+    function as an Operator"""
 
     def __init__(
             self,
@@ -258,6 +261,7 @@ class FunctionOperator(Operator[CallableType]):
         super().__init__()
         self._func = func
         self._default_return_value = fallback_return_value
+        self.__node_doc__ = "No documentation"
 
     @functools.cached_property
     def return_type(self):
@@ -362,17 +366,16 @@ class Configuration(Operator):
     The Question & Answering part of the pydoxtools.Document class
     was specified with this config function like this:
 
-        QamExtractor(model_id=settings.PDXT_STANDARD_QAM_MODEL)
-            .pipe(text="full_text").out("answers").cache().config(trf_model_id="qam_model_id"),
+        Configuration(qam_model_id='deepset/minilm-uncased-squad2'),
+        QamExtractor()
+            .pipe(property_dict="to_dict", trf_model_id="qam_model_id").out("answers").cache(),
 
     In this case, when calling a document we can dynamically configure the
     pipeline with the "qam_model_id" parameter:
 
         doc = Document(
-            fobj=doc_str, document_type=".pdf"
-        ).config(dict(qam_model_id='deepset/roberta-base-squad2'))
-
-
+            fobj=make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"),
+            configuration=dict(qam_model_id='deepset/minilm-uncased-squad2'))
     """
 
     def __init__(self, **configuration_map):
@@ -381,6 +384,8 @@ class Configuration(Operator):
         self.no_cache()  # we don't need this, as everything is already saved in the _configuration_map
         # use the configuration map directly as output mapping
         self.out(*list(configuration_map.keys()))
+        confdocs = '\n'.join(f"* {k} = {v} (default)" for k, v in configuration_map.items())
+        self.__node_doc__ = f"Configuration for values:\n\n{confdocs}"
 
     def __call__(self):
         return self._configuration_map

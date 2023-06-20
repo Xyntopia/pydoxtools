@@ -14,7 +14,7 @@ document types can be found [here](https://github.com/Xyntopia/pydoxtools/tree/g
 
 ### data
             
-
+The unprocessed data.
 
 Can be called using:
 
@@ -23,14 +23,14 @@ Can be called using:
     <Document>.data
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### full_text
             
-will always return a string, no matter what...
+Full text as a string value
 
 Can be called using:
 
@@ -39,14 +39,16 @@ Can be called using:
     <Document>.full_text
 
 return type
-: <class 'str'\>
+: <class 'str'\> | typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### clean_text
             
+Alias for: 
 
+* full_text->clean_text (output)
 
 Can be called using:
 
@@ -55,14 +57,14 @@ Can be called using:
     <Document>.clean_text
 
 return type
-: <class 'str'\>
+: <class 'str'\> | typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### meta
             
-
+Metadata of the document
 
 Can be called using:
 
@@ -71,14 +73,14 @@ Can be called using:
     <Document>.meta
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### file_meta
             
-some fast-to-calculate metadata information about a file
+Some fast-to-calculate metadata information about a document
 
 Can be called using:
 
@@ -87,14 +89,14 @@ Can be called using:
     <Document>.file_meta
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### text_box_elements
             
-
+Text boxes extracted as a pandas Dataframe with some additional metadata
 
 Can be called using:
 
@@ -103,14 +105,14 @@ Can be called using:
     <Document>.text_box_elements
 
 return type
-: <class 'pandas.core.frame.DataFrame'\>
+: <class 'pandas.core.frame.DataFrame'\> | pandas.core.frame.DataFrame | None | typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### text_box_list
             
-
+Text boxes as a list
 
 Can be called using:
 
@@ -119,14 +121,14 @@ Can be called using:
     <Document>.text_box_list
 
 return type
-: 
+: list[str] | typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### tables_df
             
-
+A constant value
 
 Can be called using:
 
@@ -135,14 +137,14 @@ Can be called using:
     <Document>.tables_df
 
 return type
-: str | list[str] | list[pandas.core.frame.DataFrame]
+: list[pandas.core.frame.DataFrame] | str | list[str] | list[pandas.core.frame.DataFrame] | typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### tables_dict
             
-
+List of Table
 
 Can be called using:
 
@@ -151,14 +153,16 @@ Can be called using:
     <Document>.tables_dict
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### tables
             
+Alias for: 
 
+* tables_dict->tables (output)
 
 Can be called using:
 
@@ -167,7 +171,7 @@ Can be called using:
     <Document>.tables
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -183,14 +187,14 @@ Can be called using:
     <Document>.addresses
 
 return type
-: 
+: list[str]
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### num_pages
             
-
+No documentation
 
 Can be called using:
 
@@ -199,14 +203,14 @@ Can be called using:
     <Document>.num_pages
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### num_words
             
-
+No documentation
 
 Can be called using:
 
@@ -215,14 +219,14 @@ Can be called using:
     <Document>.num_words
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### num_sents
             
-
+number of sentences
 
 Can be called using:
 
@@ -231,14 +235,14 @@ Can be called using:
     <Document>.num_sents
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### a_d_ratio
             
-
+Letter/digit ratio of the text
 
 Can be called using:
 
@@ -247,7 +251,7 @@ Can be called using:
     <Document>.a_d_ratio
 
 return type
-: 
+: <class 'float'\>
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -263,14 +267,17 @@ Can be called using:
     <Document>.language
 
 return type
-: <class 'str'\>
+: <class 'str'\> | typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### spacy_model_size
             
+Configuration for values:
 
+* spacy_model_size = md (default)
+* spacy_model = auto (default)
 
 Can be called using:
 
@@ -279,14 +286,17 @@ Can be called using:
     <Document>.spacy_model_size
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### spacy_model
             
+Configuration for values:
 
+* spacy_model_size = md (default)
+* spacy_model = auto (default)
 
 Can be called using:
 
@@ -295,14 +305,14 @@ Can be called using:
     <Document>.spacy_model
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### spacy_doc
             
-
+Spacy Document and Language Model for this document
 
 Can be called using:
 
@@ -311,14 +321,14 @@ Can be called using:
     <Document>.spacy_doc
 
 return type
-: typing.Dict[str, typing.Any]
+: spacy.language.Language | spacy.tokens.doc.Doc
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### spacy_nlp
             
-
+Spacy Document and Language Model for this document
 
 Can be called using:
 
@@ -327,14 +337,14 @@ Can be called using:
     <Document>.spacy_nlp
 
 return type
-: typing.Dict[str, typing.Any]
+: spacy.language.Language | spacy.tokens.doc.Doc
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### spacy_vectors
             
-
+Vectors for all tokens calculated by spacy
 
 Can be called using:
 
@@ -343,14 +353,14 @@ Can be called using:
     <Document>.spacy_vectors
 
 return type
-: 
+: typing.Union[torch.Tensor, typing.Any]
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### spacy_embeddings
             
-
+Embeddings calculated by a spacy transformer
 
 Can be called using:
 
@@ -359,14 +369,14 @@ Can be called using:
     <Document>.spacy_embeddings
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### spacy_sents
             
-
+List of sentences by spacy nlp framework
 
 Can be called using:
 
@@ -375,7 +385,7 @@ Can be called using:
     <Document>.spacy_sents
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -391,14 +401,14 @@ Can be called using:
     <Document>.spacy_noun_chunks
 
 return type
-: 
+: typing.List[pydoxtools.document_base.TokenCollection]
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### entities
             
-
+Extract entities from text
 
 Can be called using:
 
@@ -407,14 +417,14 @@ Can be called using:
     <Document>.entities
 
 return type
-: dict[str, list[str]]
+: list[str]
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### url
             
-
+Url of this document
 
 Can be called using:
 
@@ -423,14 +433,16 @@ Can be called using:
     <Document>.url
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### sents
             
+Alias for: 
 
+* spacy_sents->sents (output)
 
 Can be called using:
 
@@ -439,14 +451,16 @@ Can be called using:
     <Document>.sents
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### noun_chunks
             
+Alias for: 
 
+* spacy_noun_chunks->noun_chunks (output)
 
 Can be called using:
 
@@ -455,14 +469,14 @@ Can be called using:
     <Document>.noun_chunks
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### vector
             
-
+Embeddings from spacy
 
 Can be called using:
 
@@ -471,14 +485,14 @@ Can be called using:
     <Document>.vector
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### sent_vecs
             
-
+Vectors for sentences & sentence_ids
 
 Can be called using:
 
@@ -487,14 +501,14 @@ Can be called using:
     <Document>.sent_vecs
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### sent_ids
             
-
+Vectors for sentences & sentence_ids
 
 Can be called using:
 
@@ -503,14 +517,14 @@ Can be called using:
     <Document>.sent_ids
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### noun_vecs
             
-
+Vectors for nouns and corresponding noun ids in order to find them in the spacy document
 
 Can be called using:
 
@@ -519,14 +533,14 @@ Can be called using:
     <Document>.noun_vecs
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### noun_ids
             
-
+Vectors for nouns and corresponding noun ids in order to find them in the spacy document
 
 Can be called using:
 
@@ -535,7 +549,7 @@ Can be called using:
     <Document>.noun_ids
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -551,7 +565,7 @@ Can be called using:
     <Document>.vectorizer_model
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -567,7 +581,7 @@ Can be called using:
     <Document>.vectorizer_only_tokenizer
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -583,14 +597,14 @@ Can be called using:
     <Document>.vectorizer_overlap_ratio
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### vec_res
             
-
+Calculate context-based vectors for the entire text
 
 Can be called using:
 
@@ -599,14 +613,14 @@ Can be called using:
     <Document>.vec_res
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### tok_embeddings
             
-
+Get the tokenized text
 
 Can be called using:
 
@@ -615,14 +629,14 @@ Can be called using:
     <Document>.tok_embeddings
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### tokens
             
-
+Get the tokenized text
 
 Can be called using:
 
@@ -631,14 +645,14 @@ Can be called using:
     <Document>.tokens
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### embedding
             
-
+Get an embedding for the entire text
 
 Can be called using:
 
@@ -647,7 +661,7 @@ Can be called using:
     <Document>.embedding
 
 return type
-: 
+: list[float]
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -663,7 +677,7 @@ Can be called using:
     <Document>.min_size_text_segment
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -679,7 +693,7 @@ Can be called using:
     <Document>.max_size_text_segment
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -695,7 +709,7 @@ Can be called using:
     <Document>.text_segment_overlap
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -711,14 +725,25 @@ Can be called using:
     <Document>.max_text_segment_num
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### text_segments
             
+Extract small pieces of text with a few more rules
+    to make them more usable in an index.
 
+    For example, it is a good idea to make text-pieces not too small. Text pieces should
+    also not bee too big. So that they encode not too much information
+    into the vector. This makes queries on an index more precise.
+    Additionally, we should try to segment a piece of text into its
+    logical structure and try to preserve text blocks such as paragraphs,
+    tables etc... as much as possible.
+
+    if we split up large text blocks we will let the individual pieces overlap
+    just a little bit in order to preserve some of the context.
 
 Can be called using:
 
@@ -727,14 +752,19 @@ Can be called using:
     <Document>.text_segments
 
 return type
-: 
+: list[str] | typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### text_segment_vectors
             
+Take a function and apply it elementwise to
+    an iterable. Return a list or iterator.
 
+    the "elements" argument will be evaluated
+    element-wise. You can specify additional arguments for the
+    function using *args and **kwargs.
 
 Can be called using:
 
@@ -743,14 +773,18 @@ Can be called using:
     <Document>.text_segment_vectors
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### noun_index
             
+Class extracts an index form a document
+    TODO: make it flexible which kind of index we can use for this :).
 
+    --> for example we could also use a scikit-learn knn index or some brute-force method
+        etc....
 
 Can be called using:
 
@@ -759,14 +793,14 @@ Can be called using:
     <Document>.noun_index
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### vectorizer
             
-
+No documentation
 
 Can be called using:
 
@@ -775,7 +809,7 @@ Can be called using:
     <Document>.vectorizer
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -791,14 +825,16 @@ Can be called using:
     <Document>.noun_query
 
 return type
-: typing.Callable
+: typing.Callable[..., list[tuple]]
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### noun_graph
             
-
+this function buils a "directed similarity graph" by taking the similarity of words in a document
+     and connecting tokens which are similar. This can then be used for further analysis
+     such as textrank (wordranks, sentence ranks, paragraph ranking) etc...
 
 Can be called using:
 
@@ -807,14 +843,16 @@ Can be called using:
     <Document>.noun_graph
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### top_k_text_rank_keywords
             
+Configuration for values:
 
+* top_k_text_rank_keywords = 5 (default)
 
 Can be called using:
 
@@ -823,7 +861,7 @@ Can be called using:
     <Document>.top_k_text_rank_keywords
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -846,7 +884,9 @@ supports pipeline flows:
 
 ### keywords
             
+Alias for: 
 
+* textrank_keywords->keywords (output)
 
 Can be called using:
 
@@ -855,14 +895,18 @@ Can be called using:
     <Document>.keywords
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### sent_index
             
+Class extracts an index form a document
+    TODO: make it flexible which kind of index we can use for this :).
 
+    --> for example we could also use a scikit-learn knn index or some brute-force method
+        etc....
 
 Can be called using:
 
@@ -871,7 +915,7 @@ Can be called using:
     <Document>.sent_index
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -887,14 +931,16 @@ Can be called using:
     <Document>.sent_query
 
 return type
-: typing.Callable
+: typing.Callable[..., list[tuple]]
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### sent_graph
             
-
+this function buils a "directed similarity graph" by taking the similarity of words in a document
+     and connecting tokens which are similar. This can then be used for further analysis
+     such as textrank (wordranks, sentence ranks, paragraph ranking) etc...
 
 Can be called using:
 
@@ -903,14 +949,16 @@ Can be called using:
     <Document>.sent_graph
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### top_k_text_rank_sentences
             
+Configuration for values:
 
+* top_k_text_rank_sentences = 5 (default)
 
 Can be called using:
 
@@ -919,7 +967,7 @@ Can be called using:
     <Document>.top_k_text_rank_sentences
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -942,7 +990,11 @@ supports pipeline flows:
 
 ### summarizer_model
             
+Configuration for values:
 
+* summarizer_model = sshleifer/distilbart-cnn-12-6 (default)
+* summarizer_token_overlap = 50 (default)
+* summarizer_max_text_len = 200 (default)
 
 Can be called using:
 
@@ -951,14 +1003,18 @@ Can be called using:
     <Document>.summarizer_model
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### summarizer_token_overlap
             
+Configuration for values:
 
+* summarizer_model = sshleifer/distilbart-cnn-12-6 (default)
+* summarizer_token_overlap = 50 (default)
+* summarizer_max_text_len = 200 (default)
 
 Can be called using:
 
@@ -967,14 +1023,18 @@ Can be called using:
     <Document>.summarizer_token_overlap
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### summarizer_max_text_len
             
+Configuration for values:
 
+* summarizer_model = sshleifer/distilbart-cnn-12-6 (default)
+* summarizer_token_overlap = 50 (default)
+* summarizer_max_text_len = 200 (default)
 
 Can be called using:
 
@@ -983,14 +1043,14 @@ Can be called using:
     <Document>.summarizer_max_text_len
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### slow_summary
             
-
+No documentation
 
 Can be called using:
 
@@ -999,14 +1059,16 @@ Can be called using:
     <Document>.slow_summary
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### qam_model_id
             
+Configuration for values:
 
+* qam_model_id = deepset/minilm-uncased-squad2 (default)
 
 Can be called using:
 
@@ -1015,14 +1077,17 @@ Can be called using:
     <Document>.qam_model_id
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### answers
             
+Question Answering Machine Operator
 
+    The Operator generates a function takes questions and gives back
+    answers on the given text.
 
 Can be called using:
 
@@ -1031,7 +1096,7 @@ Can be called using:
     <Document>.answers
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -1047,14 +1112,16 @@ Can be called using:
     <Document>.chat_model_id
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### chat_answers
             
+Use LLMChat on data in our pipeline!
 
+    model_id: if model_language=="auto" we also need to set our model_size
 
 Can be called using:
 
@@ -1070,7 +1137,7 @@ supports pipeline flows:
 
 ### meta_pdf
             
-
+Extract metadata from pdf
 
 Can be called using:
 
@@ -1079,14 +1146,14 @@ Can be called using:
     <Document>.meta_pdf
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : application/pdf, image, image/jpeg, image/png, image/tiff
 
 ### page_set
             
-
+A list of the extracted pages of the pdf
 
 Can be called using:
 
@@ -1095,14 +1162,14 @@ Can be called using:
     <Document>.page_set
 
 return type
-: 
+: set[int]
 
 supports pipeline flows:
 : application/pdf, image, image/jpeg, image/png, image/tiff
 
 ### pages_bbox
             
-
+Return the 'mediabox' property of the pdf page which gives the size of the page of a pdf in 72 dpi, which is the standard unit of measurement in pdfs.
 
 Can be called using:
 
@@ -1111,14 +1178,14 @@ Can be called using:
     <Document>.pages_bbox
 
 return type
-: 
+: <class 'numpy.ndarray'\>
 
 supports pipeline flows:
 : application/pdf, image, image/jpeg, image/png, image/tiff
 
 ### elements
             
-
+Extract a list of textelements from pdf: Textlines, Graphics, Figures
 
 Can be called using:
 
@@ -1127,14 +1194,46 @@ Can be called using:
     <Document>.elements
 
 return type
-: 
+: <class 'pandas.core.frame.DataFrame'\>
+
+supports pipeline flows:
+: application/pdf, image, image/jpeg, image/png, image/tiff
+
+### image_dpi
+            
+The dpi when rendering the document
+
+Can be called using:
+
+    <Document>.x('image_dpi')
+    # or
+    <Document>.image_dpi
+
+return type
+: typing.Any
+
+supports pipeline flows:
+: application/pdf, image, image/jpeg, image/png, image/tiff
+
+### images
+            
+No documentation
+
+Can be called using:
+
+    <Document>.x('images')
+    # or
+    <Document>.images
+
+return type
+: dict[<module 'PIL.Image' from '/home/tom/.cache/pypoetry/virtualenvs/pydoxtools-ob-vhHEj-py3.10/lib/python3.10/site-packages/PIL/Image.py'\>] | typing.Any
 
 supports pipeline flows:
 : application/pdf, image, image/jpeg, image/png, image/tiff
 
 ### line_elements
             
-
+Filter document elements for various criteria
 
 Can be called using:
 
@@ -1143,14 +1242,14 @@ Can be called using:
     <Document>.line_elements
 
 return type
-: 
+: <class 'pandas.core.frame.DataFrame'\>
 
 supports pipeline flows:
 : application/pdf, image, image/jpeg, image/png, image/tiff
 
 ### graphic_elements
             
-
+Filter document elements for various criteria
 
 Can be called using:
 
@@ -1159,14 +1258,30 @@ Can be called using:
     <Document>.graphic_elements
 
 return type
-: 
+: <class 'pandas.core.frame.DataFrame'\>
+
+supports pipeline flows:
+: application/pdf, image, image/jpeg, image/png, image/tiff
+
+### image_elements
+            
+Filter document elements for various criteria
+
+Can be called using:
+
+    <Document>.x('image_elements')
+    # or
+    <Document>.image_elements
+
+return type
+: <class 'pandas.core.frame.DataFrame'\>
 
 supports pipeline flows:
 : application/pdf, image, image/jpeg, image/png, image/tiff
 
 ### lists
             
-
+Extract lines that might be part of a "list".
 
 Can be called using:
 
@@ -1175,14 +1290,14 @@ Can be called using:
     <Document>.lists
 
 return type
-: str | list[str] | list[pandas.core.frame.DataFrame]
+: <class 'pandas.core.frame.DataFrame'\> | str | list[str] | list[pandas.core.frame.DataFrame]
 
 supports pipeline flows:
 : application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/markdown, text/rtf
 
 ### table_box_levels
             
-
+produces a list of potential table objects
 
 Can be called using:
 
@@ -1191,14 +1306,14 @@ Can be called using:
     <Document>.table_box_levels
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : application/pdf, image, image/jpeg, image/png, image/tiff
 
 ### table_candidates
             
-
+produces a list of potential table objects
 
 Can be called using:
 
@@ -1207,14 +1322,14 @@ Can be called using:
     <Document>.table_candidates
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : application/pdf, image, image/jpeg, image/png, image/tiff
 
 ### table_df0
             
-
+Filter valid tables from table candidates by looking if meaningful values can be extracted
 
 Can be called using:
 
@@ -1223,14 +1338,37 @@ Can be called using:
     <Document>.table_df0
 
 return type
-: 
+: list[pandas.core.frame.DataFrame]
+
+supports pipeline flows:
+: application/pdf, image, image/jpeg, image/png, image/tiff
+
+### table_areas
+            
+Areas of all detected tables
+
+Can be called using:
+
+    <Document>.x('table_areas')
+    # or
+    <Document>.table_areas
+
+return type
+: list[numpy.ndarray]
 
 supports pipeline flows:
 : application/pdf, image, image/jpeg, image/png, image/tiff
 
 ### titles
             
+This Operator extracts titels and other interesting text parts
+    from a visual document. It does this by characterising parts
+    of the text being "different" than the rest using an
+    Isolation Forest algorithm (anomyla detection).
+    Features are for example: font size,
+    position, length etc...
 
+    #TODO: use this for html and other kinds of text files as well...
 
 Can be called using:
 
@@ -1239,14 +1377,21 @@ Can be called using:
     <Document>.titles
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : application/pdf, image, image/jpeg, image/png, image/tiff, text/html
 
 ### side_titles
             
+This Operator extracts titels and other interesting text parts
+    from a visual document. It does this by characterising parts
+    of the text being "different" than the rest using an
+    Isolation Forest algorithm (anomyla detection).
+    Features are for example: font size,
+    position, length etc...
 
+    #TODO: use this for html and other kinds of text files as well...
 
 Can be called using:
 
@@ -1255,7 +1400,7 @@ Can be called using:
     <Document>.side_titles
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : application/pdf, image, image/jpeg, image/png, image/tiff
@@ -1271,7 +1416,7 @@ Can be called using:
     <Document>.html_keywords_str
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : text/html
@@ -1287,7 +1432,7 @@ Can be called using:
     <Document>.main_content_clean_html
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : text/html
@@ -1303,7 +1448,7 @@ Can be called using:
     <Document>.summary
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : text/html
@@ -1319,7 +1464,7 @@ Can be called using:
     <Document>.goose_article
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : text/html
@@ -1335,7 +1480,7 @@ Can be called using:
     <Document>.main_content
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : text/html
@@ -1351,7 +1496,7 @@ Can be called using:
     <Document>.schemadata
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : text/html
@@ -1367,7 +1512,7 @@ Can be called using:
     <Document>.final_urls
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : text/html
@@ -1383,7 +1528,7 @@ Can be called using:
     <Document>.pdf_links
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : text/html
@@ -1399,7 +1544,7 @@ Can be called using:
     <Document>.title
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : text/html
@@ -1415,14 +1560,14 @@ Can be called using:
     <Document>.short_title
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : text/html
 
 ### urls
             
-
+No documentation
 
 Can be called using:
 
@@ -1431,14 +1576,14 @@ Can be called using:
     <Document>.urls
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : text/html
 
 ### main_image
             
-
+No documentation
 
 Can be called using:
 
@@ -1447,14 +1592,14 @@ Can be called using:
     <Document>.main_image
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : text/html
 
 ### html_keywords
             
-
+No documentation
 
 Can be called using:
 
@@ -1463,14 +1608,14 @@ Can be called using:
     <Document>.html_keywords
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : text/html
 
 ### pandoc_document
             
-
+Converts a string or a raw byte string into pandoc intermediate format.
 
 Can be called using:
 
@@ -1486,7 +1631,9 @@ supports pipeline flows:
 
 ### full_text_format
             
+Configuration for values:
 
+* full_text_format = markdown (default)
 
 Can be called using:
 
@@ -1495,14 +1642,14 @@ Can be called using:
     <Document>.full_text_format
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, mediawiki, pandoc, text/markdown, text/rtf
 
 ### convert_to
             
-
+No documentation
 
 Can be called using:
 
@@ -1511,14 +1658,14 @@ Can be called using:
     <Document>.convert_to
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, mediawiki, pandoc, text/markdown, text/rtf
 
 ### clean_format
             
-
+A constant value
 
 Can be called using:
 
@@ -1527,14 +1674,14 @@ Can be called using:
     <Document>.clean_format
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, mediawiki, pandoc, text/markdown, text/rtf
 
 ### sections
             
-
+extract sections from a textbox dataframe
 
 Can be called using:
 
@@ -1543,7 +1690,7 @@ Can be called using:
     <Document>.sections
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, mediawiki, pandoc, text/markdown, text/rtf
@@ -1566,7 +1713,7 @@ supports pipeline flows:
 
 ### headers
             
-
+Extract tables, headers and lists from a pandoc document
 
 Can be called using:
 
@@ -1582,7 +1729,10 @@ supports pipeline flows:
 
 ### ocr_lang
             
+Configuration for values:
 
+* ocr_lang = auto (default)
+* ocr_on = True (default)
 
 Can be called using:
 
@@ -1591,14 +1741,17 @@ Can be called using:
     <Document>.ocr_lang
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : image, image/jpeg, image/png, image/tiff
 
 ### ocr_on
             
+Configuration for values:
 
+* ocr_lang = auto (default)
+* ocr_on = True (default)
 
 Can be called using:
 
@@ -1607,14 +1760,18 @@ Can be called using:
     <Document>.ocr_on
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : image, image/jpeg, image/png, image/tiff
 
 ### ocr_pdf_file
             
+Takes an image encoded in bytes and returns a pdf document
+    which can be used to extract data.
 
+    TODO: maybe we could add "lines" here and detect other thigns such as images,
+          figures  etc...?
 
 Can be called using:
 
@@ -1623,7 +1780,7 @@ Can be called using:
     <Document>.ocr_pdf_file
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : image, image/jpeg, image/png, image/tiff
@@ -1646,7 +1803,7 @@ supports pipeline flows:
 
 ### keys
             
-
+No documentation
 
 Can be called using:
 
@@ -1655,14 +1812,14 @@ Can be called using:
     <Document>.keys
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : <class 'dict'\>, application/x-yaml
 
 ### values
             
-
+No documentation
 
 Can be called using:
 
@@ -1671,14 +1828,14 @@ Can be called using:
     <Document>.values
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : <class 'dict'\>, application/x-yaml
 
 ### items
             
-
+No documentation
 
 Can be called using:
 
@@ -1687,7 +1844,7 @@ Can be called using:
     <Document>.items
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : <class 'dict'\>, application/x-yaml

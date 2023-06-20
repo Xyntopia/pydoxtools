@@ -24,7 +24,7 @@ Can be called using:
     <DocumentBag>.doc_configuration
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
@@ -40,14 +40,14 @@ Can be called using:
     <DocumentBag>.forgiving_extracts
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### _stats
             
-
+A constant value
 
 Can be called using:
 
@@ -56,14 +56,16 @@ Can be called using:
     <DocumentBag>._stats
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### verbosity
             
+Configuration for values:
 
+* verbosity = None (default)
 
 Can be called using:
 
@@ -72,14 +74,15 @@ Can be called using:
     <DocumentBag>.verbosity
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### get_dicts
             
-
+Returns a function closure which returns a bag of the specified
+    property of the enclosed documents.
 
 Can be called using:
 
@@ -95,7 +98,9 @@ supports pipeline flows:
 
 ### d
             
+Alias for: 
 
+* get_dicts->d (output)
 
 Can be called using:
 
@@ -104,14 +109,18 @@ Can be called using:
     <DocumentBag>.d
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### bag_apply
             
-
+Basically it applies a function element-wise
+    on documents in a dask bag and then creates a new DocumentBag from that. This
+    works similar to pandas dataframes and series. But with documents
+    as a basic datatype. And apply functions are also required to
+    produce data which can be used as a document again (which is a lot).
 
 Can be called using:
 
@@ -127,7 +136,11 @@ supports pipeline flows:
 
 ### apply
             
-
+Basically it creates a Documentbag from two sets of
+    on documents in a dask bag and then creates a new DocumentBag from that. This
+    works similar to pandas dataframes and series. But with documents
+    as a basic datatype. And apply functions are also required to
+    produce data which can be used as a document again (which is a lot).
 
 Can be called using:
 
@@ -159,7 +172,9 @@ supports pipeline flows:
 
 ### e
             
+Alias for: 
 
+* exploded->e (output)
 
 Can be called using:
 
@@ -168,7 +183,7 @@ Can be called using:
     <DocumentBag>.e
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
@@ -184,7 +199,7 @@ Can be called using:
     <DocumentBag>.stats
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
@@ -200,7 +215,7 @@ Can be called using:
     <DocumentBag>.Document
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
@@ -216,7 +231,7 @@ Can be called using:
     <DocumentBag>.vectorizer
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
@@ -232,7 +247,7 @@ Can be called using:
     <DocumentBag>.add_to_chroma
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
@@ -248,14 +263,14 @@ Can be called using:
     <DocumentBag>.docs
 
 return type
-: <class 'dask.bag.core.Bag'\>
+: <class 'dask.bag.core.Bag'\> | typing.Any
 
 supports pipeline flows:
 : <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### take
             
-
+No documentation
 
 Can be called using:
 
@@ -264,14 +279,14 @@ Can be called using:
     <DocumentBag>.take
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### compute
             
-
+No documentation
 
 Can be called using:
 
@@ -280,14 +295,14 @@ Can be called using:
     <DocumentBag>.compute
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### sql
             
-
+No documentation
 
 Can be called using:
 
@@ -296,14 +311,14 @@ Can be called using:
     <DocumentBag>.sql
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : <class 'pydoxtools.document.DatabaseSource'\>
 
 ### connection_string
             
-
+No documentation
 
 Can be called using:
 
@@ -312,14 +327,14 @@ Can be called using:
     <DocumentBag>.connection_string
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : <class 'pydoxtools.document.DatabaseSource'\>
 
 ### index_column
             
-
+No documentation
 
 Can be called using:
 
@@ -328,14 +343,16 @@ Can be called using:
     <DocumentBag>.index_column
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : <class 'pydoxtools.document.DatabaseSource'\>
 
 ### bytes_per_chunk
             
+Configuration for values:
 
+* bytes_per_chunk = 256 MiB (default)
 
 Can be called using:
 
@@ -344,14 +361,16 @@ Can be called using:
     <DocumentBag>.bytes_per_chunk
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : <class 'pydoxtools.document.DatabaseSource'\>
 
 ### dataframe
             
+Load a table using dask/pandas read_sql
 
+    sql: can either be the entire table or an SQL expression
 
 Can be called using:
 
@@ -376,14 +395,16 @@ Can be called using:
     <DocumentBag>.bag
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### root_path
             
+Alias for: 
 
+* source->root_path (output)
 
 Can be called using:
 
@@ -392,7 +413,7 @@ Can be called using:
     <DocumentBag>.root_path
 
 return type
-: 
+: typing.Any
 
 supports pipeline flows:
 : <class 'list'\>, <class 'pathlib.Path'\>
@@ -415,7 +436,7 @@ supports pipeline flows:
 
 ### file_path_list
             
-
+No documentation
 
 Can be called using:
 
@@ -424,14 +445,14 @@ Can be called using:
     <DocumentBag>.file_path_list
 
 return type
-: <class 'dask.bag.core.Bag'\>
+: <class 'dask.bag.core.Bag'\> | typing.Any
 
 supports pipeline flows:
 : <class 'list'\>, <class 'pathlib.Path'\>
 
 ### dir_list
             
-
+No documentation
 
 Can be called using:
 
@@ -440,7 +461,7 @@ Can be called using:
     <DocumentBag>.dir_list
 
 return type
-: <class 'dask.bag.core.Bag'\>
+: <class 'dask.bag.core.Bag'\> | typing.Any
 
 supports pipeline flows:
 : <class 'list'\>, <class 'pathlib.Path'\>
