@@ -558,7 +558,7 @@ supports pipeline flows:
         if operator_name in self._configuration:
             return self._configuration[operator_name]
         elif not (operator_function := self.x_funcs.get(operator_name, None)):
-            return getattr(self, operator_name)  # choose the class' own properties as a fallback
+            return super().__getattribute__(operator_name)  # choose the class' own properties as a fallback
 
         try:
             # whether function should be cached or not...

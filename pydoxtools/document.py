@@ -289,9 +289,9 @@ operations and include the documentation there. Lambda functions should not be u
             FunctionOperator[list[pd.DataFrame]](
                 lambda candidates: {
                     "table_df0": [t.df for t in candidates if t.is_valid],
-                    "table_areas": [t._initial_area for t in candidates if t.is_valid]
+                    "table_areas": pd.DataFrame([t._initial_area for t in candidates if t.is_valid])
                 }).pipe(candidates="table_candidates")
-            .out("table_df0", "table_areas").cache()
+            .out("table_df0", "table_areas").cache().t(table_df0=list[pd.DataFrame], table_areas=list[np.ndarray])
             .docs(
                 table_df0="Filter valid tables from table candidates by looking if meaningful values can be extracted",
                 table_areas="Areas of all detected tables"
@@ -380,6 +380,8 @@ operations and include the documentation there. Lambda functions should not be u
             # and then further processed from there
             "application/pdf",  # as we are extracting a pdf we would like to use the pdf functions...
             Configuration(ocr_lang="auto", ocr_on=True),
+            FunctionOperator(lambda x: [x]).pipe(x="raw_content")
+            .out("images").no_cache(),
             OCRExtractor()
             .pipe("ocr_on", "ocr_lang", file="raw_content")
             .out("ocr_pdf_file").cache(),

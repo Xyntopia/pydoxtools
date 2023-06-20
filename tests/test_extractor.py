@@ -545,7 +545,22 @@ def test_image_generation():
 
 
 def test_pdf_pages():
-    pass
+    doc = Document(make_path_absolute("./data/Doxcavator.pdf"))
+    im1 = doc.images[8]
+    assert doc.page_set == {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14}
+
+    doc = Document(make_path_absolute("./data/Doxcavator.pdf"), page_numbers=[2, 4])
+    assert doc.page_set == {2, 4}
+
+    doc = Document(make_path_absolute("./data/Doxcavator.pdf"), page_numbers=[8])
+    assert "e.g. Searching for Insurance \nFraud\n" in doc.full_text
+
+    new_image = doc.images[8]
+    assert new_image == im1
+    b = io.BytesIO()
+    new_image.save(b, 'PNG')
+    d = Document(b.getvalue())
+    assert "e.g.  Searching  for  Insurance \n" in d.full_text
 
 
 def test_pdf_text_extraction():
@@ -556,8 +571,8 @@ def test_pdf_text_extraction():
     pdf_file = training_data / "sparepartsnow/06_Kraftspannfutter_Zylinder_Luenetten_2020.01_de_web.pdf"
     # %% jupyter={"outputs_hidden": true}
 
-    #text = extract_text(pdf_file, page_numbers=[page])
-    #print(text)
+    # text = extract_text(pdf_file, page_numbers=[page])
+    # print(text)
 
     pdf = Document(pdf_file, page_numbers=[page])
     pdf.full_text
@@ -566,4 +581,7 @@ def test_pdf_text_extraction():
 if __name__ == "__main__":
     # a = pd.DataFrame(sd.sents)
     # a[2]
+    file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/PFR-PR23_BAT-110__V1.00_.pdf"
+    # run_single_non_interactive_document_test(file)
+    doc = Document(file)
     pass

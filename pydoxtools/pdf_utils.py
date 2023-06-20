@@ -199,7 +199,7 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
     def __init__(
             self,
             # laparams=LAParams(detect_vertical=True, boxes_flow=-1.0, all_texts=False),
-            laparams=LAParams(detect_vertical=True),
+            laparams=LAParams(detect_vertical=False),
             **kwargs
     ):
         """
@@ -309,7 +309,7 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
             if page_numbers:
                 page_num = page_numbers[page_layout.pageid - 1]
             else:
-                page_num = page_layout.pageid
+                page_num = page_layout.pageid - 1
             extracted_page_numbers.add(page_num)
             pages_bbox[page_num] = np.array(page_layout.bbox)
             # len(page_layout)

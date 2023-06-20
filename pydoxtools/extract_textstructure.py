@@ -171,7 +171,7 @@ class TitleExtractor(pydoxtools.operators_base.Operator):
         # TODO: extract the necessary features that we need here "on-the-fly" from
         #       LTLineObj
         # extract more features for every line
-        dfl = df_le
+        dfl = df_le.dropna(axis=1).copy()
         # get font with largest size to characterize line
         # TODO: this can probably be made better..  (e.g. only take the font of the "majority" content)
         dfl[['font', 'size', 'color']] = dfl.font_infos.apply(
