@@ -2,6 +2,9 @@ from __future__ import annotations  # this is so, that we can use python3.10 ann
 
 import functools
 from typing import Callable
+from langchain import PromptTemplate, LLMChain
+from langchain.llms import GPT4All
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
 import yaml
 from diskcache import Cache
@@ -73,6 +76,24 @@ def gpt4allchat(messages, model_id="ggml-mpt-7b-instruct", max_tokens=256, *args
     return res
 
 
+def chat_completion(msgs: tuple[dict[str, str], ...], model_id: str) -> str:
+    if model_id == "gpt-3.5-turbo":
+        completion = openai_chat_completion_with_diskcache(
+            model_id=model_id, temperature=0.0, messages=msgs
+        )
+        result = completion.choices[0].message
+    elif model_id in gpt4_models():
+        completion = gpt4allchat(
+            model_id=model_id, temperature=0.0, messages=msgs
+        )
+        result = completion["choices"][0]['message']['content']
+    else:
+        result = ""
+        NotImplementedError(f"We can currently not handle the model {model_id}")
+
+    return result
+
+
 class LLMChat(Operator):
     """
     Use LLMChat on data in our pipeline!
@@ -113,18 +134,8 @@ class LLMChat(Operator):
                                     f"## Prompt: {task} \n\n"
                                     f"## Input for the task: {text}.\n\n"
                                     f"## Result:\n\n"})
-                if model_id == "gpt-3.5-turbo":
-                    completion = openai_chat_completion_with_diskcache(
-                        model_id=model_id, temperature=0.0, messages=msgs
-                    )
-                    result = completion.choices[0].message
-                elif model_id in gpt4_models():
-                    completion = gpt4allchat(
-                        model_id=model_id, temperature=0.0, messages=msgs
-                    )
-                    result = completion["choices"][0]['message']['content']
-                else:
-                    NotImplementedError(f"We can currently not handle the model {model_id}")
+
+                result = chat_completion(msgs, model_id=model_id)
 
                 results.append(result)
             return results

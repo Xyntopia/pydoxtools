@@ -578,10 +578,30 @@ def test_pdf_text_extraction():
     pdf.full_text
 
 
+def test_list_query():
+    a = ['',
+         'Id.-Nr.',
+         'Futtergröße',
+         'Backenlänge mm',
+         'Backenhöhe mm',
+         'Krallenlänge mm',
+         'Zahnteilung']
+    b = ['', '', '', '', '', '', '', '', '', '137039']
+    doc = Document([a, b])
+    doc.x("text_box_elements")
+    doc.x("text_segments")
+    doc.x("text_segment_ids")
+    doc.x("text_segment_vecs")
+    doc.x("text_segment_index")
+    doc.vectorizer("test")
+    doc.segment_query("['product' 'id' 'ID Nr' Nr. Id.]")
+
+
 if __name__ == "__main__":
     # a = pd.DataFrame(sd.sents)
     # a[2]
     file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/PFR-PR23_BAT-110__V1.00_.pdf"
     # run_single_non_interactive_document_test(file)
     doc = Document(file)
+    test_list_query()
     pass

@@ -429,7 +429,7 @@ operations and include the documentation there. Lambda functions should not be u
             FunctionOperator(lambda x: yaml.dump(list_utils.deep_str_convert(x))).t(str)
             .pipe(x="data").out("full_text").cache(),
             FunctionOperator(lambda x: pd.DataFrame([
-                list_utils.deep_str_convert(v) for v in x],
+                str(list_utils.deep_str_convert(v)) for v in x],
                 columns=["text"]
             )).pipe(x="data").out("text_box_elements").cache(),
             Alias(text_segments="text_box_list").t(list[str]),
@@ -564,6 +564,11 @@ operations and include the documentation there. Lambda functions should not be u
                    "contextual embeddings using the model. BUt is also lower quality"
                    "because it lacks the context."),
             FunctionOperator(
+                lambda m, t, o: lambda txt: nlp_utils.calculate_string_embeddings(
+                    text=txt, model_id=m, only_tokenizer=t, overlap_ratio=o)[0].mean(0)
+            ).pipe(m="vectorizer_model", t="vectorizer_only_tokenizer", o="vectorizer_overlap_ratio")
+            .out("vectorizer").cache(),
+            FunctionOperator(
                 lambda x, m, t, o: nlp_utils.calculate_string_embeddings(
                     text=x, model_id=m, only_tokenizer=t, overlap_ratio=o)
             ).pipe(x="full_text", m="vectorizer_model",
@@ -591,19 +596,31 @@ operations and include the documentation there. Lambda functions should not be u
                   large_segment_overlap="text_segment_overlap", full_text="full_text",
                   max_text_segment_num="max_text_segment_num")
             .out("text_segments").cache(),
+            # TODO: we would like to have the context-based vectors so we should
+            #       calculate this "backwards" from the vectors for the entire text
+            #       and not for each individual segment...
             ElementWiseOperator(calculate_string_embeddings, return_iterator=False)
-            .pipe(
-                elements="text_segments",
-                model_id="vectorizer_model",
-                only_tokenizer="vectorizer_only_tokenizer")
-            .out("text_segment_vectors").cache(),
+            .pipe(elements="text_segments",
+                  model_id="vectorizer_model",
+                  only_tokenizer="vectorizer_only_tokenizer")
+            .out("text_segment_vec_res").cache(),
+            FunctionOperator(lambda x: np.array([r[0].mean(0) for r in x]))
+            .pipe(x="text_segment_vec_res").out("text_segment_vecs").cache(),
+            FunctionOperator(lambda x: np.array(range(len(x)))).pipe(x="text_segments")
+            .out("text_segment_ids").cache(),
+            IndexExtractor()
+            .pipe(vecs="text_segment_vecs", ids="text_segment_ids").out("text_segment_index")
+            .cache(),
+            KnnQuery().pipe(index="text_segment_index", idx_values="text_segments",
+                            vectorizer="vectorizer")
+            .out("segment_query").cache(),
 
             ########### NOUN_INDEX #############
             IndexExtractor()
             .pipe(vecs="noun_vecs", ids="noun_ids").out("noun_index").cache(),
             FunctionOperator(lambda spacy_nlp: lambda x: spacy_nlp(x).vector)
-            .pipe("spacy_nlp").out("vectorizer").cache(),
-            KnnQuery().pipe(index="noun_index", idx_values="noun_chunks", vectorizer="vectorizer")
+            .pipe("spacy_nlp").out("spacy_vectorizer").cache(),
+            KnnQuery().pipe(index="noun_index", idx_values="noun_chunks", vectorizer="spacy_vectorizer")
             .out("noun_query").cache(),
             SimilarityGraph().pipe(index_query_func="noun_query", source="noun_chunks")
             .out("noun_graph").cache(),
@@ -618,9 +635,7 @@ operations and include the documentation there. Lambda functions should not be u
             ########### SENTENCE_INDEX ###########
             IndexExtractor()
             .pipe(vecs="sent_vecs", ids="sent_ids").out("sent_index").cache(),
-            FunctionOperator(lambda spacy_nlp: lambda x: spacy_nlp(x).vector)
-            .pipe("spacy_nlp").out("vectorizer").cache(),
-            KnnQuery().pipe(index="sent_index", idx_values="spacy_sents", vectorizer="vectorizer")
+            KnnQuery().pipe(index="sent_index", idx_values="spacy_sents", vectorizer="spacy_vectorizer")
             .out("sent_query").cache(),
             SimilarityGraph().pipe(index_query_func="sent_query", source="spacy_sents")
             .out("sent_graph").cache(),

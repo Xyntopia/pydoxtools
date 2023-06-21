@@ -151,6 +151,7 @@ class KnnQuery(Operator):
             else:
                 search_vec = txt.vector
 
+            k = min(len(idx_values),k)
             try:
                 similar = index.knn_query([search_vec], k=k)
             except RuntimeError:  # text is probably too small
