@@ -7,20 +7,20 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.13.6
+#       jupytext_version: 1.14.5
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
 
-# %% [markdown] tags=[]
+# %% [markdown]
 # # optimize table area detection and label 
 #
 # we take our algorithm parameters here and try to optimize the parameters to be able to
 # detect as many table areas as possible
 
-# %% tags=[]
+# %%
 # %load_ext autoreload
 # %autoreload 2
 
@@ -140,10 +140,10 @@ def detect_tables(
     return tables.reset_index().drop(columns='index')
 
 
-# %% [markdown] tags=[]
+# %% [markdown]
 # ## load labeled tables from csv
 
-# %% tags=[]
+# %%
 table_data = settings.TRAINING_DATA_DIR / "pdfs/tabledata.csv"
 
 # %%
@@ -154,7 +154,7 @@ save_columns = sorted(['area_detection_method',
 int_cols = ["page", "x0", "x1", "y0", "y1"]
 md5_cols = ["md5","page","file"]
 
-# %% tags=[]
+# %%
 # match labeled tables with calculated data
 tables_csv = pd.read_csv(table_data)
 # remove intermediate header rows...
@@ -170,8 +170,8 @@ tables_csv = tables_csv.sort_values(by='labeling_time') \
     .drop_duplicates(subset=md5_cols, keep='last')
 print(tables_csv.columns)
 
-# %% [markdown] tags=[]
-# ## manually optimize and generate tabl statistics
+# %% [markdown]
+# ## manually optimize and generate table statistics
 #
 # we need this, if we want to manually adapt the parameters in oder to label functions...
 
@@ -204,7 +204,7 @@ if isnotebook() or getattr(sys, 'gettrace', None):
         max_filenum=-1
     )
 
-# %% [markdown] tags=[]
+# %% [markdown]
 # ## calculate statistics (Tp,Fp,Tn,Fn), unlabeled
 
 # %%
@@ -263,7 +263,7 @@ if isnotebook():
     print(stats)
 
 
-# %% [markdown] jp-MarkdownHeadingCollapsed=true tags=[]
+# %% [markdown] jp-MarkdownHeadingCollapsed=true
 # ### current state
 #
 #  {'total': 835,
@@ -295,7 +295,7 @@ if isnotebook():
 #
 # - Tp, precision, recall, F1
 
-# %% tags=[]
+# %%
 def objective(trial: optuna.trial.Trial):
     # TODO: add a "pruner" which can automatically throw out unpromising trials where we don't find 
     # any tabl areas for a certain already labeled pdf...
@@ -352,7 +352,7 @@ if not isnotebook():
     #study.enqueue_trial({f"area_detection_params[{i}]": p for i, p in enumerate(best_adp)})
     study.optimize(objective, n_trials=100)
 
-# %% tags=[]
+# %%
 [np.round(p, 2) for p in study.best_params.values()]
 # [0.1, 3.1, 1.1,0.8,17.1, 9.1, 4.1,16.7]
 
@@ -389,7 +389,7 @@ if ov.is_available():
 # %%
 Fn.file_csv.unique()
 
-# %% [markdown] tags=[]
+# %% [markdown]
 # ## find tables that we haven't labeled yet within a certain tolerance
 
 # %%
@@ -403,7 +403,7 @@ len(selected_tables)
 # %%
 selected_tables[['classification', 'match_dist']].head(3)
 
-# %% [markdown] tags=[]
+# %% [markdown]
 # ## label the new selection...
 
 # %%

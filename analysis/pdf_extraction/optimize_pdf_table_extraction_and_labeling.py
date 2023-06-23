@@ -7,9 +7,9 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.13.6
+#       jupytext_version: 1.14.5
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
@@ -17,7 +17,7 @@
 # %% [markdown]
 # # Label PDF table extractions
 
-# %% tags=[]
+# %%
 # %load_ext autoreload
 # %autoreload 2
 
@@ -89,7 +89,7 @@ files = file_utils.get_nested_paths(settings.TRAINING_DATA_DIR / "pdfs/datasheet
 pathdb = {f.name: f for f in files}
 len(files)
 
-# %% [markdown] tags=[]
+# %% [markdown]
 # ## load labeled tables from csv
 
 # %%
@@ -98,11 +98,11 @@ save_columns = sorted(['area_detection_method',
                        'classification', 'file', 'labeling_time',
                        'md5', 'page', 'x0', 'x1', 'y0', 'y1'])
 
-# %% tags=[]
+# %%
 tables_csv = labeling.load_tables_from_csv()
 print(tables_csv.columns)
 
-# %% [markdown] tags=[]
+# %% [markdown]
 # ## manually optimize and generate table statistics
 #
 # we need this, if we want to manually adapt the parameters in oder to label functions...
@@ -126,7 +126,7 @@ print(tables_csv.classification.unique())
 # %%
 tables_merged = labeling.merge_table_classifications(tables, tables_csv)
 
-# %% [markdown] tags=[]
+# %% [markdown]
 # ## calculate statistics (Tp,Fp,Tn,Fn), unlabeled
 
 # %%
@@ -179,7 +179,7 @@ if isnotebook():
 # %% [markdown]
 # TODO: add false negatives based on previous "good" classifications...
 
-# %% [markdown] tags=[]
+# %% [markdown]
 # ### current state
 #
 # {'total': 2277, 'tp': 303, 'fp': 111, 'tn': 1051, 'fn': 48, 'fn2': 8, 'precision': 0.73, 'recall': 0.86, 'F1': 0.792, 'unlabeled': 684}
@@ -237,7 +237,7 @@ tables_merged.query("file==@file")[[
 t = tables_csv.query("~file.isin(@tables.file.unique())").file.drop_duplicates()
 pretty_print((settings.TRAINING_DATA_DIR / "pdfs/datasheet" / t).to_frame())
 
-# %% [markdown] tags=[]
+# %% [markdown]
 # ## optimize table extraction parameters
 #
 # we can optimize for several goals:
@@ -248,7 +248,7 @@ pretty_print((settings.TRAINING_DATA_DIR / "pdfs/datasheet" / t).to_frame())
 optimize = False
 
 
-# %% tags=[]
+# %%
 def objective(trial: optuna.trial.Trial):
     # TODO: add a "pruner" which can automatically throw out unpromising trials where we don't find 
     # any tabl areas for a certain already labeled pdf...
@@ -335,7 +335,7 @@ if optimize:
 # from IPython.core.display import display, HTML
 # display(HTML(fig.to_html()))
 
-# %% [markdown] tags=[]
+# %% [markdown]
 # ## check false negatives (not detected tables, but which were already labeled at some point...)
 #
 # we want to find interesting files to look at in "test_table_area_candidate_search.py" (a.k.a. why is the detection not working anymore?)
@@ -346,7 +346,7 @@ pretty_print(str(settings.TRAINING_DATA_DIR / "pdfs/datasheet") + "/" + pd.DataF
 # %% [markdown]
 # ## Calculate some automatic labeling sets
 
-# %% [markdown] tags=[]
+# %% [markdown]
 # ### find tables that we haven't labeled yet within a certain tolerance
 
 # %%
@@ -369,7 +369,7 @@ tables_merged.query("match_bbox_dist>50").shape
 # %%
 tables_merged.query("match_bbox_dist<=1 & classification.isin(@good)").shape
 
-# %% [markdown] jp-MarkdownHeadingCollapsed=true tags=[]
+# %% [markdown] jp-MarkdownHeadingCollapsed=true
 # select all unlabeled closest area-matches to false negatives
 
 # %%
@@ -388,7 +388,7 @@ selected_tables = unlabeled
 selected_tables=Fp
 selected_tables.shape, tables_merged.shape
 
-# %% [markdown] tags=[]
+# %% [markdown]
 # ## label the new selection...
 
 # %%

@@ -147,6 +147,6 @@ vda.plot_box_layers(
         [pd.DataFrame([b._initial_area for b in boxes]).values, vda.LayerProps(alpha=1.0, color="red", filled=False, box_numbers=True)]
     ],
     bbox=pdf.pages_bbox[page], dpi=250
-)
+),
 
 # %%

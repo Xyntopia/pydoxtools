@@ -41,7 +41,8 @@ from pydoxtools import cluster_utils as gu
 import numpy as np
 import pandas as pd
 
-box_cols = pdf_utils.box_cols
+import pathlib
+box_cols = gu.box_cols
 from pydoxtools.settings import settings
 import torch
 from IPython.display import display, HTML
@@ -49,10 +50,6 @@ from IPython.display import display, HTML
 from tqdm import tqdm
 
 tqdm.pandas()
-
-pdf_utils._set_log_levels()
-memory = settings.get_memory_cache()
-
 
 def pretty_print(df):
     return display(HTML(df.to_html().replace("\\n", "<br>")))
@@ -67,36 +64,37 @@ x0,y0,x1,y1 = 1,2,3,4
 # ## first of all, get some correctly identified areas
 
 # %%
-pdf_file = settings.TRAINING_DATA_DIR / "pdfs/datasheet/PRF-PR-21_HRVI-2nd-gen.pdf"
-pdf_file = settings.TRAINING_DATA_DIR / "pdfs/datasheet/NEXXIS_TECH_SHEET_VT1000HDPTZATEX.34.pdf"
-pdf_file = settings.TRAINING_DATA_DIR / "pdfs/datasheet/T2000BrochureAUS_WEB.fa.pdf"
-#pdf_file = settings.TRAINING_DATA_DIR / "pdfs/datasheet/Optocouplers.d3.pdf"
-#pdf_file = settings.TRAINING_DATA_DIR / "pdfs/datasheet/14-DD05A.08(II)_EN_TSM_DD05A_08_II_plus_datasheet_B_2017_web.22.pdf"
+# #!pip install datasets[audio]
+
+# %%
+#from datasets import load_dataset
+
+#dataset = load_dataset("bsmock/pubtables-1m")
+
+# %%
+training_data = pathlib.Path.home() / "comcharax/data"
+page =19 # we have an unreasonable number of elements here..  what is going on?
+pdf_file = training_data / "sparepartsnow/06_Kraftspannfutter_Zylinder_Luenetten_2020.01_de_web.pdf"
 print(pdf_file)
 
 # %%
-params = pydoxtools.extract_tables.TableExtractionParameters.reduced_params()
-#params.text_extraction_margin=20.0
-pdfi = pdf_utils.PDFDocumentOld(pdf_file, table_extraction_params=params)
-# pdfi.tables
-# p.tables
-# pdfi.table_metrics_X()
+pdf=pydoxtools.Document(pdf_file, page_numbers=[page])
+img = pdf.images[page]
 
 # %% [markdown]
 # ## calculate table text for the page
 
 # %%
-page, table_candidate = 1,1
-#pretty_print(pdfi.pages[page].tables[table])
-#pdfi.pages[page].tables[table]
-t = pdfi.pages[page].table_candidates[table_candidate]
-#t = pdfi.pages[page].tables[table_candidate]
+pdf.table_candidates
+
+# %%
+t=pdf.table_candidates[1]
 
 # %%
 pretty_print(t.df)
 #t.df
 #pdfi.pages[page]
-t.is_valid
+#t.is_valid
 
 # %%
 #pdfi.table_metrics
@@ -108,20 +106,19 @@ t.is_valid
 # %%
 #pdfi.tables_df[0]
 
-# %%
-
 # %% [markdown]
 # ## plot table candidate
 
 # %%
 margin=20
-borders =b= 2
+# make cells "smaller" than in reality to make borders between the more obvious
+borders =b= 2 
 #ca = t.detect_cells()
-ca = t.detect_cells()
+ca = t.detect_cells(steps=None).copy()
 layers = [
     [t.df_ge[vda.box_cols].values, vda.LayerProps(alpha=0.05, color="blue", filled=True)],
     #[t.df_le[vda.box_cols].values, vda.LayerProps(alpha=0.2, color="orange")],
-    [t.df_words[vda.box_cols].values, vda.LayerProps(alpha=0.2, color="orange")],
+    [t.df_words[vda.box_cols].values, vda.LayerProps(alpha=0.4, color="orange")],
 ]
 oc = t._debug.get("open_cells", pd.DataFrame())
 if not oc.empty:
@@ -151,26 +148,24 @@ oc
 #    bbox = None, dpi=250)#p.page_bbox)
 
 print(pdf_file)
-#p = pdfi.pages[2]
-p = pdfi.pages[page]
-boxes, box_levels = p.detect_table_area_candidates()
+table_candidates, box_iterations = pdf.table_candidates, pdf.table_box_levels
 
+# %%
 ERROR = np.array([[199.79,  522.362, 291.686, 579.698]])
 
 vda.plot_box_layers(
     box_layers=[
-        [p.df_ge[vda.box_cols].values, vda.LayerProps(alpha=0.1, color="red", filled=False)],
-        [p.df_le[vda.box_cols].values, vda.LayerProps(alpha=0.1, color="blue")],
-        [box_levels[0].values, vda.LayerProps(alpha=0.5, color="black", filled=False)],
-        [box_levels[1].values if len(box_levels) > 1 else [], vda.LayerProps(alpha=0.1, color="yellow", filled=True)],
-        [boxes.values, vda.LayerProps(alpha=0.1, color="blue", filled=False)],
-        [p.table_candidate_boxes_df.values, vda.LayerProps(
-            alpha=1.0, color="red", filled=False, box_numbers=True)]
+        [pdf.graphic_elements[vda.box_cols].values, vda.LayerProps(alpha=0.1, color="red", filled=False)],
+        [pdf.line_elements[vda.box_cols].values, vda.LayerProps(alpha=0.1, color="blue")],
+        [box_iterations[page][0].values[:,:4], vda.LayerProps(alpha=0.5, color="black", filled=False)],
+        [box_iterations[page][1].values[:,:4], vda.LayerProps(alpha=0.1, color="yellow", filled=True)],
+        #[pdf.table_areas[box_cols].values, vda.LayerProps(alpha=1.0, color="green", filled=False)],
+        #[boxes.values, vda.LayerProps(alpha=0.1, color="blue", filled=False)],
+        #[p.table_candidate_boxes_df.values, vda.LayerProps(
+        #    alpha=1.0, color="red", filled=False, box_numbers=True)]
         #[ERROR,vda.LayerProps(color="red")]
     ],
-    bbox=p.page_bbox, dpi=250
+    bbox=pdf.pages_bbox[page], dpi=250
 ),
-
-# %%
 
 # %%

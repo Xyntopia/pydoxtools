@@ -38,12 +38,13 @@ from pydoxtools import nlp_utils
 from pydoxtools import pdf_utils
 from pydoxtools import visual_document_analysis as vda
 from pydoxtools import cluster_utils
-box_cols = pdf_utils.box_cols
+box_cols = cluster_utils.box_cols
 from pydoxtools.settings import settings
 import torch
 from IPython.display import display
 import pdfminer
 import pdfminer.layout
+import pathlib
 import sklearn
 import sklearn.cluster as cluster
 
@@ -58,7 +59,6 @@ from IPython.display import display, HTML
 tqdm.pandas()
 
 pdf_utils._set_log_levels()
-memory = settings.get_memory_cache()
 
 def pretty_print(df):
     return display(HTML(df.to_html().replace("\\n", "<br>")))
@@ -76,51 +76,68 @@ files = [join(root, f) for root, dirs, files
 len(files)
 
 # %% [markdown]
-# ## try to extract table boundaries using my own method
+# ## try to extract table boundaries using our own method
 #
 # 1. first we will group lines into boxes to identify "whole" cells the grouping was already provided by pdfminer.six --> **box_groups**
 # 2. afterwards we will group those boxes into columns & rows --> **valid_columns**
 # 3. as the third step, cluster the columns into tables --> table_groups
 
 # %%
-pdf_file = settings.TRAINING_DATA_DIR / "pdfs/datasheet/BUSI-XCAM-SY-00010.36.pdf"
-pdf_file = settings.TRAINING_DATA_DIR / "pdfs/datasheet/Optocouplers.d3.pdf"
+training_data = pathlib.Path.home() / "comcharax/data"
+page =19 # we have an unreasonable number of elements here..  what is going on?
+pdf_file = training_data / "sparepartsnow/06_Kraftspannfutter_Zylinder_Luenetten_2020.01_de_web.pdf"
 print(pdf_file)
 
 # %%
-pdfi = pdf_utils.PDFDocumentOld(pdf_file)
+img = pydoxtools.Document(pdf_file, page_numbers=[page]).images[page]
+
+# %%
+#pdf = pydoxtools.Document(pdf_utils.repair_pdf(pdf_file), page_numbers=[page])
+pdf = pydoxtools.Document(img)
 # pdfi.tables
 # p.tables
 # pdfi.table_metrics_X()
 
 # %%
-[pretty_print(t) for t in pdfi.tables_df]
+#img
 
 # %%
-#pdfi.tables_df
+isinstance(img,PIL.Image.Image)
 
 # %%
-m = pdfi.table_metrics_X
+pdf.document_type
 
 # %%
-# vda.plot_boxes(
-#    df_le[vda.box_cols].values,
-#    groups = df_le["hm"].values,
-#    bbox = None, dpi=250)#p.page_bbox)
-#p = pdfi.pages[0]
-for p in pdfi.pages:
-    vda.plot_box_layers(
-        box_layers=[
-            [p.df_ge_f[vda.box_cols].values, vda.LayerProps(alpha=0.1, color="red")],
-            [p.df_le[vda.box_cols].values, vda.LayerProps(alpha=0.1, color="black")],
-            [p.detect_table_area_candidates()[0].values, vda.LayerProps(alpha=0.2, color="blue", filled=False)],
-            [p.table_candidate_boxes_df.values, vda.LayerProps(
-                alpha=0.5, color="red", filled=False, box_numbers=True)],
-            [p.table_areas.values, vda.LayerProps(alpha=0.2, color="yellow")]
-        ],
-        bbox=p.page_bbox, dpi=250
-    ),print(pdfi.filename)
+pdf.table_areas
 
 # %%
+[pretty_print(t) for t in pdf.tables_df]
+
+# %%
+page=0
+boxes, box_levels = pdf.table_candidates, pdf.table_box_levels
+
+# %%
+vda.plot_box_layers(
+    box_layers=[
+        [pdf.line_elements[box_cols].values, vda.LayerProps(alpha=0.5, color="red", filled=False)],
+        [pdf.image_elements[box_cols].values, vda.LayerProps(alpha=0.5, color="blue", filled=False)],
+        [pdf.graphic_elements[box_cols].values, vda.LayerProps(alpha=0.5, color="yellow", filled=False)],
+        
+        #[box_levels[0][0].values, vda.LayerProps(alpha=0.5, color="black", filled=False)],
+        #[box_levels[0][1].values if len(box_levels[18])>1 else [], vda.LayerProps(alpha=0.1, color="yellow", filled=True)],
+        #[pd.DataFrame([b._initial_area for b in boxes]).values, vda.LayerProps(alpha=1.0, color="red", filled=False, box_numbers=True)]
+        [pdf.table_areas[box_cols].values, vda.LayerProps(alpha=1.0, color="green", filled=False)],
+        #[tables[box_cols].values, vda.LayerProps(alpha=1.0, color="red", filled=False)],
+        #[figures[box_cols].values, vda.LayerProps(alpha=1.0, color="green", filled=False)],
+        #[text[box_cols].values, vda.LayerProps(alpha=1.0, color="blue", filled=False)],
+        #[p.df_le[vda.box_cols].values, vda.LayerProps(alpha=0.1, color="blue")],
+        #[t.df_ch[vda.box_cols].values, vda.LayerProps(alpha=1.0, color="yellow", filled=False)],
+        #[t.df_words[vda.box_cols].values, vda.LayerProps(alpha=0.3, color="random", filled=True)]
+    ],
+    bbox=pdf.pages_bbox[page], dpi=250,
+    #image=pdf.images[page],
+    #image_box=pdf.pages_bbox[page],
+),
 
 # %%
