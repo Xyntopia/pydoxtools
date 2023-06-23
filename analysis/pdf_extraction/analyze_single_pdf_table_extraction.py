@@ -7,9 +7,9 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.13.6
+#       jupytext_version: 1.14.5
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
@@ -17,7 +17,7 @@
 # %% [markdown]
 # # Analyze the extraction of tables from pdfs
 
-# %% tags=[]
+# %%
 import sys
 
 import pydoxtools.visual_document_analysis
@@ -102,7 +102,7 @@ pdfi = pdf_utils.PDFDocumentOld(pdf_file)
 # %%
 m = pdfi.table_metrics_X
 
-# %% tags=[]
+# %%
 # vda.plot_boxes(
 #    df_le[vda.box_cols].values,
 #    groups = df_le["hm"].values,

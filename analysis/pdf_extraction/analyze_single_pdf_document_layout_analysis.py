@@ -77,7 +77,7 @@ x0,y0,x1,y1 = 1,2,3,4
 
 # %%
 training_data = pathlib.Path.home() / "comcharax/data"
-page = 18
+page =16 # we have an unreasonable number of elements here..  what is going on?
 pdf_file = training_data / "sparepartsnow/06_Kraftspannfutter_Zylinder_Luenetten_2020.01_de_web.pdf"
 print(pdf_file)
 
@@ -98,41 +98,6 @@ pdf = pydoxtools.Document(pdf_utils.repair_pdf(pdf_file), page_numbers=[page])
 pdf.images
 
 # %%
-import layoutparser as lp
-model = lp.Detectron2LayoutModel(
-            config_path ='lp://PubLayNet/faster_rcnn_R_50_FPN_3x/config', # In model catalog
-            label_map   ={0: "Text", 1: "Title", 2: "List", 3:"Table", 4:"Figure"}, # In model`label_map`
-            extra_config=["MODEL.ROI_HEADS.SCORE_THRESH_TEST", 0.8] # Optional
-        )
-layout = model.detect(pdf.images[page])
-
-# %%
-import layoutparser as lp
-model = lp.Detectron2LayoutModel(
-            config_path ='lp://PubLayNet/mask_rcnn_X_101_32x8d_FPN_3x/config', # In model catalog
-            label_map   ={0: "Text", 1: "Title", 2: "List", 3:"Table", 4:"Figure"}, # In model`label_map`
-            extra_config=["MODEL.ROI_HEADS.SCORE_THRESH_TEST", 0.8] # Optional
-        )
-layout = model.detect(pdf.images[page])
-
-# %%
-size=pdf.pages_bbox[page][2:]
-rendersize = pdf.images[page].size
-
-# %%
-ratio=size/np.array(pdf.images[page].size)
-
-# %%
-layout
-
-# %%
-df=layout.to_dataframe().rename(columns={'x_1':'x0', 'y_1':'y0', 'x_2':'x1','y_2': 'y1'})
-df[box_cols]=((rendersize+rendersize)-df[box_cols])*ratio[0]
-tables=df[df.type=="Table"]
-figures=df[df.type=="Figure"]
-text = df[df.type=="Text"]
-
-# %%
 # #%prun pdf.elements.iloc[0]
 
 # %%
@@ -150,12 +115,29 @@ text = df[df.type=="Text"]
 #print("\n".join(df.text))
 
 # %%
+vda.plot_boxes(
+    pdf.elements[box_cols].values,
+#    groups = dfl["hm"].values,
+    #bbox = [600,400,700,500], 
+    #dpi=250
+)#p.page_bbox)
+
+# %%
+pdf.table_box_levels
+
+# %%
+pdf.table_areas
+
+# %%
 vda.plot_box_layers(
     box_layers=[
-        #[elements[box_cols].values, vda.LayerProps(alpha=0.5, color="red", filled=False)],
-        [tables[box_cols].values, vda.LayerProps(alpha=1.0, color="red", filled=False)],
-        [figures[box_cols].values, vda.LayerProps(alpha=1.0, color="green", filled=False)],
-        [text[box_cols].values, vda.LayerProps(alpha=1.0, color="blue", filled=False)],
+        [pdf.line_elements[box_cols].values, vda.LayerProps(alpha=0.5, color="red", filled=False)],
+        [pdf.image_elements[box_cols].values, vda.LayerProps(alpha=0.5, color="blue", filled=False)],
+        [pdf.graphic_elements[box_cols].values, vda.LayerProps(alpha=0.5, color="yellow", filled=False)],
+        [pdf.table_areas[box_cols].values, vda.LayerProps(alpha=1.0, color="green", filled=False)],
+        #[tables[box_cols].values, vda.LayerProps(alpha=1.0, color="red", filled=False)],
+        #[figures[box_cols].values, vda.LayerProps(alpha=1.0, color="green", filled=False)],
+        #[text[box_cols].values, vda.LayerProps(alpha=1.0, color="blue", filled=False)],
         #[p.df_le[vda.box_cols].values, vda.LayerProps(alpha=0.1, color="blue")],
         #[t.df_ch[vda.box_cols].values, vda.LayerProps(alpha=1.0, color="yellow", filled=False)],
         #[t.df_words[vda.box_cols].values, vda.LayerProps(alpha=0.3, color="random", filled=True)]
@@ -164,5 +146,11 @@ vda.plot_box_layers(
     image=pdf.images[page],
     image_box=pdf.pages_bbox[page],
 ),
+
+# %%
+pdf.line_elements[pdf.line_elements.boxnum==70]
+
+# %%
+#print(pdf.full_text)
 
 # %%

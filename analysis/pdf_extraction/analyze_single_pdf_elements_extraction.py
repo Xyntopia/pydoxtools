@@ -77,16 +77,12 @@ x0,y0,x1,y1 = 1,2,3,4
 
 # %%
 training_data = pathlib.Path.home() / "comcharax/data"
-page = 15
+page = 16
 pdf_file = training_data / "sparepartsnow/06_Kraftspannfutter_Zylinder_Luenetten_2020.01_de_web.pdf"
+pdf = pydoxtools.Document(pdf_file, page_numbers=[page])
+pdf_file="/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/PFR-PR23_BAT-110__V1.00_.pdf"
+pdf = pydoxtools.Document(pdf_file)
 print(pdf_file)
-
-# %%
-#pdf = pydoxtools.Document(pdf_utils.repair_pdf(pdf_file), page_numbers=[page])
-pdf = pydoxtools.Document(pdf_utils.repair_pdf(pdf_file), page_numbers=[page])
-# pdfi.tables
-# p.tables
-# pdfi.table_metrics_X()
 
 # %% [markdown]
 # ## manually extract text
@@ -95,7 +91,16 @@ pdf = pydoxtools.Document(pdf_utils.repair_pdf(pdf_file), page_numbers=[page])
 # ## plot textboxes & characters
 
 # %%
+#pdf.full_text
+
+# %%
+#pdf.x("elements", disk_cache=True)
+
+# %%
 pdf.images
+
+# %%
+pdf._stats
 
 # %%
 # #%prun pdf.elements.iloc[0]
@@ -123,11 +128,19 @@ vda.plot_boxes(
 )#p.page_bbox)
 
 # %%
+pdf.table_box_levels
+
+# %%
+pdf.table_areas
+
+# %%
+page=1
 vda.plot_box_layers(
     box_layers=[
         [pdf.line_elements[box_cols].values, vda.LayerProps(alpha=0.5, color="red", filled=False)],
         [pdf.image_elements[box_cols].values, vda.LayerProps(alpha=0.5, color="blue", filled=False)],
-        [pdf.graphic_elements[box_cols].values, vda.LayerProps(alpha=0.5, color="green", filled=False)],
+        [pdf.graphic_elements[box_cols].values, vda.LayerProps(alpha=0.5, color="yellow", filled=False)],
+        [pdf.table_areas[box_cols].values, vda.LayerProps(alpha=1.0, color="green", filled=False)],
         #[tables[box_cols].values, vda.LayerProps(alpha=1.0, color="red", filled=False)],
         #[figures[box_cols].values, vda.LayerProps(alpha=1.0, color="green", filled=False)],
         #[text[box_cols].values, vda.LayerProps(alpha=1.0, color="blue", filled=False)],
@@ -144,6 +157,6 @@ vda.plot_box_layers(
 pdf.line_elements[pdf.line_elements.boxnum==70]
 
 # %%
-print(pdf.full_text)
+#print(pdf.full_text)
 
 # %%

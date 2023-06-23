@@ -15,7 +15,7 @@
 # ---
 
 # %% [markdown]
-# # Analyze the extraction of tables from pdfs
+# # Analyze the extraction of table candidate areas from pdfs
 
 # %%
 import sys
@@ -34,21 +34,23 @@ logging.basicConfig(level=logging.INFO)
 logging.getLogger('readability.readability').setLevel(logging.WARNING)
 
 # %%
-from pydoxtools import nlp_utils
+from pydoxtools import nlp_utils, Document
 from pydoxtools import pdf_utils, file_utils
 from pydoxtools import visual_document_analysis as vda
 from pydoxtools import cluster_utils as gu
+import pydoxtools as pdx
 
-box_cols = pdf_utils.box_cols
+import pandas as pd
+box_cols = gu.box_cols
 from pydoxtools.settings import settings
 import torch
+import pathlib
 
 from tqdm import tqdm
 
 tqdm.pandas()
 
 pdf_utils._set_log_levels()
-memory = settings.get_memory_cache()
 
 nlp_utils.device, torch.cuda.is_available(), torch.__version__
 
@@ -79,6 +81,8 @@ pdf_file = settings.TRAINING_DATA_DIR / "pdfs/datasheet/ENP2019-086.B-IFM-Nano-T
 pdf_file = settings.TRAINING_DATA_DIR / "pdfs/datasheet/Optocouplers.d3.pdf"
 pdf_file = settings.TRAINING_DATA_DIR / "pdfs/datasheet/6-Symo_M_klein_PL_Fronius_Symo_Karta_katalogowa.fe.pdf"
 #pdf_file = settings.TRAINING_DATA_DIR / "pdfs/datasheet/03-TP2M_DS_REC_TwinPeak_2_Mono_Series_IEC_Rev_D_ENG_WEB.0f.pdf"
+training_data = pathlib.Path.home() / "comcharax/data"
+pdf_file = training_data / "sparepartsnow/06_Kraftspannfutter_Zylinder_Luenetten_2020.01_de_web.pdf"
 print(pdf_file)
 
 # %% [markdown]
@@ -95,6 +99,10 @@ print(pdf_file)
 # ### initialize parameters
 
 # %%
+page=18
+pdf = Document(pdf_file, page_numbers=[page])
+
+# %%
 hp = {'es1': 11.1, 'es2': 2.1, 'gs1': 11.1, 'gs2': 20.1}
 adp = [{
     "va": [hp['gs1'], hp['es1'], hp['es1'] / 2, hp['es1']],
@@ -104,21 +112,20 @@ adp = [{
     "va": [hp['gs2'], hp['es2'], hp['es2'] / 2, hp['es2']],
     "ha": [hp['gs2'], hp['es2'], hp['es2'] / 2, hp['es2']]
 }]
-pdfi = pdf_utils.PDFDocumentOld(pdf_file,
-                                table_extraction_params=pydoxtools.extract_tables.TableExtractionParameters(
-        area_detection_distance_func_params =adp,
-        area_detection_threshold = 10.0
-    )
-                                )
-p = pdfi.pages[1]
-
-boxes, box_levels = p.detect_table_area_candidates()
-#pdfi.tables
-#p.tables
-#pdfi.table_metrics_X()
+#pdfi = pdx.Document(
+#    pdf_file,table_extraction_params=pydoxtools.extract_tables.TableExtractionParameters(
+#        area_detection_distance_func_params =adp,
+#        area_detection_threshold = 10.0
+#    )
 
 # %% [markdown]
 # ## plot results
+
+# %%
+#pdf.elements
+
+# %%
+#pdf.table_df0[3]
 
 # %%
 # vda.plot_boxes(
@@ -126,19 +133,20 @@ boxes, box_levels = p.detect_table_area_candidates()
 #    groups = df_le["hm"].values,
 #    bbox = None, dpi=250)#p.page_bbox)
 
-print(pdf_file)
-for p in pdfi.pages[1:]:
-    boxes, box_levels = p.detect_table_area_candidates()
+#print(pdf_file)
+#for p in pdfi.pages[1:]:
+boxes, box_levels = pdf.table_candidates, pdf.table_box_levels
 
-    vda.plot_box_layers(
-        box_layers=[
-            [p.df_ge_f[vda.box_cols].values, vda.LayerProps(alpha=0.1, color="red", filled=False)],
-            [p.df_le[vda.box_cols].values, vda.LayerProps(alpha=0.1, color="blue")],
-            [box_levels[0].values, vda.LayerProps(alpha=0.5, color="black", filled=False)],
-            [box_levels[1].values if len(box_levels)>1 else [], vda.LayerProps(alpha=0.1, color="yellow", filled=True)],
-            [boxes.values, vda.LayerProps(alpha=1.0, color="red", filled=False, box_numbers=True)]
-        ],
-        bbox=p.page_bbox, dpi=250
-    )
+# %%
+vda.plot_box_layers(
+    box_layers=[
+        [pdf.graphic_elements[vda.box_cols].values, vda.LayerProps(alpha=0.1, color="red", filled=False)],
+        [pdf.line_elements[vda.box_cols].values, vda.LayerProps(alpha=0.1, color="blue")],
+        [box_levels[18][0].values, vda.LayerProps(alpha=0.5, color="black", filled=False)],
+        [box_levels[18][1].values if len(box_levels[18])>1 else [], vda.LayerProps(alpha=0.1, color="yellow", filled=True)],
+        [pd.DataFrame([b._initial_area for b in boxes]).values, vda.LayerProps(alpha=1.0, color="red", filled=False, box_numbers=True)]
+    ],
+    bbox=pdf.pages_bbox[page], dpi=250
+)
 
 # %%

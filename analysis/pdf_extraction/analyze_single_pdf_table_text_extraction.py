@@ -7,9 +7,9 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.13.6
+#       jupytext_version: 1.14.5
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
@@ -17,7 +17,7 @@
 # %% [markdown]
 # # Analyze the extraction of tables from pdfs
 
-# %% tags=[]
+# %%
 import sys
 
 import pydoxtools.extract_tables
@@ -85,14 +85,14 @@ pdfi = pdf_utils.PDFDocumentOld(pdf_file, table_extraction_params=params)
 # %% [markdown]
 # ## calculate table text for the page
 
-# %% tags=[]
+# %%
 page, table_candidate = 1,1
 #pretty_print(pdfi.pages[page].tables[table])
 #pdfi.pages[page].tables[table]
 t = pdfi.pages[page].table_candidates[table_candidate]
 #t = pdfi.pages[page].tables[table_candidate]
 
-# %% tags=[]
+# %%
 pretty_print(t.df)
 #t.df
 #pdfi.pages[page]
@@ -110,7 +110,7 @@ t.is_valid
 
 # %%
 
-# %% [markdown] jp-MarkdownHeadingCollapsed=true tags=[]
+# %% [markdown]
 # ## plot table candidate
 
 # %%
@@ -141,10 +141,10 @@ vda.plot_box_layers(
 # %%
 oc
 
-# %% [markdown] tags=[] jp-MarkdownHeadingCollapsed=true
+# %% [markdown]
 # ## plot table candidate areas
 
-# %% tags=[]
+# %%
 # vda.plot_boxes(
 #    dfl[vda.box_cols].values,
 #    groups = dfl["hm"].values,
