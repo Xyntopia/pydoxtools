@@ -704,7 +704,7 @@ def distance_cluster(data: np.ndarray = None,
             n_clusters=None,
             linkage="single",  # {‘ward’, ‘complete’, ‘average’, ‘single’}, default=’ward’
             # we are choosing "manhattan" distance as we want to put emphasis on vertical/horizonal lines
-            affinity="precomputed",  # “euclidean”, “l1”, “l2”, “manhattan”, “cosine”, or “precomputed”
+            metric="precomputed",  # “euclidean”, “l1”, “l2”, “manhattan”, “cosine”, or “precomputed”
             connectivity=None,  # to make calculations faster
             compute_full_tree=True,  # has to be true when used together with distance_threshold
             distance_threshold=distance_threshold

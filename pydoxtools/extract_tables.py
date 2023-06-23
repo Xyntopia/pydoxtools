@@ -147,6 +147,48 @@ def _LTObj2Chars(df_le) -> pd.DataFrame:
     return chars
 
 
+def get_horizontal_row_elements(
+        ge: pd.DataFrame, y0_cursor: float,
+        max_v_line_thickness: float, elem_scan_tol: float, min_cell_width: float):
+    # left_over_y1 are the graphics elements that we can find "above" the y-cursor
+    # we start by filtering for y1 which is all elements that "end" above
+    # our y0-cursor
+    left_over_y1 = ge.loc[idx[:, y0_cursor:], :]
+    if left_over_y1.empty:
+        # assume we are in the last box and need to
+        # close up any remaining boxes...
+        return None
+    # then filter for all elements that "start/y0" after our y0_cursor
+    left_over_y0 = left_over_y1[y0_cursor:]
+    next_h_elem = left_over_y1.iloc[0]
+    # TODO: do we need a min here?
+    # get the y-coordinate of closest horizontal element in case "empty y0", we get the y1-coordinate
+    # e.g. if there is a box at the top of the table and there are no ore y0-coords left-over
+    y0_h_elem = next_h_elem.y1 if left_over_y0.empty else min(next_h_elem.y1, left_over_y0.iloc[0].y0)
+    # TODO: we might want to check if *max_v_line_thickness* should be the
+    #       distance to the next text element.... but maybe its enough to simply
+    #       have this as a parameter...
+    # select horizontal elements in row
+    h_row_elem = left_over_y1.loc[
+                 idx[: y0_h_elem + max_v_line_thickness,
+                 y0_h_elem - elem_scan_tol:],
+                 :]
+    # sort our h_row_elem with small cell widths
+    h_row_elem = h_row_elem.loc[
+        h_row_elem.w > min_cell_width]  # .reorder_levels([2, 3, 0, 1], axis=0).sort_index()
+    # and extract all relevant horizontal lines from them for this row that can be used to close cells
+    h_lines = pd.concat([
+        # select for y0
+        h_row_elem.loc[y0_h_elem - elem_scan_tol:y0_h_elem + max_v_line_thickness,
+        ["x0", "x1", "y0"]].rename(columns={"y0": "y"}),
+        # select for y1
+        h_row_elem.loc[idx[:, y0_h_elem - elem_scan_tol:y0_h_elem + max_v_line_thickness],
+        ["x0", "x1", "y1"]].rename(columns={"y1": "y"})
+    ]).droplevel(["y0", "y1"]).sort_index().drop_duplicates(["x0", "x1"])
+
+    return y0_h_elem, h_lines
+
+
 def _close_cell(oc, df_le, y1, text_line_tol):
     # the current indexing of text lines is the following:
     # "y0","x0","y0","x1" and so we need to
@@ -174,11 +216,11 @@ def _close_open_cells(open_cells, h_lines, df_le, elem_scan_tol,
     still_open = []
     new_cells = []
     for oc in open_cells:
-        # check if we have a top element that somehow exists within the cell borders
+        # check if we have a top element (h_lines) that somehow exists within the cell borders
         # and can be used to close the cell...
         # we have 3 cases:
         #  - both ends are inside the cell
-        #  - x0 is on the left side of the left lineend
+        #  - x0 is on the left side of the left line end
         #  - x1 is on the right side of the right line end
         # all three cases are handled by the expression below:
         top_elem = h_lines.loc[
@@ -235,6 +277,27 @@ class Table:
         Convert an area list of graphic and line elements into a table.
 
         page, page_bbox, filename are all used for debug-purposes
+
+        TODO: make text-only cell extraction possible
+        TODO: detect text boxes from lines...
+        TODO: detect standard distance between table lines in order to
+              detect rows and use that for better span cell detection
+              (which presumably has smaller distances between textlines)
+              after we have the "standard distance" we would merge
+              lines that are below this limit into a textbox...
+        TODO: detect alignement of cells and use that for row/colum detection
+              e.g. we could detect aligned cells (left/center/right)
+              for columns. then we build a table of all textblocks and
+              which alignement they belong to...
+              Then we start with a cursor text-block-by-text-block scanning towards the
+              right and adding them into their respective rows...
+        TODO: we could do a graphical cell-detection & a text-only detection and
+              then overlay the on top of each other. Text-only detections
+              could be merged with the cell detections. where cell-detections
+              should make the text-only-detections more precise...
+              for example we could check for each text-only-cell wether it is part
+              of a larger graphics-only cell. Or we could check if a graphics cell
+              splits a text-cell in half or something like that...
         """
         self._filename = file_name
         self._page_bbox = page_bbox
@@ -334,7 +397,7 @@ class Table:
         and left-to-right for each row.
 
         On the way we detect rows by alternating between text lines and graphical lines.
-        We can detect a cell border by going from the bottom of a text-line-box to the botom
+        We can detect a cell border by going from the bottom of a text-line-box to the bottom
         of the next graphical element box in that specific cell in both directions.
         All other textlines that are in between there should be part of that same cell.
 
@@ -367,7 +430,7 @@ class Table:
             by=["y0", "x0", "y1", "x1"],
         ).set_index(['y0', 'x0', 'y1', 'x1'], drop=False).copy()
 
-        # generate a list of increasing y-mean values which we can "pop"
+        # generate a list of increasing y-mean values for all lines which we can "pop"
         # from the list in order to scan the table upwards...
         y_mean = (le.y1 + le.y0) / 2.0
         y_mean_list = y_mean.drop_duplicates().sort_values(ascending=False).to_list()
@@ -382,7 +445,7 @@ class Table:
         # we start with the first text element in the lower left
         y0_h_elem = 0.0
 
-        max_steps = steps or self.max_lines  # maximum of 1000 lines for a table
+        max_steps = steps or self.max_lines  # maximum of 1000 lines for a table for safety...
         for i in range(max_steps):
             if not y_mean_list:  # if y_mean_list is empty, we reached the top of the table
                 # as there are no more text lines we can close up all cells
@@ -392,6 +455,8 @@ class Table:
                 break
 
             # advance y0_cursor to the next textline
+            # we stop as soon as our cursor points to a higher location than
+            # the top of our last textline y0_h_elem
             # TODO: use y_mean to the the left_over_lines!!
             while y_mean_list:  # do this until we don't have any more text elements left
                 y0_cursor = y_mean_list.pop()
@@ -401,13 +466,17 @@ class Table:
 
             # now we would like to know every vertical line (not element) that crosses the current
             # y0-cursor-line to get the vertical cell borders in this row...
+            # this works because we are using the center of cells...
             # get all elements reaching from `below` to `above + tolerance` (using y0 and y1)
             # we do "swaplevel" in order to be able to use more efficient x-indexing afterwards
             row_ge_elem = ge.loc[idx[:y0_cursor + elem_scan_tol, y0_cursor + elem_scan_tol:], :]
             v_row_elem = row_ge_elem.swaplevel(0, 2, axis=0).sort_index()
 
+            # TODO: we should be doing something different here when not detecting any graphical elements!
+            # TODO: also think about table were we the lines are only partially indicated by graphics elements
+            #       so..  we should accept cell borders to be "either" text "or" graphics based...
             if v_row_elem.empty:
-                # no vertical line detected in this row, so we should move further upwards
+                # if no vertical line was detected in this row, so we should move further upwards
                 # and set y0_h_elem to the top of this line element.
                 if y_mean_list:
                     y0_h_elem = (y0_cursor + y_mean_list[-1]) / 2
@@ -415,9 +484,12 @@ class Table:
 
             # get all vertical coordinates because we would like to identify the lines and not
             # boxes...
+            # TODO: we should probably also detect text boxes here with their vertical lines!
             vlines = np.sort(np.hstack(
                 (np.unique(v_row_elem[['x0', 'x1']].values), self.bbox[[x0, x1]])))
             x0_cursor = vlines[0]
+            # now scan the table row horizontally and
+            # add "open" cells for every vertical line that we detect, except the ones we "already have"
             for x in vlines:
                 # TODO: take txt_lines  here into account. For example:
                 #       if a cell has a textline which is longer than its x1-border,
@@ -441,8 +513,10 @@ class Table:
                     open_cells.append(cell)
                 x0_cursor = x  # use right side as the next x0_cursor for left-side of the next cell
 
-            # now after scanning the row, advance y-cursor upwards and check which cells we can close...
-            # get the next horizontal element
+            # now after scanning the row and creating "open cells", collect
+            # all horizontal elements above our current cursor...
+            # advance y-cursor upwards
+            # and check which cells we can close... # get the next horizontal element
             # TODO: handle the case where we have text "above" graphic lines...
             # TODO: might need to check for y1 here as well, as there
             #       might be a case were the box only closes and no new
@@ -450,32 +524,11 @@ class Table:
             #       maybe check whatever is between here and the next text element?
             #       and then take the minimum y-coordinate from that..
             #       YEAH --> we need this.. already our first test showed :P
-            left_over_y1 = ge.loc[idx[:, y0_cursor:], :]
-            if left_over_y1.empty:
-                # assume we are in the last box and need to
-                # close up any remaining boxes...
+            if res := get_horizontal_row_elements(ge, y0_cursor,
+                                                  max_v_line_thickness, elem_scan_tol, min_cell_width):
+                y0_h_elem, h_lines = res
+            else:
                 continue
-            left_over_y0 = left_over_y1[y0_cursor:]
-            next_h_elem = left_over_y1.iloc[0]
-            # TODO: do we need a min here?
-            y0_h_elem = next_h_elem.y1 if left_over_y0.empty else min(next_h_elem.y1, left_over_y0.iloc[0].y0)
-            # TODO: we might want to check if *max_v_line_thickness* should be the
-            #       distance to the next text element.... but maybe its enough to simply
-            #       have this as a parameter...
-            # select horizontal elements in row
-            h_row_elem = left_over_y1.loc[
-                         idx[: y0_h_elem + max_v_line_thickness,
-                         y0_h_elem - elem_scan_tol:],
-                         :]
-            h_row_elem = h_row_elem.loc[
-                h_row_elem.w > min_cell_width]  # .reorder_levels([2, 3, 0, 1], axis=0).sort_index()
-            # and extract horizontal lines from them
-            h_lines = pd.concat([
-                h_row_elem.loc[y0_h_elem - elem_scan_tol:y0_h_elem + max_v_line_thickness,
-                ["x0", "x1", "y0"]].rename(columns={"y0": "y"}),
-                h_row_elem.loc[idx[:, y0_h_elem - elem_scan_tol:y0_h_elem + max_v_line_thickness],
-                ["x0", "x1", "y1"]].rename(columns={"y1": "y"})
-            ]).droplevel(["y0", "y1"]).sort_index().drop_duplicates(["x0", "x1"])
 
             new_cells, still_open = _close_open_cells(
                 open_cells, h_lines, le, elem_scan_tol, text_line_tol, y0_h_elem)
@@ -511,21 +564,26 @@ class Table:
             return pd.DataFrame(), ([], [], cells)
         cells['text'] = cells["text_elements"].apply(_get_cell_text)
 
+        # after having detected all cells, we need to order them
+        # into a table
         # first thing we need to do is to cluster cell borders
         x_coordinates = cells[["x0", "x1"]].values
         y_coordinates = cells[["y0", "y1"]].values
 
+        # now create the clusters in order to detect horizonal & vertical lines in
+        # the table
         vlines = gu.cluster1D(x_coordinates.reshape(-1, 1), np.mean, self.tbe.table_line_merge_tol)
         hlines = gu.cluster1D(y_coordinates.reshape(-1, 1), np.mean, self.tbe.table_line_merge_tol)
 
+        # generate cell coordinates
         xtcs = _get_cell_coordinates(x_coordinates, vlines, tol=self.tbe.cell_idx_tol)
         ytcs = _get_cell_coordinates(y_coordinates, hlines, tol=self.tbe.cell_idx_tol)
 
         # --> sometimes we create "weired" vertical/horzontal lines by averaging them.
-        # in that case some cells don't fit into the raste anymore and we have too few lines for every
+        # in that case some cells don't fit into the raster anymore and we have too few lines for every
         # cell. usually this happens in areas that are not real tables such as figures...
         # so this is a rally nice way to sort som of them out ;).
-        # TODO: maybe at some poin in the future we need a more robust method to create
+        # TODO: maybe at some point in the future we need a more robust method to create
         #       coordinate grids though ...
         if (len(xtcs) != len(ytcs)) or (len(xtcs) < len(cells)) or (len(ytcs) < len(cells)):
             return pd.DataFrame(), ([], [], cells)
@@ -854,9 +912,8 @@ class TableCandidateAreasExtractor(Operator):
         # merge everything with a distance of less than 10..
         distance_threshold = 10.0  # for table area candidates (TODO: parameterize?)
 
-        fge = {}
         # detect table areas page-wise
-        box_levels: dict[int, list[pd.DataFrame]] = {}
+        box_iterations: dict[int, list[pd.DataFrame]] = {}
         table_candidates: list[Table] = []
         for p in pages:
             tbe = text_box_elements.loc[p]
@@ -872,7 +929,7 @@ class TableCandidateAreasExtractor(Operator):
             )
             df_le = line_elements[line_elements["p_num"] == p]
             # TODO: make TableExtractionParameters configurable in document
-            table_areas, box_levels[p] = detect_table_area_candidates(
+            table_areas, box_iterations[p] = detect_table_area_candidates(
                 self._tbe,
                 df_le, df_ge,
                 distance_threshold
@@ -888,7 +945,7 @@ class TableCandidateAreasExtractor(Operator):
 
         return dict(
             table_candidates=table_candidates,
-            box_levels=box_levels
+            box_levels=box_iterations
         )
 
 
@@ -904,6 +961,11 @@ def detect_table_area_candidates(
     TODO: sort out non-table area regions after every iteration and speed up subsequent
           table search iterations this way.. But optimize this on a recall-basis
           in order to make sure we don't sort out any valid tables...
+    returns:
+
+    (table_groups, box_iterations):
+        box_iterations: for debugging, save the progression on how boxes were merged
+        step-by-step at every iteration
     """
     boxes = pd.concat([
         df_le[box_cols] if (
@@ -914,7 +976,7 @@ def detect_table_area_candidates(
     if len(boxes) == 0:
         return pd.DataFrame(), []
 
-    box_levels = []
+    box_iterations = []
 
     # TODO: if (graphic) boxes are empty, revert to text-based...
     # TODO: do this in several (configurable) iterations
@@ -932,7 +994,7 @@ def detect_table_area_candidates(
             )
             # create new column with the type of group (hb,hm,ht,vb,vm,vt) and their labels
             boxes = gu.merge_bbox_groups(boxes, "groups")
-            box_levels.append(boxes)
+            box_iterations.append(boxes)
             if len(boxes) < 2:
                 break
 
@@ -961,7 +1023,7 @@ def detect_table_area_candidates(
     table_groups = table_groups.sort_values(
         by=["y1", "x0", "y0", "x1"], ascending=[False, True, False, True])
 
-    return table_groups, box_levels
+    return table_groups, box_iterations
 
 
 def _filter_boxes(
