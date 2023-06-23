@@ -41,6 +41,8 @@ def add_info_to_collection(collection, doc: pdx.Document, metas: list[dict]):
     )
 
 
+
+
 def where_or(x):
     if len(x) > 1:
         return {"$or": x}

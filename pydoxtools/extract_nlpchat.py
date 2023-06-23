@@ -2,9 +2,6 @@ from __future__ import annotations  # this is so, that we can use python3.10 ann
 
 import functools
 from typing import Callable
-from langchain import PromptTemplate, LLMChain
-from langchain.llms import GPT4All
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
 import yaml
 from diskcache import Cache
@@ -69,7 +66,7 @@ def gpt4_models():
     return [m["filename"].strip('.bin') for m in GPT4All.list_models()]
 
 
-@functools.lru_cache
+@cache.memoize()
 def gpt4allchat(messages, model_id="ggml-mpt-7b-instruct", max_tokens=256, *args, **kwargs):
     gptj = get_gpt4model(model_id)
     res = gptj.chat_completion(messages, default_prompt_footer=False, default_prompt_header=False)
@@ -181,6 +178,7 @@ def reasonable_speed():
     from gpt4all import GPT4All
 
     # gptj = GPT4All("ggml-gpt4all-j-v1.3-groovy")
+    models=[(m['filename'],m['description']) for m in GPT4All.list_models()]
     gptj = GPT4All("ggml-mpt-7b-instruct")
     messages = [{"role": "user", "content": "Name 3 colors"}]
     res = gptj.chat_completion(messages)
