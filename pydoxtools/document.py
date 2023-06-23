@@ -6,12 +6,12 @@ import json
 import logging
 import mimetypes
 import re
-import typing
 from functools import cached_property
 from pathlib import Path
 from typing import IO, Protocol, Any, Callable
 from urllib.parse import urlparse
 
+import PIL
 import dask.bag
 import langdetect
 import numpy as np
@@ -37,7 +37,7 @@ from .extract_objects import EntityExtractor
 from .extract_ocr import OCRExtractor
 from .extract_pandoc import PandocLoader, PandocOperator, PandocConverter, PandocBlocks, PandocToPdxConverter
 from .extract_spacy import SpacyOperator, extract_spacy_token_vecs, get_spacy_embeddings, extract_noun_chunks
-from .extract_tables import ListExtractor, TableCandidateAreasExtractor
+from .extract_tables import ListExtractor, TableCandidateAreasExtractor, TableExtractionParameters
 from .extract_textstructure import DocumentElementFilter, TextBoxElementExtractor, TitleExtractor, SectionsExtractor
 from .html_utils import get_text_only_blocks
 from .list_utils import remove_list_from_lonely_object
@@ -902,6 +902,11 @@ operations and include the documentation there. Lambda functions should not be u
         elif isinstance(self._fobj, (dict, list, set)):
             mimetype = str(type(self._fobj))
             buffer = self._fobj
+        elif isinstance(self._fobj, PIL.Image.Image):
+            b = io.BytesIO()
+            self._fobj.save(b, 'PNG')
+            buffer = b.getvalue()
+            mimetype = 'image/png'
         else:
             mimetype = str(type(self._fobj))
             buffer = self._fobj
