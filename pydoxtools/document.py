@@ -37,7 +37,7 @@ from .extract_objects import EntityExtractor
 from .extract_ocr import OCRExtractor
 from .extract_pandoc import PandocLoader, PandocOperator, PandocConverter, PandocBlocks, PandocToPdxConverter
 from .extract_spacy import SpacyOperator, extract_spacy_token_vecs, get_spacy_embeddings, extract_noun_chunks
-from .extract_tables import ListExtractor, TableCandidateAreasExtractor, TableExtractionParameters
+from .extract_tables import ListExtractor, TableCandidateAreasExtractor
 from .extract_textstructure import DocumentElementFilter, TextBoxElementExtractor, TitleExtractor, SectionsExtractor
 from .html_utils import get_text_only_blocks
 from .list_utils import remove_list_from_lonely_object
@@ -265,7 +265,7 @@ operations and include the documentation there. Lambda functions should not be u
             PDFFileLoader()
             .pipe(fobj="raw_content", page_numbers="_page_numbers", max_pages="_max_pages")
             .out("pages_bbox", "elements", meta="meta_pdf", pages="page_set").cache().docs(),
-            Configuration(image_dpi=200)
+            Configuration(image_dpi=72)
             .docs("The dpi when rendering the document"),
             PDFImageRenderer()
             .pipe(fobj="raw_content", dpi="image_dpi", page_numbers="page_set")
@@ -380,7 +380,7 @@ operations and include the documentation there. Lambda functions should not be u
             # and then further processed from there
             "application/pdf",  # as we are extracting a pdf we would like to use the pdf functions...
             Configuration(ocr_lang="auto", ocr_on=True),
-            FunctionOperator(lambda x: [x]).pipe(x="raw_content")
+            FunctionOperator(lambda x: dict(images={0: x})).pipe(x="_fobj")
             .out("images").no_cache(),
             OCRExtractor()
             .pipe("ocr_on", "ocr_lang", file="raw_content")
@@ -392,6 +392,10 @@ operations and include the documentation there. Lambda functions should not be u
             .pipe(fobj="ocr_pdf_file")
             .out("pages_bbox", "elements", meta="meta_pdf", pages="page_set")
             .cache(),
+            TableCandidateAreasExtractor(method="images")
+            .pipe("graphic_elements", "line_elements", "pages_bbox", "text_box_elements", "filename",
+                  "images")
+            .out("table_candidates").cache(),
         ],
         # the first base doc types have priority over the last ones
         # so here .png > image > .pdf

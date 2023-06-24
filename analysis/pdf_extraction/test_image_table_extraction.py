@@ -78,21 +78,36 @@ pdf_file = training_data / "sparepartsnow/06_Kraftspannfutter_Zylinder_Luenetten
 print(pdf_file)
 
 # %%
-pdf=pydoxtools.Document(pdf_file, page_numbers=[page])
-img = pdf.images[page]
+pdf=pydoxtools.Document(pdf_file, page_numbers=[page], image_dpi=300)
+img = pdf.x("images",disk_cache=True)[page]
 pdfimg = pydoxtools.Document(img)
+
+# %%
+pdf.configuration
 
 # %% [markdown]
 # ## calculate table text for the page
 
 # %%
-candidates=pdf.x("table_candidates",disk_cache=True)
+candidates=pdfimg.x("table_candidates")
 
 # %%
 candidates
 
 # %%
-t=candidates[4]
+pdfimg.x_funcs["table_candidates"]._method
+
+# %%
+#pdfimg._fobj
+
+# %%
+#pdfimg.full_text
+
+# %%
+t=candidates[0]
+
+# %%
+t.bbox
 
 # %%
 #pretty_print(t.df)
@@ -118,7 +133,13 @@ cols=t.metrics['cols']
 rows=t.metrics['rows']
 
 # %%
-margin=10
+t.df
+
+# %%
+t.bbox
+
+# %%
+margin=50
 layers = [
     #[t.df_ge[vda.box_cols].values, vda.LayerProps(alpha=0.05, color="blue", filled=True)],
     #[t.df_le[vda.box_cols].values, vda.LayerProps(alpha=0.2, color="orange")],
@@ -130,40 +151,11 @@ layers = [
 
 vda.plot_box_layers(
     box_layers=layers,
-    bbox=t.bbox+[-margin,-margin,margin,margin], dpi=250
+    bbox= pdfimg.pages_bbox[0],#t.bbox+[-margin,-margin,margin,margin], dpi=250,
+    image=pdfimg.images[0],
+    image_box = pdfimg.pages_bbox[0],#t.bbox+[-margin,-margin,margin,margin]
+    dpi=250
 ),
-
-# %% [markdown]
-# ## plot table candidate
-
-# %%
-margin=20
-# make cells "smaller" than in reality to make borders between the more obvious
-borders =b= 2 
-#ca = t.detect_cells()
-ca = t.detect_cells(steps=None).copy()
-layers = [
-    [t.df_ge[vda.box_cols].values, vda.LayerProps(alpha=0.05, color="blue", filled=True)],
-    #[t.df_le[vda.box_cols].values, vda.LayerProps(alpha=0.2, color="orange")],
-    [t.df_words[vda.box_cols].values, vda.LayerProps(alpha=0.4, color="orange")],
-]
-oc = t._debug.get("open_cells", pd.DataFrame())
-if not oc.empty:
-    oc = oc[vda.box_cols].values + [b,b,-b,-b]
-    layers.append([oc, vda.LayerProps(alpha=0.2, color="black")])
-
-if not ca.empty:
-    layers += [[ca[box_cols].values + [b,b,-b,-b], vda.LayerProps(alpha=0.2, color="random")]]
-vda.plot_box_layers(
-    box_layers=layers,
-    bbox=t.bbox+[-margin,-margin,margin,margin], dpi=250
-),
-
-# %%
-#ca
-
-# %%
-oc
 
 # %% [markdown]
 # ## plot table candidate areas

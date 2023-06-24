@@ -7,6 +7,7 @@ import re
 import typing
 from functools import cached_property
 
+import PIL.Image
 import numpy as np
 import pandas as pd
 import pydantic
@@ -386,9 +387,14 @@ class Table:
     @cached_property
     def bbox(self):
         # find the exact bounding box of our table...
-        ge_bb = np.array([self.df_ge.x0.min(), self.df_ge.y0.min(), self.df_ge.x1.max(), self.df_ge.y1.max()])
-        le_bb = np.array([self.df_le.x0.min(), self.df_le.y0.min(), self.df_le.x1.max(), self.df_le.y1.max()])
-        return np.array([*np.vstack([ge_bb[:2], le_bb[:2]]).min(0), *np.vstack([ge_bb[2:], le_bb[2:]]).max(0)])
+        dims = []
+        dims += [[self.df_le.x0.min(), self.df_le.y0.min(), self.df_le.x1.max(), self.df_le.y1.max()]]
+        if not self.df_ge.empty:
+            dims += [[self.df_ge.x0.min(), self.df_ge.y0.min(), self.df_ge.x1.max(), self.df_ge.y1.max()]]
+            dims = np.array(dims)
+            np.hstack((dims[:, :2].min(0), dims[:, 2:].max(0)))
+        else:
+            return np.array(dims[0])
 
     @functools.lru_cache
     def detect_cells(self, steps=None) -> pd.DataFrame:
@@ -597,11 +603,65 @@ class Table:
         table = table.sort_values('y', ascending=False).reset_index(drop=True)
         return table, (hlines, vlines, cells)
 
+    @functools.lru_cache
+    def convert_cells_to_df_text_only(self) -> typing.Tuple[pd.DataFrame, typing.Tuple]:
+        """
+        extract tables using only textboxes
+
+        TODO: make sure we can also detect span-cells and other more difficult-to-detect stuff
+        """
+        # detect vertical lines for column detection
+        # we are using lines here, but it might be better in the future to use
+        # words for this  if some lines get detected "wrongly"
+
+        le = self.df_words.copy()  # [box_cols]
+
+        # then check which other cells are overlapping with that cell...
+        # we first calculate the overlap distance for rows & columns
+        # and then use that to group them into columns & rows
+        le_col_overlap = gu.calc_pairwise_matrix(
+            gu.pairwise_box_gap_distance_along_axis_func, le[box_cols].values, diag=-1, axis=0)
+        le_row_overlap = gu.calc_pairwise_matrix(
+            gu.pairwise_box_gap_distance_along_axis_func, le[box_cols].values, diag=-1, axis=1
+        )
+        # create row & column clusters with the overlap distance matrix
+        # all negative distances mean that two cells overlap, so we set the thresold to 0
+        le["cols"], _ = gu.distance_cluster(data=le[box_cols].values,
+                                            distance_matrix=le_col_overlap, distance_threshold=0)
+        le["rows"], _ = gu.distance_cluster(data=le[box_cols].values,
+                                            distance_matrix=le_row_overlap, distance_threshold=0)
+        cols = gu.merge_bbox_groups(le, "cols").sort_values(by="x0", ascending=True)
+        rows = gu.merge_bbox_groups(le, "rows").sort_values(by="y0", ascending=False)
+
+        # create new column-coordinates in the correct order..
+        cols = cols.reset_index()
+        rows = rows.reset_index()
+
+        # and map the sorted column & row coordinates to the text boxes
+        col_map = pd.Series(cols.index.values, index=cols['index'])
+        row_map = pd.Series(rows.index.values, index=rows['index'])
+        le["cols"] = le["cols"].map(col_map)
+        le["rows"] = le["rows"].map(row_map)
+        le = le.sort_values(by=["cols", "rows"])
+
+        # now all we need to do is use the row & column coordinates to create a dataframe!
+        table = pd.pivot_table(le, values='text',
+                               index=['rows'], columns=['cols'],
+                               aggfunc='first', fill_value='')
+
+        # TODO:
+        # now create the clusters in order to detect horizonal & vertical lines in
+        # the table
+        # vlines = gu.cluster1D(x_coordinates.reshape(-1, 1), np.mean, self.tbe.table_line_merge_tol)
+        # hlines = gu.cluster1D(y_coordinates.reshape(-1, 1), np.mean, self.tbe.table_line_merge_tol)
+
+        return table, (cols, rows)
+
     @cached_property
     def df(self):
         """get table as a pandas dataframe"""
         try:
-            table, _ = self.convert_cells_to_df()
+            table, _ = self.convert_cells_to_df_text_only()
             return table
         except Exception as e:
             logger.error(self.identify_table())
@@ -611,7 +671,7 @@ class Table:
     def metrics(self) -> typing.Dict[str, typing.Any]:
         """standard metrics only consist of the most necessary data
         in order to label pdf tables for parametr optimization"""
-        table, (hlines, vlines, cells) = self.convert_cells_to_df()
+        table, (cols, rows) = self.convert_cells_to_df_text_only()
         # TODO: over time calculate better metrics by goind
         #       through our table extractions and check wrong classifications
 
@@ -632,6 +692,8 @@ class Table:
             page=self.page,
             page_bbox=self._page_bbox,
             table=table,
+            cols=cols,
+            rows=rows,
             file=self._filename
         )
 
@@ -647,9 +709,7 @@ class Table:
         # TODO: include all the other table methods to check for validity...
         #       such as filter_correct_finished_tables
         try:
-            if any((self.df_le.empty,
-                    self.detect_cells().empty,
-                    self.df.size <= 1)):
+            if any((self.df_le.empty, self.df.size <= 1)):
                 return False
             else:
                 # this function was generated by sklearn decision tree on our test dataset using
@@ -881,11 +941,43 @@ def filter_out_small_graphics_elements(
 class TableCandidateAreasExtractor(Operator):
     """produces a list of potential table objects"""
 
-    def __init__(self, table_extraction_params: TableExtractionParameters = None):
+    def __init__(
+            self,
+            table_extraction_params: TableExtractionParameters = None,
+            method="pdf",
+    ):
         super().__init__()
+        self._method = method
         self._tbe = table_extraction_params or TableExtractionParameters.reduced_params()
 
-    def __call__(
+    def use_table_transformer(self, img: PIL.Image.Image, pages_bbox: np.ndarray):
+        from transformers import AutoImageProcessor, TableTransformerForObjectDetection
+        import torch
+
+        image_processor = AutoImageProcessor.from_pretrained("microsoft/table-transformer-detection")
+        model = TableTransformerForObjectDetection.from_pretrained("microsoft/table-transformer-detection")
+
+        inputs = image_processor(images=img, return_tensors="pt")
+        outputs = model(**inputs)
+
+        # convert outputs (bounding boxes and class logits) to COCO API
+        target_sizes = torch.tensor([img.size[::-1]])
+        results = image_processor.post_process_object_detection(outputs, threshold=0.7, target_sizes=target_sizes)[0]
+
+        pdf_size = pages_bbox[2:]
+        rendersize = img.size
+        ratio = pdf_size / rendersize
+
+        areas_raw = results['boxes'].detach().numpy()
+        areas = pd.DataFrame(areas_raw * ratio[0], columns=['x0', 'y0', 'x1', 'y1'])
+        # areas = (2*rendersize-areas)*ratio[0]
+        # np.array([size[1],0,0,0])-areas
+        areas[['y1', 'y0']] = pdf_size[1] - areas[['y0', 'y1']]
+
+        # timg = img.crop(areas_raw[0] + (-margin, -margin, margin, margin))
+        return areas
+
+    def use_pdf_source(
             self,
             graphic_elements: pd.DataFrame,
             line_elements: pd.DataFrame,
@@ -947,6 +1039,40 @@ class TableCandidateAreasExtractor(Operator):
             table_candidates=table_candidates,
             box_levels=box_iterations
         )
+
+    def __call__(
+            self,
+            graphic_elements: pd.DataFrame,
+            line_elements: pd.DataFrame,
+            pages_bbox,
+            text_box_elements,
+            filename=None,
+            images: dict[int, PIL.Image.Image] = None,
+    ):
+        # TODO: merge the common parts of the "use" method
+        if self._method == "images":
+            table_areas = []
+            pages = line_elements.p_num.unique()
+            for page_num in pages:
+                img = images[page_num]
+                areas = self.use_table_transformer(img, pages_bbox[page_num])
+                for area in areas.values:
+                    table = Table(
+                        line_elements, graphic_elements, area,
+                        tbe=self._tbe,
+                        page=page_num, page_bbox=pages_bbox[page_num],
+                        file_name=filename)
+                    table_areas.append(table)
+
+            return dict(
+                table_candidates=table_areas,
+            )
+        else:
+            return self.use_pdf_source(graphic_elements,
+                                       line_elements,
+                                       pages_bbox,
+                                       text_box_elements,
+                                       filename)
 
 
 def detect_table_area_candidates(

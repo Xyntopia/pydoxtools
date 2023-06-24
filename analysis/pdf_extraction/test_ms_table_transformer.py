@@ -77,7 +77,7 @@ nlp_utils.device, torch.cuda.is_available(), torch.__version__
 
 # %%
 training_data = pathlib.Path.home() / "comcharax/data"
-page =19 # we have an unreasonable number of elements here..  what is going on?
+page =16 # we have an unreasonable number of elements here..  what is going on?
 pdf_file = training_data / "sparepartsnow/06_Kraftspannfutter_Zylinder_Luenetten_2020.01_de_web.pdf"
 print(pdf_file)
 
@@ -109,6 +109,7 @@ results
 size=pdf.pages_bbox[page][2:]
 rendersize = pdf.images[page].size
 ratio=size/np.array(pdf.images[page].size)
+size, rendersize, ratio
 
 # %%
 areas_raw=results['boxes'].detach().numpy()

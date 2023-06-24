@@ -157,7 +157,7 @@ class PDFImageRenderer(pydoxtools.operators_base.Operator):
         images = {}
         for page in page_numbers:
             image = pdf2image.convert_from_bytes(
-                fobj, dpi=240, first_page=page + 1, last_page=page + 1, use_cropbox=False
+                fobj, dpi=dpi, first_page=page + 1, last_page=page + 1, use_cropbox=False
             )
             images[page] = image[0]
         return dict(images=images)
