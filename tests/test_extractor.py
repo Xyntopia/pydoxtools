@@ -1,11 +1,9 @@
 from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
-import copy
 import io
 import logging
 import pathlib
 import pickle
-import typing
 from pathlib import Path
 
 import pytest
@@ -517,9 +515,7 @@ def test_json_schema():
 
 def test_typing():
     # TODO: actually test the types with some asserts...
-    import typing
     from pydoxtools.operators_base import FunctionOperator
-    from typing_inspect import get_generic_type, get_generic_bases, is_generic_type, is_callable_type
     d = Document("asasd")
     docs = Document.operator_infos()
     optypes = Document.operator_types()
@@ -538,10 +534,15 @@ def test_typing():
     Document.Model
 
 
-def test_image_generation():
+def test_image_table_recognition():
     file = make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf")
     pdf = Document(file)
-    pdf.x("images")
+    img = pdf.x("images")[0]
+
+    d = Document(img)
+    assert len(d.table_candidates) >= 1
+    assert len(d.tables) == 1
+    raise NotImplementedError("Correct text-based table readout!!")
 
 
 def test_pdf_pages():
@@ -564,8 +565,6 @@ def test_pdf_pages():
 
 
 def test_pdf_text_extraction():
-    from pdfminer.high_level import extract_text
-
     training_data = pathlib.Path.home() / "comcharax/data"
     page = 15
     pdf_file = training_data / "sparepartsnow/06_Kraftspannfutter_Zylinder_Luenetten_2020.01_de_web.pdf"

@@ -265,8 +265,11 @@ operations and include the documentation there. Lambda functions should not be u
             PDFFileLoader()
             .pipe(fobj="raw_content", page_numbers="_page_numbers", max_pages="_max_pages")
             .out("pages_bbox", "elements", meta="meta_pdf", pages="page_set").cache().docs(),
-            Configuration(image_dpi=72)
-            .docs("The dpi when rendering the document"),
+            Configuration(image_dpi=72 * 3)
+            .docs("The dpi when rendering the document."
+                  " The standard image generation resolution is set to 216 dpi for pdfs"
+                  " as we want to have sufficient DPI for downstram OCR tasks (e.g."
+                  " table extraction)"),
             PDFImageRenderer()
             .pipe(fobj="raw_content", dpi="image_dpi", page_numbers="page_set")
             .out("images").cache(),
@@ -296,7 +299,7 @@ operations and include the documentation there. Lambda functions should not be u
                 table_df0="Filter valid tables from table candidates by looking if meaningful values can be extracted",
                 table_areas="Areas of all detected tables"
             ),
-            FunctionOperator[list[pd.DataFrame]](lambda table_df0, lists: table_df0 + [lists]).cache()
+            FunctionOperator[list[pd.DataFrame]](lambda table_df0, lists: table_df0 + ([] if lists.empty else [lists])).cache()
             .pipe("table_df0", "lists").out("tables_df").cache(),
             TextBoxElementExtractor()
             .pipe("line_elements").out("text_box_elements").cache(),
