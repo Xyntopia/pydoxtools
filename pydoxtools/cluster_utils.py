@@ -465,7 +465,7 @@ def pairwise_txtbox_dist(boxes, pair_idx, min_line_alignement, max_box_gap):
     d = max(min_line_alignement, max_box_gap)
 
     """
-    # calculate vetical character line overlap
+    # calculate vertical character line overlap
     d_al = np.maximum(0, pairwise_box_alignement_along_axis(boxes, pair_idx, 0, rel=False))
     # calculate horizontal distance to next character
     d = np.maximum(0, pairwise_box_gap_distance_along_axis_func(boxes, pair_idx, 0))

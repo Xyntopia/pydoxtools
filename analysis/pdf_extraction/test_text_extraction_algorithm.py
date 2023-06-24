@@ -166,12 +166,6 @@ vda.plot_box_layers(
     bbox=t.bbox+[-margin,-margin,margin,margin], dpi=250
 ),
 
-# %%
-df = pd.empty()
-
-# %%
-le[["rows","cols","text"]]
-
 # %% [markdown]
 # ## plot table candidate
 
