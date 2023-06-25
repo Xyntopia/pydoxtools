@@ -392,7 +392,7 @@ class Table:
         if not self.df_ge.empty:
             dims += [[self.df_ge.x0.min(), self.df_ge.y0.min(), self.df_ge.x1.max(), self.df_ge.y1.max()]]
             dims = np.array(dims)
-            np.hstack((dims[:, :2].min(0), dims[:, 2:].max(0)))
+            return np.hstack((np.nanmin(dims[:, :2], 0), np.nanmax(dims[:, 2:], 0)))
         else:
             return np.array(dims[0])
 
