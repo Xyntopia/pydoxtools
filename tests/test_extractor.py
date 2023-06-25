@@ -583,7 +583,10 @@ def test_traceability():
     d = Document(f)
     opres = d.x("tables_df", traceable=True)
     opres = d.x("tables", traceable=True)
-    d.tables_df[0]
+    assert d.tables_df[0].attrs == {'source': 'PFR-PR23_BAT-110__V1.00_.pdf',
+                                    'area': [100.94, 106.34, 494.50888000000003, 303.89004],
+                                    'page': 0}
+
 
 def test_list_query():
     a = ['',
