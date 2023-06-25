@@ -18,6 +18,9 @@ import pydantic
 OperatorReturnType = typing.TypeVar('OperatorReturnType')
 
 
+class OperatorResult(pydantic.BaseModel):
+
+
 class Operator(ABC, typing.Generic[OperatorReturnType]):
     """Base class to build extraction logic for information extraction from
     unstructured documents and loading files
@@ -284,18 +287,6 @@ class FunctionOperator(Operator[CallableType]):
                 return self._default_return_value
             else:
                 raise err
-
-
-class OperatorParams(pydantic.BaseModel):
-    """
-    Use this Operator for functions which return a callable function.
-    This function helps in making the signature of the returned function available!
-
-    If we define an operator like this, when defining the
-    """
-
-    class Config:
-        arbitrary_types_allowed = True
 
 
 class ElementWiseOperator(Operator):

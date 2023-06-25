@@ -132,11 +132,6 @@ class IndexExtractor(Operator):
 
 
 class KnnQuery(Operator):
-    class callable_params(pydoxtools.operators_base.OperatorParams):
-        txt: str | np.ndarray | TokenCollection
-        k: int = 5
-        indices = False
-
     def __call__(
             self,
             index: hnswlib.Index,
