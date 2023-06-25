@@ -19,6 +19,11 @@ OperatorReturnType = typing.TypeVar('OperatorReturnType')
 
 
 class OperatorResult(pydantic.BaseModel):
+    data: typing.Any
+    source: typing.Any
+
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class Operator(ABC, typing.Generic[OperatorReturnType]):

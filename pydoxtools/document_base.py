@@ -1,27 +1,28 @@
 from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
 import functools
-import typing
 import json
-import pydantic
 import logging
 import pathlib
 import pickle
 import sys
+import typing
 import uuid
 from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
 from time import time
-from typing import Any, get_type_hints
+from typing import Any
 
 import networkx as nx
 import numpy as np
 import pandas as pd
+import pydantic
 import spacy.tokens
 import yaml
 from diskcache import Cache
 
+from . import operators_base
 from .list_utils import deep_str_convert
 from .operators_base import Operator, Configuration, OperatorException, OperatorOutputException
 from .settings import settings
@@ -227,6 +228,18 @@ class MetaPipelineClassConfiguration(type):
         return new_class
 
 
+class DocumentLocation(pydantic.BaseModel):
+    """Hints to a location in a document which """
+    area: tuple[float, float, float, float] = pydantic.Field(
+        None, description="These four number describe the boundingbox of an area in a document (e.g. pdf document)")
+    page: int = None
+    line: int = None
+    range: tuple[int, int] = pydantic.Field(
+        None, description="The range of the document string of this location (e.g. (10,40) -> fobj[10:40]) ")
+    source: typing.Any = pydantic.Field(
+        None, description="Source can be a file or URL or any other source of origin")
+
+
 class Pipeline(metaclass=MetaPipelineClassConfiguration):
     """
     Base class for all document classes in pydoxtools, defining a common pipeline
@@ -277,8 +290,12 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         self._disk_cache_enable = settings.PDX_ENABLE_DISK_CACHE
         self._disk_cache_ttl = None
 
-    def _key(self):
-        return None
+    def _pipeline_key(self):
+        """
+        represents a unique key for a pipeline with some specific source data
+        this key can be used to cache results for a pipeline!
+        """
+        raise NotImplementedError("_pipeline_key function needs to be defined!!")
 
     def set_disk_cache_settings(
             self,
@@ -514,7 +531,7 @@ supports pipeline flows:
         docs = '\n\n'.join(node_docs)
         return docs
 
-    def gather_arguments(self, **kwargs):
+    def gather_arguments(self, mapped_args: dict[str, str], traceable: bool):
         """
         Gathers arguments from the pipeline and class, and maps them to the provided keys of kwargs.
 
@@ -530,12 +547,12 @@ supports pipeline flows:
         """
         mapped_kwargs = {}
         # get all required input parameters from _in_mapping which was declared with "pipe"
-        for k, v in kwargs.items():
+        for k, v in mapped_args.items():
             # first check if parameter is available as an extractor
-            mapped_kwargs[k] = self.x(v)
+            mapped_kwargs[k] = self.x(v, traceable=traceable)
         return mapped_kwargs
 
-    def x(self, operator_name: str, disk_cache: bool = False) -> Any:
+    def x(self, operator_name: str, disk_cache: bool = False, traceable: bool = False) -> Any:
         """
         Calls an extractor from the defined pipeline and returns the result.
 
@@ -544,6 +561,9 @@ supports pipeline flows:
             cache: if we want to cache the call. We can explicitly tell
                     the pipeline to cache a call. to make caching more efficient
                     by only caching the calls we want.
+            traceable: Some operators will propagate the source of their information
+                       through the pipeline. This adds traceability. By setting this to
+                       traceable=True we can turn this feature on.
 
         Returns:
             Any: The result of the extractor after processing the document.
@@ -578,7 +598,7 @@ supports pipeline flows:
                 # only the operator name is sufficient here
                 # we need to check for "is not None" as we also have pandas dataframes in this
                 # which cannot be checked for by simply using "if"
-                if (res := self._cache.get(dict_cache_key, None)) is not None:
+                if (op_res := self._cache.get(dict_cache_key, None)) is not None:
                     self._stats["cache_hits"] += 1
                     finished_calculation = True
 
@@ -592,14 +612,14 @@ supports pipeline flows:
                     # calculated through the pipeline. this means
                     # that we would have to calculate the entire tree in the pipeline to get the
                     # parameters for this function.
-                    if disk_cache_key := self._key():  # key might not exist!
+                    if disk_cache_key := self._pipeline_key():  # key might not exist!
                         disk_cache_key = operator_name + str(disk_cache_key)
 
                     if (not finished_calculation) and disk_cache_key:
                         try:
                             # we need to check for "is not None" as we also have pandas dataframes in this
                             # which cannot be checked for by simply using "if"
-                            if (res := self._disk_cache.get(disk_cache_key, None)) is not None:
+                            if (op_res := self._disk_cache.get(disk_cache_key, None)) is not None:
                                 self._stats["disk_cache_hits"] += 1
                                 finished_calculation = True
                         except (pickle.PicklingError) as error:
@@ -609,27 +629,38 @@ supports pipeline flows:
                     else:
                         self._stats["cache_errors"].add((operator_name, "no key for disk caching"))
 
-            # if we haven't gotten the result from cache yet...
+            # if we haven't gotten the result from cache yet, calculate it! ...
             if finished_calculation == False:
-                mapped_kwargs = self.gather_arguments(**operator_function._in_mapping)
+                mapped_kwargs = self.gather_arguments(operator_function._in_mapping, traceable=traceable)
+                mapped_kwargs = {k: (v.data if isinstance(v, operators_base.OperatorResult) else v)
+                                 for k, v in mapped_kwargs.items()}
                 if operator_function._default:
                     try:
-                        res = operator_function(**mapped_kwargs)
+                        op_res = operator_function(**mapped_kwargs)
                     except:
-                        res = operator_function._default
+                        op_res = operator_function._default
                 else:
-                    res = operator_function(**mapped_kwargs)
+                    op_res = operator_function(**mapped_kwargs)
                 # and save the result in both caches
                 if operator_function._cache:
-                    self._cache[dict_cache_key] = res
+                    self._cache[dict_cache_key] = op_res
                     if use_disk_cache and disk_cache_key:
                         try:
-                            # self._disk_cache.set(disk_cache_key, res, expire=self._disk_cache_ttl)
-                            self._disk_cache.set(disk_cache_key, res)
+                            # self._disk_cache.set(disk_cache_key, op_res, expire=self._disk_cache_ttl)
+                            self._disk_cache.set(disk_cache_key, op_res)
                         except (pickle.PicklingError, AttributeError, TypeError) as error:
                             self._stats["cache_errors"].add((operator_name, error))
 
+            # extract data from OperatorResult
+            if isinstance(op_res, operators_base.OperatorResult):
+                res = op_res.data
+                source = op_res.source
+            else:
+                res = op_res
+                source = self
+
             # TODO: this can probably made more elegant
+            # TODO: get rid of "dict" results...
             if isinstance(res, dict):
                 res = {operator_function._out_mapping[k]: v for k, v in res.items()
                        if k in operator_function._out_mapping}
@@ -637,7 +668,6 @@ supports pipeline flows:
                 # use first key of out_mapping for output if
                 # we only have a single return value
                 res = {next(iter(operator_function._out_mapping)): res}
-
 
         except OperatorException as e:
             logger.error(f"Extraction error in {self}, '{operator_name}': {e}")
@@ -651,10 +681,18 @@ supports pipeline flows:
         #      it is a callable. (or use our own cache decorator)
 
         try:
-            return res[operator_name]
+            final_result = res[operator_name]
         except KeyError:
             raise OperatorOutputException(
                 f"Key '{operator_name}' does not exist in output dict of Operator {operator_function}")
+
+        if traceable:
+            return operators_base.OperatorResult(
+                data=final_result,
+                source=source
+            )
+        else:
+            return final_result
 
     def get(self, property: str, default_return: Any = None) -> Any:
         try:

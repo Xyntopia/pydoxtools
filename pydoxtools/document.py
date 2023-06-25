@@ -286,21 +286,23 @@ operations and include the documentation there. Lambda functions should not be u
             .pipe("elements").out("image_elements").cache(),
             ListExtractor().cache()
             .pipe("line_elements").out("lists"),
+            #########  TABLE STUFF ##############
             TableCandidateAreasExtractor()
             .pipe("graphic_elements", "line_elements", "pages_bbox", "text_box_elements", "filename")
             .out("table_candidates", box_levels="table_box_levels").cache(),
-            FunctionOperator[list[pd.DataFrame]](
-                lambda candidates: {
-                    "table_df0": [t.df for t in candidates if t.is_valid],
-                    "table_areas": pd.DataFrame([t._initial_area for t in candidates if t.is_valid])
-                }).pipe(candidates="table_candidates")
-            .out("table_df0", "table_areas").cache().t(table_df0=list[pd.DataFrame], table_areas=list[np.ndarray])
-            .docs(
-                table_df0="Filter valid tables from table candidates by looking if meaningful values can be extracted",
-                table_areas="Areas of all detected tables"
-            ),
-            FunctionOperator[list[pd.DataFrame]](lambda table_df0, lists: table_df0 + ([] if lists.empty else [lists])).cache()
-            .pipe("table_df0", "lists").out("tables_df").cache(),
+            FunctionOperator(lambda x: [t for t in x if t.is_valid])
+            .pipe(x="table_candidates").out("valid_tables"),
+            FunctionOperator(lambda x: [t.df for t in x])
+            .pipe(x="valid_tables").out("table_df0").cache(allow_disk_cache=True)
+            .t(table_df0=list[pd.DataFrame])
+            .docs("Filter valid tables from table candidates by looking if meaningful values can be extracted"),
+            FunctionOperator(lambda x: pd.DataFrame([t.bbox for t in x]))
+            .pipe(x="valid_tables").out("table_areas").cache()
+            .t(table_areas=list[np.ndarray])
+            .docs("Areas of all detected tables"),
+            FunctionOperator[list[pd.DataFrame]](lambda table_df0, lists: table_df0 + ([] if lists.empty else [lists]))
+            .cache().pipe("table_df0", "lists").out("tables_df").cache(),
+            ############## END TABLE STUFF ##############
             TextBoxElementExtractor()
             .pipe("line_elements").out("text_box_elements").cache(),
             FunctionOperator[list[str]](lambda df: df.get("text", None).to_list())
@@ -787,7 +789,7 @@ operations and include the documentation there. Lambda functions should not be u
                 pass
 
     @functools.lru_cache
-    def _key(self):
+    def _pipeline_key(self):
         return (self.__class__.__name__, str(self._configuration), self._fobj, self._source,
                 self._document_type, self._page_numbers, self._max_pages)
 
@@ -1268,7 +1270,7 @@ class DocumentBag(Pipeline):
             if Path(source).exists():
                 self._source = Path(source)
 
-    def _key(self):
+    def _pipeline_key(self):
         return (self.__class__.__name__, str(self._configuration), self._exclude, self._pipeline, self._max_documents,
                 self._source)
 

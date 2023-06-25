@@ -268,7 +268,7 @@ class HTMLTableExtractor():
         tables = pydoxtools.list_utils.deep_str_convert(tables)
 
 
-class Table:
+class PDFTableCandidate:
     def __init__(
             self, df_le, df_ge, initial_area: np.ndarray,
             tbe: TableExtractionParameters = None,
@@ -385,7 +385,7 @@ class Table:
         return word_boxes
 
     @cached_property
-    def bbox(self):
+    def bbox(self) -> np.ndarray:
         # find the exact bounding box of our table...
         dims = []
         dims += [[self.df_le.x0.min(), self.df_le.y0.min(), self.df_le.x1.max(), self.df_le.y1.max()]]
@@ -662,6 +662,9 @@ class Table:
         """get table as a pandas dataframe"""
         try:
             table, _ = self.convert_cells_to_df_text_only()
+            table.attrs["source"] = self._filename
+            table.attrs["area"] = self.bbox.tolist()
+            table.attrs["page"] = self.page
             return table
         except Exception as e:
             logger.error(self.identify_table())
@@ -1009,7 +1012,7 @@ class TableCandidateAreasExtractor(Operator):
 
         # detect table areas page-wise
         box_iterations: dict[int, list[pd.DataFrame]] = {}
-        table_candidates: list[Table] = []
+        table_candidates: list[PDFTableCandidate] = []
         for p in pages:
             tbe = text_box_elements.loc[p]
             min_elem_x = max(tbe.w.min(), min_size)
@@ -1030,7 +1033,7 @@ class TableCandidateAreasExtractor(Operator):
                 distance_threshold
             )
             _table = (
-                Table(
+                PDFTableCandidate(
                     df_le, df_ge,
                     initial_area=row[box_cols],
                     page_bbox=page_bbox, page=p, file_name=filename
@@ -1060,7 +1063,7 @@ class TableCandidateAreasExtractor(Operator):
                 img = images[page_num]
                 areas = self.use_table_transformer(img, pages_bbox[page_num])
                 for area in areas.values:
-                    table = Table(
+                    table = PDFTableCandidate(
                         line_elements, graphic_elements, area,
                         tbe=self._tbe,
                         page=page_num, page_bbox=pages_bbox[page_num],

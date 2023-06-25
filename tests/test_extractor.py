@@ -54,6 +54,7 @@ def make_path_absolute(f: Path | str):
 
 # make directories work in pytest
 test_files = [make_path_absolute(f) for f in test_files]
+single_test_file = make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf")
 
 
 def test_document_type_detection():
@@ -577,6 +578,13 @@ def test_pdf_text_extraction():
     pdf.full_text
 
 
+def test_traceability():
+    f = single_test_file
+    d = Document(f)
+    opres = d.x("tables_df", traceable=True)
+    opres = d.x("tables", traceable=True)
+    d.tables_df[0]
+
 def test_list_query():
     a = ['',
          'Id.-Nr.',
@@ -602,5 +610,5 @@ if __name__ == "__main__":
     file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/PFR-PR23_BAT-110__V1.00_.pdf"
     # run_single_non_interactive_document_test(file)
     doc = Document(file)
-    test_list_query()
+    test_traceability()
     pass
