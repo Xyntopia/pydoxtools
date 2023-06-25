@@ -78,7 +78,7 @@ def chat_completion(msgs: tuple[dict[str, str], ...], model_id: str) -> str:
         completion = openai_chat_completion_with_diskcache(
             model_id=model_id, temperature=0.0, messages=msgs
         )
-        result = completion.choices[0].message
+        result = completion.choices[0].message['content']
     elif model_id in gpt4_models():
         completion = gpt4allchat(
             model_id=model_id, temperature=0.0, messages=msgs
