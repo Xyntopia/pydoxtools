@@ -633,7 +633,7 @@ def pairwise_weighted_distance_combination(
 #       those into a "minimum" function.
 
 
-def boundarybox_query(bbs, bbox, tol=10.0):
+def boundarybox_query(bbs, bbox, tol=10.0, exclude=False):
     """
     This function filters a pandas list of boundingboxes for
     boxes that are fully contained in a specific region
@@ -647,8 +647,12 @@ def boundarybox_query(bbs, bbox, tol=10.0):
     """
     # valid_areas.loc[valid_areas.x0>bbox[0]].loc[valid_areas.x1<bbox[2]]
     # in order to increase the speed we filter with several .loc operations
-    return bbs.loc[bbs.y0 > (bbox[1] - tol)].loc[bbs.y1 < (bbox[3] + tol)] \
-        .loc[bbs.x0 > (bbox[0] - tol)].loc[bbs.x1 < (bbox[2] + tol)]
+    if exclude:
+        return bbs.loc[~((bbs.y0 > (bbox[1] - tol)) & (bbs.y1 < (bbox[3] + tol))
+                         & (bbs.x0 > (bbox[0] - tol)) & (bbs.x1 < (bbox[2] + tol)))]
+    else:
+        return bbs.loc[(bbs.y0 > (bbox[1] - tol)) & (bbs.y1 < (bbox[3] + tol))
+                       & (bbs.x0 > (bbox[0] - tol)) & (bbs.x1 < (bbox[2] + tol))]
 
 
 def boundarybox_intersection_query(bbs, bbox, tol=1.0):

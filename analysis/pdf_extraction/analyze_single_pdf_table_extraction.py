@@ -70,10 +70,10 @@ nlp_utils.device, torch.cuda.is_available(), torch.__version__
 
 # %%
 # get all pdf files in subdirectory
-files = [join(root, f) for root, dirs, files
-         in os.walk(settings.PDFDIR)
-         for f in files if f.endswith(".pdf")]
-len(files)
+#files = [join(root, f) for root, dirs, files
+#         in os.walk(settings.PDFDIR)
+#         for f in files if f.endswith(".pdf")]
+#len(files)
 
 # %% [markdown]
 # ## try to extract table boundaries using our own method
@@ -84,25 +84,19 @@ len(files)
 
 # %%
 training_data = pathlib.Path.home() / "comcharax/data"
-page =19 # we have an unreasonable number of elements here..  what is going on?
+page =18 # we have an unreasonable number of elements here..  what is going on?
 pdf_file = training_data / "sparepartsnow/06_Kraftspannfutter_Zylinder_Luenetten_2020.01_de_web.pdf"
 print(pdf_file)
 
 # %%
-img = pydoxtools.Document(pdf_file, page_numbers=[page]).images[page]
+pdf = pydoxtools.Document(pdf_file, page_numbers=[page])
 
 # %%
 #pdf = pydoxtools.Document(pdf_utils.repair_pdf(pdf_file), page_numbers=[page])
-pdf = pydoxtools.Document(img)
+#pdf = pydoxtools.Document(imgz)
 # pdfi.tables
 # p.tables
 # pdfi.table_metrics_X()
-
-# %%
-#img
-
-# %%
-isinstance(img,PIL.Image.Image)
 
 # %%
 pdf.document_type
@@ -114,8 +108,18 @@ pdf.table_areas
 [pretty_print(t) for t in pdf.tables_df]
 
 # %%
-page=0
+page=next(iter(pdf.page_set))
+page
+
+# %%
 boxes, box_levels = pdf.table_candidates, pdf.table_box_levels
+
+# %%
+margin = 30
+table_areas = pdf.table_areas[box_cols].values.copy()
+
+# %%
+table_areas+= [-margin,-margin,margin,margin]
 
 # %%
 vda.plot_box_layers(
@@ -123,11 +127,10 @@ vda.plot_box_layers(
         [pdf.line_elements[box_cols].values, vda.LayerProps(alpha=0.5, color="red", filled=False)],
         [pdf.image_elements[box_cols].values, vda.LayerProps(alpha=0.5, color="blue", filled=False)],
         [pdf.graphic_elements[box_cols].values, vda.LayerProps(alpha=0.5, color="yellow", filled=False)],
-        
         #[box_levels[0][0].values, vda.LayerProps(alpha=0.5, color="black", filled=False)],
         #[box_levels[0][1].values if len(box_levels[18])>1 else [], vda.LayerProps(alpha=0.1, color="yellow", filled=True)],
         #[pd.DataFrame([b._initial_area for b in boxes]).values, vda.LayerProps(alpha=1.0, color="red", filled=False, box_numbers=True)]
-        [pdf.table_areas[box_cols].values, vda.LayerProps(alpha=1.0, color="green", filled=False)],
+        [table_areas, vda.LayerProps(alpha=1.0, color="green", filled=False)],
         #[tables[box_cols].values, vda.LayerProps(alpha=1.0, color="red", filled=False)],
         #[figures[box_cols].values, vda.LayerProps(alpha=1.0, color="green", filled=False)],
         #[text[box_cols].values, vda.LayerProps(alpha=1.0, color="blue", filled=False)],
@@ -136,7 +139,7 @@ vda.plot_box_layers(
         #[t.df_words[vda.box_cols].values, vda.LayerProps(alpha=0.3, color="random", filled=True)]
     ],
     bbox=pdf.pages_bbox[page], dpi=250,
-    #image=pdf.images[page],
+    image=pdf.images[page],
     #image_box=pdf.pages_bbox[page],
 ),
 

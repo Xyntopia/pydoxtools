@@ -296,13 +296,15 @@ operations and include the documentation there. Lambda functions should not be u
             .pipe(x="valid_tables").out("table_df0").cache(allow_disk_cache=True)
             .t(table_df0=list[pd.DataFrame])
             .docs("Filter valid tables from table candidates by looking if meaningful values can be extracted"),
-            FunctionOperator(lambda x: pd.DataFrame([t.bbox for t in x]))
+            FunctionOperator(lambda x: pd.DataFrame([t.bbox for t in x], columns=["x0", "y0", "x1", "y1"]))
             .pipe(x="valid_tables").out("table_areas").cache()
             .t(table_areas=list[np.ndarray])
             .docs("Areas of all detected tables"),
             FunctionOperator[list[pd.DataFrame]](lambda table_df0, lists: table_df0 + ([] if lists.empty else [lists]))
             .cache().pipe("table_df0", "lists").out("tables_df").cache(),
             ############## END TABLE STUFF ##############
+            # FunctionOperator()
+            # .pipe()
             TextBoxElementExtractor()
             .pipe("line_elements").out("text_box_elements").cache(),
             FunctionOperator[list[str]](lambda df: df.get("text", None).to_list())
