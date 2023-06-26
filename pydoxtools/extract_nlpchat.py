@@ -3,6 +3,7 @@ from __future__ import annotations  # this is so, that we can use python3.10 ann
 import functools
 from typing import Callable
 
+import requests
 import yaml
 from diskcache import Cache
 
@@ -10,6 +11,10 @@ from .operators_base import Operator
 from .settings import settings
 
 cache = Cache(settings.PDX_CACHE_DIR_BASE / "chat_answers")
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @cache.memoize()
@@ -62,8 +67,11 @@ def get_gpt4model(model_id):
 
 @functools.lru_cache
 def gpt4_models():
-    from gpt4all import GPT4All
-    return [m["filename"].strip('.bin') for m in GPT4All.list_models()]
+    try:
+        from gpt4all import GPT4All
+        return [m["filename"].strip('.bin') for m in GPT4All.list_models()]
+    except requests.exceptions.JSONDecodeError:
+        return ["ggml-mpt-7b-instruct"]
 
 
 @cache.memoize()
@@ -73,22 +81,91 @@ def gpt4allchat(messages, model_id="ggml-mpt-7b-instruct", max_tokens=256, *args
     return res
 
 
-def chat_completion(msgs: tuple[dict[str, str], ...], model_id: str) -> str:
+def chat_completion(msgs: list[dict[str, str], ...], model_id: str, max_tokens: int) -> str:
     if model_id == "gpt-3.5-turbo":
         completion = openai_chat_completion_with_diskcache(
-            model_id=model_id, temperature=0.0, messages=msgs
-        )
+            model_id=model_id, temperature=0.0, messages=tuple(msgs), max_tokens=max_tokens)
         result = completion.choices[0].message['content']
     elif model_id in gpt4_models():
         completion = gpt4allchat(
-            model_id=model_id, temperature=0.0, messages=msgs
-        )
+            model_id=model_id, temperature=0.0, messages=msgs, max_tokens=max_tokens)
         result = completion["choices"][0]['message']['content']
     else:
         result = ""
         NotImplementedError(f"We can currently not handle the model {model_id}")
 
     return result
+
+
+def task_chat(
+        task,
+        context=None,
+        previous_tasks=None,
+        objective=None,
+        format="yaml",
+        method="prompt"
+):
+    msgs = []
+    msgs.append({"role": "system",
+                 "content": "You are a helpful assistant that aims to complete the given task."
+                            "Do not add any amount of explanatory text."})
+    if method == "chat":
+        msgs.append({"role": "user",
+                     "content": f"# Overall objective: \n{objective}\n\n"}),
+        if previous_tasks:
+            msgs.append({"role": "user",
+                         "content": f"# Take into account these previously completed tasks"
+                                    f"\n\n{previous_tasks} \n\n"}),
+        if context:
+            msgs.append({"role": "user",
+                         "content": f"# Take into account this context"
+                                    f"\n\n{context} \n\n"}),
+        if False:
+            msgs.append({"role": "user",
+                         "content": f"# Instruction: "
+                                    f"The prompt below is a question to answer, a task to complete, or a conversation "
+                                    f"to respond to; decide which and write an appropriate response.\n\n"
+                                    f"## Prompt: {task} \n\n"
+                                    f"## Result:\n\n"})
+
+        if task: msgs.append({"role": "user",
+                              "content": f"# Complete the following task: \n{task} \n\n"
+                                         f"Provide only the precise information requested without context, "
+                                         f"make sure we can parse the response as {format}. \n\n"
+                                         f"## RESULT:\n"})
+    else:
+        msg = f"# Considering the overall objective: \n{objective}\n\n"
+        if previous_tasks:
+            msg += f"# Take into account these previously completed tasks:\n\n{previous_tasks} \n\n"
+        if context:
+            msg += f"# Take into account this context:\n\n{context} \n\n"
+        msg += f"# Complete the following task: \n{task} \n\n" \
+               f"Provide only the precise information requested without context, " \
+               f"make sure we can parse the response as {format}. RESULT:\n"
+        msgs.append(
+            {"role": "user", "content": msg})
+    return msgs
+
+
+def execute_task(task, previous_tasks=None, context=None, objective=None,
+                 formatting="yaml", model_id="ggml-mpt-7b-instruct",
+                 max_tokens=1000):
+    """Creates a message and executes a task with an LLM based on given information"""
+    msgs = task_chat(previous_tasks=previous_tasks,
+                     context="\n---\n".join(context) if context else None, task=task,
+                     objective=objective,
+                     format=formatting)
+    res = chat_completion(msgs, max_tokens=max_tokens, model_id=model_id)
+    if formatting == "yaml":
+        res = yaml_loader(res)
+    elif formatting == "txt":
+        res = res
+    elif formatting == "markdown":
+        res = res
+    else:
+        logger.warning(f"Formatting: {formatting} is unknown!")
+        pass  # do nothing ;)
+    return res, msgs
 
 
 class LLMChat(Operator):
@@ -178,7 +255,7 @@ def reasonable_speed():
     from gpt4all import GPT4All
 
     # gptj = GPT4All("ggml-gpt4all-j-v1.3-groovy")
-    models=[(m['filename'],m['description']) for m in GPT4All.list_models()]
+    models = [(m['filename'], m['description']) for m in GPT4All.list_models()]
     gptj = GPT4All("ggml-mpt-7b-instruct")
     messages = [{"role": "user", "content": "Name 3 colors"}]
     res = gptj.chat_completion(messages)
@@ -191,3 +268,11 @@ def reasonable_speed():
         {'role': 'assistant', 'content': 'Blue, Green and Yellow'},
         {"role": "user", "content": "What colors did you previously name?"}]
     gptj.chat_completion(messages)
+
+
+def yaml_loader(txt: str):
+    # Remove ```yaml and ``` if they are present in the string
+    txt = txt.strip().replace("```yaml", "").replace("```", "")
+    txt = txt.strip("`")
+    data = yaml.unsafe_load(txt)
+    return data

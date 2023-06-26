@@ -2,16 +2,15 @@ from __future__ import annotations  # this is so, that we can use python3.10 ann
 
 import functools
 import logging
+import typing
 import uuid
 
 import chromadb
 import dask.diagnostics
 import numpy as np
-import yaml
 
 import pydoxtools as pdx
-from pydoxtools.extract_nlpchat import openai_chat_completion
-import typing
+import pydoxtools.extract_nlpchat
 
 logger = logging.getLogger(__name__)
 
@@ -20,14 +19,6 @@ def generate_function_usage_prompt(func: callable):
     # TODO: summarize function usage, only extract the parameter description
     # func.__doc__
     return func.__doc__
-
-
-def yaml_loader(txt: str):
-    # Remove ```yaml and ``` if they are present in the string
-    txt = txt.strip().replace("```yaml", "").replace("```", "")
-    txt = txt.strip("`")
-    data = yaml.unsafe_load(txt)
-    return data
 
 
 def add_info_to_collection(collection, doc: pdx.Document, metas: list[dict]):
@@ -39,8 +30,6 @@ def add_info_to_collection(collection, doc: pdx.Document, metas: list[dict]):
         metadatas=metas,
         ids=[uuid.uuid4().hex]
     )
-
-
 
 
 def where_or(x):
@@ -139,36 +128,7 @@ class LLMAgent:
             [{"information_type": "data", "key": key.strip(), "info": data.strip()}])
 
     def task_chat(self, task, context=None, previous_tasks=None, format="yaml", method="prompt"):
-        msgs = []
-        msgs.append({"role": "system",
-                     "content": "You are a helpful assistant that aims to complete one task."})
-        if method == "chat":
-            msgs.append({"role": "user",
-                         "content": f"# Overall objective: \n{self._objective}\n\n"}),
-            if previous_tasks:
-                msgs.append({"role": "user",
-                             "content": f"# Take into account these previously completed tasks"
-                                        f"\n\n{previous_tasks} \n\n"}),
-            if context:
-                msgs.append({"role": "user",
-                             "content": f"# Take into account this context"
-                                        f"\n\n{context} \n\n"}),
-            msgs.append(
-                {"role": "user", "content": f"# Complete the following task: \n{task} \n\n"
-                                            f"Provide only the precise information requested without context, "
-                                            f"make sure we can parse the response as {format}. RESULT:\n"})
-        else:
-            msg = f"# Considering the overall objective: \n{self._objective}\n\n"
-            if previous_tasks:
-                msg += f"# Take into account these previously completed tasks:\n\n{previous_tasks} \n\n"
-            if context:
-                msg += f"# Take into account this context:\n\n{context} \n\n"
-            msg += f"# Complete the following task: \n{task} \n\n" \
-                   f"Provide only the precise information requested without context, " \
-                   f"make sure we can parse the response as {format}. RESULT:\n"
-            msgs.append(
-                {"role": "user", "content": msg})
-        return msgs
+        pydoxtools.extract_nlpchat.task_chat(**locals())
 
     def get_context(self, task: str, n_results: int = 5, where_clause=None):
         where_clause = where_clause or self._context_where_all
@@ -207,22 +167,12 @@ class LLMAgent:
                 n_results=previous_task_size)[0]
         else:
             previous_tasks = ""
-        msgs = self.task_chat(previous_tasks=previous_tasks,
-                              context="\n---\n".join(context), task=task,
-                              format=formatting)
+        res, msgs = pydoxtools.extract_nlpchat.execute_task(
+            task=task, previous_tasks=previous_tasks, context=context, formatting=formatting,
+            max_tokens=max_tokens, objective=self._objective)
         msg = '\n'.join(m['content'] for m in msgs)
         logger.info(f"execute_task: {msg}")
-        res = openai_chat_completion(msgs, max_tokens=max_tokens).content
         self._debug_queue.append((msgs, res))
-        if formatting == "yaml":
-            res = yaml_loader(res)
-        elif formatting == "txt":
-            res = res
-        elif formatting == "markdown":
-            res = res
-        else:
-            logger.warning(f"Formatting: {formatting} is unknown!")
-            pass  # do nothing ;)
         if save_task:
             self.add_task(task, str(res))
         return res
