@@ -46,6 +46,7 @@ class ElementType(Enum):
     Graphic = 1
     Text = 2
     Image = 3
+    Table = 4
 
 
 @dataclass(**slot_args)
@@ -64,7 +65,7 @@ class DocumentElement:
     linewidth: float | None = None
     boxnum: int | None = None
     lineobj: Any | None = None
-    gobj: Any | None = None
+    obj: Any | None = None
     non_stroking_color: str | None = None
     stroking_color: str | None = None
     stroke: bool | None = None

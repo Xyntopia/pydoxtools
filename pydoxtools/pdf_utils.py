@@ -11,35 +11,32 @@ Created on Mon Dec 16 12:07:52 2019
 
 from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
-import typing
-from io import StringIO
-
-from pdfminer.converter import TextConverter
-from pdfminer.layout import LAParams
-import pdf2image
-import PIL
-from pdfminer.pdfdocument import PDFDocument
-from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
-from pdfminer.pdfpage import PDFPage
-from pdfminer.pdfparser import PDFParser
 import functools
-import numpy as np
 import io
 import logging
+import typing
+from io import StringIO
 from pathlib import Path
 
+import PIL
+import numpy as np
 import pandas as pd
+import pdf2image
 # TODO: evaluate tabula as an additional table-read mechanism
 import pdfminer
 import pdfminer.high_level
 import pdfminer.pdfdocument
 import pdfminer.psparser
 import pikepdf
+from pdfminer.converter import TextConverter
 from pdfminer.high_level import extract_pages
 from pdfminer.layout import LAParams
 from pdfminer.layout import LTChar, LTCurve, LTFigure, LTTextLine, LTAnno
 from pdfminer.layout import LTTextContainer
+from pdfminer.pdfdocument import PDFDocument
+from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.pdfinterp import resolve1
+from pdfminer.pdfpage import PDFPage
 from pdfminer.pdfparser import PDFParser
 
 import pydoxtools.operators_base
@@ -321,7 +318,7 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
                     # docelements should be compatible with document_base.DocumentElement
                     docelement = document_base.DocumentElement(
                         type=document_base.ElementType.Graphic,
-                        gobj=element,
+                        obj=element,
                         linewidth=element.linewidth,
                         non_stroking_color=element.non_stroking_color,
                         stroking_color=element.stroking_color,
@@ -376,6 +373,7 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
                 elif isinstance(element, LTFigure):
                     docelement = document_base.DocumentElement(
                         type=document_base.ElementType.Image,
+                        obj=element,
                         p_num=page_num,
                         boxnum=boxnum,
                         x0=element.x0,

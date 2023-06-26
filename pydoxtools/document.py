@@ -23,7 +23,7 @@ from dask.bag import Bag
 
 from . import dask_operators
 from . import list_utils
-from . import nlp_utils
+from . import nlp_utils, extract_textstructure
 from .dask_operators import SQLTableLoader, DocumentBagMap
 from .document_base import Pipeline, ElementType
 from .extract_classes import LanguageExtractor, TextBlockClassifier
@@ -284,9 +284,12 @@ operations and include the documentation there. Lambda functions should not be u
             .pipe("elements").out("graphic_elements").cache(),
             DocumentElementFilter(element_type=ElementType.Image)
             .pipe("elements").out("image_elements").cache(),
+            extract_textstructure.PageTemplateGenerator()
+            .pipe("elements", "valid_tables").out("page_templates").cache(allow_disk_cache=True)
+            .docs("generates a text page with table & figure hints"),
+            #########  TABLE STUFF ##############
             ListExtractor().cache()
             .pipe("line_elements").out("lists"),
-            #########  TABLE STUFF ##############
             TableCandidateAreasExtractor()
             .pipe("graphic_elements", "line_elements", "pages_bbox", "text_box_elements", "filename")
             .out("table_candidates", box_levels="table_box_levels").cache(),

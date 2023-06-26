@@ -11,6 +11,7 @@ from sklearn.ensemble import IsolationForest
 
 import pydoxtools.operators_base
 from pydoxtools import document_base
+from . import cluster_utils
 
 
 def _line2txt(LTOBJ: typing.Iterable, size_hints=False):
@@ -85,11 +86,17 @@ def group_elements(elements: pd.DataFrame, by: list[str], agg: str):
         bg = group.agg(
             x0=("x0", "min"), y0=("y0", "min"),
             x1=("x1", "max"), y1=("y1", "max"),
-            text=("lineobj",
-                  lambda x: "".join(_line2txt(obj, size_hints=False) for obj in x.values))
+            tmp_text=("lineobj",
+                      lambda x: "".join(_line2txt(obj, size_hints=False) if obj else "" for obj in x.values)),
+            text=("rawtext", "sum")
         )
+        # overlay text with tmp_text
+        tmp_text_selector = bg.tmp_text.str.len() > 0
+        bg.loc[tmp_text_selector, "text"] = bg.loc[tmp_text_selector, "tmp_text"]
+        # strip whitespace from boxes
+        bg["text"] = bg["text"].str.strip()
         # remove empty box_groups
-        bg = bg[bg.text.str.strip().str.len() > 1].copy()
+        bg = bg[bg.text.str.len() > 0].copy()
         # do some calculations
         bg['y_mean'] = bg[['y0', 'y1']].mean(axis=1)
         bg['x_mean'] = bg[['x0', 'x1']].mean(axis=1)
@@ -188,7 +195,7 @@ class TitleExtractor(pydoxtools.operators_base.Operator):
         dfl = dfl.join(pd.get_dummies(dfl.font, prefix="font"))
         dfl = dfl.join(pd.get_dummies(dfl.font, prefix="color"))
 
-        features = set(dfl.columns) - {'gobj', 'linewidth', 'non_stroking_color', 'stroking_color', 'stroke',
+        features = set(dfl.columns) - {'obj', 'linewidth', 'non_stroking_color', 'stroking_color', 'stroke',
                                        'fill', 'evenodd', 'type', 'text', 'font_infos', 'font', 'rawtext',
                                        'lineobj',
                                        'color'}
@@ -225,3 +232,68 @@ class TitleExtractor(pydoxtools.operators_base.Operator):
         # TODO: what does this function do, I forgot...
         main_content = "\n---\n".join(dfl[dfl.outliers == 1].text)
         return main_content
+
+
+class PageTemplateGenerator(pydoxtools.operators_base.Operator):
+    def __call__(self, elements: pd.DataFrame, valid_tables) -> dict[dict[int, str]]:
+        # remove all tables from elements and insert a placeholder so that
+        # we can more easily query the page with LLMs
+
+        Images = False
+        elements = elements.loc[elements["type"] != document_base.ElementType.Graphic].copy()
+        if Images:
+            img_idxs = (elements["type"] == document_base.ElementType.Image)
+            imgs = elements.loc[img_idxs]
+            elements.loc[img_idxs, "rawtext"] = "{Image" + imgs.index.astype(str) + "}"
+            elements = elements.loc[elements["rawtext"].str.len() > 1]
+        else:
+            elements = elements.loc[elements["type"] != document_base.ElementType.Image].copy()
+
+        table_elements = []
+        for table_num, table in enumerate(valid_tables):
+            # table_num = 0
+            # table=pdf.valid_tables[table_num]
+            # page_templates={}
+            # for p in pdf.page_set:
+            p = table.page
+            page_elements = elements.loc[elements.p_num == p]
+
+            # page_template[p]
+
+            # include boundingbox around table + context
+            # context_margin=20
+            # page_el = cluster_utils.boundarybox_query(
+            #    page_elements, table.bbox,
+            #    tol=context_margin
+            # ).copy()
+
+            # get indices from table
+            le = cluster_utils.boundarybox_query(
+                page_elements, table.bbox, tol=0
+            ).copy()
+            # and remove from our elements
+            elements = elements.drop(le.index.tolist())
+            # elements = elements[]
+
+            # create a new "table-element"
+            # table_box = pd.DataFrame(table.bbox.reshape(1,-1), columns=["x0","y0","x1","y1"])
+            table_box = pd.Series(table.bbox, index=["x0", "y0", "x1", "y1"])
+            table_box["rawtext"] = ""
+            table_box["type"] = document_base.ElementType.Table
+            table_box["p_num"] = p
+            table_box["text"] = f"------------\n{{Table{table_num}}}\n------------"
+            table_elements.append(table_box)
+
+        table_elements = pd.DataFrame(table_elements)
+        # add table to our element list
+        # TODO: move this into the pipeline itself...
+        txtboxes = TextBoxElementExtractor()(elements)["text_box_elements"]
+        txtboxes = txtboxes.loc[txtboxes.text.str.len() > 1]
+        txtboxes = pd.concat([txtboxes.reset_index(), table_elements],
+                             ignore_index=True).sort_values(by=["p_num", "y0"], ascending=[True, False])
+
+        pages = txtboxes.p_num.unique()
+        page_templates = {p: "\n\n".join(txtboxes[txtboxes.p_num == p].text) for p in pages}
+
+        # elements = elements.sort_values(by="y0")#.loc[(19,578)]
+        return {"page_templates": page_templates}
