@@ -4,6 +4,7 @@ import operator
 import typing
 from dataclasses import asdict
 
+import numpy as np
 import pandas as pd
 import pdfminer
 from pdfminer.layout import LTChar, LTTextLineVertical
@@ -234,20 +235,65 @@ class TitleExtractor(pydoxtools.operators_base.Operator):
         return main_content
 
 
+def get_template_elements(elements: pd.DataFrame, page_num: int = None, include_image: bool = False):
+    elements = elements.loc[elements["type"] != document_base.ElementType.Graphic].copy()
+    if include_image:
+        img_idxs = (elements["type"] == document_base.ElementType.Image)
+        imgs = elements.loc[img_idxs]
+        elements.loc[img_idxs, "rawtext"] = "{Image" + imgs.index.astype(str) + "}"
+        elements = elements.loc[elements["rawtext"].str.len() > 1]
+    else:
+        elements = elements.loc[elements["type"] != document_base.ElementType.Image].copy()
+
+    if page_num:
+        elements = elements.loc[elements.p_num == page_num]
+
+    return elements
+
+
+def get_area_context(
+        bbox: np.ndarray,
+        elements: pd.DataFrame,
+        page_num: int,
+        context_margin=40,
+        placeholder="area"
+):
+    # remove all tables from elements and insert a placeholder so that
+    # we can more easily query the page with LLMs
+
+    # page_templates={}
+    # for p in pdf.page_set:
+    elements = get_template_elements(elements=elements, page_num=page_num, include_image=False)
+
+    # include boundingbox around table + context
+    le = cluster_utils.boundarybox_query(
+        elements, bbox,
+        tol=context_margin
+    ).copy()
+
+    # and remove elements inside area
+    le = cluster_utils.boundarybox_query(
+        le, bbox,
+        tol=0, exclude=True
+    ).copy()
+
+    area_box = pd.DataFrame(bbox.reshape(1, -1), columns=["x0", "y0", "x1", "y1"])
+    area_box["text"] = f"------------\n{{{placeholder}}}\n------------"
+
+    boxes = TextBoxElementExtractor()(le)["text_box_elements"]
+    boxes = pd.concat([boxes.reset_index(), area_box], ignore_index=True).sort_values(
+        by=["y0", "x0"], ascending=[False, True])
+
+    table_context = "\n\n".join(boxes["text"].to_list())
+    return table_context
+
+
 class PageTemplateGenerator(pydoxtools.operators_base.Operator):
     def __call__(self, elements: pd.DataFrame, valid_tables) -> dict[dict[int, str]]:
         # remove all tables from elements and insert a placeholder so that
         # we can more easily query the page with LLMs
 
-        Images = False
-        elements = elements.loc[elements["type"] != document_base.ElementType.Graphic].copy()
-        if Images:
-            img_idxs = (elements["type"] == document_base.ElementType.Image)
-            imgs = elements.loc[img_idxs]
-            elements.loc[img_idxs, "rawtext"] = "{Image" + imgs.index.astype(str) + "}"
-            elements = elements.loc[elements["rawtext"].str.len() > 1]
-        else:
-            elements = elements.loc[elements["type"] != document_base.ElementType.Image].copy()
+        elements = get_template_elements(elements, include_image=False)
 
         table_elements = []
         for table_num, table in enumerate(valid_tables):
