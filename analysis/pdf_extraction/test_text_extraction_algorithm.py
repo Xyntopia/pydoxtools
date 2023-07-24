@@ -75,6 +75,8 @@ x0,y0,x1,y1 = 1,2,3,4
 training_data = pathlib.Path.home() / "comcharax/data"
 page =19 # we have an unreasonable number of elements here..  what is going on?
 pdf_file = training_data / "sparepartsnow/06_Kraftspannfutter_Zylinder_Luenetten_2020.01_de_web.pdf"
+pdf_file= training_data / "woodfield/Woodfield WestEdge.pdf"
+
 print(pdf_file)
 
 # %%

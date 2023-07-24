@@ -86,6 +86,7 @@ nlp_utils.device, torch.cuda.is_available(), torch.__version__
 training_data = pathlib.Path.home() / "comcharax/data"
 page =18 # we have an unreasonable number of elements here..  what is going on?
 pdf_file = training_data / "sparepartsnow/06_Kraftspannfutter_Zylinder_Luenetten_2020.01_de_web.pdf"
+pdf_file= training_data / "woodfield/Woodfield WestEdge.pdf"
 print(pdf_file)
 
 # %%

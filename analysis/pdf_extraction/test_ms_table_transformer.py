@@ -77,13 +77,18 @@ nlp_utils.device, torch.cuda.is_available(), torch.__version__
 
 # %%
 training_data = pathlib.Path.home() / "comcharax/data"
-page =16 # we have an unreasonable number of elements here..  what is going on?
+page = 0
+page_num=[page]
 pdf_file = training_data / "sparepartsnow/06_Kraftspannfutter_Zylinder_Luenetten_2020.01_de_web.pdf"
+#page_num=None
+#pdf_file= training_data / "woodfield/Woodfield WestEdge.pdf"
+
 print(pdf_file)
 
 # %%
 pdf=pydoxtools.Document(pdf_file, page_numbers=[page])
 img = pdf.images[page]
+pdf = pydoxtools.Document(img)
 
 # %%
 from huggingface_hub import hf_hub_download
@@ -138,7 +143,7 @@ vda.plot_box_layers(
         #[t.df_words[vda.box_cols].values, vda.LayerProps(alpha=0.3, color="random", filled=True)]
     ],
     bbox=pdf.pages_bbox[page], dpi=250,
-    #image=pdf.images[page],
+    image=pdf.images[page],
     #image_box=pdf.pages_bbox[page],
 ),
 

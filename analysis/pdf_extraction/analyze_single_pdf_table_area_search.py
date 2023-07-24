@@ -83,6 +83,7 @@ pdf_file = settings.TRAINING_DATA_DIR / "pdfs/datasheet/6-Symo_M_klein_PL_Froniu
 #pdf_file = settings.TRAINING_DATA_DIR / "pdfs/datasheet/03-TP2M_DS_REC_TwinPeak_2_Mono_Series_IEC_Rev_D_ENG_WEB.0f.pdf"
 training_data = pathlib.Path.home() / "comcharax/data"
 pdf_file = training_data / "sparepartsnow/06_Kraftspannfutter_Zylinder_Luenetten_2020.01_de_web.pdf"
+#pdf_file= training_data / "woodfield/Woodfield WestEdge.pdf"
 print(pdf_file)
 
 # %% [markdown]

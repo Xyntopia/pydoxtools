@@ -78,15 +78,22 @@ x0,y0,x1,y1 = 1,2,3,4
 # %%
 training_data = pathlib.Path.home() / "comcharax/data"
 page = 18
+page_num=[page]
 pdf_file = training_data / "sparepartsnow/06_Kraftspannfutter_Zylinder_Luenetten_2020.01_de_web.pdf"
+#page_num=None
+#pdf_file= training_data / "woodfield/Woodfield WestEdge.pdf"
+
 print(pdf_file)
 
 # %%
 #pdf = pydoxtools.Document(pdf_utils.repair_pdf(pdf_file), page_numbers=[page])
-pdf = pydoxtools.Document(pdf_utils.repair_pdf(pdf_file), page_numbers=[page])
+pdf = pydoxtools.Document(pdf_file, page_numbers=page_num)
 # pdfi.tables
 # p.tables
 # pdfi.table_metrics_X()
+
+# %%
+pdf.page_set
 
 # %% [markdown]
 # ## manually extract text
@@ -127,7 +134,17 @@ layout
 
 # %%
 df=layout.to_dataframe().rename(columns={'x_1':'x0', 'y_1':'y0', 'x_2':'x1','y_2': 'y1'})
-df[box_cols]=((rendersize+rendersize)-df[box_cols])*ratio[0]
+print(df)
+
+df[box_cols]=df[box_cols]*ratio[0]
+#df[box_cols]=[0,size[0],0,size[0]]-df[box_cols].values
+#df[box_cols]
+df[['y0','y1']]=[size[1],size[1]]-df[['y1','y0']].values
+#df[['x0','x1']]=[size[0],size[0]]-df[['x0','x1']].values
+#[size[0],size[0]]-df[['y0','y1']].values
+df
+
+# %%
 tables=df[df.type=="Table"]
 figures=df[df.type=="Figure"]
 text = df[df.type=="Text"]
@@ -152,7 +169,8 @@ text = df[df.type=="Text"]
 # %%
 vda.plot_box_layers(
     box_layers=[
-        #[elements[box_cols].values, vda.LayerProps(alpha=0.5, color="red", filled=False)],
+        [pdf.line_elements.query(f"p_num=={page}")[box_cols].values, vda.LayerProps(alpha=0.3, color="red", filled=False)],
+        #[pdf.graphic_elements[box_cols].values, vda.LayerProps(alpha=0.3, color="red", filled=False)],
         [tables[box_cols].values, vda.LayerProps(alpha=1.0, color="red", filled=False)],
         [figures[box_cols].values, vda.LayerProps(alpha=1.0, color="green", filled=False)],
         [text[box_cols].values, vda.LayerProps(alpha=1.0, color="blue", filled=False)],
@@ -164,5 +182,7 @@ vda.plot_box_layers(
     image=pdf.images[page],
     image_box=pdf.pages_bbox[page],
 ),
+
+# %%
 
 # %%
