@@ -289,7 +289,7 @@ def get_area_context(
 
 
 class PageTemplateGenerator(pydoxtools.operators_base.Operator):
-    def __call__(self, elements: pd.DataFrame, valid_tables) -> dict[dict[int, str]]:
+    def __call__(self, elements: pd.DataFrame, valid_tables) -> dict[str, dict[int, str]]:
         # remove all tables from elements and insert a placeholder so that
         # we can more easily query the page with LLMs
 
