@@ -36,7 +36,7 @@ from .extract_nlpchat import LLMChat
 from .extract_objects import EntityExtractor
 from .extract_ocr import OCRExtractor
 from .extract_pandoc import PandocLoader, PandocOperator, PandocConverter, PandocBlocks, PandocToPdxConverter
-from .extract_spacy import SpacyOperator, extract_spacy_token_vecs, get_spacy_embeddings, extract_noun_chunks
+from .extract_spacy import SpacyOperator, extract_spacy_token_vecs, get_spacy_embeddings, extract_noun_chunks, ExtractRelationships
 from .extract_tables import ListExtractor, TableCandidateAreasExtractor
 from .extract_textstructure import DocumentElementFilter, TextBoxElementExtractor, TitleExtractor, SectionsExtractor
 from .html_utils import get_text_only_blocks
@@ -516,7 +516,7 @@ operations and include the documentation there. Lambda functions should not be u
             SpacyOperator()
             .pipe(
                 "language", "spacy_model",
-                full_text="clean_text", model_size="spacy_model_size"
+                full_text="full_text", model_size="spacy_model_size"
             ).out(doc="spacy_doc", nlp="spacy_nlp").cache()
             .docs("Spacy Document and Language Model for this document"),
             FunctionOperator(extract_spacy_token_vecs)
@@ -533,6 +533,12 @@ operations and include the documentation there. Lambda functions should not be u
             .docs("exracts nounchunks from spacy. Will not be cached because it is all"
                   "in the spacy doc already"),
             ########## END OF SPACY ################
+
+            ########### KB extraction ###########
+
+            ExtractRelationships()
+            .pipe("spacy_doc").out("relationships").cache(),
+
 
             EntityExtractor().cache()
             .pipe("spacy_doc").out("entities").cache()

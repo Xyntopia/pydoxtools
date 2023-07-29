@@ -166,3 +166,42 @@ class SpacyOperator(Operator):
             doc=spacy_nlp(full_text),
             nlp=spacy_nlp
         )
+
+
+class ExtractRelationships(Operator):
+    def __call__(self, spacy_doc: spacy.Language):
+        """Extract some relationships of a spacy document"""
+        relationships = {
+            'SVO': [],
+            'Attribute': [],
+            'Prepositional': [],
+            'Possessive': [],
+            'Adjective': []
+        }
+
+        for tok in spacy_doc:
+            if tok.dep_ in ('nsubj', 'nsubjpass'):
+                for possible_object in tok.head.children:
+                    if possible_object.dep_ in ('dobj', 'pobj'):  # direct object or object of preposition
+                        relationships['SVO'].append((tok, tok.head, possible_object))
+
+            # Attribute relationships
+            if tok.dep_ in {"attr"}:
+                subject = [w for w in tok.head.lefts if w.dep_ == "nsubj"]
+                if subject:
+                    subject = subject[0]
+                    relationships['Attribute'].append((subject, tok))
+
+            # Prepositional relationships
+            if tok.dep_ == "pobj" and tok.head.dep_ == "prep":
+                relationships['Prepositional'].append((tok.head.head, tok))
+
+            # Possessive relationships
+            if tok.dep_ == "poss":
+                relationships['Possessive'].append((tok, tok.head))
+
+            # Adjective relationships
+            if tok.dep_ == "amod":
+                relationships['Adjective'].append((tok.head, tok))
+
+        return dict(relationships=relationships)
