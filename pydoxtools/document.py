@@ -36,7 +36,8 @@ from .extract_nlpchat import LLMChat
 from .extract_objects import EntityExtractor
 from .extract_ocr import OCRExtractor
 from .extract_pandoc import PandocLoader, PandocOperator, PandocConverter, PandocBlocks, PandocToPdxConverter
-from .extract_spacy import SpacyOperator, extract_spacy_token_vecs, get_spacy_embeddings, extract_noun_chunks, ExtractRelationships
+from .extract_spacy import (SpacyOperator, extract_spacy_token_vecs, get_spacy_embeddings, extract_noun_chunks,
+                            ExtractRelationships, build_knowledge_graph)
 from .extract_tables import ListExtractor, TableCandidateAreasExtractor
 from .extract_textstructure import DocumentElementFilter, TextBoxElementExtractor, TitleExtractor, SectionsExtractor
 from .html_utils import get_text_only_blocks
@@ -538,7 +539,10 @@ operations and include the documentation there. Lambda functions should not be u
 
             ExtractRelationships()
             .pipe("spacy_doc").out("relationships").cache(),
+            FunctionOperator(lambda x, t: build_knowledge_graph(relationships=x, text=t))
+            .pipe(x="relationships", t="full_text").out("knowledge_graph").cache(),
 
+            ########### END OF KB extraction ###########
 
             EntityExtractor().cache()
             .pipe("spacy_doc").out("entities").cache()
@@ -569,7 +573,8 @@ operations and include the documentation there. Lambda functions should not be u
                     noun_vecs=np.array([e.vector for e in x]),
                     noun_ids=list(range(len(x)))))
             .pipe(x="noun_chunks").out("noun_vecs", "noun_ids").cache()
-            .docs("Vectors for nouns and corresponding noun ids in order to find them in the spacy document"),
+            .docs(
+                "Vectors for nouns and corresponding noun ids in order to find them in the spacy document"),
 
             ########### VECTORIZATION (Huggingface) ##########
             Alias(sents="spacy_sents"),
@@ -640,7 +645,8 @@ operations and include the documentation there. Lambda functions should not be u
             .pipe(vecs="noun_vecs", ids="noun_ids").out("noun_index").cache(),
             FunctionOperator(lambda spacy_nlp: lambda x: spacy_nlp(x).vector)
             .pipe("spacy_nlp").out("spacy_vectorizer").cache(),
-            KnnQuery().pipe(index="noun_index", idx_values="noun_chunks", vectorizer="spacy_vectorizer")
+            KnnQuery().pipe(index="noun_index", idx_values="noun_chunks",
+                            vectorizer="spacy_vectorizer")
             .out("noun_query").cache(),
             SimilarityGraph().pipe(index_query_func="noun_query", source="noun_chunks")
             .out("noun_graph").cache(),
@@ -655,7 +661,8 @@ operations and include the documentation there. Lambda functions should not be u
             ########### SENTENCE_INDEX ###########
             IndexExtractor()
             .pipe(vecs="sent_vecs", ids="sent_ids").out("sent_index").cache(),
-            KnnQuery().pipe(index="sent_index", idx_values="spacy_sents", vectorizer="spacy_vectorizer")
+            KnnQuery().pipe(index="sent_index", idx_values="spacy_sents",
+                            vectorizer="spacy_vectorizer")
             .out("sent_query").cache(),
             SimilarityGraph().pipe(index_query_func="sent_query", source="spacy_sents")
             .out("sent_graph").cache(),

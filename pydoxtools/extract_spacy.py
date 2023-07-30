@@ -6,12 +6,12 @@ from typing import Optional, Any
 
 import numpy as np
 import spacy
+import html
 import torch
 from spacy import Language
 from spacy.tokens import Doc, Token, Span
 
 import networkx as nx
-
 
 from .document_base import TokenCollection
 from .operators_base import Operator
@@ -171,6 +171,12 @@ class SpacyOperator(Operator):
         )
 
 
+def graphviz_sanitize(text: str):
+    """sanitize text for use in graphviz"""
+    text = html.escape(text).replace('\n', '<br/>')
+    return text
+
+
 class ExtractRelationships(Operator):
     def __call__(self, spacy_doc: spacy.Language):
         """Extract some relationships of a spacy document for use in a knowledge graph"""
@@ -211,10 +217,35 @@ class ExtractRelationships(Operator):
         return dict(relationships=relationships)
 
 
-def build_knowledge_graph(relationships):
-    KG = nx.Graph()
+def build_knowledge_graph(relationships: dict[str, typing.Any], text: str):
+    """build a graph from the relationships extracted from a spacy document"""
+    KG = nx.DiGraph()
 
+    ct_size = 100
     for rel_type, rel_list in relationships.items():
-        for rel in rel_list:
-            for node in rel:
-                label=node.text
+        for tok in rel_list:
+            t1, t2 = tok[0], tok[-1]
+            n1, n2 = t1.idx, t2.idx
+            # add nodes
+            for t, n in [(t1, n1), (t2, n2)]:
+                tx = t.text
+                tx = graphviz_sanitize(tx)
+                ct = text[max(0, n - ct_size):n + ct_size]
+                ct = ct[:ct_size] + "||" + ct[ct_size:len(tx) + ct_size] + "||" + ct[len(tx) + ct_size:]
+                ct1 = graphviz_sanitize(ct)
+                tx = f'<<font point-size="15">{tx}</font><br/><font point-size="8">{ct1}</font>>'
+                KG.add_node(n, label=fr'{tx}', shape="box")
+            # add edges
+            if rel_type == 'SVO':
+                label = tok[1].text.replace('\\', '\\\\')
+            elif rel_type in ['Attribute', 'Adjective']:
+                label = 'is'
+            elif rel_type == 'Prepositional':
+                label = 'related'
+            elif rel_type == 'Possessive':
+                label = 'owns'
+            else:
+                label = ""
+            KG.add_edge(n1, n2, label=label)
+
+    return KG
