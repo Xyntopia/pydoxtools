@@ -55,22 +55,7 @@ text=doc.spacy_doc.text
 G = doc.knowledge_graph
 #G=KG
 
-# +
-#rel_list = relationships['SVO']
-#[(rel[0].text, rel[2].text, {'type': rel[1].text}) for rel in rel_list]
-
-# +
-#list(KG.edges.items())
-
-# +
-#list(G.nodes.items())
-# -
-
-import networkx as nx
-from IPython.core.display import SVG
-dotgraph = nx.nx_agraph.to_agraph(G)
-dotgraph.graph_attr["overlap"] = "false"
-svg=dotgraph.draw(prog='dot', format='svg')
+vd.draw(G, format='svg')
 
 # +
 #dotgraph.write()
@@ -84,5 +69,3 @@ if False:
     context = 10
     for i,l in enumerate(str(dotgraph).split("\n")[line-context:line+context]):
         print(f"{i+line-context}: {l}")
-
-SVG(svg)
