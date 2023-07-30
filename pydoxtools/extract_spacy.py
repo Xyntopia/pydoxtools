@@ -14,6 +14,7 @@ from spacy.tokens import Doc, Token, Span
 
 import networkx as nx
 
+from . import list_utils
 from .document_base import TokenCollection
 from .operators_base import Operator
 
@@ -186,9 +187,11 @@ def graphviz_prepare(token: spacy.tokens.Token, ct_size=100) -> str:
     n = token.idx
     if ct_size:
         ct = document_text[max(0, n - ct_size):n + ct_size]
-        ct = ct[:ct_size] + "||" + ct[ct_size:len(text) + ct_size] + "||" + ct[len(text) + ct_size:]
-        ct = graphviz_sanitize(ct)
-        tx = f'<<font point-size="15">{text}</font><br/><font point-size="8">{ct}</font>>'
+        # ct = graphviz_sanitize(ct)
+        ct = (f'<<font point-size="8">{graphviz_sanitize(ct[:ct_size])}</font>'
+              f'<font point-size="15">{graphviz_sanitize(ct[ct_size:len(text) + ct_size])}</font>'
+              f'<font point-size="8">{graphviz_sanitize(ct[len(text) + ct_size:])}</font>>')
+        tx = ct
     else:
         tx = f'<<font point-size="15">{text}</font>>'
     return tx
@@ -196,7 +199,7 @@ def graphviz_prepare(token: spacy.tokens.Token, ct_size=100) -> str:
 
 class ExtractRelationships(Operator):
     def __call__(
-            self, spacy_doc: spacy.Language
+            self, spacy_doc: Doc
     ) -> pd.DataFrame:
         """Extract some relationships of a spacy document for use in a knowledge graph"""
         relationships = []
@@ -210,7 +213,7 @@ class ExtractRelationships(Operator):
                             'n1': tok,
                             'n2': possible_object,
                             'type': 'SVO',
-                            'label': tok.head,
+                            'label': tok.head.text,
                         })
 
             # Attribute relationships
@@ -256,20 +259,109 @@ class ExtractRelationships(Operator):
         return res
 
 
+class CoreferenceResolution(Operator):
+    def __call__(
+            self, spacy_doc: Doc,
+            method='fast'
+    ) -> list[list[tuple[int, int]]]:
+        """Resolve coreferences in a spacy document"""
+        if method == 'fast':
+            from fastcoref import FCoref
+            model = FCoref()
+        else:
+            from fastcoref import LingMessCoref
+            model = LingMessCoref()
+
+        preds = model.predict(
+            texts=[[str(t) for t in spacy_doc]],
+            is_split_into_words=True
+        )
+
+        tok_id_coreferences = preds[0].get_clusters(as_strings=False)
+
+        return tok_id_coreferences
+
+
 def build_knowledge_graph(
         relationships: pd.DataFrame,
-        text: str) -> nx.DiGraph:
+        coreferences: list[list[tuple[int, int]]],
+) -> dict[str, pd.DataFrame | pd.Series]:
+    # get all nodes from the relationship list
+    graph_nodes = pd.DataFrame(set(relationships[["n1", "n2"]].values.flatten()), columns=["nodes"])
+
+    # add node groups
+    graph_nodes['token_idx'] = graph_nodes.nodes.apply(lambda x: x.i).astype(int)
+
+    #
+    graph_nodes.set_index('token_idx', inplace=True)
+
+    # G[doc.spacy_doc[4]]
+    coreferences = coreferences
+
+    # add groups to nodes
+    graph_nodes['group'] = graph_nodes.index  # set standard group to token index
+    for i, cr_group in enumerate(coreferences):
+        indices = list(list_utils.flatten(
+            [list(range(idx[0], idx[1])) for idx in cr_group])
+        )
+        # rel.loc[indices, 'group'] = i
+        group_idx = min(indices)
+        valid_indices = graph_nodes.index[graph_nodes.index.isin(indices)]
+        graph_nodes.loc[valid_indices, 'group'] = group_idx
+        # nG = nx.identified_nodes(G, node,node2)
+
+    # grouping all tokens
+    graph_nodes = graph_nodes.groupby('group').agg({'nodes': list})
+
+    def identify_mean_node(token_list: pd.Series):
+        toks = pd.DataFrame(token_list.nodes, columns=["tok"])
+        toks["text"] = toks.apply(lambda x: x[0].text, axis=1)
+        most_occuring_text = toks["text"].value_counts().index[0]
+        idx = toks.loc[toks.text == most_occuring_text].tok.apply(lambda x: x.i).min()
+        return pd.Series(dict(
+            label=most_occuring_text,
+            idx=idx,
+            toks=token_list.nodes
+        ))
+
+    graph_nodes = graph_nodes.apply(identify_mean_node, axis=1)
+
+    graph_nodes['tok_idx'] = graph_nodes.toks.apply(lambda x: set([t.i for t in x]))
+    node_map = graph_nodes[['idx', 'tok_idx']].explode('tok_idx').set_index('tok_idx').idx
+
+    edges = relationships.apply(lambda r: pd.Series(dict(
+        n1=node_map[r.n1.i],
+        n2=node_map[r.n2.i],
+        label=r.label,
+        type=r.type
+    )), axis=1)
+
+    return dict(
+        graph_nodes=graph_nodes,
+        node_map=node_map,
+        graph_edges=edges
+    )
+
+
+def knowledge_graph_nx(
+        graph_nodes: pd.DataFrame,
+        graph_edges: pd.DataFrame,
+        spacy_doc: Doc,
+        graph_debug_context_size=0,
+) -> nx.DiGraph:
     """build a graph from the relationships extracted from a spacy document"""
     KG = nx.DiGraph()
 
-    for idx, row in relationships.iterrows():
-        t1, t2 = row['n1'], row['n2']
-        n1, n2 = t1.i, t2.i
-        # add nodes
-        for t, n in [(t1, n1), (t2, n2)]:
-            tx = graphviz_prepare(t)
-            KG.add_node(n, label=tx, shape="box")
-        # add edges and get label
-        KG.add_edge(n1, n2, label=row["label"], type=row["type"])
+    for _, node in graph_nodes.iterrows():
+        # TODO: add more debug info in case of nodes that have been merged by coreference
+        # we can do this here, because we always chose a "valid" spacy-token as the representative index
+        # in case of a merge, the index of the most frequent token is chosen
+        t = spacy_doc[node.idx]
+        tx = graphviz_prepare(t, ct_size=graph_debug_context_size)
+        KG.add_node(node.idx, label=tx, shape="box")
+
+    for _, e in graph_edges.iterrows():
+        tx = graphviz_sanitize(e.label)
+        KG.add_edge(e.n1, e.n2, label=tx, type=e["type"])
 
     return KG

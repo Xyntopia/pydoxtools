@@ -37,7 +37,7 @@ from .extract_objects import EntityExtractor
 from .extract_ocr import OCRExtractor
 from .extract_pandoc import PandocLoader, PandocOperator, PandocConverter, PandocBlocks, PandocToPdxConverter
 from .extract_spacy import (SpacyOperator, extract_spacy_token_vecs, get_spacy_embeddings, extract_noun_chunks,
-                            ExtractRelationships, build_knowledge_graph)
+                            ExtractRelationships, build_knowledge_graph, CoreferenceResolution, knowledge_graph_nx)
 from .extract_tables import ListExtractor, TableCandidateAreasExtractor
 from .extract_textstructure import DocumentElementFilter, TextBoxElementExtractor, TitleExtractor, SectionsExtractor
 from .html_utils import get_text_only_blocks
@@ -539,8 +539,18 @@ operations and include the documentation there. Lambda functions should not be u
 
             ExtractRelationships()
             .pipe("spacy_doc").out("relationships").cache(),
-            FunctionOperator(lambda x, t: build_knowledge_graph(relationships=x, text=t))
-            .pipe(x="relationships", t="full_text").out("knowledge_graph").cache(),
+            Configuration(
+                coreference_method="fast",
+                graph_debug_context_size=0
+            ).docs("can be 'fast' or 'accurate'"),
+            CoreferenceResolution().pipe("spacy_doc", method="coreference_method")
+            .out("coreferences").cache(),
+            FunctionOperator(lambda x, t: build_knowledge_graph(relationships=x, coreferences=t))
+            .pipe(x="relationships", t="coreferences").out("graph_nodes", "node_map", "graph_edges").cache(),
+            FunctionOperator(lambda gn, ge, sd, cts: knowledge_graph_nx(
+                graph_nodes=gn, graph_edges=ge, spacy_doc=sd, graph_debug_context_size=cts))
+            .pipe(gn="graph_nodes", ge="graph_edges", sd="spacy_doc", cts="graph_debug_context_size")
+            .out("knowledge_graph").cache(),
 
             ########### END OF KB extraction ###########
 

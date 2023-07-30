@@ -4,7 +4,6 @@ import logging
 from enum import Enum
 
 import networkx as nx
-import pyyed
 import spacy.tokens
 from IPython.core.display import SVG
 
@@ -12,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def create_example_graph():
+    import pyyed
     g = pyyed.Graph()
 
     g.add_node('foo', font_family="Zapfino")
@@ -51,6 +51,7 @@ def spacydoc2pyyed(sdoc: spacy.tokens.Doc):
     # Valid line_types are: "line", "dashed", "dotted", "dashed_dotted"
     # Valid font_styles are: "plain", "bold", "italic", "bolditalic"
     # Valid arrow_types are: "none", "standard", "white_delta", "diamond", "white_diamond", "short", "plain", "concave", "concave", "convex", "circle", "transparent_circle", "dash", "skewed_dash", "t_shape", "crows_foot_one_mandatory", "crows_foot_many_mandatory", "crows_foot_many_optional", "crows_foot_many_optional", "crows_foot_one", "crows_foot_many", "crows_foot_optional"
+    import pyyed
     g = pyyed.Graph()
     # tok :  spacy.tokens.token.Token
     for tok in sdoc:
