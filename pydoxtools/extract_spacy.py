@@ -171,81 +171,92 @@ class SpacyOperator(Operator):
         )
 
 
-def graphviz_sanitize(text: str):
-    """sanitize text for use in graphviz"""
-    text = html.escape(text).replace('\n', '<br/>')
-    return text
-
-
 class ExtractRelationships(Operator):
-    def __call__(self, spacy_doc: spacy.Language):
+    def __call__(
+            self, spacy_doc: spacy.Language
+    ) -> dict[str, list[tuple[tuple[spacy.tokens.Token, spacy.tokens.Token], dict[str, str]]]]:
         """Extract some relationships of a spacy document for use in a knowledge graph"""
-        relationships = {
-            'SVO': [],
-            'Attribute': [],
-            'Prepositional': [],
-            'Possessive': [],
-            'Adjective': []
-        }
+        relationships = []
 
         tok: spacy.tokens.Token
         for tok in spacy_doc:
             if tok.dep_ in ('nsubj', 'nsubjpass'):
                 for possible_object in tok.head.children:
                     if possible_object.dep_ in ('dobj', 'pobj'):  # direct object or object of preposition
-                        relationships['SVO'].append((tok, tok.head, possible_object))
+                        relationships.append(((tok, possible_object), {
+                            'type': 'SVO',
+                            'label': tok.head,
+                        }))
 
             # Attribute relationships
             if tok.dep_ in {"attr"}:
                 subject = [w for w in tok.head.lefts if w.dep_ == "nsubj"]
                 if subject:
                     subject = subject[0]
-                    relationships['Attribute'].append((subject, tok))
+                    relationships.append(((subject, tok), {
+                        'type': 'Attribute',
+                        'label': 'is',
+                    }))
 
             # Prepositional relationships
             if tok.dep_ == "pobj" and tok.head.dep_ == "prep":
-                relationships['Prepositional'].append((tok.head.head, tok))
+                relationships.append(((tok.head.head, tok), {
+                    'type': 'Prepositional',
+                    'label': 'related',
+                }))
 
             # Possessive relationships
             if tok.dep_ == "poss":
-                relationships['Possessive'].append((tok, tok.head))
+                relationships.append(((tok, tok.head), {
+                    'type': 'Possessive',
+                    'label': 'owns',
+                }))
 
             # Adjective relationships
             if tok.dep_ == "amod":
-                relationships['Adjective'].append((tok.head, tok))
+                relationships.append(((tok.head, tok), {
+                    'type': 'Adjective',
+                    'label': 'is',
+                }))
 
         return dict(relationships=relationships)
 
 
-def build_knowledge_graph(relationships: dict[str, typing.Any], text: str):
+def graphviz_sanitize(text: str) -> str:
+    """sanitize text for use in graphviz"""
+    text = html.escape(text).replace('\n', '<br/>')
+    return text
+
+
+def graphviz_prepare(token: spacy.tokens.Token, ct_size=100) -> str:
+    """sanitize text for use in graphviz"""
+    text = token.text
+    text = graphviz_sanitize(text)
+    document_text = token.doc.text
+    n = token.idx
+    if ct_size:
+        ct = document_text[max(0, n - ct_size):n + ct_size]
+        ct = ct[:ct_size] + "||" + ct[ct_size:len(text) + ct_size] + "||" + ct[len(text) + ct_size:]
+        ct = graphviz_sanitize(ct)
+        tx = f'<<font point-size="15">{text}</font><br/><font point-size="8">{ct}</font>>'
+    else:
+        tx = f'<<font point-size="15">{text}</font>>'
+    return tx
+
+
+def build_knowledge_graph(
+        relationships: list[str, list[tuple[tuple[spacy.tokens.Token, spacy.tokens.Token], dict[str, str]]]],
+        text: str) -> nx.DiGraph:
     """build a graph from the relationships extracted from a spacy document"""
     KG = nx.DiGraph()
 
-    ct_size = 100
-    for rel_type, rel_list in relationships.items():
-        for tok in rel_list:
-            t1, t2 = tok[0], tok[-1]
-            n1, n2 = t1.idx, t2.idx
-            # add nodes
-            for t, n in [(t1, n1), (t2, n2)]:
-                tx = t.text
-                tx = graphviz_sanitize(tx)
-                ct = text[max(0, n - ct_size):n + ct_size]
-                ct = ct[:ct_size] + "||" + ct[ct_size:len(tx) + ct_size] + "||" + ct[len(tx) + ct_size:]
-                ct1 = graphviz_sanitize(ct)
-                tx = f'<<font point-size="15">{tx}</font><br/><font point-size="8">{ct1}</font>>'
-                KG.add_node(n, label=fr'{tx}', shape="box")
-            # add edges
-            if rel_type == 'SVO':
-                label = tok[1].text.replace('\\', '\\\\')
-            elif rel_type in ['Attribute', 'Adjective']:
-                label = 'is'
-            elif rel_type == 'Prepositional':
-                label = 'related'
-            elif rel_type == 'Possessive':
-                label = 'owns'
-            else:
-                label = ""
-            KG.add_edge(n1, n2, label=label)
+    for (t1, t2), attr in relationships:
+        n1, n2 = t1.idx, t2.idx
+        # add nodes
+        for t, n in [(t1, n1), (t2, n2)]:
+            tx = graphviz_prepare(t)
+            KG.add_node(n, label=tx, shape="box")
+        # add edges and get label
+        KG.add_edge(n1, n2, label=attr['label'], type=attr['type'])
 
     return KG

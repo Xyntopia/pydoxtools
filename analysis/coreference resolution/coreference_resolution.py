@@ -50,7 +50,12 @@ doc = pdf
 
 doc.configuration
 
+# +
 relationships=doc.relationships
+
+#relationships
+# -
+
 text=doc.spacy_doc.text
 G = doc.knowledge_graph
 #G=KG
