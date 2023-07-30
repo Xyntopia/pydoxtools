@@ -10,6 +10,9 @@ import torch
 from spacy import Language
 from spacy.tokens import Doc, Token, Span
 
+import networkx as nx
+
+
 from .document_base import TokenCollection
 from .operators_base import Operator
 
@@ -179,6 +182,7 @@ class ExtractRelationships(Operator):
             'Adjective': []
         }
 
+        tok: spacy.tokens.Token
         for tok in spacy_doc:
             if tok.dep_ in ('nsubj', 'nsubjpass'):
                 for possible_object in tok.head.children:
@@ -205,3 +209,12 @@ class ExtractRelationships(Operator):
                 relationships['Adjective'].append((tok.head, tok))
 
         return dict(relationships=relationships)
+
+
+def build_knowledge_graph(relationships):
+    KG = nx.Graph()
+
+    for rel_type, rel_list in relationships.items():
+        for rel in rel_list:
+            for node in rel:
+                label=node.text

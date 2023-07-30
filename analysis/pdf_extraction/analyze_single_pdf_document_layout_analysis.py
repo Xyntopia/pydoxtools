@@ -77,7 +77,7 @@ x0,y0,x1,y1 = 1,2,3,4
 
 # %%
 training_data = pathlib.Path.home() / "comcharax/data"
-page = 0
+page = 18
 page_num=[page]
 pdf_file = training_data / "sparepartsnow/06_Kraftspannfutter_Zylinder_Luenetten_2020.01_de_web.pdf"
 
@@ -141,7 +141,7 @@ vda.plot_box_layers(
         [pdf.image_elements[box_cols].values, vda.LayerProps(alpha=0.5, color="blue", filled=False)],
         [pdf.graphic_elements[box_cols].values, vda.LayerProps(alpha=0.5, color="yellow", filled=False)],
         [pdf.table_areas[box_cols].values, vda.LayerProps(alpha=1.0, color="green", filled=False)],
-        [candidate_areas, vda.LayerProps(alpha=1.0, color="green", filled=False)],
+        #[candidate_areas, vda.LayerProps(alpha=1.0, color="green", filled=False)],
         #[tables[box_cols].values, vda.LayerProps(alpha=1.0, color="red", filled=False)],
         #[figures[box_cols].values, vda.LayerProps(alpha=1.0, color="green", filled=False)],
         #[text[box_cols].values, vda.LayerProps(alpha=1.0, color="blue", filled=False)],

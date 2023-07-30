@@ -112,6 +112,8 @@ def run_single_non_interactive_document_test(file_name):
     doctype = doc.document_type
     assert doc
     assert doc._stats["cache_hits"] >= 0
+    # make sure we are always using "full_text" for spacy docs
+    assert str(doc.spacy_doc.text) == doc.full_text
 
     with open(file_name, "rb") as file:
         doc_str = file.read()

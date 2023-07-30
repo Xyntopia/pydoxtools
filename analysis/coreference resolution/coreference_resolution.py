@@ -6,23 +6,16 @@
 # %autoreload 2
 
 import logging
-from operator import attrgetter
+from pathlib import Path
 
-import componardo.visualization
-import hnswlib
-import networkx as nx
-import numpy as np
 import pandas as pd
-import torch
 import spacy
-from spacy.language import Language
-from spacy.tokens import Doc
-from IPython.core.display import display
-from IPython.display import HTML
-from pydoxtools import nlp_utils, load_document
-from pydoxtools import pdf_utils, file_utils, cluster_utils as cu
-from pydoxtools.settings import settings
+import torch
 from tqdm import tqdm
+
+from pydoxtools import nlp_utils, Document
+from pydoxtools import pdf_utils, file_utils
+from pydoxtools.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -32,51 +25,83 @@ logging.getLogger('readability.readability').setLevel(logging.WARNING)
 tqdm.pandas()
 
 pdf_utils._set_log_levels()
-memory = settings.get_memory_cache()
 
 nlp_utils.device, torch.cuda.is_available(), torch.__version__
 # -
 
 # ## analyze sample html + optional pdf
 
-# +
-# get all pdf files in subdirectory
-
 files = file_utils.get_nested_paths(settings.TRAINING_DATA_DIR / "pdfs/datasheet", "*.pdf")
 len(files)
-# -
 
 pdf_file = settings.TRAINING_DATA_DIR / "pdfs/whitepaper/En-Sci-Application-Brief.88.pdf"
 # pdf_file=random.choice(files)
 print(pdf_file.absolute())
 
-pdf = load_document(pdf_file, model_size="trf")
+# get all pdf files in subdirectory
+training_data_dir = 0
+pdf_file = Path("../../README.md")
+
+pdf = Document(pdf_file, spacy_model_size="sm")
 doc = pdf
 
-# try out coreference based on nearest neighbours..
-sent = list(doc.spacy_doc.sents)[10]
+doc.configuration
 
-[(t.text,t.pos_) for t in sent]
+t = doc.spacy_doc[90]
+doc.full_text[t.idx:t.idx+len(t)]
 
-w = sent[0]
-w.morph
+# +
+import networkx as nx
 
-sent = list(doc.spacy_doc.sents)[8]
-sent
+relationships=doc.relationships
 
-pd.DataFrame([(t.text, t.pos_,spacy.explain(t.pos_),t.tag_,spacy.explain(t.tag_), t.morph) for t in sent])
+#def build_knowledge_graph(relationships):
+KG = nx.Graph()
 
-print(sent[11])
-[(r,r[0].sent) for r in doc.knn_query(sent[11], k=10, pos_filter="PRON")]
+for rel_type, rel_list in relationships.items():
+    for tok in rel_list:
+        t1,t2 = tok[0], tok[-1]
+        n1,n2 = t1.idx, t2.idx
+        tx1, tx2 = t1.text.replace('\\','\\\\'), t2.text.replace('\\','\\\\')
+        KG.add_node(n1, label=fr'{tx1}')#, shape="ellipse")
+        KG.add_node(n2, label=fr'{tx2}', shape="ellipse")
+        if rel_type == 'SVO':
+            label=tok[1].7	[label="\",
+543: 		shape=ellipstext.replace('\\','\\\\')
+        elif rel_type in ['Attribute', 'Adjective']:
+            label='is'
+        elif rel_type == 'Prepositional':
+            label='related'
+        elif rel_type == 'Possessive':
+            label='owns'
+        KG.add_edge(n1,n2, label=label)
 
-pron = sent[1]
-pron
+    #return KG
 
-# search for all words...
-doc.knn_query(pron, k=10)
+import pydoxtools.visualization as vd
+G=KG
+#G=build_knowledge_graph(relationships)
 
-pd.DataFrame(list((s.text,s) for s in doc.spacy_doc.sents))
+# +
+#rel_list = relationships['SVO']
+#[(rel[0].text, rel[2].text, {'type': rel[1].text}) for rel in rel_list]
 
-doc.knn_query(sent[0], k=50, pos_filter="NOUN")
+# +
+#list(KG.edges.items())
 
+# +
+#list(G.nodes.items())
+# -
 
+from IPython.core.display import SVG
+graph=G
+dotgraph = nx.nx_agraph.to_agraph(graph)
+dotgraph.graph_attr["overlap"] = "false"
+svg=dotgraph.draw(prog='dot', format='svg')
+
+# +
+#for i,l in enumerate(str(dotgraph).split("\n")):
+#    print(f"{i}: {l}")
+# -
+
+SVG(svg)

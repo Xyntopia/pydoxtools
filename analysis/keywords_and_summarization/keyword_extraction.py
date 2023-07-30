@@ -6,16 +6,12 @@
 # %autoreload 2
 
 import logging
-from operator import attrgetter
 
 import numpy as np
 import pandas as pd
 import torch
-import spacy
-import networkx as nx
-from componardo import visualization as vz
 from IPython.display import HTML
-from pydoxtools import nlp_utils, load_document
+from pydoxtools import nlp_utils, visualization as vz
 from pydoxtools import pdf_utils, file_utils, cluster_utils as cu
 from pydoxtools.settings import settings
 from tqdm import tqdm
@@ -50,7 +46,6 @@ pdf_file = settings.TRAINING_DATA_DIR / "pdfs/whitepaper/En-Sci-Application-Brie
 # pdf_file=random.choice(files)
 print(pdf_file.absolute())
 
-import pytextrank
 pdf = load_document(pdf_file, model_size="trf")
 pdf.spacy_nlp.add_pipe("textrank")
 doc = pdf
