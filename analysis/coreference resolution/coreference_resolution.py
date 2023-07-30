@@ -50,11 +50,8 @@ doc = pdf
 
 doc.configuration
 
-# +
 relationships=doc.relationships
-
-#relationships
-# -
+relationships
 
 text=doc.spacy_doc.text
 G = doc.knowledge_graph
@@ -74,3 +71,49 @@ if False:
     context = 10
     for i,l in enumerate(str(dotgraph).split("\n")[line-context:line+context]):
         print(f"{i+line-context}: {l}")
+
+from fastcoref import FCoref
+from fastcoref import LingMessCoref
+
+model = FCoref()
+model = LingMessCoref()
+
+preds = model.predict(
+   texts=[[str(t) for t in doc.spacy_doc]],
+   is_split_into_words=True
+)
+
+tok_id_coreferences = preds[0].get_clusters(as_strings=False)
+tok_id_coreferences
+
+tok_id_coreferences
+
+# +
+#G[doc.spacy_doc[4]]
+for cr_group in tok_id_coreferences:
+    # check if any node in our group is represented in our relationship graph
+    nodes = [t for t in cr_group if G.has_node(t[0])]
+            
+    # merge nodes
+    if nodes:
+        
+        
+        
+    
+        
+#nG = nx.identified_nodes(G, node,node2)
+# -
+
+import networkx as nx
+node=106
+connected_nodes = list(next(comp for comp in nx.weakly_connected_components(nG) if node in comp))
+subgraph = nG.subgraph(connected_nodes)
+vd.draw(subgraph, format="svg")
+
+preds[0].get_clusters()
+
+preds[0].get_logit(
+   span_i=(106, 107), span_j=(138, 139)
+)
+
+

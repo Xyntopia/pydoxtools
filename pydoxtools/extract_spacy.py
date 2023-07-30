@@ -5,6 +5,7 @@ import typing
 from typing import Optional, Any
 
 import numpy as np
+import pandas as pd
 import spacy
 import html
 import torch
@@ -196,7 +197,7 @@ def graphviz_prepare(token: spacy.tokens.Token, ct_size=100) -> str:
 class ExtractRelationships(Operator):
     def __call__(
             self, spacy_doc: spacy.Language
-    ) -> dict[str, list[tuple[tuple[spacy.tokens.Token, spacy.tokens.Token], dict[str, str]]]]:
+    ) -> pd.DataFrame:
         """Extract some relationships of a spacy document for use in a knowledge graph"""
         relationships = []
 
@@ -205,58 +206,70 @@ class ExtractRelationships(Operator):
             if tok.dep_ in ('nsubj', 'nsubjpass'):
                 for possible_object in tok.head.children:
                     if possible_object.dep_ in ('dobj', 'pobj'):  # direct object or object of preposition
-                        relationships.append(((tok, possible_object), {
+                        relationships.append({
+                            'n1': tok,
+                            'n2': possible_object,
                             'type': 'SVO',
                             'label': tok.head,
-                        }))
+                        })
 
             # Attribute relationships
             if tok.dep_ in {"attr"}:
                 subject = [w for w in tok.head.lefts if w.dep_ == "nsubj"]
                 if subject:
                     subject = subject[0]
-                    relationships.append(((subject, tok), {
+                    relationships.append({
+                        'n1': subject,
+                        'n2': tok,
                         'type': 'Attribute',
                         'label': 'is',
-                    }))
+                    })
 
             # Prepositional relationships
             if tok.dep_ == "pobj" and tok.head.dep_ == "prep":
-                relationships.append(((tok.head.head, tok), {
+                relationships.append({
+                    'n1': tok.head.head,
+                    'n2': tok,
                     'type': 'Prepositional',
                     'label': 'related',
-                }))
+                })
 
             # Possessive relationships
             if tok.dep_ == "poss":
-                relationships.append(((tok, tok.head), {
+                relationships.append({
+                    'n1': tok,
+                    'n2': tok.head,
                     'type': 'Possessive',
                     'label': 'owns',
-                }))
+                })
 
             # Adjective relationships
             if tok.dep_ == "amod":
-                relationships.append(((tok.head, tok), {
+                relationships.append({
+                    'n1': tok.head,
+                    'n2': tok,
                     'type': 'Adjective',
                     'label': 'is',
-                }))
+                })
 
-        return dict(relationships=relationships)
+        res = pd.DataFrame(relationships)
+        return res
 
 
 def build_knowledge_graph(
-        relationships: list[str, list[tuple[tuple[spacy.tokens.Token, spacy.tokens.Token], dict[str, str]]]],
+        relationships: pd.DataFrame,
         text: str) -> nx.DiGraph:
     """build a graph from the relationships extracted from a spacy document"""
     KG = nx.DiGraph()
 
-    for (t1, t2), attr in relationships:
-        n1, n2 = t1.idx, t2.idx
+    for idx, row in relationships.iterrows():
+        t1, t2 = row['n1'], row['n2']
+        n1, n2 = t1.i, t2.i
         # add nodes
         for t, n in [(t1, n1), (t2, n2)]:
             tx = graphviz_prepare(t)
             KG.add_node(n, label=tx, shape="box")
         # add edges and get label
-        KG.add_edge(n1, n2, label=attr['label'], type=attr['type'])
+        KG.add_edge(n1, n2, label=row["label"], type=row["type"])
 
     return KG
