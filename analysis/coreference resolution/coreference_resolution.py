@@ -17,6 +17,9 @@ from pydoxtools import nlp_utils, Document
 from pydoxtools import pdf_utils, file_utils
 from pydoxtools.settings import settings
 
+import pydoxtools.visualization as vd
+import html
+
 logger = logging.getLogger(__name__)
 
 logging.basicConfig(level=logging.INFO)
@@ -47,40 +50,52 @@ doc = pdf
 
 doc.configuration
 
-t = doc.spacy_doc[90]
-doc.full_text[t.idx:t.idx+len(t)]
-
 # +
 import networkx as nx
 
 relationships=doc.relationships
+text=doc.spacy_doc.text
 
-#def build_knowledge_graph(relationships):
-KG = nx.Graph()
+def build_knowledge_graph(relationships, text):
+    KG = nx.DiGraph()
 
-for rel_type, rel_list in relationships.items():
-    for tok in rel_list:
-        t1,t2 = tok[0], tok[-1]
-        n1,n2 = t1.idx, t2.idx
-        tx1, tx2 = t1.text.replace('\\','\\\\'), t2.text.replace('\\','\\\\')
-        KG.add_node(n1, label=fr'{tx1}')#, shape="ellipse")
-        KG.add_node(n2, label=fr'{tx2}', shape="ellipse")
-        if rel_type == 'SVO':
-            label=tok[1].7	[label="\",
-543: 		shape=ellipstext.replace('\\','\\\\')
-        elif rel_type in ['Attribute', 'Adjective']:
-            label='is'
-        elif rel_type == 'Prepositional':
-            label='related'
-        elif rel_type == 'Possessive':
-            label='owns'
-        KG.add_edge(n1,n2, label=label)
+    ct_size = 100
+    for rel_type, rel_list in relationships.items():
+        for tok in rel_list:
+            t1,t2 = tok[0], tok[-1]
+            n1,n2 = t1.idx, t2.idx
+            tx1, tx2 = t1.text, t2.text
+            tx1, tx2 = html.escape(tx1),html.escape(tx2)
+            #tx1, tx2 = tx1.replace('\\n','\n'), tx2.replace('\\n','\n')
+            tx1, tx2 = tx1.replace('\\','\\\\'), tx2.replace('\\','\\\\')
+            ct1 = text[max(0,n1-ct_size):n1+ct_size]
+            ct1 = ct1[:ct_size]+"||"+ct1[ct_size:len(tx1)+ct_size]+"||"+ct1[len(tx1)+ct_size:]
+            ct2 = text[max(0,n2-ct_size):n2+ct_size]
+            ct2 = ct2[:ct_size]+"||"+ct2[ct_size:len(tx2)+ct_size]+"||"+ct2[len(tx2)+ct_size:]
+            #ct1 = ct1.replace('\\n','\n')
+            #ct1 = ct1.replace("\\","\\\\").replace("<","\<").replace(">","\>")
+            #tx1+=f"{{{ct1}}}"
+            #tx1 =f"{tx1}" + "\n\n" + ct1
+            ct1 = html.escape(ct1).replace('\n', '<br/>')
+            tx1 = f'<<font point-size="15">{tx1}</font><br/><font point-size="8">{ct1}</font>>'
+            ct2 = html.escape(ct2).replace('\n', '<br/>')
+            tx2 = f'<<font point-size="15">{tx2}</font><br/><font point-size="8">{ct2}</font>>'
+            KG.add_node(n1, label=fr'{tx1}', shape="box")
+            KG.add_node(n2, label=fr'{tx2}', shape="box")
+            if rel_type == 'SVO':
+                label=tok[1].text.replace('\\','\\\\')
+            elif rel_type in ['Attribute', 'Adjective']:
+                label='is'
+            elif rel_type == 'Prepositional':
+                label='related'
+            elif rel_type == 'Possessive':
+                label='owns'
+            KG.add_edge(n1,n2, label=label)
 
-    #return KG
+    return KG
 
-import pydoxtools.visualization as vd
-G=KG
-#G=build_knowledge_graph(relationships)
+G=build_knowledge_graph(relationships, doc.spacy_doc.text)
+#G=KG
 
 # +
 #rel_list = relationships['SVO']
@@ -94,14 +109,25 @@ G=KG
 # -
 
 from IPython.core.display import SVG
-graph=G
-dotgraph = nx.nx_agraph.to_agraph(graph)
+dotgraph = nx.nx_agraph.to_agraph(G)
 dotgraph.graph_attr["overlap"] = "false"
 svg=dotgraph.draw(prog='dot', format='svg')
 
 # +
-#for i,l in enumerate(str(dotgraph).split("\n")):
-#    print(f"{i}: {l}")
+#dotgraph.write()
+
+# +
+#print(str(dotgraph)[:1000])
 # -
 
+if False:
+    line = 1429
+    context = 10
+    for i,l in enumerate(str(dotgraph).split("\n")[line-context:line+context]):
+        print(f"{i+line-context}: {l}")
+
 SVG(svg)
+
+
+
+

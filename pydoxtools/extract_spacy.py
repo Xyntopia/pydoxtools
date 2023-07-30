@@ -173,7 +173,7 @@ class SpacyOperator(Operator):
 
 class ExtractRelationships(Operator):
     def __call__(self, spacy_doc: spacy.Language):
-        """Extract some relationships of a spacy document"""
+        """Extract some relationships of a spacy document for use in a knowledge graph"""
         relationships = {
             'SVO': [],
             'Attribute': [],
