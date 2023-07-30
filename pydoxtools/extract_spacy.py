@@ -171,6 +171,28 @@ class SpacyOperator(Operator):
         )
 
 
+def graphviz_sanitize(text: str) -> str:
+    """sanitize text for use in graphviz"""
+    text = html.escape(text).replace('\n', '<br/>')
+    return text
+
+
+def graphviz_prepare(token: spacy.tokens.Token, ct_size=100) -> str:
+    """sanitize text for use in graphviz"""
+    text = token.text
+    text = graphviz_sanitize(text)
+    document_text = token.doc.text
+    n = token.idx
+    if ct_size:
+        ct = document_text[max(0, n - ct_size):n + ct_size]
+        ct = ct[:ct_size] + "||" + ct[ct_size:len(text) + ct_size] + "||" + ct[len(text) + ct_size:]
+        ct = graphviz_sanitize(ct)
+        tx = f'<<font point-size="15">{text}</font><br/><font point-size="8">{ct}</font>>'
+    else:
+        tx = f'<<font point-size="15">{text}</font>>'
+    return tx
+
+
 class ExtractRelationships(Operator):
     def __call__(
             self, spacy_doc: spacy.Language
@@ -220,28 +242,6 @@ class ExtractRelationships(Operator):
                 }))
 
         return dict(relationships=relationships)
-
-
-def graphviz_sanitize(text: str) -> str:
-    """sanitize text for use in graphviz"""
-    text = html.escape(text).replace('\n', '<br/>')
-    return text
-
-
-def graphviz_prepare(token: spacy.tokens.Token, ct_size=100) -> str:
-    """sanitize text for use in graphviz"""
-    text = token.text
-    text = graphviz_sanitize(text)
-    document_text = token.doc.text
-    n = token.idx
-    if ct_size:
-        ct = document_text[max(0, n - ct_size):n + ct_size]
-        ct = ct[:ct_size] + "||" + ct[ct_size:len(text) + ct_size] + "||" + ct[len(text) + ct_size:]
-        ct = graphviz_sanitize(ct)
-        tx = f'<<font point-size="15">{text}</font><br/><font point-size="8">{ct}</font>>'
-    else:
-        tx = f'<<font point-size="15">{text}</font>>'
-    return tx
 
 
 def build_knowledge_graph(
