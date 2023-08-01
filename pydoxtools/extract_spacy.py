@@ -282,7 +282,7 @@ class CoreferenceResolution(Operator):
         return tok_id_coreferences
 
 
-def build_knowledge_graph(
+def build_relationships_graph(
         relationships: pd.DataFrame,
         coreferences: list[list[tuple[int, int]]],
 ) -> dict[str, pd.DataFrame | pd.Series]:
@@ -343,7 +343,7 @@ def build_knowledge_graph(
     )
 
 
-def knowledge_graph_nx(
+def nx_graph(
         graph_nodes: pd.DataFrame,
         graph_edges: pd.DataFrame,
         spacy_doc: Doc,
