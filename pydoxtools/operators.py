@@ -18,5 +18,5 @@ from extract_objects import EntityExtractor
 from extract_spacy import SpacyOperator
 from extract_tables import ListExtractor, TableCandidateAreasExtractor, HTMLTableExtractor, \
     Iterator2Dataframe
-from extract_textstructure import DocumentElementFilter, TextBoxElementExtractor, TitleExtractor
+from extract_textstructure import DocumentElementFilter, text_boxes_from_elements, TitleExtractor
 from pdf_utils import PDFFileLoader

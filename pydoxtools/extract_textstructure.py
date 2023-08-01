@@ -111,7 +111,7 @@ def group_elements(elements: pd.DataFrame, by: list[str], agg: str):
         return df["text"].to_dict()
 
 
-class TextBoxElementExtractor(pydoxtools.operators_base.Operator):
+def text_boxes_from_elements(self, line_elements: pd.DataFrame) -> dict[str, pd.DataFrame | None]:
     """
     create textboxes and create bounding boxes and aggregated text from
     a pandas dataframe with textlines.
@@ -130,12 +130,11 @@ class TextBoxElementExtractor(pydoxtools.operators_base.Operator):
     TODO: do some schema validation on the pandas dataframes...
     """
 
-    def __call__(self, line_elements: pd.DataFrame) -> dict[str, pd.DataFrame | None]:
-        if "boxnum" in line_elements:
-            bg = group_elements(line_elements, ['p_num', 'boxnum'], agg="boxes_from_lines_w_bb")
-            return dict(text_box_elements=bg)
-        else:
-            return dict(text_box_elements=None)
+    if "boxnum" in line_elements:
+        bg = group_elements(line_elements, ['p_num', 'boxnum'], agg="boxes_from_lines_w_bb")
+        return dict(text_box_elements=bg)
+    else:
+        return dict(text_box_elements=None)
 
 
 class SectionsExtractor(pydoxtools.operators_base.Operator):
@@ -280,7 +279,7 @@ def get_area_context(
     area_box = pd.DataFrame(bbox.reshape(1, -1), columns=["x0", "y0", "x1", "y1"])
     area_box["text"] = f"------------\n{{{placeholder}}}\n------------"
 
-    boxes = TextBoxElementExtractor()(le)["text_box_elements"]
+    boxes = text_boxes_from_elements(le)["text_box_elements"]
     boxes = pd.concat([boxes.reset_index(), area_box], ignore_index=True).sort_values(
         by=["y0", "x0"], ascending=[False, True])
 
@@ -333,7 +332,7 @@ class PageTemplateGenerator(pydoxtools.operators_base.Operator):
         table_elements = pd.DataFrame(table_elements)
         # add table to our element list
         # TODO: move this into the pipeline itself...
-        txtboxes = TextBoxElementExtractor()(elements)["text_box_elements"]
+        txtboxes = text_boxes_from_elements(elements)["text_box_elements"]
         txtboxes = txtboxes.loc[txtboxes.text.str.len() > 1]
         txtboxes = pd.concat([txtboxes.reset_index(), table_elements],
                              ignore_index=True).sort_values(by=["p_num", "y0"], ascending=[True, False])

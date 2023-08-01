@@ -39,7 +39,7 @@ from .extract_pandoc import PandocLoader, PandocOperator, PandocConverter, Pando
 from .extract_spacy import (SpacyOperator, extract_spacy_token_vecs, get_spacy_embeddings, extract_noun_chunks,
                             ExtractRelationships, build_relationships_graph, CoreferenceResolution, nx_graph)
 from .extract_tables import ListExtractor, TableCandidateAreasExtractor
-from .extract_textstructure import DocumentElementFilter, TextBoxElementExtractor, TitleExtractor, SectionsExtractor
+from .extract_textstructure import DocumentElementFilter, text_boxes_from_elements, TitleExtractor, SectionsExtractor
 from .html_utils import get_text_only_blocks
 from .list_utils import remove_list_from_lonely_object
 from .nlp_utils import calculate_string_embeddings, summarize_long_text
@@ -309,7 +309,7 @@ operations and include the documentation there. Lambda functions should not be u
             ############## END TABLE STUFF ##############
             # FunctionOperator()
             # .pipe()
-            TextBoxElementExtractor()
+            FunctionOperator(text_boxes_from_elements)
             .input("line_elements").out("text_box_elements").cache(),
             FunctionOperator[list[str]](lambda df: df.get("text", None).to_list())
             .input(df="text_box_elements").out("text_box_list").cache(),
@@ -405,7 +405,7 @@ operations and include the documentation there. Lambda functions should not be u
             .cache(),
             TableCandidateAreasExtractor(method="images")
             .input("graphic_elements", "line_elements", "pages_bbox", "text_box_elements", "filename",
-                  "images")
+                   "images")
             .out("table_candidates").cache(),
         ],
         # the first base doc types have priority over the last ones
