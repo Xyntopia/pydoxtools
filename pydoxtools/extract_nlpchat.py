@@ -82,7 +82,7 @@ def gpt4allchat(messages, model_id="ggml-mpt-7b-instruct", max_tokens=256, *args
 
 
 def chat_completion(msgs: list[dict[str, str], ...], model_id: str, max_tokens: int) -> str:
-    if model_id == "gpt-3.5-turbo":
+    if model_id in ["gpt-3.5-turbo","gpt-4"]:
         completion = openai_chat_completion_with_diskcache(
             model_id=model_id, temperature=0.0, messages=tuple(msgs), max_tokens=max_tokens)
         result = completion.choices[0].message['content']
@@ -92,7 +92,7 @@ def chat_completion(msgs: list[dict[str, str], ...], model_id: str, max_tokens: 
         result = completion["choices"][0]['message']['content']
     else:
         result = ""
-        NotImplementedError(f"We can currently not handle the model {model_id}")
+        raise NotImplementedError(f"We can currently not handle the model {model_id}")
 
     return result
 
@@ -157,15 +157,19 @@ def execute_task(task, previous_tasks=None, context=None, objective=None,
                      format=formatting)
     res = chat_completion(msgs, max_tokens=max_tokens, model_id=model_id)
     if formatting == "yaml":
-        res = yaml_loader(res)
+        try:
+            obj = yaml_loader(res)
+        except yaml.YAMLError:
+            raise yaml.YAMLError(f"Could not convert {res} to yaml.")
     elif formatting == "txt":
-        res = res
+        obj = res
     elif formatting == "markdown":
-        res = res
+        obj = res
     else:
         logger.warning(f"Formatting: {formatting} is unknown!")
         pass  # do nothing ;)
-    return res, msgs
+
+    return obj, msgs, res
 
 
 class LLMChat(Operator):

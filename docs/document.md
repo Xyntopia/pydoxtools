@@ -406,6 +406,134 @@ return type
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
+### relationships
+            
+
+
+Can be called using:
+
+    <Document>.x('relationships')
+    # or
+    <Document>.relationships
+
+return type
+: <class 'pandas.core.frame.DataFrame'\>
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### coreference_method
+            
+can be 'fast' or 'accurate'
+
+Can be called using:
+
+    <Document>.x('coreference_method')
+    # or
+    <Document>.coreference_method
+
+return type
+: typing.Any
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### graph_debug_context_size
+            
+can be 'fast' or 'accurate'
+
+Can be called using:
+
+    <Document>.x('graph_debug_context_size')
+    # or
+    <Document>.graph_debug_context_size
+
+return type
+: typing.Any
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### coreferences
+            
+
+
+Can be called using:
+
+    <Document>.x('coreferences')
+    # or
+    <Document>.coreferences
+
+return type
+: list[list[tuple[int, int]]]
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### graph_nodes
+            
+No documentation
+
+Can be called using:
+
+    <Document>.x('graph_nodes')
+    # or
+    <Document>.graph_nodes
+
+return type
+: typing.Any
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### node_map
+            
+No documentation
+
+Can be called using:
+
+    <Document>.x('node_map')
+    # or
+    <Document>.node_map
+
+return type
+: typing.Any
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### graph_edges
+            
+No documentation
+
+Can be called using:
+
+    <Document>.x('graph_edges')
+    # or
+    <Document>.graph_edges
+
+return type
+: typing.Any
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### knowledge_graph
+            
+No documentation
+
+Can be called using:
+
+    <Document>.x('knowledge_graph')
+    # or
+    <Document>.knowledge_graph
+
+return type
+: typing.Any
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
 ### entities
             
 Extract entities from text
@@ -602,6 +730,22 @@ return type
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
+### vectorizer
+            
+No documentation
+
+Can be called using:
+
+    <Document>.x('vectorizer')
+    # or
+    <Document>.vectorizer
+
+return type
+: typing.Any
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
 ### vec_res
             
 Calculate context-based vectors for the entire text
@@ -757,7 +901,7 @@ return type
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
-### text_segment_vectors
+### text_segment_vec_res
             
 Take a function and apply it elementwise to
     an iterable. Return a list or iterator.
@@ -768,12 +912,80 @@ Take a function and apply it elementwise to
 
 Can be called using:
 
-    <Document>.x('text_segment_vectors')
+    <Document>.x('text_segment_vec_res')
     # or
-    <Document>.text_segment_vectors
+    <Document>.text_segment_vec_res
 
 return type
 : typing.Any
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### text_segment_vecs
+            
+No documentation
+
+Can be called using:
+
+    <Document>.x('text_segment_vecs')
+    # or
+    <Document>.text_segment_vecs
+
+return type
+: typing.Any
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### text_segment_ids
+            
+No documentation
+
+Can be called using:
+
+    <Document>.x('text_segment_ids')
+    # or
+    <Document>.text_segment_ids
+
+return type
+: typing.Any
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### text_segment_index
+            
+Class extracts an index form a document
+    TODO: make it flexible which kind of index we can use for this :).
+
+    --> for example we could also use a scikit-learn knn index or some brute-force method
+        etc....
+
+Can be called using:
+
+    <Document>.x('text_segment_index')
+    # or
+    <Document>.text_segment_index
+
+return type
+: typing.Any
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### segment_query
+            
+
+
+Can be called using:
+
+    <Document>.x('segment_query')
+    # or
+    <Document>.segment_query
+
+return type
+: typing.Callable[..., list[tuple]]
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -798,15 +1010,15 @@ return type
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
-### vectorizer
+### spacy_vectorizer
             
 No documentation
 
 Can be called using:
 
-    <Document>.x('vectorizer')
+    <Document>.x('spacy_vectorizer')
     # or
-    <Document>.vectorizer
+    <Document>.spacy_vectorizer
 
 return type
 : typing.Any
@@ -1201,7 +1413,7 @@ supports pipeline flows:
 
 ### image_dpi
             
-The dpi when rendering the document
+The dpi when rendering the document. The standard image generation resolution is set to 216 dpi for pdfs as we want to have sufficient DPI for downstram OCR tasks (e.g. table extraction)
 
 Can be called using:
 
@@ -1279,6 +1491,22 @@ return type
 supports pipeline flows:
 : application/pdf, image, image/jpeg, image/png, image/tiff
 
+### page_templates
+            
+generates a text page with table & figure hints
+
+Can be called using:
+
+    <Document>.x('page_templates')
+    # or
+    <Document>.page_templates
+
+return type
+: dict[int, str]
+
+supports pipeline flows:
+: application/pdf, image, image/jpeg, image/png, image/tiff
+
 ### lists
             
 Extract lines that might be part of a "list".
@@ -1320,6 +1548,22 @@ Can be called using:
     <Document>.x('table_candidates')
     # or
     <Document>.table_candidates
+
+return type
+: typing.Any
+
+supports pipeline flows:
+: application/pdf, image, image/jpeg, image/png, image/tiff
+
+### valid_tables
+            
+No documentation
+
+Can be called using:
+
+    <Document>.x('valid_tables')
+    # or
+    <Document>.valid_tables
 
 return type
 : typing.Any
