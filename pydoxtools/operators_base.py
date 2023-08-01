@@ -144,7 +144,7 @@ class Operator(ABC, typing.Generic[OperatorReturnType]):
     def __call__(self, *args, **kwargs) -> OperatorReturnType:
         pass
 
-    def pipe(self, *args, **kwargs):
+    def input(self, *args, **kwargs):
         """
         configure input parameter mappings to this function
 
@@ -232,7 +232,7 @@ class Alias(Operator):
 
     def __init__(self, **kwargs):
         super().__init__()
-        self.pipe(**{v: v for k, v in kwargs.items()})
+        self.input(**{v: v for k, v in kwargs.items()})
         self.out(**{v: k for k, v in kwargs.items()})
         self.__node_doc__ = "Alias for: \n\n" + "\n".join(f"* {v}->{k} (output)" for k, v in kwargs.items())
 

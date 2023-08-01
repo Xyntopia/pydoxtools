@@ -264,7 +264,7 @@ operations and include the documentation there. Lambda functions should not be u
         # .pdf
         "application/pdf": [
             PDFFileLoader()
-            .pipe(fobj="raw_content", page_numbers="_page_numbers", max_pages="_max_pages")
+            .input(fobj="raw_content", page_numbers="_page_numbers", max_pages="_max_pages")
             .out("pages_bbox", "elements", meta="meta_pdf", pages="page_set").cache().docs(),
             Configuration(image_dpi=72 * 3)
             .docs("The dpi when rendering the document."
@@ -272,76 +272,76 @@ operations and include the documentation there. Lambda functions should not be u
                   " as we want to have sufficient DPI for downstram OCR tasks (e.g."
                   " table extraction)"),
             PDFImageRenderer()
-            .pipe(fobj="raw_content", dpi="image_dpi", page_numbers="page_set")
+            .input(fobj="raw_content", dpi="image_dpi", page_numbers="page_set")
             .out("images").cache(),
             FunctionOperator(lambda pages: len(pages)).t(int)
-            .pipe(pages="page_set").out("num_pages").cache(),
+            .input(pages="page_set").out("num_pages").cache(),
             # TODO: move these filters etc... into a generalized text-structure pipeline!
             #  we are converting pandoc elements into the same thing
             #  anyways!!
             DocumentElementFilter(element_type=ElementType.Text)
-            .pipe("elements").out("line_elements").cache(),
+            .input("elements").out("line_elements").cache(),
             DocumentElementFilter(element_type=ElementType.Graphic)
-            .pipe("elements").out("graphic_elements").cache(),
+            .input("elements").out("graphic_elements").cache(),
             DocumentElementFilter(element_type=ElementType.Image)
-            .pipe("elements").out("image_elements").cache(),
+            .input("elements").out("image_elements").cache(),
             extract_textstructure.PageTemplateGenerator()
-            .pipe("elements", "valid_tables").out("page_templates").cache(allow_disk_cache=True)
+            .input("elements", "valid_tables").out("page_templates").cache(allow_disk_cache=True)
             .docs("generates a text page with table & figure hints"),
             #########  TABLE STUFF ##############
             ListExtractor().cache()
-            .pipe("line_elements").out("lists"),
+            .input("line_elements").out("lists"),
             TableCandidateAreasExtractor()
-            .pipe("graphic_elements", "line_elements", "pages_bbox", "text_box_elements", "filename")
+            .input("graphic_elements", "line_elements", "pages_bbox", "text_box_elements", "filename")
             .out("table_candidates", box_levels="table_box_levels").cache(),
             FunctionOperator(lambda x: [t for t in x if t.is_valid])
-            .pipe(x="table_candidates").out("valid_tables"),
+            .input(x="table_candidates").out("valid_tables"),
             FunctionOperator(lambda x: [t.df for t in x])
-            .pipe(x="valid_tables").out("table_df0").cache(allow_disk_cache=True)
+            .input(x="valid_tables").out("table_df0").cache(allow_disk_cache=True)
             .t(table_df0=list[pd.DataFrame])
             .docs("Filter valid tables from table candidates by looking if meaningful values can be extracted"),
             FunctionOperator(lambda x: pd.DataFrame([t.bbox for t in x], columns=["x0", "y0", "x1", "y1"]))
-            .pipe(x="valid_tables").out("table_areas").cache()
+            .input(x="valid_tables").out("table_areas").cache()
             .t(table_areas=list[np.ndarray])
             .docs("Areas of all detected tables"),
             FunctionOperator[list[pd.DataFrame]](lambda table_df0, lists: table_df0 + ([] if lists.empty else [lists]))
-            .cache().pipe("table_df0", "lists").out("tables_df").cache(),
+            .cache().input("table_df0", "lists").out("tables_df").cache(),
             ############## END TABLE STUFF ##############
             # FunctionOperator()
             # .pipe()
             TextBoxElementExtractor()
-            .pipe("line_elements").out("text_box_elements").cache(),
+            .input("line_elements").out("text_box_elements").cache(),
             FunctionOperator[list[str]](lambda df: df.get("text", None).to_list())
-            .pipe(df="text_box_elements").out("text_box_list").cache(),
+            .input(df="text_box_elements").out("text_box_list").cache(),
             FunctionOperator(lambda tb: "\n\n".join(tb)).t(str)
-            .pipe(tb="text_box_list").out("full_text").cache(),
+            .input(tb="text_box_list").out("full_text").cache(),
             TitleExtractor()
-            .pipe("line_elements").out("titles", "side_titles").cache(),
+            .input("line_elements").out("titles", "side_titles").cache(),
             LanguageExtractor().cache()
-            .pipe(text="full_text").out("language").cache()
+            .input(text="full_text").out("language").cache()
         ],
         # .html
         "text/html": [
             HtmlExtractor()
-            .pipe(raw_html="raw_content", url="source")
+            .input(raw_html="raw_content", url="source")
             .out("main_content_clean_html", "summary", "language", "goose_article",
                  "main_content", "schemadata", "final_urls", "pdf_links", "title",
                  "short_title", "url", tables="tables_df", html_keywords="html_keywords_str").cache(),
             FunctionOperator(lambda article: article.links)
-            .pipe(article="goose_article").out("urls").cache(),
+            .input(article="goose_article").out("urls").cache(),
             FunctionOperator(lambda article: article.top_image)
-            .pipe(article="goose_article").out("main_image").cache(),
+            .input(article="goose_article").out("main_image").cache(),
             Alias(full_text="main_content").t(str),
             FunctionOperator(lambda x: pd.DataFrame(get_text_only_blocks(x), columns=["text"])).cache()
-            .pipe(x="raw_content").out("text_box_elements"),
+            .input(x="raw_content").out("text_box_elements"),
             FunctionOperator(lambda t, s: [t, s])
-            .pipe(t="title", s="short_title").out("titles").cache(),
+            .input(t="title", s="short_title").out("titles").cache(),
             FunctionOperator(lambda x: {w.strip() for w in x.split(",")})
-            .pipe(x="html_keywords_str").out("html_keywords").cache(),
+            .input(x="html_keywords_str").out("html_keywords").cache(),
 
             ########### AGGREGATION ##############
             FunctionOperator(lambda **kwargs: set(list_utils.flatten(kwargs.values())))
-            .pipe("html_keywords", "textrank_keywords").out("keywords").cache(),
+            .input("html_keywords", "textrank_keywords").out("keywords").cache(),
         ],
         # docx
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ["pandoc"],
@@ -358,32 +358,32 @@ operations and include the documentation there. Lambda functions should not be u
         # pandoc document conversion pipeline
         "pandoc": [
             PandocLoader()
-            .pipe(raw_content="raw_content", document_type="document_type")
+            .input(raw_content="raw_content", document_type="document_type")
             .out("pandoc_document").cache(),
             Configuration(full_text_format="markdown"),
             PandocConverter()
-            .pipe(output_format="full_text_format", pandoc_document="pandoc_document")
+            .input(output_format="full_text_format", pandoc_document="pandoc_document")
             .out("full_text").t(str).cache(),
             FunctionOperator(lambda x: lambda o: PandocConverter()(x, output_format=o))
-            .pipe(x="pandoc_document").out("convert_to").cache(),
+            .input(x="pandoc_document").out("convert_to").cache(),
             Constant(clean_format="plain"),
             PandocToPdxConverter()
-            .pipe("pandoc_document").out("text_box_elements").cache().docs(
+            .input("pandoc_document").out("text_box_elements").cache().docs(
                 "split a pandoc document into text elements."),
             SectionsExtractor()
-            .pipe(df="text_box_elements").out("sections").cache(),
+            .input(df="text_box_elements").out("sections").cache(),
             PandocConverter()  # clean for downstram processing tasks
-            .pipe(output_format="clean_format", pandoc_document="pandoc_document")
+            .input(output_format="clean_format", pandoc_document="pandoc_document")
             .out("clean_text").cache().docs(
                 "for some downstream tasks, it is better to have pure text, without any sructural elements in it"),
             PandocBlocks()
-            .pipe(pandoc_document="pandoc_document").out("pandoc_blocks").cache(),
+            .input(pandoc_document="pandoc_document").out("pandoc_blocks").cache(),
             PandocOperator(method="headers")
-            .pipe(pandoc_blocks="pandoc_blocks").out("headers").cache(),
+            .input(pandoc_blocks="pandoc_blocks").out("headers").cache(),
             PandocOperator(method="tables_df")
-            .pipe(pandoc_blocks="pandoc_blocks").out("tables_df").cache(),
+            .input(pandoc_blocks="pandoc_blocks").out("tables_df").cache(),
             PandocOperator(method="lists")
-            .pipe(pandoc_blocks="pandoc_blocks").out("lists").cache()
+            .input(pandoc_blocks="pandoc_blocks").out("lists").cache()
         ],
         # standard image pipeline
         "image": [
@@ -391,20 +391,20 @@ operations and include the documentation there. Lambda functions should not be u
             # and then further processed from there
             "application/pdf",  # as we are extracting a pdf we would like to use the pdf functions...
             Configuration(ocr_lang="auto", ocr_on=True),
-            FunctionOperator(lambda x: dict(images={0: x})).pipe(x="_fobj")
+            FunctionOperator(lambda x: dict(images={0: x})).input(x="_fobj")
             .out("images").no_cache(),
             OCRExtractor()
-            .pipe("ocr_on", "ocr_lang", file="raw_content")
+            .input("ocr_on", "ocr_lang", file="raw_content")
             .out("ocr_pdf_file").cache(),
             # we need to do overwrite the pdf loading for images we inherited from
             # the ".pdf" logic as we are
             # now taking the pdf from a different variable
             PDFFileLoader()
-            .pipe(fobj="ocr_pdf_file")
+            .input(fobj="ocr_pdf_file")
             .out("pages_bbox", "elements", meta="meta_pdf", pages="page_set")
             .cache(),
             TableCandidateAreasExtractor(method="images")
-            .pipe("graphic_elements", "line_elements", "pages_bbox", "text_box_elements", "filename",
+            .input("graphic_elements", "line_elements", "pages_bbox", "text_box_elements", "filename",
                   "images")
             .out("table_candidates").cache(),
         ],
@@ -417,36 +417,36 @@ operations and include the documentation there. Lambda functions should not be u
             "<class 'dict'>",
             Alias(full_text="raw_content"),
             FunctionOperator(lambda x: dict(data=yaml.unsafe_load(x)))
-            .pipe(x="full_text").out("data").cache()
+            .input(x="full_text").out("data").cache()
             # TODO: we might need to have a special "result" message, that we
             #       pass around....
         ],
         # simple dictionary with arbitrary data from python
         "<class 'dict'>": [  # pipeline to handle data based documents
             FunctionOperator(lambda x: yaml.dump(list_utils.deep_str_convert(x))).t(str)
-            .pipe(x="data").out("full_text").cache(),
+            .input(x="data").out("full_text").cache(),
             DictSelector()
-            .pipe(selectable="data").out("data_sel").cache().docs(
+            .input(selectable="data").out("data_sel").cache().docs(
                 "select values by key from source data in Document"),
             FunctionOperator(lambda x: pd.DataFrame([
                 str(k) + ": " + str(v) for k, v in list_utils.flatten_dict(x).items()],
                 columns=["text"]
-            )).pipe(x="data").out("text_box_elements").cache(),
+            )).input(x="data").out("text_box_elements").cache(),
             Alias(text_segments="text_box_list").t(list[str]),
             FunctionOperator(lambda x: x.keys())
-            .pipe(x="data").out("keys").no_cache(),
+            .input(x="data").out("keys").no_cache(),
             FunctionOperator(lambda x: x.values())
-            .pipe(x="data").out("values").no_cache(),
+            .input(x="data").out("values").no_cache(),
             FunctionOperator(lambda x: x.values())
-            .pipe(x="data").out("items").no_cache()
+            .input(x="data").out("items").no_cache()
         ],
         "<class 'list'>": [
             FunctionOperator(lambda x: yaml.dump(list_utils.deep_str_convert(x))).t(str)
-            .pipe(x="data").out("full_text").cache(),
+            .input(x="data").out("full_text").cache(),
             FunctionOperator(lambda x: pd.DataFrame([
                 str(list_utils.deep_str_convert(v)) for v in x],
                 columns=["text"]
-            )).pipe(x="data").out("text_box_elements").cache(),
+            )).input(x="data").out("text_box_elements").cache(),
             Alias(text_segments="text_box_list").t(list[str]),
         ],
         # TODO: json, csv etc...
@@ -454,11 +454,11 @@ operations and include the documentation there. Lambda functions should not be u
         "*": [
             Alias(data="raw_content").t(Any).docs("The unprocessed data."),
             FunctionOperator(lambda x: force_decode(x)).t(str)
-            .pipe(x="raw_content").out("full_text").docs(
+            .input(x="raw_content").out("full_text").docs(
                 "Full text as a string value"),
             Alias(clean_text="full_text").t(str),
             FunctionOperator(lambda x: {"meta": (x or dict())}).t(dict[str, Any])
-            .pipe(x="_meta").out("meta").docs("Metadata of the document"),
+            .input(x="_meta").out("meta").docs("Metadata of the document"),
 
             ##### calculate some metadata ####
             FunctionOperator(
@@ -473,64 +473,64 @@ operations and include the documentation there. Lambda functions should not be u
                     # "num_sents",
                     "a_d_ratio",
                     "language")))
-            .pipe(x="to_dict").t(dict[str, Any])
+            .input(x="to_dict").t(dict[str, Any])
             .out("file_meta").cache().docs(
                 "Some fast-to-calculate metadata information about a document"),
 
             ## Standard text splitter for splitting text along lines...
             FunctionOperator(lambda x: pd.DataFrame(x.split("\n\n"), columns=["text"]))
-            .pipe(x="full_text").out("text_box_elements").t(pd.DataFrame).cache()
+            .input(x="full_text").out("text_box_elements").t(pd.DataFrame).cache()
             .docs("Text boxes extracted as a pandas Dataframe with some additional metadata"),
             FunctionOperator(lambda df: df.get("text", None).to_list()).t(list[str])
-            .pipe(df="text_box_elements").out("text_box_list").cache()
+            .input(df="text_box_elements").out("text_box_list").cache()
             .docs("Text boxes as a list"),
             # TODO: replace this with a real, generic table detection
             #       e.g. running the text through pandoc or scan for html tables
             Constant(tables_df=[]),
             # TODO: define datatype correctly
             FunctionOperator(lambda tables_df: [df.to_dict('index') for df in tables_df]).cache()
-            .pipe("tables_df").out("tables_dict").t(list[dict])
+            .input("tables_df").out("tables_dict").t(list[dict])
             .docs("List of Table"),
             Alias(tables="tables_dict"),
             TextBlockClassifier()
-            .pipe("text_box_elements").out("addresses").cache(),
+            .input("text_box_elements").out("addresses").cache(),
 
             ## calculate some metadata values
             FunctionOperator(lambda full_text: 1 + (len(full_text) // 1000))
-            .pipe("full_text").out("num_pages").cache().t(int),
+            .input("full_text").out("num_pages").cache().t(int),
             FunctionOperator(lambda clean_text: len(clean_text.split()))
-            .pipe("clean_text").out("num_words").cache().t(int),
+            .input("clean_text").out("num_words").cache().t(int),
             FunctionOperator(lambda spacy_sents: len(spacy_sents))
-            .pipe("spacy_sents").out("num_sents").no_cache().t(int)
+            .input("spacy_sents").out("num_sents").no_cache().t(int)
             .docs("number of sentences"),
             FunctionOperator(calculate_a_d_ratio)
-            .pipe(ft="full_text").out("a_d_ratio").cache()
+            .input(ft="full_text").out("a_d_ratio").cache()
             .docs("Letter/digit ratio of the text"),
             FunctionOperator(
                 lambda full_text: langdetect.detect(full_text)
-            ).pipe("full_text").out("language").cache()
+            ).input("full_text").out("language").cache()
             .default("unknown").docs(
                 "Detect language of a document, return 'unknown' in case of an error"),
 
             #########  SPACY WRAPPERS  #############
             Configuration(spacy_model_size="md", spacy_model="auto"),
             SpacyOperator()
-            .pipe(
+            .input(
                 "language", "spacy_model",
                 full_text="full_text", model_size="spacy_model_size"
             ).out(doc="spacy_doc", nlp="spacy_nlp").cache()
             .docs("Spacy Document and Language Model for this document"),
             FunctionOperator(extract_spacy_token_vecs)
-            .pipe("spacy_doc").out("spacy_vectors")
+            .input("spacy_doc").out("spacy_vectors")
             .docs("Vectors for all tokens calculated by spacy"),
             FunctionOperator(get_spacy_embeddings)
-            .pipe("spacy_nlp").out("spacy_embeddings")
+            .input("spacy_nlp").out("spacy_embeddings")
             .docs("Embeddings calculated by a spacy transformer"),
             FunctionOperator(lambda spacy_doc: list(spacy_doc.sents))
-            .pipe("spacy_doc").out("spacy_sents").t(list[str])
+            .input("spacy_doc").out("spacy_sents").t(list[str])
             .docs("List of sentences by spacy nlp framework"),
             FunctionOperator(extract_noun_chunks)
-            .pipe("spacy_doc").out("spacy_noun_chunks")
+            .input("spacy_doc").out("spacy_noun_chunks")
             .docs("exracts nounchunks from spacy. Will not be cached because it is all"
                   "in the spacy doc already"),
             ########## END OF SPACY ################
@@ -538,24 +538,24 @@ operations and include the documentation there. Lambda functions should not be u
             ########### KB extraction ###########
 
             ExtractRelationships()
-            .pipe("spacy_doc").out("relationships").cache(),
+            .input("spacy_doc").out("relationships").cache(),
             Configuration(
                 coreference_method="fast",
                 graph_debug_context_size=0
             ).docs("can be 'fast' or 'accurate'"),
-            CoreferenceResolution().pipe("spacy_doc", method="coreference_method")
+            CoreferenceResolution().input("spacy_doc", method="coreference_method")
             .out("coreferences").cache(),
             FunctionOperator(lambda x, t: build_relationships_graph(relationships=x, coreferences=t))
-            .pipe(x="relationships", t="coreferences").out("graph_nodes", "node_map", "graph_edges").cache(),
+            .input(x="relationships", t="coreferences").out("graph_nodes", "node_map", "graph_edges").cache(),
             FunctionOperator(lambda gn, ge, sd, cts: nx_graph(
                 graph_nodes=gn, graph_edges=ge, spacy_doc=sd, graph_debug_context_size=cts))
-            .pipe(gn="graph_nodes", ge="graph_edges", sd="spacy_doc", cts="graph_debug_context_size")
+            .input(gn="graph_nodes", ge="graph_edges", sd="spacy_doc", cts="graph_debug_context_size")
             .out("knowledge_graph").cache(),
 
             ########### END OF KB extraction ###########
 
             EntityExtractor().cache()
-            .pipe("spacy_doc").out("entities").cache()
+            .input("spacy_doc").out("entities").cache()
             .docs("Extract entities from text"),
             # TODO: try to implement as much as possible from the constants below for all documentypes
             #       summary, urls, main_image, keywords, final_url, pdf_links, schemadata, tables_df
@@ -567,7 +567,7 @@ operations and include the documentation there. Lambda functions should not be u
             Alias(noun_chunks="spacy_noun_chunks").docs("Noun chunks of this documents"),
 
             FunctionOperator(lambda x: x.vector)
-            .pipe(x="spacy_doc").out("vector").cache()
+            .input(x="spacy_doc").out("vector").cache()
             .docs("Embeddings from spacy"),
             # TODO: make this configurable.. either we want
             #       to use spacy for this or we would rather have a huggingface
@@ -576,13 +576,13 @@ operations and include the documentation there. Lambda functions should not be u
                 lambda x: dict(
                     sent_vecs=np.array([e.vector for e in x]),
                     sent_ids=list(range(len(x)))))
-            .pipe(x="sents").out("sent_vecs", "sent_ids").cache()
+            .input(x="sents").out("sent_vecs", "sent_ids").cache()
             .docs("Vectors for sentences & sentence_ids"),
             FunctionOperator(
                 lambda x: dict(
                     noun_vecs=np.array([e.vector for e in x]),
                     noun_ids=list(range(len(x)))))
-            .pipe(x="noun_chunks").out("noun_vecs", "noun_ids").cache()
+            .input(x="noun_chunks").out("noun_vecs", "noun_ids").cache()
             .docs(
                 "Vectors for nouns and corresponding noun ids in order to find them in the spacy document"),
 
@@ -601,20 +601,20 @@ operations and include the documentation there. Lambda functions should not be u
             FunctionOperator(
                 lambda m, t, o: lambda txt: nlp_utils.calculate_string_embeddings(
                     text=txt, model_id=m, only_tokenizer=t, overlap_ratio=o)[0].mean(0)
-            ).pipe(m="vectorizer_model", t="vectorizer_only_tokenizer", o="vectorizer_overlap_ratio")
+            ).input(m="vectorizer_model", t="vectorizer_only_tokenizer", o="vectorizer_overlap_ratio")
             .out("vectorizer").cache(),
             FunctionOperator(
                 lambda x, m, t, o: nlp_utils.calculate_string_embeddings(
                     text=x, model_id=m, only_tokenizer=t, overlap_ratio=o)
-            ).pipe(x="full_text", m="vectorizer_model",
-                   t="vectorizer_only_tokenizer", o="vectorizer_overlap_ratio")
+            ).input(x="full_text", m="vectorizer_model",
+                    t="vectorizer_only_tokenizer", o="vectorizer_overlap_ratio")
             .out("vec_res").cache()
             .docs("Calculate context-based vectors for the entire text"),
             FunctionOperator(lambda x: dict(emb=x[0], tok=x[1]))
-            .pipe(x="vec_res").out(emb="tok_embeddings", tok="tokens").no_cache()
+            .input(x="vec_res").out(emb="tok_embeddings", tok="tokens").no_cache()
             .docs("Get the tokenized text"),
             FunctionOperator[list[float]](lambda x: x.mean(0))
-            .pipe(x="tok_embeddings").out("embedding").cache()
+            .input(x="tok_embeddings").out("embedding").cache()
             .docs("Get an embedding for the entire text"),
 
             ########### SEGMENT_INDEX ##########
@@ -627,42 +627,42 @@ operations and include the documentation there. Lambda functions should not be u
                    "overlap is only relevant for large text segmenets that need to"
                    "be split up into smaller pieces."),
             TextPieceSplitter()
-            .pipe(min_size="min_size_text_segment", max_size="max_size_text_segment",
-                  large_segment_overlap="text_segment_overlap", full_text="full_text",
-                  max_text_segment_num="max_text_segment_num")
+            .input(min_size="min_size_text_segment", max_size="max_size_text_segment",
+                   large_segment_overlap="text_segment_overlap", full_text="full_text",
+                   max_text_segment_num="max_text_segment_num")
             .out("text_segments").cache(),
             # TODO: we would like to have the context-based vectors so we should
             #       calculate this "backwards" from the vectors for the entire text
             #       and not for each individual segment...
             ElementWiseOperator(calculate_string_embeddings, return_iterator=False)
-            .pipe(elements="text_segments",
-                  model_id="vectorizer_model",
-                  only_tokenizer="vectorizer_only_tokenizer")
+            .input(elements="text_segments",
+                   model_id="vectorizer_model",
+                   only_tokenizer="vectorizer_only_tokenizer")
             .out("text_segment_vec_res").cache(),
             FunctionOperator(lambda x: np.array([r[0].mean(0) for r in x]))
-            .pipe(x="text_segment_vec_res").out("text_segment_vecs").cache(),
-            FunctionOperator(lambda x: np.array(range(len(x)))).pipe(x="text_segments")
+            .input(x="text_segment_vec_res").out("text_segment_vecs").cache(),
+            FunctionOperator(lambda x: np.array(range(len(x)))).input(x="text_segments")
             .out("text_segment_ids").cache(),
             IndexExtractor()
-            .pipe(vecs="text_segment_vecs", ids="text_segment_ids").out("text_segment_index")
+            .input(vecs="text_segment_vecs", ids="text_segment_ids").out("text_segment_index")
             .cache(),
-            KnnQuery().pipe(index="text_segment_index", idx_values="text_segments",
-                            vectorizer="vectorizer")
+            KnnQuery().input(index="text_segment_index", idx_values="text_segments",
+                             vectorizer="vectorizer")
             .out("segment_query").cache(),
 
             ########### NOUN_INDEX #############
             IndexExtractor()
-            .pipe(vecs="noun_vecs", ids="noun_ids").out("noun_index").cache(),
+            .input(vecs="noun_vecs", ids="noun_ids").out("noun_index").cache(),
             FunctionOperator(lambda spacy_nlp: lambda x: spacy_nlp(x).vector)
-            .pipe("spacy_nlp").out("spacy_vectorizer").cache(),
-            KnnQuery().pipe(index="noun_index", idx_values="noun_chunks",
-                            vectorizer="spacy_vectorizer")
+            .input("spacy_nlp").out("spacy_vectorizer").cache(),
+            KnnQuery().input(index="noun_index", idx_values="noun_chunks",
+                             vectorizer="spacy_vectorizer")
             .out("noun_query").cache(),
-            SimilarityGraph().pipe(index_query_func="noun_query", source="noun_chunks")
+            SimilarityGraph().input(index_query_func="noun_query", source="noun_chunks")
             .out("noun_graph").cache(),
             Configuration(top_k_text_rank_keywords=5),
             TextrankOperator()
-            .pipe(top_k="top_k_text_rank_keywords", G="noun_graph").out("textrank_keywords").cache(),
+            .input(top_k="top_k_text_rank_keywords", G="noun_graph").out("textrank_keywords").cache(),
             # TODO: we will probably get better keywords if we first get the most important sentences or
             #       a summary and then exract keywords from there :).
             Alias(keywords="textrank_keywords"),
@@ -670,15 +670,15 @@ operations and include the documentation there. Lambda functions should not be u
 
             ########### SENTENCE_INDEX ###########
             IndexExtractor()
-            .pipe(vecs="sent_vecs", ids="sent_ids").out("sent_index").cache(),
-            KnnQuery().pipe(index="sent_index", idx_values="spacy_sents",
-                            vectorizer="spacy_vectorizer")
+            .input(vecs="sent_vecs", ids="sent_ids").out("sent_index").cache(),
+            KnnQuery().input(index="sent_index", idx_values="spacy_sents",
+                             vectorizer="spacy_vectorizer")
             .out("sent_query").cache(),
-            SimilarityGraph().pipe(index_query_func="sent_query", source="spacy_sents")
+            SimilarityGraph().input(index_query_func="sent_query", source="spacy_sents")
             .out("sent_graph").cache(),
             Configuration(top_k_text_rank_sentences=5),
             TextrankOperator()
-            .pipe(top_k="top_k_text_rank_sentences", G="sent_graph").out("textrank_sents").cache(),
+            .input(top_k="top_k_text_rank_sentences", G="sent_graph").out("textrank_sents").cache(),
 
             ########### Huggingface Integration #######
             Configuration(
@@ -694,7 +694,7 @@ operations and include the documentation there. Lambda functions should not be u
             # .pipe(x="summary_func", y="full_text").out("summary").cache(),
             FunctionOperator(lambda x, m, to, ml: summarize_long_text(
                 x, m, token_overlap=to, max_len=ml
-            )).pipe(
+            )).input(
                 x="clean_text", m="summarizer_model",
                 to="summarizer_token_overlap",
                 ml="summarizer_max_text_len"
@@ -704,7 +704,7 @@ operations and include the documentation there. Lambda functions should not be u
             # TODO: make sure we can set the model that we want to use dynamically!
             Configuration(qam_model_id='deepset/minilm-uncased-squad2'),
             QamExtractor()
-            .pipe(property_dict="to_dict", trf_model_id="qam_model_id").out("answers").cache(),
+            .input(property_dict="to_dict", trf_model_id="qam_model_id").out("answers").cache(),
 
             ########### Chat AI ##################
             Configuration(chat_model_id="gpt-3.5-turbo").docs(
@@ -718,7 +718,7 @@ operations and include the documentation there. Lambda functions should not be u
                 "ggml-wizardLM-7B.q4_2.bin, ggml-stable-vicuna-13B.q4_2.bin, ggml-mpt-7b-base.bin, "
                 "ggml-nous-gpt4-vicuna-13b.bin, ggml-mpt-7b-instruct.bin, ggml-wizard-13b-uncensored.bin"
             ),
-            LLMChat().pipe(property_dict="to_dict", model_id="chat_model_id")
+            LLMChat().input(property_dict="to_dict", model_id="chat_model_id")
             .out("chat_answers").cache()
         ]
     }
@@ -1152,17 +1152,17 @@ class DocumentBag(Pipeline):
         str(DatabaseSource): [
             str(Bag),  # DatabaseSource will eventually be turned into a bag of documents
             FunctionOperator(lambda x: x.dict())
-            .pipe(x="source")
+            .input(x="source")
             .out("sql", "connection_string", "index_column").cache(),
             Configuration(bytes_per_chunk="256 MiB"),
             SQLTableLoader()
-            .pipe("sql", "connection_string", "index_column", "bytes_per_chunk").out("dataframe").cache(),
+            .input("sql", "connection_string", "index_column", "bytes_per_chunk").out("dataframe").cache(),
             FunctionOperator(lambda x: x.to_bag(index=True, format="dict"))
-            .pipe(x="dataframe")
+            .input(x="dataframe")
             .out("bag").cache(),
             dask_operators.BagMapOperator(lambda y, c: Document(
                 y, source=str(y.get('index', None)), configuration=c))
-            .pipe(dask_bag="bag", c="doc_configuration").out("docs").cache().docs(
+            .input(dask_bag="bag", c="doc_configuration").out("docs").cache().docs(
                 "Create a dask bag of one data document for each row of the source table"),
         ],
         str(Bag): [
@@ -1170,9 +1170,9 @@ class DocumentBag(Pipeline):
             # Alias(bag="source"),
             Alias(docs="source"),
             FunctionOperator(lambda x: x.take)
-            .pipe(x="docs").out("take").cache(),
+            .input(x="docs").out("take").cache(),
             FunctionOperator(lambda x: x.compute)
-            .pipe(x="docs").out("compute").cache(),
+            .input(x="docs").out("compute").cache(),
         ],
         # TODO: add "fast, slow, medium" pipelines..  e.g. with keywords extraction as fast
         #       etc...
@@ -1181,13 +1181,13 @@ class DocumentBag(Pipeline):
             str(Path), str(Bag),
             # load all paths into a bag
             FunctionOperator(lambda x: dask.bag.from_sequence((Path(p) for p in x), partition_size=10))
-            .pipe(x="source").out("bag"),
+            .input(x="source").out("bag"),
             # filter for actual files
             dask_operators.BagFilterOperator(lambda it: it.is_file())
-            .pipe(dask_bag="bag").out("file_path_list"),
+            .input(dask_bag="bag").out("file_path_list"),
             # filter for directories
             dask_operators.BagFilterOperator(lambda it: it.is_dir())
-            .pipe(dask_bag="bag").out("dir_list")
+            .input(dask_bag="bag").out("dir_list")
         ],
         str(Path): [
             str(Bag),
@@ -1197,19 +1197,19 @@ class DocumentBag(Pipeline):
             Alias(root_path="source"),
             # TODO: make PathLoader an iterator!
             PathLoader()
-            .pipe(directory="root_path", exclude="_exclude")
+            .input(directory="root_path", exclude="_exclude")
             .out("paths").cache(),
             FunctionOperator(lambda x: x(max_depth=10, mode="files"))
-            .pipe(x="paths")
+            .input(x="paths")
             .out("file_path_list").cache(),
             FunctionOperator(lambda x: x(max_depth=10, mode="dirs"))
-            .pipe(x="paths")
+            .input(x="paths")
             .out("dir_list").cache(),
             FunctionOperator(lambda x: dask.bag.from_sequence(x, partition_size=10))
-            .pipe(x="file_path_list").out("bag").cache().docs(
+            .input(x="file_path_list").out("bag").cache().docs(
                 "create a dask bag with all the filepaths in it"),
             dask_operators.BagMapOperator(lambda x, c: Document(x, configuration=c))
-            .pipe(dask_bag="bag", c="doc_configuration").out("docs").cache().docs(
+            .input(dask_bag="bag", c="doc_configuration").out("docs").cache().docs(
                 "create a bag with one document for each file that was found"
                 "From this point we can hand off the logic to str(Bag) pipeline."),
             # TODO: extract some metadata about files etc..  as a new DocumentBag or as a Document?!
@@ -1230,37 +1230,37 @@ class DocumentBag(Pipeline):
             Constant(_stats=[]),
             Configuration(verbosity=None),
             dask_operators.BagPropertyExtractor()
-            .pipe("verbosity", dask_bag="docs", forgiving_extracts="forgiving_extracts", stats="_stats")
+            .input("verbosity", dask_bag="docs", forgiving_extracts="forgiving_extracts", stats="_stats")
             .out("get_dicts").cache(allow_disk_cache=False),
             Alias(d="get_dicts"),
             DocumentBagMap()
-            .pipe("verbosity", dask_bag="docs", forgiving_extracts="forgiving_extracts",
-                  stats="_stats")
+            .input("verbosity", dask_bag="docs", forgiving_extracts="forgiving_extracts",
+                   stats="_stats")
             .out("bag_apply"),
             DocumentBagCreator()
-            .pipe("configuration", apply_map_func="bag_apply", forgiving_extracts="forgiving_extracts")
+            .input("configuration", apply_map_func="bag_apply", forgiving_extracts="forgiving_extracts")
             .out("apply"),
             DocumentBagExplode()
-            .pipe("configuration", apply_map_func="bag_apply")
+            .input("configuration", apply_map_func="bag_apply")
             .out("exploded").docs(""),
             Alias(e="exploded"),
             FunctionOperator(lambda x: pd.DataFrame(x).sum())
-            .pipe(x="_stats").out("stats").no_cache()
+            .input(x="_stats").out("stats").no_cache()
             .docs("gather a number of statistics from documents as a pandas dataframe"),
             FunctionOperator(
                 lambda x: lambda *args, **kwargs: Document(
                     *args, **kwargs, configuration=x))
-            .pipe(x="doc_configuration").out("Document").docs(
+            .input(x="doc_configuration").out("Document").docs(
                 "Get a factory for pre-configured documents. Can be called just like"
                 " [pydoxtools.Document][] class, but automatically gets assigned the"
                 " same configuration as all Documents in this bag"),
             FunctionOperator(lambda doc: lambda text: doc(text).embedding)
-            .pipe(doc="Document").out("vectorizer").cache()
+            .input(doc="Document").out("vectorizer").cache()
             .docs("vectorizes a query, using the document configuration of the Documentbag"
                   " to determine which model to use."),
             ###### building an index ######
             ChromaIndexFromBag()
-            .pipe(query_vectorizer="vectorizer", doc_bag="docs")
+            .input(query_vectorizer="vectorizer", doc_bag="docs")
             .out("add_to_chroma").cache(allow_disk_cache=False).docs(
                 "in order to build an index in chrome db we need a key, text, embeddings and a key."
                 " Those come from a daskbag with dictionaries with those keys."
