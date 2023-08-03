@@ -59,6 +59,7 @@ diskcache = "^5.6.1"
 chardet = "^5.1.0"
 chromadb = {version = "^0.3.23", optional = true}
 gpt4all = {version = "^0.2.3", optional = true}
+fastcoref = "^2.1.6"
 
 [tool.poetry.extras]
 # extraction-transformation-load facilities

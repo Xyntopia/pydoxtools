@@ -436,7 +436,7 @@ name = "blis"
 version = "0.7.9"
 description = "The Blis BLAS-like linear algebra library, as a self-contained C-extension."
 category = "main"
-optional = true
+optional = false
 python-versions = "*"
 files = [
     {file = "blis-0.7.9-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:b3ea73707a7938304c08363a0b990600e579bfb52dece7c674eafac4bf2df9f7"},
@@ -512,7 +512,7 @@ name = "catalogue"
 version = "2.0.8"
 description = "Super lightweight function registries for your library"
 category = "main"
-optional = true
+optional = false
 python-versions = ">=3.6"
 files = [
     {file = "catalogue-2.0.8-py3-none-any.whl", hash = "sha256:2d786e229d8d202b4f8a2a059858e45a2331201d831e39746732daa704b99f69"},
@@ -942,7 +942,7 @@ name = "confection"
 version = "0.0.4"
 description = "The sweetest config system for Python"
 category = "main"
-optional = true
+optional = false
 python-versions = ">=3.6"
 files = [
     {file = "confection-0.0.4-py3-none-any.whl", hash = "sha256:aeac5919ba770c7b281aa5863bb6b0efed42568a7ad8ea26b6cb632154503fb2"},
@@ -1168,7 +1168,7 @@ name = "cymem"
 version = "2.0.7"
 description = "Manage calls to calloc/free through Cython"
 category = "main"
-optional = true
+optional = false
 python-versions = "*"
 files = [
     {file = "cymem-2.0.7-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:4981fc9182cc1fe54bfedf5f73bfec3ce0c27582d9be71e130c46e35958beef0"},
@@ -1242,7 +1242,7 @@ test = ["pandas[test]", "pre-commit", "pytest", "pytest-rerunfailures", "pytest-
 name = "datasets"
 version = "2.12.0"
 description = "HuggingFace community-driven open-source library of datasets"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7.0"
 files = [
@@ -1353,7 +1353,7 @@ packaging = "*"
 name = "dill"
 version = "0.3.6"
 description = "serialize all of python"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -1614,6 +1614,29 @@ all = ["email-validator (>=1.1.1)", "httpx (>=0.23.0)", "itsdangerous (>=1.1.0)"
 dev = ["pre-commit (>=2.17.0,<3.0.0)", "ruff (==0.0.138)", "uvicorn[standard] (>=0.12.0,<0.21.0)"]
 doc = ["mdx-include (>=1.4.1,<2.0.0)", "mkdocs (>=1.1.2,<2.0.0)", "mkdocs-markdownextradata-plugin (>=0.1.7,<0.3.0)", "mkdocs-material (>=8.1.4,<9.0.0)", "pyyaml (>=5.3.1,<7.0.0)", "typer-cli (>=0.0.13,<0.0.14)", "typer[all] (>=0.6.1,<0.8.0)"]
 test = ["anyio[trio] (>=3.2.1,<4.0.0)", "black (==23.1.0)", "coverage[toml] (>=6.5.0,<8.0)", "databases[sqlite] (>=0.3.2,<0.7.0)", "email-validator (>=1.1.1,<2.0.0)", "flask (>=1.1.2,<3.0.0)", "httpx (>=0.23.0,<0.24.0)", "isort (>=5.0.6,<6.0.0)", "mypy (==0.982)", "orjson (>=3.2.1,<4.0.0)", "passlib[bcrypt] (>=1.7.2,<2.0.0)", "peewee (>=3.13.3,<4.0.0)", "pytest (>=7.1.3,<8.0.0)", "python-jose[cryptography] (>=3.3.0,<4.0.0)", "python-multipart (>=0.0.5,<0.0.7)", "pyyaml (>=5.3.1,<7.0.0)", "ruff (==0.0.138)", "sqlalchemy (>=1.3.18,<1.4.43)", "types-orjson (==3.6.2)", "types-ujson (==5.7.0.1)", "ujson (>=4.0.1,!=4.0.2,!=4.1.0,!=4.2.0,!=4.3.0,!=5.0.0,!=5.1.0,<6.0.0)"]
+
+[[package]]
+name = "fastcoref"
+version = "2.1.6"
+description = ""
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "fastcoref-2.1.6.tar.gz", hash = "sha256:cf3bc2764cca1db06df8ff40e513d7f79d26f0c340d0e442bd66a85673610b9e"},
+]
+
+[package.dependencies]
+datasets = ">=2.5.2"
+numpy = ">=1.21.6"
+scipy = ">=1.7.3"
+spacy = ">=3.0.6"
+torch = ">=1.10.0"
+tqdm = ">=4.64.0"
+transformers = ">=4.11.3"
+
+[package.extras]
+train = ["wandb (>=0.13.4)"]
 
 [[package]]
 name = "fastjsonschema"
@@ -3002,7 +3025,7 @@ name = "langcodes"
 version = "3.3.0"
 description = "Tools for labeling human languages with IETF language tags"
 category = "main"
-optional = true
+optional = false
 python-versions = ">=3.6"
 files = [
     {file = "langcodes-3.3.0-py3-none-any.whl", hash = "sha256:4d89fc9acb6e9c8fdef70bcdf376113a3db09b67285d9e1d534de6d8818e7e69"},
@@ -3652,7 +3675,7 @@ name = "mpmath"
 version = "1.3.0"
 description = "Python library for arbitrary-precision floating-point arithmetic"
 category = "main"
-optional = true
+optional = false
 python-versions = "*"
 files = [
     {file = "mpmath-1.3.0-py3-none-any.whl", hash = "sha256:a0b2b9fe80bbcd81a6647ff13108738cfb482d481d826cc0e02f5b35e5c88d2c"},
@@ -3826,7 +3849,7 @@ files = [
 name = "multiprocess"
 version = "0.70.14"
 description = "better multiprocessing and multithreading in python"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -3854,7 +3877,7 @@ name = "murmurhash"
 version = "1.0.9"
 description = "Cython bindings for MurmurHash"
 category = "main"
-optional = true
+optional = false
 python-versions = ">=3.6"
 files = [
     {file = "murmurhash-1.0.9-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:697ed01454d92681c7ae26eb1adcdc654b54062bcc59db38ed03cad71b23d449"},
@@ -4024,7 +4047,7 @@ name = "networkx"
 version = "2.8.8"
 description = "Python package for creating and manipulating graphs and networks"
 category = "main"
-optional = true
+optional = false
 python-versions = ">=3.8"
 files = [
     {file = "networkx-2.8.8-py3-none-any.whl", hash = "sha256:e435dfa75b1d7195c7b8378c3859f0445cd88c6b0375c181ed66823a9ceb7524"},
@@ -4444,7 +4467,7 @@ name = "pathy"
 version = "0.10.1"
 description = "pathlib.Path subclasses for local and cloud bucket storage"
 category = "main"
-optional = true
+optional = false
 python-versions = ">= 3.6"
 files = [
     {file = "pathy-0.10.1-py3-none-any.whl", hash = "sha256:a7613ee2d99a0a3300e1d836322e2d947c85449fde59f52906f995dbff67dad4"},
@@ -4801,7 +4824,7 @@ name = "preshed"
 version = "3.0.8"
 description = "Cython hash table that trusts the keys are pre-hashed"
 category = "main"
-optional = true
+optional = false
 python-versions = ">=3.6"
 files = [
     {file = "preshed-3.0.8-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:ea4b6df8ef7af38e864235256793bc3056e9699d991afcf6256fa298858582fc"},
@@ -5792,7 +5815,7 @@ rsa = ["oauthlib[signedtoken] (>=3.0.0)"]
 name = "responses"
 version = "0.18.0"
 description = "A utility library for mocking out the `requests` Python library."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -5897,7 +5920,7 @@ name = "scipy"
 version = "1.9.3"
 description = "Fundamental algorithms for scientific computing in Python"
 category = "main"
-optional = true
+optional = false
 python-versions = ">=3.8"
 files = [
     {file = "scipy-1.9.3-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:1884b66a54887e21addf9c16fb588720a8309a57b2e258ae1c7986d4444d3bc0"},
@@ -6039,7 +6062,7 @@ name = "smart-open"
 version = "6.3.0"
 description = "Utils for streaming large files (S3, HDFS, GCS, Azure Blob Storage, gzip, bz2...)"
 category = "main"
-optional = true
+optional = false
 python-versions = ">=3.6,<4.0"
 files = [
     {file = "smart_open-6.3.0-py3-none-any.whl", hash = "sha256:b4c9ae193ad6d3e7add50944b86afa0d150bd821ab8ec21edb26d9a06b66f6a8"},
@@ -6097,7 +6120,7 @@ name = "spacy"
 version = "3.5.3"
 description = "Industrial-strength Natural Language Processing (NLP) in Python"
 category = "main"
-optional = true
+optional = false
 python-versions = ">=3.6"
 files = [
     {file = "spacy-3.5.3-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:4eaa68b677b1292381bade13d5b20342e31791d3ffdaa261eca3c3c0687bf53f"},
@@ -6184,7 +6207,7 @@ name = "spacy-legacy"
 version = "3.0.12"
 description = "Legacy registered functions for spaCy backwards compatibility"
 category = "main"
-optional = true
+optional = false
 python-versions = ">=3.6"
 files = [
     {file = "spacy-legacy-3.0.12.tar.gz", hash = "sha256:b37d6e0c9b6e1d7ca1cf5bc7152ab64a4c4671f59c85adaf7a3fcb870357a774"},
@@ -6196,7 +6219,7 @@ name = "spacy-loggers"
 version = "1.0.4"
 description = "Logging utilities for SpaCy"
 category = "main"
-optional = true
+optional = false
 python-versions = ">=3.6"
 files = [
     {file = "spacy-loggers-1.0.4.tar.gz", hash = "sha256:e6f983bf71230091d5bb7b11bf64bd54415eca839108d5f83d9155d0ba93bf28"},
@@ -6286,7 +6309,7 @@ name = "srsly"
 version = "2.4.6"
 description = "Modern high-performance serialization utilities for Python"
 category = "main"
-optional = true
+optional = false
 python-versions = ">=3.6"
 files = [
     {file = "srsly-2.4.6-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:9b96569976420be2ac3716db9ac05b06bf4cd7a358953879ba34f03c9533c123"},
@@ -6378,7 +6401,7 @@ name = "sympy"
 version = "1.12"
 description = "Computer algebra system (CAS) in Python"
 category = "main"
-optional = true
+optional = false
 python-versions = ">=3.8"
 files = [
     {file = "sympy-1.12-py3-none-any.whl", hash = "sha256:c3588cd4295d0c0f603d0f2ae780587e64e2efeedb3521e46b9bb1d08d184fa5"},
@@ -6476,7 +6499,7 @@ name = "thinc"
 version = "8.1.10"
 description = "A refreshing functional take on deep learning, compatible with your favorite libraries"
 category = "main"
-optional = true
+optional = false
 python-versions = ">=3.6"
 files = [
     {file = "thinc-8.1.10-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:dbd1dc4394352d80af22131e1a238238eded59de19b55f77e6237436f4865b2c"},
@@ -6620,7 +6643,7 @@ name = "tokenizers"
 version = "0.13.3"
 description = "Fast and Customizable Tokenizers"
 category = "main"
-optional = true
+optional = false
 python-versions = "*"
 files = [
     {file = "tokenizers-0.13.3-cp310-cp310-macosx_10_11_x86_64.whl", hash = "sha256:f3835c5be51de8c0a092058a4d4380cb9244fb34681fd0a295fbf0a52a5fdf33"},
@@ -6711,7 +6734,7 @@ name = "torch"
 version = "2.0.1"
 description = "Tensors and Dynamic neural networks in Python with strong GPU acceleration"
 category = "main"
-optional = true
+optional = false
 python-versions = ">=3.8.0"
 files = [
     {file = "torch-2.0.1-cp310-cp310-manylinux1_x86_64.whl", hash = "sha256:8ced00b3ba471856b993822508f77c98f48a458623596a4c43136158781e306a"},
@@ -6836,7 +6859,7 @@ name = "transformers"
 version = "4.29.2"
 description = "State-of-the-art Machine Learning for JAX, PyTorch and TensorFlow"
 category = "main"
-optional = true
+optional = false
 python-versions = ">=3.7.0"
 files = [
     {file = "transformers-4.29.2-py3-none-any.whl", hash = "sha256:0ef158b99bad6f4e6652a0d8655fbbe58b4cb788ce7040f320b5d29c7c810a75"},
@@ -6905,7 +6928,7 @@ name = "typer"
 version = "0.7.0"
 description = "Typer, build great CLIs. Easy to code. Based on Python type hints."
 category = "main"
-optional = true
+optional = false
 python-versions = ">=3.6"
 files = [
     {file = "typer-0.7.0-py3-none-any.whl", hash = "sha256:b5e704f4e48ec263de1c0b3a2387cd405a13767d2f907f44c1a08cbad96f606d"},
@@ -7095,7 +7118,7 @@ name = "wasabi"
 version = "1.1.1"
 description = "A lightweight console printing and formatting toolkit"
 category = "main"
-optional = true
+optional = false
 python-versions = ">=3.6"
 files = [
     {file = "wasabi-1.1.1-py3-none-any.whl", hash = "sha256:32e44649d99a64e08e40c1c96cddb69fad460bd0cc33802a53cab6714dfb73f8"},
@@ -7399,7 +7422,7 @@ files = [
 name = "xxhash"
 version = "3.2.0"
 description = "Python binding for xxHash"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 files = [
@@ -7804,4 +7827,4 @@ inference = ["beautifulsoup4", "chromadb", "gpt4all", "hnswlib", "pandas", "pyto
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<4.0" # python version constraints are caused by scipy
-content-hash = "ad3be78fae4780639f642363541fe5011657ead9641c53a1cea8c148eebf4c41"
+content-hash = "0c42bd76c43ead20bcb7e74d9c1eb232a17320cb0785d0a7d878786732a27e6e"
