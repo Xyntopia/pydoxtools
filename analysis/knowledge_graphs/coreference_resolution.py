@@ -54,4 +54,6 @@ doc.configuration
 
 KG=doc.knowledge_graph
 
+doc.graph_nodes
+
 vd.draw(KG, format='svg')

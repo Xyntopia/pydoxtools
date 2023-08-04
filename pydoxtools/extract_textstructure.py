@@ -7,7 +7,7 @@ from dataclasses import asdict
 import numpy as np
 import pandas as pd
 import pdfminer
-from pdfminer.layout import LTChar, LTTextLineVertical
+from pdfminer.layout import LTTextLineVertical
 from sklearn.ensemble import IsolationForest
 
 import pydoxtools.operators_base
@@ -111,7 +111,7 @@ def group_elements(elements: pd.DataFrame, by: list[str], agg: str):
         return df["text"].to_dict()
 
 
-def text_boxes_from_elements(self, line_elements: pd.DataFrame) -> dict[str, pd.DataFrame | None]:
+def text_boxes_from_elements(line_elements: pd.DataFrame) -> dict[str, pd.DataFrame | None]:
     """
     create textboxes and create bounding boxes and aggregated text from
     a pandas dataframe with textlines.
@@ -197,8 +197,7 @@ class TitleExtractor(pydoxtools.operators_base.Operator):
 
         features = set(dfl.columns) - {'obj', 'linewidth', 'non_stroking_color', 'stroking_color', 'stroke',
                                        'fill', 'evenodd', 'type', 'text', 'font_infos', 'font', 'rawtext',
-                                       'lineobj',
-                                       'color'}
+                                       'lineobj', 'color', 'char_orientations'}
 
         # detect outliers to isolate titles and other content from "normal"
         # content
@@ -234,7 +233,12 @@ class TitleExtractor(pydoxtools.operators_base.Operator):
         return main_content
 
 
-def get_template_elements(elements: pd.DataFrame, page_num: int = None, include_image: bool = False):
+def get_template_elements(
+        elements: pd.DataFrame,
+        page_num: int = None,
+        include_image: bool = False,
+        vertical_elements=False
+):
     elements = elements.loc[elements["type"] != document_base.ElementType.Graphic].copy()
     if include_image:
         img_idxs = (elements["type"] == document_base.ElementType.Image)
@@ -246,6 +250,9 @@ def get_template_elements(elements: pd.DataFrame, page_num: int = None, include_
 
     if page_num:
         elements = elements.loc[elements.p_num == page_num]
+
+    if not vertical_elements:
+        elements = elements.loc[elements.mean_char_orientation != 90]
 
     return elements
 

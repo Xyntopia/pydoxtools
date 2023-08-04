@@ -60,6 +60,8 @@ class DocumentElement:
     rawtext: str | None = None
     text: str | None = None
     sections: list[str] | None = None
+    char_orientations: list[float] | None = None
+    mean_char_orientation: float | None = None
     font_infos: set[Font] | None = None
     linenum: int | None = None
     linewidth: float | None = None

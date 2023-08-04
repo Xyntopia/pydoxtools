@@ -14,6 +14,7 @@ from __future__ import annotations  # this is so, that we can use python3.10 ann
 import functools
 import io
 import logging
+import math
 import typing
 from io import StringIO
 from pathlib import Path
@@ -248,6 +249,8 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
         to better textbox algorithms
         """
 
+        raise NotImplementedError("This needs some work...")
+
         # read the docs here:   https://euske.github.io/pdfminer/programming.html#overview
         output_string = StringIO()
         with open('samples/simple1.pdf', 'rb') as in_file:
@@ -339,6 +342,7 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
                     # linetext = ""
                     for linenum, text_line in enumerate(element):
                         fontset = set()
+                        char_orientations = []
                         # TODO: this could be moved somewhere else and probably be made more efficient
                         for character in text_line:
                             if isinstance(character, LTChar):
@@ -346,6 +350,9 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
                                     character.fontname, character.size,
                                     str(character.graphicstate.ncolor))
                                 fontset.add(charfont)
+                                rotation = math.atan2(character.matrix[1], character.matrix[0])
+                                char_orientations.append(math.degrees(rotation))
+                                mean_char_orientation = np.mean(char_orientations)
                             elif isinstance(character, LTAnno):
                                 continue
                             else:  # couldbe LTAnno,
@@ -358,6 +365,8 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
                         # which extracts the information directly from the LTTextLine object
                         docelement = document_base.DocumentElement(
                             type=document_base.ElementType.Text,
+                            char_orientations=char_orientations,
+                            mean_char_orientation=mean_char_orientation,
                             lineobj=text_line,
                             rawtext=linetext,
                             font_infos=fontset,
