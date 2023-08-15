@@ -66,7 +66,6 @@ class DocumentElement:
     linenum: int | None = None
     linewidth: float | None = None
     boxnum: int | None = None
-    lineobj: Any | None = None
     obj: Any | None = None
     non_stroking_color: str | None = None
     stroking_color: str | None = None

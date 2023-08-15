@@ -190,7 +190,7 @@ class TitleExtractor(pydoxtools.operators_base.Operator):
         dfl = dfl.loc[dfl.text.str.len() > 0].copy()
         dfl['length'] = dfl.text.str.len()
         dfl['wordcount'] = dfl.text.str.split().apply(len)
-        dfl['vertical'] = dfl.lineobj.apply(lambda x: isinstance(x, LTTextLineVertical))
+        dfl['vertical'] = dfl.obj.apply(lambda x: isinstance(x, LTTextLineVertical))
 
         dfl = dfl.join(pd.get_dummies(dfl.font, prefix="font"))
         dfl = dfl.join(pd.get_dummies(dfl.font, prefix="color"))
@@ -294,11 +294,11 @@ def get_area_context(
     return table_context
 
 
-class PageTemplateGenerator(pydoxtools.operators_base.Operator):
-    def __call__(self, elements: pd.DataFrame, valid_tables) -> dict[str, dict[int, str]]:
-        # remove all tables from elements and insert a placeholder so that
-        # we can more easily query the page with LLMs
+class DocumentObjects(pydoxtools.operators_base.Operator):
+    def __init__(self):
+        super().__init__()
 
+    def __call__(self, valid_tables, elements: pd.DataFrame):
         elements = get_template_elements(elements, include_image=False)
 
         table_elements = []
@@ -332,9 +332,18 @@ class PageTemplateGenerator(pydoxtools.operators_base.Operator):
             table_box = pd.Series(table.bbox, index=["x0", "y0", "x1", "y1"])
             table_box["rawtext"] = ""
             table_box["type"] = document_base.ElementType.Table
+            table_box["obj"] = table
             table_box["p_num"] = p
             table_box["text"] = f"------------\n{{Table{table_num}}}\n------------"
             table_elements.append(table_box)
+
+        return table_elements
+
+
+class PageTemplateGenerator(pydoxtools.operators_base.Operator):
+    def __call__(self, elements: pd.DataFrame, valid_tables) -> dict[str, dict[int, str]]:
+        # remove all tables from elements and insert a placeholder so that
+        # we can more easily query the page with LLMs
 
         table_elements = pd.DataFrame(table_elements)
         # add table to our element list

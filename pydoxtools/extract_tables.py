@@ -132,9 +132,9 @@ def _get_cell_coordinates(cell_edges, table_lines, tol=5.0):
     return tc
 
 
-def _LTObj2Chars(df_le) -> pd.DataFrame:
+def _LTObj2Chars(df_le: pd.DataFrame) -> pd.DataFrame:
     chars = []
-    for text_line in df_le.lineobj.values:
+    for text_line in df_le.obj.values:
         for character in text_line:
             if isinstance(character, LTChar):
                 chars.append(character)

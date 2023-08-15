@@ -367,7 +367,7 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
                             type=document_base.ElementType.Text,
                             char_orientations=char_orientations,
                             mean_char_orientation=mean_char_orientation,
-                            lineobj=text_line,
+                            obj=text_line,
                             rawtext=linetext,
                             font_infos=fontset,
                             p_num=page_num,
