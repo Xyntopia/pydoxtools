@@ -159,6 +159,175 @@ def calculate_a_d_ratio(ft: str) -> float:
     return ratio
 
 
+# nodes which help to extract the structure of a document
+DocumentStructureNodes = [
+    #FunctionOperator().input()
+]
+
+ClassifierNodes = [
+    TextBlockClassifier()
+    .input("text_box_elements").out("addresses").cache(),
+    PageClassifier()
+    .input("page_templates").out("page_classifier").cache(),
+]
+
+MetaDataNodes = [
+    ## calculate some metadata values
+    FunctionOperator(lambda full_text: 1 + (len(full_text) // 1000))
+    .input("full_text").out("num_pages").cache().t(int),
+    FunctionOperator(lambda clean_text: len(clean_text.split()))
+    .input("clean_text").out("num_words").cache().t(int),
+    FunctionOperator(lambda spacy_sents: len(spacy_sents))
+    .input("spacy_sents").out("num_sents").no_cache().t(int)
+    .docs("number of sentences"),
+    FunctionOperator(calculate_a_d_ratio)
+    .input(ft="full_text").out("a_d_ratio").cache()
+    .docs("Letter/digit ratio of the text"),
+    FunctionOperator(
+        lambda full_text: langdetect.detect(full_text)
+    ).input("full_text").out("language").cache()
+    .default("unknown").docs(
+        "Detect language of a document, return 'unknown' in case of an error")
+]
+
+PDFNodes = [
+    PDFFileLoader()
+    .input(fobj="raw_content", page_numbers="_page_numbers", max_pages="_max_pages")
+    .out("pages_bbox", "elements", meta="meta_pdf", pages="page_set").cache().docs(),
+    Configuration(image_dpi=72 * 3)
+    .docs("The dpi when rendering the document."
+          " The standard image generation resolution is set to 216 dpi for pdfs"
+          " as we want to have sufficient DPI for downstram OCR tasks (e.g."
+          " table extraction)"),
+    PDFImageRenderer()
+    .input(fobj="raw_content", dpi="image_dpi", page_numbers="page_set")
+    .out("images").cache(),
+    FunctionOperator(lambda pages: len(pages)).t(int)
+    .input(pages="page_set").out("num_pages").cache(),
+    # TODO: move these filters etc... into a generalized text-structure pipeline!
+    #  we are converting pandoc elements into the same thing
+    #  anyways!!
+    DocumentElementFilter(element_type=ElementType.Text)
+    .input("elements").out("line_elements").cache(),
+    DocumentElementFilter(element_type=ElementType.Graphic)
+    .input("elements").out("graphic_elements").cache(),
+    DocumentElementFilter(element_type=ElementType.Image)
+    .input("elements").out("image_elements").cache(),
+
+    extract_textstructure.PageTemplateGenerator()
+    .input("elements", "valid_tables").out("page_templates").cache(allow_disk_cache=True)
+    .docs("generates a text page with table & figure hints"),
+    #########  TABLE STUFF ##############
+    ListExtractor().cache()
+    .input("line_elements").out("lists"),
+    TableCandidateAreasExtractor()
+    .input("graphic_elements", "line_elements", "pages_bbox", "text_box_elements", "filename")
+    .out("table_candidates", box_levels="table_box_levels").cache(),
+    FunctionOperator(lambda x: [t for t in x if t.is_valid])
+    .input(x="table_candidates").out("valid_tables"),
+    FunctionOperator(lambda x: [t.df for t in x])
+    .input(x="valid_tables").out("table_df0").cache(allow_disk_cache=True)
+    .t(table_df0=list[pd.DataFrame])
+    .docs("Filter valid tables from table candidates by looking if meaningful values can be extracted"),
+    FunctionOperator(lambda x: pd.DataFrame([t.bbox for t in x], columns=["x0", "y0", "x1", "y1"]))
+    .input(x="valid_tables").out("table_areas").cache()
+    .t(table_areas=list[np.ndarray])
+    .docs("Areas of all detected tables"),
+    FunctionOperator[list[pd.DataFrame]](lambda table_df0, lists: table_df0 + ([] if lists.empty else [lists]))
+    .cache().input("table_df0", "lists").out("tables_df").cache(),
+    ############## END TABLE STUFF ##############
+    # FunctionOperator()
+    # .pipe()
+    FunctionOperator(text_boxes_from_elements)
+    .input("line_elements").out("text_box_elements").cache(),
+    FunctionOperator[list[str]](lambda df: df.get("text", None).to_list())
+    .input(df="text_box_elements").out("text_box_list").cache(),
+    FunctionOperator(lambda tb: "\n\n".join(tb)).t(str)
+    .input(tb="text_box_list").out("full_text").cache(),
+    TitleExtractor()
+    .input("line_elements").out("titles", "side_titles").cache(),
+    LanguageExtractor().cache()
+    .input(text="full_text").out("language").cache()
+]
+
+HTMLNodes = [
+    HtmlExtractor()
+    .input(raw_html="raw_content", url="source")
+    .out("main_content_clean_html", "summary", "language", "goose_article",
+         "main_content", "schemadata", "final_urls", "pdf_links", "title",
+         "short_title", "url", tables="tables_df", html_keywords="html_keywords_str").cache(),
+    FunctionOperator(lambda article: article.links)
+    .input(article="goose_article").out("urls").cache(),
+    FunctionOperator(lambda article: article.top_image)
+    .input(article="goose_article").out("main_image").cache(),
+    Alias(full_text="main_content").t(str),
+    FunctionOperator(lambda x: pd.DataFrame(get_text_only_blocks(x), columns=["text"])).cache()
+    .input(x="raw_content").out("text_box_elements"),
+    FunctionOperator(lambda t, s: [t, s])
+    .input(t="title", s="short_title").out("titles").cache(),
+    FunctionOperator(lambda x: {w.strip() for w in x.split(",")})
+    .input(x="html_keywords_str").out("html_keywords").cache(),
+
+    ########### AGGREGATION ##############
+    FunctionOperator(lambda **kwargs: set(list_utils.flatten(kwargs.values())))
+    .input("html_keywords", "textrank_keywords").out("keywords").cache(),
+]
+
+# can handle a lot of different input formats
+PandocNodes = [
+    PandocLoader()
+    .input(raw_content="raw_content", document_type="document_type")
+    .out("pandoc_document").cache(),
+    Configuration(full_text_format="markdown"),
+    PandocConverter()
+    .input(output_format="full_text_format", pandoc_document="pandoc_document")
+    .out("full_text").t(str).cache(),
+    FunctionOperator(lambda x: lambda o: PandocConverter()(x, output_format=o))
+    .input(x="pandoc_document").out("convert_to").cache(),
+    Constant(clean_format="plain"),
+    PandocToPdxConverter()
+    .input("pandoc_document").out("text_box_elements").cache().docs(
+        "split a pandoc document into text elements."),
+    SectionsExtractor()
+    .input(df="text_box_elements").out("sections").cache(),
+    PandocConverter()  # clean for downstram processing tasks
+    .input(output_format="clean_format", pandoc_document="pandoc_document")
+    .out("clean_text").cache().docs(
+        "for some downstream tasks, it is better to have pure text, without any sructural elements in it"),
+    PandocBlocks()
+    .input(pandoc_document="pandoc_document").out("pandoc_blocks").cache(),
+    PandocOperator(method="headers")
+    .input(pandoc_blocks="pandoc_blocks").out("headers").cache(),
+    PandocOperator(method="tables_df")
+    .input(pandoc_blocks="pandoc_blocks").out("tables_df").cache(),
+    PandocOperator(method="lists")
+    .input(pandoc_blocks="pandoc_blocks").out("lists").cache()
+]
+
+ImageNodes = [
+    # add a "base-document" type (.pdf) images get converted into pdfs
+    # and then further processed from there
+    "application/pdf",  # as we are extracting a pdf we would like to use the pdf functions...
+    Configuration(ocr_lang="auto", ocr_on=True),
+    FunctionOperator(lambda x: dict(images={0: x})).input(x="_fobj")
+    .out("images").no_cache(),
+    OCRExtractor()
+    .input("ocr_on", "ocr_lang", file="raw_content")
+    .out("ocr_pdf_file").cache(),
+    # we need to do overwrite the pdf loading for images we inherited from
+    # the ".pdf" logic as we are
+    # now taking the pdf from a different variable
+    PDFFileLoader()
+    .input(fobj="ocr_pdf_file")
+    .out("pages_bbox", "elements", meta="meta_pdf", pages="page_set")
+    .cache(),
+    TableCandidateAreasExtractor(method="images")
+    .input("graphic_elements", "line_elements", "pages_bbox", "text_box_elements", "filename",
+           "images")
+    .out("table_candidates").cache(),
+]
+
+
 class Document(Pipeline):
     """Basic document pipeline class to analyze documents from all kinds of formats.
 
@@ -259,90 +428,13 @@ operations and include the documentation there. Lambda functions should not be u
           gets overwritten
     """
 
-    # TODO: rename extractors to operators
+    # compose a list of operators into a dynamic pipeline which changes
+    # depending on the file type
     _operators = {
         # .pdf
-        "application/pdf": [
-            PDFFileLoader()
-            .input(fobj="raw_content", page_numbers="_page_numbers", max_pages="_max_pages")
-            .out("pages_bbox", "elements", meta="meta_pdf", pages="page_set").cache().docs(),
-            Configuration(image_dpi=72 * 3)
-            .docs("The dpi when rendering the document."
-                  " The standard image generation resolution is set to 216 dpi for pdfs"
-                  " as we want to have sufficient DPI for downstram OCR tasks (e.g."
-                  " table extraction)"),
-            PDFImageRenderer()
-            .input(fobj="raw_content", dpi="image_dpi", page_numbers="page_set")
-            .out("images").cache(),
-            FunctionOperator(lambda pages: len(pages)).t(int)
-            .input(pages="page_set").out("num_pages").cache(),
-            # TODO: move these filters etc... into a generalized text-structure pipeline!
-            #  we are converting pandoc elements into the same thing
-            #  anyways!!
-            DocumentElementFilter(element_type=ElementType.Text)
-            .input("elements").out("line_elements").cache(),
-            DocumentElementFilter(element_type=ElementType.Graphic)
-            .input("elements").out("graphic_elements").cache(),
-            DocumentElementFilter(element_type=ElementType.Image)
-            .input("elements").out("image_elements").cache(),
-            extract_textstructure.PageTemplateGenerator()
-            .input("elements", "valid_tables").out("page_templates").cache(allow_disk_cache=True)
-            .docs("generates a text page with table & figure hints"),
-            #########  TABLE STUFF ##############
-            ListExtractor().cache()
-            .input("line_elements").out("lists"),
-            TableCandidateAreasExtractor()
-            .input("graphic_elements", "line_elements", "pages_bbox", "text_box_elements", "filename")
-            .out("table_candidates", box_levels="table_box_levels").cache(),
-            FunctionOperator(lambda x: [t for t in x if t.is_valid])
-            .input(x="table_candidates").out("valid_tables"),
-            FunctionOperator(lambda x: [t.df for t in x])
-            .input(x="valid_tables").out("table_df0").cache(allow_disk_cache=True)
-            .t(table_df0=list[pd.DataFrame])
-            .docs("Filter valid tables from table candidates by looking if meaningful values can be extracted"),
-            FunctionOperator(lambda x: pd.DataFrame([t.bbox for t in x], columns=["x0", "y0", "x1", "y1"]))
-            .input(x="valid_tables").out("table_areas").cache()
-            .t(table_areas=list[np.ndarray])
-            .docs("Areas of all detected tables"),
-            FunctionOperator[list[pd.DataFrame]](lambda table_df0, lists: table_df0 + ([] if lists.empty else [lists]))
-            .cache().input("table_df0", "lists").out("tables_df").cache(),
-            ############## END TABLE STUFF ##############
-            # FunctionOperator()
-            # .pipe()
-            FunctionOperator(text_boxes_from_elements)
-            .input("line_elements").out("text_box_elements").cache(),
-            FunctionOperator[list[str]](lambda df: df.get("text", None).to_list())
-            .input(df="text_box_elements").out("text_box_list").cache(),
-            FunctionOperator(lambda tb: "\n\n".join(tb)).t(str)
-            .input(tb="text_box_list").out("full_text").cache(),
-            TitleExtractor()
-            .input("line_elements").out("titles", "side_titles").cache(),
-            LanguageExtractor().cache()
-            .input(text="full_text").out("language").cache()
-        ],
+        "application/pdf": PDFNodes,
         # .html
-        "text/html": [
-            HtmlExtractor()
-            .input(raw_html="raw_content", url="source")
-            .out("main_content_clean_html", "summary", "language", "goose_article",
-                 "main_content", "schemadata", "final_urls", "pdf_links", "title",
-                 "short_title", "url", tables="tables_df", html_keywords="html_keywords_str").cache(),
-            FunctionOperator(lambda article: article.links)
-            .input(article="goose_article").out("urls").cache(),
-            FunctionOperator(lambda article: article.top_image)
-            .input(article="goose_article").out("main_image").cache(),
-            Alias(full_text="main_content").t(str),
-            FunctionOperator(lambda x: pd.DataFrame(get_text_only_blocks(x), columns=["text"])).cache()
-            .input(x="raw_content").out("text_box_elements"),
-            FunctionOperator(lambda t, s: [t, s])
-            .input(t="title", s="short_title").out("titles").cache(),
-            FunctionOperator(lambda x: {w.strip() for w in x.split(",")})
-            .input(x="html_keywords_str").out("html_keywords").cache(),
-
-            ########### AGGREGATION ##############
-            FunctionOperator(lambda **kwargs: set(list_utils.flatten(kwargs.values())))
-            .input("html_keywords", "textrank_keywords").out("keywords").cache(),
-        ],
+        "text/html": HTMLNodes,
         # docx
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ["pandoc"],
         # odt
@@ -356,58 +448,9 @@ operations and include the documentation there. Lambda functions should not be u
         # wikipedia data dump
         "mediawiki": ["pandoc"],
         # pandoc document conversion pipeline
-        "pandoc": [
-            PandocLoader()
-            .input(raw_content="raw_content", document_type="document_type")
-            .out("pandoc_document").cache(),
-            Configuration(full_text_format="markdown"),
-            PandocConverter()
-            .input(output_format="full_text_format", pandoc_document="pandoc_document")
-            .out("full_text").t(str).cache(),
-            FunctionOperator(lambda x: lambda o: PandocConverter()(x, output_format=o))
-            .input(x="pandoc_document").out("convert_to").cache(),
-            Constant(clean_format="plain"),
-            PandocToPdxConverter()
-            .input("pandoc_document").out("text_box_elements").cache().docs(
-                "split a pandoc document into text elements."),
-            SectionsExtractor()
-            .input(df="text_box_elements").out("sections").cache(),
-            PandocConverter()  # clean for downstram processing tasks
-            .input(output_format="clean_format", pandoc_document="pandoc_document")
-            .out("clean_text").cache().docs(
-                "for some downstream tasks, it is better to have pure text, without any sructural elements in it"),
-            PandocBlocks()
-            .input(pandoc_document="pandoc_document").out("pandoc_blocks").cache(),
-            PandocOperator(method="headers")
-            .input(pandoc_blocks="pandoc_blocks").out("headers").cache(),
-            PandocOperator(method="tables_df")
-            .input(pandoc_blocks="pandoc_blocks").out("tables_df").cache(),
-            PandocOperator(method="lists")
-            .input(pandoc_blocks="pandoc_blocks").out("lists").cache()
-        ],
+        "pandoc": PandocNodes,
         # standard image pipeline
-        "image": [
-            # add a "base-document" type (.pdf) images get converted into pdfs
-            # and then further processed from there
-            "application/pdf",  # as we are extracting a pdf we would like to use the pdf functions...
-            Configuration(ocr_lang="auto", ocr_on=True),
-            FunctionOperator(lambda x: dict(images={0: x})).input(x="_fobj")
-            .out("images").no_cache(),
-            OCRExtractor()
-            .input("ocr_on", "ocr_lang", file="raw_content")
-            .out("ocr_pdf_file").cache(),
-            # we need to do overwrite the pdf loading for images we inherited from
-            # the ".pdf" logic as we are
-            # now taking the pdf from a different variable
-            PDFFileLoader()
-            .input(fobj="ocr_pdf_file")
-            .out("pages_bbox", "elements", meta="meta_pdf", pages="page_set")
-            .cache(),
-            TableCandidateAreasExtractor(method="images")
-            .input("graphic_elements", "line_elements", "pages_bbox", "text_box_elements", "filename",
-                   "images")
-            .out("table_candidates").cache(),
-        ],
+        "image": ImageNodes,
         # the first base doc types have priority over the last ones
         # so here .png > image > .pdf
         'image/png': ["image", "application/pdf"],
@@ -493,27 +536,9 @@ operations and include the documentation there. Lambda functions should not be u
             .input("tables_df").out("tables_dict").t(list[dict])
             .docs("List of Table"),
             Alias(tables="tables_dict"),
-            TextBlockClassifier()
-            .input("text_box_elements").out("addresses").cache(),
-            PageClassifier()
-            .input("page_templates").out("page_classifier").cache(),
-
-            ## calculate some metadata values
-            FunctionOperator(lambda full_text: 1 + (len(full_text) // 1000))
-            .input("full_text").out("num_pages").cache().t(int),
-            FunctionOperator(lambda clean_text: len(clean_text.split()))
-            .input("clean_text").out("num_words").cache().t(int),
-            FunctionOperator(lambda spacy_sents: len(spacy_sents))
-            .input("spacy_sents").out("num_sents").no_cache().t(int)
-            .docs("number of sentences"),
-            FunctionOperator(calculate_a_d_ratio)
-            .input(ft="full_text").out("a_d_ratio").cache()
-            .docs("Letter/digit ratio of the text"),
-            FunctionOperator(
-                lambda full_text: langdetect.detect(full_text)
-            ).input("full_text").out("language").cache()
-            .default("unknown").docs(
-                "Detect language of a document, return 'unknown' in case of an error"),
+            *ClassifierNodes,
+            *MetaDataNodes,
+            *DocumentStructureNodes,
 
             #########  SPACY WRAPPERS  #############
             Configuration(spacy_model_size="md", spacy_model="auto"),
