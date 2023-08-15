@@ -2,7 +2,7 @@ from __future__ import annotations  # this is so, that we can use python3.10 ann
 
 import operator
 import typing
-from dataclasses import asdict
+from dataclasses import asdict, fields
 
 import numpy as np
 import pandas as pd
@@ -87,7 +87,7 @@ def group_elements(elements: pd.DataFrame, by: list[str], agg: str):
         bg = group.agg(
             x0=("x0", "min"), y0=("y0", "min"),
             x1=("x1", "max"), y1=("y1", "max"),
-            tmp_text=("lineobj",
+            tmp_text=("obj",
                       lambda x: "".join(_line2txt(obj, size_hints=False) if obj else "" for obj in x.values)),
             text=("rawtext", "sum")
         )
@@ -113,6 +113,8 @@ def group_elements(elements: pd.DataFrame, by: list[str], agg: str):
 
 def text_boxes_from_elements(line_elements: pd.DataFrame) -> dict[str, pd.DataFrame | None]:
     """
+    # TODO: get rid of this function.... too many levels
+
     create textboxes and create bounding boxes and aggregated text from
     a pandas dataframe with textlines.
     returns a list of textboxes together wth some coordinate data and
@@ -197,7 +199,7 @@ class TitleExtractor(pydoxtools.operators_base.Operator):
 
         features = set(dfl.columns) - {'obj', 'linewidth', 'non_stroking_color', 'stroking_color', 'stroke',
                                        'fill', 'evenodd', 'type', 'text', 'font_infos', 'font', 'rawtext',
-                                       'lineobj', 'color', 'char_orientations'}
+                                       'color', 'char_orientations'}
 
         # detect outliers to isolate titles and other content from "normal"
         # content
@@ -298,7 +300,11 @@ class DocumentObjects(pydoxtools.operators_base.Operator):
     def __init__(self):
         super().__init__()
 
-    def __call__(self, valid_tables, elements: pd.DataFrame):
+    def __call__(
+            self,
+            valid_tables,
+            elements: pd.DataFrame
+    ):
         elements = get_template_elements(elements, include_image=False)
 
         table_elements = []
@@ -329,29 +335,39 @@ class DocumentObjects(pydoxtools.operators_base.Operator):
 
             # create a new "table-element"
             # table_box = pd.DataFrame(table.bbox.reshape(1,-1), columns=["x0","y0","x1","y1"])
-            table_box = pd.Series(table.bbox, index=["x0", "y0", "x1", "y1"])
-            table_box["rawtext"] = ""
-            table_box["type"] = document_base.ElementType.Table
-            table_box["obj"] = table
-            table_box["p_num"] = p
-            table_box["text"] = f"------------\n{{Table{table_num}}}\n------------"
+            x0, y0, x1, y1 = table.bbox
+            table_box = document_base.DocumentElement(
+                type=document_base.ElementType.Table,
+                x0=x0, y0=y0, x1=x1, y1=y1,
+                obj=table,
+                p_num=p,
+                place_holder_text=f"------------\n{{Table{table_num}}}\n------------"
+            )
             table_elements.append(table_box)
 
-        return table_elements
+        # now do textboxes
+        txtboxes = text_boxes_from_elements(elements)["text_box_elements"]
+        txtboxes = txtboxes.loc[txtboxes.text.str.len() > 1].reset_index()
+        docel_fields = {f.name for f in fields(document_base.DocumentElement)}
+        # make sure we only have rows that work in our dataclass
+        txtboxes = txtboxes.loc[:, txtboxes.columns.intersection(docel_fields)]
+
+        # filter textboxes for vertical lines...
+        objects = [document_base.DocumentElement(
+            type=document_base.ElementType.TextBox,
+            place_holder_text=f"TextBox{v.p_num}_{v.boxnum}",
+            **v
+        ) for idx, v in txtboxes.T.items()]
+        # txtboxes = pd.concat([txtboxes.reset_index(), table_elements],
+        #                     ignore_index=True).sort_values(by=["p_num", "y0"], ascending=[True, False])
+
+        return objects + table_elements
 
 
 class PageTemplateGenerator(pydoxtools.operators_base.Operator):
     def __call__(self, elements: pd.DataFrame, valid_tables) -> dict[str, dict[int, str]]:
         # remove all tables from elements and insert a placeholder so that
         # we can more easily query the page with LLMs
-
-        table_elements = pd.DataFrame(table_elements)
-        # add table to our element list
-        # TODO: move this into the pipeline itself...
-        txtboxes = text_boxes_from_elements(elements)["text_box_elements"]
-        txtboxes = txtboxes.loc[txtboxes.text.str.len() > 1]
-        txtboxes = pd.concat([txtboxes.reset_index(), table_elements],
-                             ignore_index=True).sort_values(by=["p_num", "y0"], ascending=[True, False])
 
         pages = txtboxes.p_num.unique()
         page_templates = {p: "\n\n".join(txtboxes[txtboxes.p_num == p].text) for p in pages}

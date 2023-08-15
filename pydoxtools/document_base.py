@@ -47,6 +47,7 @@ class ElementType(Enum):
     Text = 2
     Image = 3
     Table = 4
+    TextBox = 5
 
 
 @dataclass(**slot_args)
@@ -57,6 +58,7 @@ class DocumentElement:
     y0: float | None = None
     x1: float | None = None
     y1: float | None = None
+    place_holder_text: str | None = None
     rawtext: str | None = None
     text: str | None = None
     sections: list[str] | None = None
