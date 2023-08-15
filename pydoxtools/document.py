@@ -159,37 +159,6 @@ def calculate_a_d_ratio(ft: str) -> float:
     return ratio
 
 
-# nodes which help to extract the structure of a document
-DocumentStructureNodes = [
-    #FunctionOperator().input()
-]
-
-ClassifierNodes = [
-    TextBlockClassifier()
-    .input("text_box_elements").out("addresses").cache(),
-    PageClassifier()
-    .input("page_templates").out("page_classifier").cache(),
-]
-
-MetaDataNodes = [
-    ## calculate some metadata values
-    FunctionOperator(lambda full_text: 1 + (len(full_text) // 1000))
-    .input("full_text").out("num_pages").cache().t(int),
-    FunctionOperator(lambda clean_text: len(clean_text.split()))
-    .input("clean_text").out("num_words").cache().t(int),
-    FunctionOperator(lambda spacy_sents: len(spacy_sents))
-    .input("spacy_sents").out("num_sents").no_cache().t(int)
-    .docs("number of sentences"),
-    FunctionOperator(calculate_a_d_ratio)
-    .input(ft="full_text").out("a_d_ratio").cache()
-    .docs("Letter/digit ratio of the text"),
-    FunctionOperator(
-        lambda full_text: langdetect.detect(full_text)
-    ).input("full_text").out("language").cache()
-    .default("unknown").docs(
-        "Detect language of a document, return 'unknown' in case of an error")
-]
-
 PDFNodes = [
     PDFFileLoader()
     .input(fobj="raw_content", page_numbers="_page_numbers", max_pages="_max_pages")
@@ -214,9 +183,6 @@ PDFNodes = [
     DocumentElementFilter(element_type=ElementType.Image)
     .input("elements").out("image_elements").cache(),
 
-    extract_textstructure.PageTemplateGenerator()
-    .input("elements", "valid_tables").out("page_templates").cache(allow_disk_cache=True)
-    .docs("generates a text page with table & figure hints"),
     #########  TABLE STUFF ##############
     ListExtractor().cache()
     .input("line_elements").out("lists"),
@@ -304,7 +270,7 @@ PandocNodes = [
     .input(pandoc_blocks="pandoc_blocks").out("lists").cache()
 ]
 
-ImageNodes = [
+OCRNodes = [
     # add a "base-document" type (.pdf) images get converted into pdfs
     # and then further processed from there
     "application/pdf",  # as we are extracting a pdf we would like to use the pdf functions...
@@ -325,6 +291,252 @@ ImageNodes = [
     .input("graphic_elements", "line_elements", "pages_bbox", "text_box_elements", "filename",
            "images")
     .out("table_candidates").cache(),
+]
+
+# nodes which help to extract the structure of a document
+DocumentStructureNodes = [
+    extract_textstructure.PageTemplateGenerator()
+    .input("elements", "valid_tables").out("page_templates").cache(allow_disk_cache=True)
+    .docs("generates a text page with table & figure hints"),
+]
+
+ClassifierNodes = [
+    TextBlockClassifier()
+    .input("text_box_elements").out("addresses").cache(),
+    PageClassifier()
+    .input("page_templates").out("page_classifier").cache(),
+]
+
+MetaDataNodes = [
+    ## calculate some metadata values
+    FunctionOperator(lambda full_text: 1 + (len(full_text) // 1000))
+    .input("full_text").out("num_pages").cache().t(int),
+    FunctionOperator(lambda clean_text: len(clean_text.split()))
+    .input("clean_text").out("num_words").cache().t(int),
+    FunctionOperator(lambda spacy_sents: len(spacy_sents))
+    .input("spacy_sents").out("num_sents").no_cache().t(int)
+    .docs("number of sentences"),
+    FunctionOperator(calculate_a_d_ratio)
+    .input(ft="full_text").out("a_d_ratio").cache()
+    .docs("Letter/digit ratio of the text"),
+    FunctionOperator(
+        lambda full_text: langdetect.detect(full_text)
+    ).input("full_text").out("language").cache()
+    .default("unknown").docs(
+        "Detect language of a document, return 'unknown' in case of an error")
+]
+
+SpacyNodes = [
+    Configuration(spacy_model_size="md", spacy_model="auto"),
+    SpacyOperator()
+    .input(
+        "language", "spacy_model",
+        full_text="full_text", model_size="spacy_model_size"
+    ).out(doc="spacy_doc", nlp="spacy_nlp").cache()
+    .docs("Spacy Document and Language Model for this document"),
+    FunctionOperator(extract_spacy_token_vecs)
+    .input("spacy_doc").out("spacy_vectors")
+    .docs("Vectors for all tokens calculated by spacy"),
+    FunctionOperator(get_spacy_embeddings)
+    .input("spacy_nlp").out("spacy_embeddings")
+    .docs("Embeddings calculated by a spacy transformer"),
+    FunctionOperator(lambda spacy_doc: list(spacy_doc.sents))
+    .input("spacy_doc").out("spacy_sents").t(list[str])
+    .docs("List of sentences by spacy nlp framework"),
+    FunctionOperator(extract_noun_chunks)
+    .input("spacy_doc").out("spacy_noun_chunks")
+    .docs("exracts nounchunks from spacy. Will not be cached because it is all"
+          "in the spacy doc already"),
+]
+
+KnowledgeGraphNodes = [
+    # TODO: combine entities with coreferences
+    EntityExtractor().cache()
+    .input("spacy_doc").out("entities").cache()
+    .docs("Extract entities from text"),
+    # TODO: try to implement as much as possible from the constants below for all documentypes
+    #       summary, urls, main_image, keywords, final_url, pdf_links, schemadata, tables_df
+    # TODO: implement summarizer based on textrank
+    Alias(url="source").docs("Url of this document"),
+    ExtractRelationships()
+    .input("spacy_doc").out("relationships").cache(),
+    Configuration(
+        coreference_method="fast",
+        graph_debug_context_size=0
+    ).docs("can be 'fast' or 'accurate'"),
+    CoreferenceResolution().input("spacy_doc", method="coreference_method")
+    .out("coreferences").cache(),
+    FunctionOperator(lambda x, t: build_relationships_graph(relationships=x, coreferences=t))
+    .input(x="relationships", t="coreferences").out("graph_nodes", "node_map", "graph_edges").cache(),
+    FunctionOperator(lambda gn, ge, sd, cts: nx_graph(
+        graph_nodes=gn, graph_edges=ge, spacy_doc=sd, graph_debug_context_size=cts))
+    .input(gn="graph_nodes", ge="graph_edges", sd="spacy_doc", cts="graph_debug_context_size")
+    .out("knowledge_graph").cache(),
+]
+
+VectorizationNodes = [
+    ########### VECTORIZATION (SPACY) ##########
+    Alias(sents="spacy_sents").docs("Sentences of this document"),
+    Alias(noun_chunks="spacy_noun_chunks").docs("Noun chunks of this documents"),
+
+    FunctionOperator(lambda x: x.vector)
+    .input(x="spacy_doc").out("vector").cache()
+    .docs("Embeddings from spacy"),
+    # TODO: make this configurable.. either we want
+    #       to use spacy for this or we would rather have a huggingface
+    #       model doing this...
+    FunctionOperator(
+        lambda x: dict(
+            sent_vecs=np.array([e.vector for e in x]),
+            sent_ids=list(range(len(x)))))
+    .input(x="sents").out("sent_vecs", "sent_ids").cache()
+    .docs("Vectors for sentences & sentence_ids"),
+    FunctionOperator(
+        lambda x: dict(
+            noun_vecs=np.array([e.vector for e in x]),
+            noun_ids=list(range(len(x)))))
+    .input(x="noun_chunks").out("noun_vecs", "noun_ids").cache()
+    .docs(
+        "Vectors for nouns and corresponding noun ids in order to find them in the spacy document"),
+
+    ########### VECTORIZATION (Huggingface) ##########
+    Alias(sents="spacy_sents"),
+    Alias(noun_chunks="spacy_noun_chunks"),
+    Configuration(
+        vectorizer_model="sentence-transformers/all-MiniLM-L6-v2",
+        vectorizer_only_tokenizer=False,
+        vectorizer_overlap_ratio=0.1
+    ).docs("Choose the embeddings model (huggingface-style) and if we want"
+           "to do the vectorization using only the tokenizer. Using only the"
+           "tokenizer is MUCH faster and uses lower CPU than creating actual"
+           "contextual embeddings using the model. BUt is also lower quality"
+           "because it lacks the context."),
+    FunctionOperator(
+        lambda m, t, o: lambda txt: nlp_utils.calculate_string_embeddings(
+            text=txt, model_id=m, only_tokenizer=t, overlap_ratio=o)[0].mean(0)
+    ).input(m="vectorizer_model", t="vectorizer_only_tokenizer", o="vectorizer_overlap_ratio")
+    .out("vectorizer").cache(),
+    FunctionOperator(
+        lambda x, m, t, o: nlp_utils.calculate_string_embeddings(
+            text=x, model_id=m, only_tokenizer=t, overlap_ratio=o)
+    ).input(x="full_text", m="vectorizer_model",
+            t="vectorizer_only_tokenizer", o="vectorizer_overlap_ratio")
+    .out("vec_res").cache()
+    .docs("Calculate context-based vectors for the entire text"),
+    FunctionOperator(lambda x: dict(emb=x[0], tok=x[1]))
+    .input(x="vec_res").out(emb="tok_embeddings", tok="tokens").no_cache()
+    .docs("Get the tokenized text"),
+    FunctionOperator[list[float]](lambda x: x.mean(0))
+    .input(x="tok_embeddings").out("embedding").cache()
+    .docs("Get an embedding for the entire text")
+]
+
+IndexNodes = [
+    ########### SEGMENT_INDEX ##########
+    Configuration(
+        min_size_text_segment=256,
+        max_size_text_segment=512,
+        text_segment_overlap=0.3,
+        max_text_segment_num=100,
+    ).docs("controls the text segmentation for knowledge bases"
+           "overlap is only relevant for large text segmenets that need to"
+           "be split up into smaller pieces."),
+    TextPieceSplitter()
+    .input(min_size="min_size_text_segment", max_size="max_size_text_segment",
+           large_segment_overlap="text_segment_overlap", full_text="full_text",
+           max_text_segment_num="max_text_segment_num")
+    .out("text_segments").cache(),
+    # TODO: we would like to have the context-based vectors so we should
+    #       calculate this "backwards" from the vectors for the entire text
+    #       and not for each individual segment...
+    ElementWiseOperator(calculate_string_embeddings, return_iterator=False)
+    .input(elements="text_segments",
+           model_id="vectorizer_model",
+           only_tokenizer="vectorizer_only_tokenizer")
+    .out("text_segment_vec_res").cache(),
+    FunctionOperator(lambda x: np.array([r[0].mean(0) for r in x]))
+    .input(x="text_segment_vec_res").out("text_segment_vecs").cache(),
+    FunctionOperator(lambda x: np.array(range(len(x)))).input(x="text_segments")
+    .out("text_segment_ids").cache(),
+    IndexExtractor()
+    .input(vecs="text_segment_vecs", ids="text_segment_ids").out("text_segment_index")
+    .cache(),
+    KnnQuery().input(index="text_segment_index", idx_values="text_segments",
+                     vectorizer="vectorizer")
+    .out("segment_query").cache(),
+
+    ########### NOUN_INDEX #############
+    IndexExtractor()
+    .input(vecs="noun_vecs", ids="noun_ids").out("noun_index").cache(),
+    FunctionOperator(lambda spacy_nlp: lambda x: spacy_nlp(x).vector)
+    .input("spacy_nlp").out("spacy_vectorizer").cache(),
+    KnnQuery().input(index="noun_index", idx_values="noun_chunks",
+                     vectorizer="spacy_vectorizer")
+    .out("noun_query").cache(),
+    SimilarityGraph().input(index_query_func="noun_query", source="noun_chunks")
+    .out("noun_graph").cache(),
+    Configuration(top_k_text_rank_keywords=5),
+    TextrankOperator()
+    .input(top_k="top_k_text_rank_keywords", G="noun_graph").out("textrank_keywords").cache(),
+    # TODO: we will probably get better keywords if we first get the most important sentences or
+    #       a summary and then exract keywords from there :).
+    Alias(keywords="textrank_keywords"),
+    ########### END NOUN_INDEX ###########
+
+    ########### SENTENCE_INDEX ###########
+    IndexExtractor()
+    .input(vecs="sent_vecs", ids="sent_ids").out("sent_index").cache(),
+    KnnQuery().input(index="sent_index", idx_values="spacy_sents",
+                     vectorizer="spacy_vectorizer")
+    .out("sent_query").cache(),
+    SimilarityGraph().input(index_query_func="sent_query", source="spacy_sents")
+    .out("sent_graph").cache(),
+    Configuration(top_k_text_rank_sentences=5),
+    TextrankOperator()
+    .input(top_k="top_k_text_rank_sentences", G="sent_graph").out("textrank_sents").cache(),
+]
+
+LLMNodes = [
+    ########### Huggingface Integration #######
+    Configuration(
+        summarizer_model="sshleifer/distilbart-cnn-12-6",
+        summarizer_token_overlap=50,
+        summarizer_max_text_len=200,
+    ),
+    # Configuration(summarizer_model="sshleifer/distilbart-cnn-12-6"),
+    # TODO: discover more "ad-hoc-use-cases" for this
+    # HuggingfacePipeline(pipeline="summarization")
+    # .pipe("property_dict", trf_model_id="summarizer_model").out("summary_func").cache(),
+    # FunctionOperator(lambda x, y: x(y))
+    # .pipe(x="summary_func", y="full_text").out("summary").cache(),
+    FunctionOperator(lambda x, m, to, ml: summarize_long_text(
+        x, m, token_overlap=to, max_len=ml
+    )).input(
+        x="clean_text", m="summarizer_model",
+        to="summarizer_token_overlap",
+        ml="summarizer_max_text_len"
+    ).out("slow_summary").cache(),
+
+    ########### QaM machine #############
+    # TODO: make sure we can set the model that we want to use dynamically!
+    Configuration(qam_model_id='deepset/minilm-uncased-squad2'),
+    QamExtractor()
+    .input(property_dict="to_dict", trf_model_id="qam_model_id").out("answers").cache(),
+
+    ########### Chat AI ##################
+    Configuration(chat_model_id="gpt-3.5-turbo").docs(
+        "In order to use openai-chatgpt, you can use 'gpt-3.5-turbo'."
+        "The standard model that can be used right now is 'ggml-mpt-7b-chat' "
+        "which runs locally and can be used for commercial purposes"
+        "Additionally, we support gpt4all models. Currently available"
+        "models are: ggml-gpt4all-j-v1.3-groovy.bin, ggml-gpt4all-l13b-snoozy.bin, "
+        "ggml-mpt-7b-chat.bin, ggml-gpt4all-j-v1.2-jazzy.bin, ggml-gpt4all-j-v1.1-breezy.bin, "
+        "ggml-gpt4all-j.bin, ggml-vicuna-7b-1.1-q4_2.bin, ggml-vicuna-13b-1.1-q4_2.bin, "
+        "ggml-wizardLM-7B.q4_2.bin, ggml-stable-vicuna-13B.q4_2.bin, ggml-mpt-7b-base.bin, "
+        "ggml-nous-gpt4-vicuna-13b.bin, ggml-mpt-7b-instruct.bin, ggml-wizard-13b-uncensored.bin"
+    ),
+    LLMChat().input(property_dict="to_dict", model_id="chat_model_id")
+    .out("chat_answers").cache()
 ]
 
 
@@ -385,35 +597,69 @@ Inherited classes can override any part of the graph. To exchange, override, ext
 extraction pipelines for specific file types (including the generic one: "*"), such as *.html,
 *.pdf, *.txt, etc., follow the example below.
 
-TODO: provide more information on how to customize the pipeline and override the graph.
+### Rules for customizing the extraction pipeline:
 
-### Examples
+- The pipeline is defined as a dictionary of several lists of [pydoxtools.operator_base.Operator][operator]
+  nodes.
+- Each [pydoxtools.operator_base.Operator][] defines a set of output & input valus through
+  the `out` and `input` methods.
+  The `input` method takes a dictionary
+  or list of input values and the `out` method takes a dictionary or list of output values.
+- Operator nodes are configured through method chaining.
+- Arguments can be overwritten by a new pipeline in inherited
+  documents or document types higher up in the hierarchy. The argument precedence is as follows:
 
-The following is an example extension pipeline for an OCR extractor that converts images into
-text and supports file types: ".png", ".jpeg", ".jpg", ".tif", ".tiff":
+  ```
+  python-class-member < extractor-graph-function < configuration
+  ```
 
-```python
-"image": [
-        OCRExtractor()
-        .pipe(file="raw_content")
-        .out("ocr_pdf_file")
-        .cache(),
-    ],
-".png": ["image", ".pdf"],
-".jpeg": ["image", ".pdf"],
-".jpg": ["image", ".pdf"],
-".tif": ["image", ".pdf"],
-".tiff": ["image", ".pdf"],
-"*": [...]
-```
+- the different lists in the dictionary represent a "hierarchy" of pipelines which
+  can be combined in different ways by referencing each other. For example the "png" pipeline
+  references the "image" pipeline which in turn references the "pdf" pipeline. All pipelines
+  fall back to the "*" pipeline which is the most generic one.
 
-Each function (or node) in the extraction pipeline connects to other nodes in the pipeline
-through the "pipe" command. Arguments can be overwritten by a new pipeline in inherited
-documents or document types higher up in the hierarchy. The argument precedence is as follows:
+  The way this looks is like this:
 
-```
-python-class-member < extractor-graph-function < configuration
-```
+    _operators = {
+            # .pdf-specific pipeline
+            "application/pdf": [*PDFNodes],
+            # image specific pipeline (does OCR)
+            "image": [*OCRNodes],
+            # .png-specific pipeline
+            ".png": ["image", "application/pdf"],
+            # base pipeline
+            "*": [*BaseNodes],
+            }
+
+    Here, the "image" pipeline overwrites the "application/pdf" pipeline for .png files. The "application/pdf"
+    pipeline on the other hand overwrites the "*" pipeline for .pdf files. The "*" pipeline doesn't not need
+    to be specified, as it will always be the fallback pipeline. This way it is possible
+    to dynamically adapt a pipeline to different types of input data. In the document pipeline
+    this is used to dynamically adapt the pipeline to different file types.
+
+    When customizing, it is possible to derive a new class from [pydoxtools.Document][] and partially
+    overwrite its hierarchy for your purposes. For example, if you want to add a new pipeline for Component
+    extraction one could do something like the following: This will add a few more nodes
+    to the generic pipeline in order to extract product information from documents. This would
+    now already work for all the document types defined in the base [pydoxtools.Document][] class!
+
+    ```python
+    class DocumentX(pydoxtools.Document):
+    _operators = {
+        "*": [
+            FunctionOperator(get_products_from_pages).input("page_templates", pages="page_set")
+            .out(product_information="product_information").cache(),
+            FunctionOperator(lambda tables: [componardo.spec_utils.table2specs(t) for t in tables])
+            .input("tables").out("raw_specs")
+            .cache().t(list[componardo.spec_utils.Specification])
+            .docs("transform tables into a list of specs"),
+            FunctionOperator(lambda x: [ComponentExtractor([x]).component])
+            .t(componardo.extract_product.ComponentX)
+            .input(x="document_extract").out("products").cache()
+            .docs("Extract products from Documents"),
+        ]
+    }
+    ```
 
 When creating a new pipeline for documentation purposes, use a function or class for complex
 operations and include the documentation there. Lambda functions should not be used in this case.
@@ -450,7 +696,7 @@ operations and include the documentation there. Lambda functions should not be u
         # pandoc document conversion pipeline
         "pandoc": PandocNodes,
         # standard image pipeline
-        "image": ImageNodes,
+        "image": OCRNodes,
         # the first base doc types have priority over the last ones
         # so here .png > image > .pdf
         'image/png': ["image", "application/pdf"],
@@ -536,218 +782,15 @@ operations and include the documentation there. Lambda functions should not be u
             .input("tables_df").out("tables_dict").t(list[dict])
             .docs("List of Table"),
             Alias(tables="tables_dict"),
+
             *ClassifierNodes,
             *MetaDataNodes,
             *DocumentStructureNodes,
-
-            #########  SPACY WRAPPERS  #############
-            Configuration(spacy_model_size="md", spacy_model="auto"),
-            SpacyOperator()
-            .input(
-                "language", "spacy_model",
-                full_text="full_text", model_size="spacy_model_size"
-            ).out(doc="spacy_doc", nlp="spacy_nlp").cache()
-            .docs("Spacy Document and Language Model for this document"),
-            FunctionOperator(extract_spacy_token_vecs)
-            .input("spacy_doc").out("spacy_vectors")
-            .docs("Vectors for all tokens calculated by spacy"),
-            FunctionOperator(get_spacy_embeddings)
-            .input("spacy_nlp").out("spacy_embeddings")
-            .docs("Embeddings calculated by a spacy transformer"),
-            FunctionOperator(lambda spacy_doc: list(spacy_doc.sents))
-            .input("spacy_doc").out("spacy_sents").t(list[str])
-            .docs("List of sentences by spacy nlp framework"),
-            FunctionOperator(extract_noun_chunks)
-            .input("spacy_doc").out("spacy_noun_chunks")
-            .docs("exracts nounchunks from spacy. Will not be cached because it is all"
-                  "in the spacy doc already"),
-            ########## END OF SPACY ################
-
-            ########### KB extraction ###########
-
-            ExtractRelationships()
-            .input("spacy_doc").out("relationships").cache(),
-            Configuration(
-                coreference_method="fast",
-                graph_debug_context_size=0
-            ).docs("can be 'fast' or 'accurate'"),
-            CoreferenceResolution().input("spacy_doc", method="coreference_method")
-            .out("coreferences").cache(),
-            FunctionOperator(lambda x, t: build_relationships_graph(relationships=x, coreferences=t))
-            .input(x="relationships", t="coreferences").out("graph_nodes", "node_map", "graph_edges").cache(),
-            FunctionOperator(lambda gn, ge, sd, cts: nx_graph(
-                graph_nodes=gn, graph_edges=ge, spacy_doc=sd, graph_debug_context_size=cts))
-            .input(gn="graph_nodes", ge="graph_edges", sd="spacy_doc", cts="graph_debug_context_size")
-            .out("knowledge_graph").cache(),
-
-            ########### END OF KB extraction ###########
-
-            EntityExtractor().cache()
-            .input("spacy_doc").out("entities").cache()
-            .docs("Extract entities from text"),
-            # TODO: try to implement as much as possible from the constants below for all documentypes
-            #       summary, urls, main_image, keywords, final_url, pdf_links, schemadata, tables_df
-            # TODO: implement summarizer based on textrank
-            Alias(url="source").docs("Url of this document"),
-
-            ########### VECTORIZATION (SPACY) ##########
-            Alias(sents="spacy_sents").docs("Sentences of this document"),
-            Alias(noun_chunks="spacy_noun_chunks").docs("Noun chunks of this documents"),
-
-            FunctionOperator(lambda x: x.vector)
-            .input(x="spacy_doc").out("vector").cache()
-            .docs("Embeddings from spacy"),
-            # TODO: make this configurable.. either we want
-            #       to use spacy for this or we would rather have a huggingface
-            #       model doing this...
-            FunctionOperator(
-                lambda x: dict(
-                    sent_vecs=np.array([e.vector for e in x]),
-                    sent_ids=list(range(len(x)))))
-            .input(x="sents").out("sent_vecs", "sent_ids").cache()
-            .docs("Vectors for sentences & sentence_ids"),
-            FunctionOperator(
-                lambda x: dict(
-                    noun_vecs=np.array([e.vector for e in x]),
-                    noun_ids=list(range(len(x)))))
-            .input(x="noun_chunks").out("noun_vecs", "noun_ids").cache()
-            .docs(
-                "Vectors for nouns and corresponding noun ids in order to find them in the spacy document"),
-
-            ########### VECTORIZATION (Huggingface) ##########
-            Alias(sents="spacy_sents"),
-            Alias(noun_chunks="spacy_noun_chunks"),
-            Configuration(
-                vectorizer_model="sentence-transformers/all-MiniLM-L6-v2",
-                vectorizer_only_tokenizer=False,
-                vectorizer_overlap_ratio=0.1
-            ).docs("Choose the embeddings model (huggingface-style) and if we want"
-                   "to do the vectorization using only the tokenizer. Using only the"
-                   "tokenizer is MUCH faster and uses lower CPU than creating actual"
-                   "contextual embeddings using the model. BUt is also lower quality"
-                   "because it lacks the context."),
-            FunctionOperator(
-                lambda m, t, o: lambda txt: nlp_utils.calculate_string_embeddings(
-                    text=txt, model_id=m, only_tokenizer=t, overlap_ratio=o)[0].mean(0)
-            ).input(m="vectorizer_model", t="vectorizer_only_tokenizer", o="vectorizer_overlap_ratio")
-            .out("vectorizer").cache(),
-            FunctionOperator(
-                lambda x, m, t, o: nlp_utils.calculate_string_embeddings(
-                    text=x, model_id=m, only_tokenizer=t, overlap_ratio=o)
-            ).input(x="full_text", m="vectorizer_model",
-                    t="vectorizer_only_tokenizer", o="vectorizer_overlap_ratio")
-            .out("vec_res").cache()
-            .docs("Calculate context-based vectors for the entire text"),
-            FunctionOperator(lambda x: dict(emb=x[0], tok=x[1]))
-            .input(x="vec_res").out(emb="tok_embeddings", tok="tokens").no_cache()
-            .docs("Get the tokenized text"),
-            FunctionOperator[list[float]](lambda x: x.mean(0))
-            .input(x="tok_embeddings").out("embedding").cache()
-            .docs("Get an embedding for the entire text"),
-
-            ########### SEGMENT_INDEX ##########
-            Configuration(
-                min_size_text_segment=256,
-                max_size_text_segment=512,
-                text_segment_overlap=0.3,
-                max_text_segment_num=100,
-            ).docs("controls the text segmentation for knowledge bases"
-                   "overlap is only relevant for large text segmenets that need to"
-                   "be split up into smaller pieces."),
-            TextPieceSplitter()
-            .input(min_size="min_size_text_segment", max_size="max_size_text_segment",
-                   large_segment_overlap="text_segment_overlap", full_text="full_text",
-                   max_text_segment_num="max_text_segment_num")
-            .out("text_segments").cache(),
-            # TODO: we would like to have the context-based vectors so we should
-            #       calculate this "backwards" from the vectors for the entire text
-            #       and not for each individual segment...
-            ElementWiseOperator(calculate_string_embeddings, return_iterator=False)
-            .input(elements="text_segments",
-                   model_id="vectorizer_model",
-                   only_tokenizer="vectorizer_only_tokenizer")
-            .out("text_segment_vec_res").cache(),
-            FunctionOperator(lambda x: np.array([r[0].mean(0) for r in x]))
-            .input(x="text_segment_vec_res").out("text_segment_vecs").cache(),
-            FunctionOperator(lambda x: np.array(range(len(x)))).input(x="text_segments")
-            .out("text_segment_ids").cache(),
-            IndexExtractor()
-            .input(vecs="text_segment_vecs", ids="text_segment_ids").out("text_segment_index")
-            .cache(),
-            KnnQuery().input(index="text_segment_index", idx_values="text_segments",
-                             vectorizer="vectorizer")
-            .out("segment_query").cache(),
-
-            ########### NOUN_INDEX #############
-            IndexExtractor()
-            .input(vecs="noun_vecs", ids="noun_ids").out("noun_index").cache(),
-            FunctionOperator(lambda spacy_nlp: lambda x: spacy_nlp(x).vector)
-            .input("spacy_nlp").out("spacy_vectorizer").cache(),
-            KnnQuery().input(index="noun_index", idx_values="noun_chunks",
-                             vectorizer="spacy_vectorizer")
-            .out("noun_query").cache(),
-            SimilarityGraph().input(index_query_func="noun_query", source="noun_chunks")
-            .out("noun_graph").cache(),
-            Configuration(top_k_text_rank_keywords=5),
-            TextrankOperator()
-            .input(top_k="top_k_text_rank_keywords", G="noun_graph").out("textrank_keywords").cache(),
-            # TODO: we will probably get better keywords if we first get the most important sentences or
-            #       a summary and then exract keywords from there :).
-            Alias(keywords="textrank_keywords"),
-            ########### END NOUN_INDEX ###########
-
-            ########### SENTENCE_INDEX ###########
-            IndexExtractor()
-            .input(vecs="sent_vecs", ids="sent_ids").out("sent_index").cache(),
-            KnnQuery().input(index="sent_index", idx_values="spacy_sents",
-                             vectorizer="spacy_vectorizer")
-            .out("sent_query").cache(),
-            SimilarityGraph().input(index_query_func="sent_query", source="spacy_sents")
-            .out("sent_graph").cache(),
-            Configuration(top_k_text_rank_sentences=5),
-            TextrankOperator()
-            .input(top_k="top_k_text_rank_sentences", G="sent_graph").out("textrank_sents").cache(),
-
-            ########### Huggingface Integration #######
-            Configuration(
-                summarizer_model="sshleifer/distilbart-cnn-12-6",
-                summarizer_token_overlap=50,
-                summarizer_max_text_len=200,
-            ),
-            # Configuration(summarizer_model="sshleifer/distilbart-cnn-12-6"),
-            # TODO: discover more "ad-hoc-use-cases" for this
-            # HuggingfacePipeline(pipeline="summarization")
-            # .pipe("property_dict", trf_model_id="summarizer_model").out("summary_func").cache(),
-            # FunctionOperator(lambda x, y: x(y))
-            # .pipe(x="summary_func", y="full_text").out("summary").cache(),
-            FunctionOperator(lambda x, m, to, ml: summarize_long_text(
-                x, m, token_overlap=to, max_len=ml
-            )).input(
-                x="clean_text", m="summarizer_model",
-                to="summarizer_token_overlap",
-                ml="summarizer_max_text_len"
-            ).out("slow_summary").cache(),
-
-            ########### QaM machine #############
-            # TODO: make sure we can set the model that we want to use dynamically!
-            Configuration(qam_model_id='deepset/minilm-uncased-squad2'),
-            QamExtractor()
-            .input(property_dict="to_dict", trf_model_id="qam_model_id").out("answers").cache(),
-
-            ########### Chat AI ##################
-            Configuration(chat_model_id="gpt-3.5-turbo").docs(
-                "In order to use openai-chatgpt, you can use 'gpt-3.5-turbo'."
-                "The standard model that can be used right now is 'ggml-mpt-7b-chat' "
-                "which runs locally and can be used for commercial purposes"
-                "Additionally, we support gpt4all models. Currently available"
-                "models are: ggml-gpt4all-j-v1.3-groovy.bin, ggml-gpt4all-l13b-snoozy.bin, "
-                "ggml-mpt-7b-chat.bin, ggml-gpt4all-j-v1.2-jazzy.bin, ggml-gpt4all-j-v1.1-breezy.bin, "
-                "ggml-gpt4all-j.bin, ggml-vicuna-7b-1.1-q4_2.bin, ggml-vicuna-13b-1.1-q4_2.bin, "
-                "ggml-wizardLM-7B.q4_2.bin, ggml-stable-vicuna-13B.q4_2.bin, ggml-mpt-7b-base.bin, "
-                "ggml-nous-gpt4-vicuna-13b.bin, ggml-mpt-7b-instruct.bin, ggml-wizard-13b-uncensored.bin"
-            ),
-            LLMChat().input(property_dict="to_dict", model_id="chat_model_id")
-            .out("chat_answers").cache()
+            *SpacyNodes,
+            *KnowledgeGraphNodes,
+            *VectorizationNodes,
+            *IndexNodes,
+            *LLMNodes
         ]
     }
 
