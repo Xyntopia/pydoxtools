@@ -26,7 +26,7 @@ from . import list_utils
 from . import nlp_utils, extract_textstructure
 from .dask_operators import SQLTableLoader, DocumentBagMap
 from .document_base import Pipeline, ElementType
-from .extract_classes import LanguageExtractor, TextBlockClassifier
+from .extract_classes import LanguageExtractor, TextBlockClassifier, PageClassifier
 from .extract_filesystem import PathLoader
 from .extract_filesystem import force_decode, load_raw_file_content
 from .extract_html import HtmlExtractor
@@ -453,6 +453,7 @@ operations and include the documentation there. Lambda functions should not be u
         # TODO: pptx, odp etc...
         "*": [
             Alias(data="raw_content").t(Any).docs("The unprocessed data."),
+            Constant(page_set={0}),
             FunctionOperator(lambda x: force_decode(x)).t(str)
             .input(x="raw_content").out("full_text").docs(
                 "Full text as a string value"),
@@ -494,6 +495,8 @@ operations and include the documentation there. Lambda functions should not be u
             Alias(tables="tables_dict"),
             TextBlockClassifier()
             .input("text_box_elements").out("addresses").cache(),
+            PageClassifier()
+            .input("page_templates").out("page_classifier").cache(),
 
             ## calculate some metadata values
             FunctionOperator(lambda full_text: 1 + (len(full_text) // 1000))

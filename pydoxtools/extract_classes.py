@@ -23,6 +23,50 @@ class LanguageExtractor(Operator):
         return lang
 
 
+def zero_shot_classifier(
+        text: str,
+        candidate_labels: list[str],
+        zero_shot_model_name: str = "facebook/bart-large-mnli",
+        multi_label: bool = True
+) -> list[str]:
+    """
+    if model = "MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli", we need to install
+    sentencepiece like this:
+
+        pip install sentencepiece
+    """
+    tokenizer = AutoTokenizer.from_pretrained(zero_shot_model_name)
+    model = AutoModelForSequenceClassification.from_pretrained(zero_shot_model_name)
+
+    pipe = pipeline(task="zero-shot-classification", model=model, tokenizer=tokenizer)
+    # pipe = pipeline(model=)
+
+    res = pipe(text,
+               candidate_labels=candidate_labels,
+               multi_label=multi_label
+               )
+    return res
+
+
+class PageClassifier(Operator):
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, page_templates: dir[int, str]) -> typing.Callable[[list[str]], pd.DataFrame]:
+        def _classify_page(candidate_labels: list[str]) -> pd.DataFrame:
+            classes = {}
+            for page_num, page_text in page_templates.items():
+                res = zero_shot_classifier(page_text, candidate_labels)
+                classes[page_num] = dict(
+                    page=page_num,
+                    **{k: v for k, v in zip(res["labels"], res["scores"])}
+                )
+
+            return pd.DataFrame(classes).T
+
+        return _classify_page
+
+
 class TextBlockClassifier(Operator):
     def __init__(self):
         super().__init__()

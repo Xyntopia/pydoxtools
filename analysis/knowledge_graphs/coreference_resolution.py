@@ -47,6 +47,7 @@ training_data_dir = 0
 pdf_file = Path("../../README.md")
 
 #pdf = Document(pdf_file, spacy_model_size="sm", coreference_method="slow")
+#pdf = Document(pdf_file, spacy_model_size="trf", coreference_method="slow")
 pdf = Document(pdf_file, spacy_model_size="lg", coreference_method="fast")
 doc = pdf
 

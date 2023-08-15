@@ -749,8 +749,6 @@ def gen_meta_info(url, htmlstr) -> torch.tensor:
     return torch.tensor(x)
 
 
-gen_meta_info_cached = memory.cache(gen_meta_info)
-
 
 # TODO: move all the following functions into a separate
 #       "data preparation" file and only load the generated data here...

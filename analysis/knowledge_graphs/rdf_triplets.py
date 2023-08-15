@@ -89,8 +89,9 @@ from rdflib.namespace import FOAF , XSD
 g = Graph()
 
 # Create an RDF URI node to use as the subject for multiple triples
-donna = URIRef("http://example.org/donna")
+rdf_gaph = URIRef("http://example.org/donna")
 
+# +
 # Add triples using store's add() method.
 g.add((donna, RDF.type, FOAF.Person))
 g.add((donna, FOAF.nick, Literal("donna", lang="en")))
@@ -123,7 +124,3 @@ g.bind("foaf", FOAF)
 # print all the data in the Notation3 format
 print("--- printing mboxes ---")
 print(g.serialize(format='n3'))
-
-# -
-
-vd.draw(KG, format='svg')
