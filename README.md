@@ -179,7 +179,7 @@ In order to be able to use this, install tesseract on your system:
 
 Under linux this looks like the following:
 
-    apt-get update && tesseract-ocr
+    sudo apt-get update && sudo apt-get tesseract-ocr
     # install tesseract languages 
     # Display a list of all Tesseract language packs:
     #   apt-cache search tesseract-ocr
