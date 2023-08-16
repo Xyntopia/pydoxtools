@@ -296,9 +296,9 @@ OCRNodes = [
 # nodes which help to extract the structure of a document
 DocumentStructureNodes = [
     extract_textstructure.DocumentObjects()
-    .input("valid_tables", "elements").out("document_objects").cache(),
+    .input("valid_tables", "elements").out("document_objects").cache(allow_disk_cache=True),
     extract_textstructure.PageTemplateGenerator()
-    .input("elements", "valid_tables").out("page_templates").cache(allow_disk_cache=True)
+    .input("document_objects").out("page_templates").cache()
     .docs("generates a text page with table & figure hints"),
 ]
 

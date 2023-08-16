@@ -341,7 +341,7 @@ class DocumentObjects(pydoxtools.operators_base.Operator):
                 x0=x0, y0=y0, x1=x1, y1=y1,
                 obj=table,
                 p_num=p,
-                place_holder_text=f"------------\n{{Table{table_num}}}\n------------"
+                place_holder_text=f"Table{table_num}"
             )
             table_elements.append(table_box)
 
@@ -355,7 +355,7 @@ class DocumentObjects(pydoxtools.operators_base.Operator):
         # filter textboxes for vertical lines...
         objects = [document_base.DocumentElement(
             type=document_base.ElementType.TextBox,
-            place_holder_text=f"TextBox{v.p_num}_{v.boxnum}",
+            place_holder_text=f"TextBox{v.boxnum}",
             **v
         ) for idx, v in txtboxes.T.items()]
         # txtboxes = pd.concat([txtboxes.reset_index(), table_elements],
@@ -365,12 +365,20 @@ class DocumentObjects(pydoxtools.operators_base.Operator):
 
 
 class PageTemplateGenerator(pydoxtools.operators_base.Operator):
-    def __call__(self, elements: pd.DataFrame, valid_tables) -> dict[str, dict[int, str]]:
+    def __call__(self, document_objects: list[document_base.DocumentElement]) -> dict[str, dict[int, str]]:
         # remove all tables from elements and insert a placeholder so that
         # we can more easily query the page with LLMs
 
-        pages = txtboxes.p_num.unique()
-        page_templates = {p: "\n\n".join(txtboxes[txtboxes.p_num == p].text) for p in pages}
+        objs = pd.DataFrame(document_objects)
+        objs = objs.sort_values(by=["p_num", "y0"], ascending=[True, False])
+        pages = objs.p_num.unique()
+        new_text = objs.apply(
+            lambda x: (f"<{{{x.place_holder_text}}}>"
+                       if x.type == document_base.ElementType.Table
+                       else x.text),
+            axis=1)
+        page_templates = {p: "\n\n".join(new_text[objs.p_num == p]) for p in pages}
+        # page_templates = {p: "\n\n".join(objs[objs.p_num == p].text) for p in pages}
 
         # elements = elements.sort_values(by="y0")#.loc[(19,578)]
         return {"page_templates": page_templates}
