@@ -86,7 +86,7 @@ class Operator(ABC, typing.Generic[OperatorReturnType]):
     def map_output_types(self, output_type):
         """
         map a list of output types to our output keys for type checking
-        purposes
+        purposes.
         """
         if isinstance(output_type, dict):
             return {v: output_type[k] for k, v in self._out_mapping.items()}
@@ -179,6 +179,15 @@ class Operator(ABC, typing.Generic[OperatorReturnType]):
         self._out_mapping.update({k: k for k in args})
         return self
 
+    @property
+    def multiple_outputs(self):
+        """indicate that this operator has multiple outputs.
+        If it does, the output is required to be a dictionary"""
+        if len(self._out_mapping) > 1:
+            return True
+        else:
+            return False
+
     def default(self, default: Any):
         """
         indicate a default value that we would like to have in case
@@ -211,7 +220,7 @@ class Operator(ABC, typing.Generic[OperatorReturnType]):
         """
         Document the operator output.
 
-        Be careful that the order of "docs" is the same as the
+        Be careful that the order of "docs" is the same as the output order of the operator.
         """
         # if our operator has multiple outputs, we can
         # document each individual output here...
@@ -259,7 +268,13 @@ CallableType = typing.TypeVar('CallableType')
 
 class FunctionOperator(Operator[CallableType]):
     """Generic class which wraps an arbitrary
-    function as an Operator"""
+    function as an Operator
+
+    It also automatically replaces the result of the function with
+    a dictionary, if the function doesn't have multiple outputs in the pipeline
+    otherwise the supplied function is required to return a dictionary with
+    keys corresponding to the outputs in the pipeline.
+    """
 
     def __init__(
             self,
@@ -286,7 +301,22 @@ class FunctionOperator(Operator[CallableType]):
 
     def __call__(self, *args, **kwargs) -> CallableType:
         try:
-            return self._func(*args, **kwargs)
+            res = self._func(*args, **kwargs)
+            # return res
+            if self.multiple_outputs:
+                if not isinstance(res, dict):
+                    raise TypeError(f"Function {self._func} does not return a dictionary, but has multiple outputs")
+            else:
+                output_key = next(iter(self._out_mapping))
+                # check if we have a dictionary, if not, we will "make it one"
+                if isinstance(res, dict):
+                    # only use the result if it contains the output key
+                    if output_key in res:
+                        return res
+
+                res = {output_key: res}
+
+            return res
         except Exception as err:
             if self._default_return_value:
                 return self._default_return_value
