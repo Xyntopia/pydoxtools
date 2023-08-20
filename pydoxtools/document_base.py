@@ -76,6 +76,10 @@ class DocumentElement:
     evenodd: int | None = None
     level: int = 0
 
+    @property
+    def bbox(self):
+        return (self.x0, self.y0, self.x1, self.y1)
+
 
 class TokenCollection:
     def __init__(self, tokens: list[spacy.tokens.Token]):
@@ -535,7 +539,7 @@ supports pipeline flows:
         docs = '\n\n'.join(node_docs)
         return docs
 
-    def gather_arguments(self, mapped_args: dict[str, str], traceable: bool):
+    def gather_inputs(self, mapped_args: dict[str, str], traceable: bool):
         """
         Gathers arguments from the pipeline and class, and maps them to the provided keys of kwargs.
 
@@ -635,7 +639,7 @@ supports pipeline flows:
 
             # if we haven't gotten the result from cache yet, calculate it! ...
             if finished_calculation == False:
-                mapped_kwargs = self.gather_arguments(operator_function._in_mapping, traceable=traceable)
+                mapped_kwargs = self.gather_inputs(operator_function._in_mapping, traceable=traceable)
                 mapped_kwargs = {k: (v.data if isinstance(v, operators_base.OperatorResult) else v)
                                  for k, v in mapped_kwargs.items()}
                 if operator_function._default:
@@ -688,7 +692,10 @@ supports pipeline flows:
             final_result = res[operator_name]
         except KeyError:
             raise OperatorOutputException(
-                f"Key '{operator_name}' does not exist in output dict of Operator {operator_function}")
+                f"Key '{operator_name}' does not exist in output dict of the Operator {operator_function}"
+                f"it might be necessary to return the result of the operator "
+                f"as a dictionary with the key '{operator_name}' if the operator has multiple outputs."
+            )
 
         if traceable:
             return operators_base.OperatorResult(

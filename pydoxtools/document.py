@@ -300,6 +300,11 @@ DocumentStructureNodes = [
     extract_textstructure.PageTemplateGenerator()
     .input("document_objects").out("page_templates").cache()
     .docs("generates a text page with table & figure hints"),
+    FunctionOperator(lambda pt, ps: "".join(f"\n\n-------- {p} --------\n\n" + pt[p] for p in ps))
+    .input(pt="page_templates", ps="page_set").out("page_templates_str").cache(),
+    FunctionOperator(lambda tables, elements: dict(table_context={
+        k: extract_textstructure.get_object_context(v.bbox, elements, "table") for k, v in enumerate(tables)}))
+    .input("elements", tables="valid_tables").out("table_context").cache()
 ]
 
 ClassifierNodes = [
@@ -361,7 +366,8 @@ KnowledgeGraphNodes = [
     # TODO: implement summarizer based on textrank
     Alias(url="source").docs("Url of this document"),
     ExtractRelationships()
-    .input("spacy_doc").out("relationships").cache(),
+    .input("spacy_doc")
+    .out("relationships").cache(),
     Configuration(
         coreference_method="fast",
         graph_debug_context_size=0
@@ -369,7 +375,8 @@ KnowledgeGraphNodes = [
     CoreferenceResolution().input("spacy_doc", method="coreference_method")
     .out("coreferences").cache(),
     FunctionOperator(lambda x, t: build_relationships_graph(relationships=x, coreferences=t))
-    .input(x="relationships", t="coreferences").out("graph_nodes", "node_map", "graph_edges").cache(),
+    .input(x="relationships", t="coreferences")
+    .out("graph_nodes", "node_map", "graph_edges").cache(),
     FunctionOperator(lambda gn, ge, sd, cts: nx_graph(
         graph_nodes=gn, graph_edges=ge, spacy_doc=sd, graph_debug_context_size=cts))
     .input(gn="graph_nodes", ge="graph_edges", sd="spacy_doc", cts="graph_debug_context_size")

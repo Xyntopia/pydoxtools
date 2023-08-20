@@ -82,7 +82,7 @@ def gpt4allchat(messages, model_id="ggml-mpt-7b-instruct", max_tokens=256, *args
 
 
 def chat_completion(msgs: list[dict[str, str], ...], model_id: str, max_tokens: int) -> str:
-    if model_id in ["gpt-3.5-turbo","gpt-4"]:
+    if model_id in ["gpt-3.5-turbo", "gpt-4"]:
         completion = openai_chat_completion_with_diskcache(
             model_id=model_id, temperature=0.0, messages=tuple(msgs), max_tokens=max_tokens)
         result = completion.choices[0].message['content']
@@ -170,6 +170,17 @@ def execute_task(task, previous_tasks=None, context=None, objective=None,
         pass  # do nothing ;)
 
     return obj, msgs, res
+
+
+def safe_execute_task(*args, **kwargs) -> tuple:
+    try:
+        res = execute_task(*args, **kwargs)
+        # res,msgs,txt = execute_task(task, model_id="gpt-4")
+    except yaml.YAMLError as e:
+        logger.info(e)
+        res = None, None, None
+
+    return res
 
 
 class LLMChat(Operator):

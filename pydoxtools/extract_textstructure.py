@@ -259,6 +259,9 @@ def get_template_elements(
     return elements
 
 
+place_holder_template = "{{{}}}"
+
+
 def get_area_context(
         bbox: np.ndarray,
         elements: pd.DataFrame,
@@ -286,7 +289,7 @@ def get_area_context(
     ).copy()
 
     area_box = pd.DataFrame(bbox.reshape(1, -1), columns=["x0", "y0", "x1", "y1"])
-    area_box["text"] = f"------------\n{{{placeholder}}}\n------------"
+    area_box["text"] = place_holder_template.format(placeholder)
 
     boxes = text_boxes_from_elements(le)["text_box_elements"]
     boxes = pd.concat([boxes.reset_index(), area_box], ignore_index=True).sort_values(
@@ -373,7 +376,7 @@ class PageTemplateGenerator(pydoxtools.operators_base.Operator):
         objs = objs.sort_values(by=["p_num", "y0"], ascending=[True, False])
         pages = objs.p_num.unique()
         new_text = objs.apply(
-            lambda x: (f"<{{{x.place_holder_text}}}>"
+            lambda x: (place_holder_template.format(x.place_holder_text)
                        if x.type == document_base.ElementType.Table
                        else x.text),
             axis=1)
@@ -382,3 +385,12 @@ class PageTemplateGenerator(pydoxtools.operators_base.Operator):
 
         # elements = elements.sort_values(by="y0")#.loc[(19,578)]
         return {"page_templates": page_templates}
+
+
+def get_object_context(bbox: tuple | np.ndarray, elements: pd.DataFrame, placeholder: str = "area"):
+    """Get the context of a table from the document"""
+    table_context = get_area_context(
+        elements=elements, bbox=bbox, page_num=19, context_margin=20,
+        placeholder=placeholder
+    )
+    return table_context
