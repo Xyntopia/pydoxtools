@@ -124,15 +124,18 @@ class Operator(ABC, typing.Generic[OperatorReturnType]):
             typing_dict = self.map_output_types(self._output_type)
             return typing_dict
 
-        if type_hints := typing.get_type_hints(self.__call__):
-            output_type = type_hints.get('return', typing.Any)
-            if output_type != CallableType:
-                # TODO: make all output types a type of something like "operator.result".
-                #       this is important, this way we can
-                #       break the implicit dependency here between dict types which get mapped
-                #       in the pipeline.x() function. Where a dict automatically gets mapped
-                #       to the output map
-                return self.map_output_types((output_type,))
+        try:
+            if type_hints := typing.get_type_hints(self.__call__):
+                output_type = type_hints.get('return', typing.Any)
+                if output_type != CallableType:
+                    # TODO: make all output types a type of something like "operator.result".
+                    #       this is important, this way we can
+                    #       break the implicit dependency here between dict types which get mapped
+                    #       in the pipeline.x() function. Where a dict automatically gets mapped
+                    #       to the output map
+                    return self.map_output_types((output_type,))
+        except TypeError:
+            raise TypeError(f"Could not get type hints for {self} with output: {self._out_mapping}")
 
         if typed_class := getattr(self, "__orig_class__", None):
             output_type = typing.get_args(typed_class)
