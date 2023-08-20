@@ -192,11 +192,11 @@ PDFNodes = [
     FunctionOperator(lambda x: [t for t in x if t.is_valid])
     .input(x="table_candidates").out("valid_tables"),
     FunctionOperator(lambda x: [t.df for t in x])
-    .input(x="valid_tables").out("table_df0").cache(allow_disk_cache=True)
+    .input(x="table_elements").out("table_df0").cache(allow_disk_cache=True)
     .t(table_df0=list[pd.DataFrame])
     .docs("Filter valid tables from table candidates by looking if meaningful values can be extracted"),
     FunctionOperator(lambda x: pd.DataFrame([t.bbox for t in x], columns=["x0", "y0", "x1", "y1"]))
-    .input(x="valid_tables").out("table_areas").cache()
+    .input(x="table_elements").out("table_areas").cache()
     .t(table_areas=list[np.ndarray])
     .docs("Areas of all detected tables"),
     FunctionOperator[list[pd.DataFrame]](lambda table_df0, lists: table_df0 + ([] if lists.empty else [lists]))
@@ -296,7 +296,7 @@ OCRNodes = [
 # nodes which help to extract the structure of a document
 DocumentStructureNodes = [
     extract_textstructure.DocumentObjects()
-    .input("valid_tables", "elements").out("document_objects").cache(allow_disk_cache=True),
+    .input("table_elements", "elements").out("document_objects").cache(allow_disk_cache=True),
     extract_textstructure.PageTemplateGenerator()
     .input("document_objects").out("page_templates").cache()
     .docs("generates a text page with table & figure hints"),
@@ -304,7 +304,7 @@ DocumentStructureNodes = [
     .input(pt="page_templates", ps="page_set").out("page_templates_str").cache(),
     FunctionOperator(lambda tables, elements: dict(table_context={
         k: extract_textstructure.get_object_context(v.bbox, elements, "table") for k, v in enumerate(tables)}))
-    .input("elements", tables="valid_tables").out("table_context").cache()
+    .input("elements", tables="table_elements").out("table_context").cache()
 ]
 
 ClassifierNodes = [
@@ -548,6 +548,124 @@ LLMNodes = [
     .out("chat_answers").cache()
 ]
 
+document_operators = {
+    # .pdf
+    "application/pdf": PDFNodes,
+    # .html
+    "text/html": HTMLNodes,
+    # docx
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ["pandoc"],
+    # odt
+    "application/vnd.oasis.opendocument.text": ["pandoc"],
+    # markdown
+    "text/markdown": ["pandoc"],
+    # .rtf
+    "text/rtf": ["pandoc"],
+    # .epub
+    "application/epub+zip": ["pandoc"],
+    # wikipedia data dump
+    "mediawiki": ["pandoc"],
+    # pandoc document conversion pipeline
+    "pandoc": PandocNodes,
+    # standard image pipeline
+    "image": OCRNodes,
+    # the first base doc types have priority over the last ones
+    # so here .png > image > .pdf
+    'image/png': ["image", "application/pdf"],
+    'image/jpeg': ["image", "application/pdf"],
+    'image/tiff': ["image", "application/pdf"],
+    "application/x-yaml": [
+        "<class 'dict'>",
+        Alias(full_text="raw_content"),
+        FunctionOperator(lambda x: dict(data=yaml.unsafe_load(x)))
+        .input(x="full_text").out("data").cache()
+        # TODO: we might need to have a special "result" message, that we
+        #       pass around....
+    ],
+    # simple dictionary with arbitrary data from python
+    "<class 'dict'>": [  # pipeline to handle data based documents
+        FunctionOperator(lambda x: yaml.dump(list_utils.deep_str_convert(x))).t(str)
+        .input(x="data").out("full_text").cache(),
+        DictSelector()
+        .input(selectable="data").out("data_sel").cache().docs(
+            "select values by key from source data in Document"),
+        FunctionOperator(lambda x: pd.DataFrame([
+            str(k) + ": " + str(v) for k, v in list_utils.flatten_dict(x).items()],
+            columns=["text"]
+        )).input(x="data").out("text_box_elements").cache(),
+        Alias(text_segments="text_box_list").t(list[str]),
+        FunctionOperator(lambda x: x.keys())
+        .input(x="data").out("keys").no_cache(),
+        FunctionOperator(lambda x: x.values())
+        .input(x="data").out("values").no_cache(),
+        FunctionOperator(lambda x: x.values())
+        .input(x="data").out("items").no_cache()
+    ],
+    "<class 'list'>": [
+        FunctionOperator(lambda x: yaml.dump(list_utils.deep_str_convert(x))).t(str)
+        .input(x="data").out("full_text").cache(),
+        FunctionOperator(lambda x: pd.DataFrame([
+            str(list_utils.deep_str_convert(v)) for v in x],
+            columns=["text"]
+        )).input(x="data").out("text_box_elements").cache(),
+        Alias(text_segments="text_box_list").t(list[str]),
+    ],
+    # TODO: json, csv etc...
+    # TODO: pptx, odp etc...
+    "*": [
+        Alias(data="raw_content").t(Any).docs("The unprocessed data."),
+        Constant(page_set={0}),
+        FunctionOperator(lambda x: force_decode(x)).t(str)
+        .input(x="raw_content").out("full_text").docs(
+            "Full text as a string value"),
+        Alias(clean_text="full_text").t(str),
+        FunctionOperator(lambda x: {"meta": (x or dict())}).t(dict[str, Any])
+        .input(x="_meta").out("meta").docs("Metadata of the document"),
+
+        ##### calculate some metadata ####
+        FunctionOperator(
+            lambda x: dict(file_meta=x(
+                "filename",
+                # "keywords",
+                "document_type",
+                "url",
+                "path",
+                "num_pages",
+                "num_words",
+                # "num_sents",
+                "a_d_ratio",
+                "language")))
+        .input(x="to_dict").t(dict[str, Any])
+        .out("file_meta").cache().docs(
+            "Some fast-to-calculate metadata information about a document"),
+
+        ## Standard text splitter for splitting text along lines...
+        FunctionOperator(lambda x: pd.DataFrame(x.split("\n\n"), columns=["text"]))
+        .input(x="full_text").out("text_box_elements").t(pd.DataFrame).cache()
+        .docs("Text boxes extracted as a pandas Dataframe with some additional metadata"),
+        FunctionOperator(lambda df: df.get("text", None).to_list()).t(list[str])
+        .input(df="text_box_elements").out("text_box_list").cache()
+        .docs("Text boxes as a list"),
+        # TODO: replace this with a real, generic table detection
+        #       e.g. running the text through pandoc or scan for html tables
+        Constant(tables_df=[]),
+        # TODO: define datatype correctly
+        FunctionOperator(lambda tables_df: [df.to_dict('index') for df in tables_df]).cache()
+        .input("tables_df").out("tables_dict").t(list[dict])
+        .docs("List of Table"),
+        Alias(tables="tables_dict"),
+
+        *ClassifierNodes,
+        *MetaDataNodes,
+        *DocumentStructureNodes,
+        *SpacyNodes,
+        *KnowledgeGraphNodes,
+        *VectorizationNodes,
+        *IndexNodes,
+        *LLMNodes
+    ]
+}
+
 
 class Document(Pipeline):
     """Basic document pipeline class to analyze documents from all kinds of formats.
@@ -685,123 +803,7 @@ operations and include the documentation there. Lambda functions should not be u
 
     # compose a list of operators into a dynamic pipeline which changes
     # depending on the file type
-    _operators = {
-        # .pdf
-        "application/pdf": PDFNodes,
-        # .html
-        "text/html": HTMLNodes,
-        # docx
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ["pandoc"],
-        # odt
-        "application/vnd.oasis.opendocument.text": ["pandoc"],
-        # markdown
-        "text/markdown": ["pandoc"],
-        # .rtf
-        "text/rtf": ["pandoc"],
-        # .epub
-        "application/epub+zip": ["pandoc"],
-        # wikipedia data dump
-        "mediawiki": ["pandoc"],
-        # pandoc document conversion pipeline
-        "pandoc": PandocNodes,
-        # standard image pipeline
-        "image": OCRNodes,
-        # the first base doc types have priority over the last ones
-        # so here .png > image > .pdf
-        'image/png': ["image", "application/pdf"],
-        'image/jpeg': ["image", "application/pdf"],
-        'image/tiff': ["image", "application/pdf"],
-        "application/x-yaml": [
-            "<class 'dict'>",
-            Alias(full_text="raw_content"),
-            FunctionOperator(lambda x: dict(data=yaml.unsafe_load(x)))
-            .input(x="full_text").out("data").cache()
-            # TODO: we might need to have a special "result" message, that we
-            #       pass around....
-        ],
-        # simple dictionary with arbitrary data from python
-        "<class 'dict'>": [  # pipeline to handle data based documents
-            FunctionOperator(lambda x: yaml.dump(list_utils.deep_str_convert(x))).t(str)
-            .input(x="data").out("full_text").cache(),
-            DictSelector()
-            .input(selectable="data").out("data_sel").cache().docs(
-                "select values by key from source data in Document"),
-            FunctionOperator(lambda x: pd.DataFrame([
-                str(k) + ": " + str(v) for k, v in list_utils.flatten_dict(x).items()],
-                columns=["text"]
-            )).input(x="data").out("text_box_elements").cache(),
-            Alias(text_segments="text_box_list").t(list[str]),
-            FunctionOperator(lambda x: x.keys())
-            .input(x="data").out("keys").no_cache(),
-            FunctionOperator(lambda x: x.values())
-            .input(x="data").out("values").no_cache(),
-            FunctionOperator(lambda x: x.values())
-            .input(x="data").out("items").no_cache()
-        ],
-        "<class 'list'>": [
-            FunctionOperator(lambda x: yaml.dump(list_utils.deep_str_convert(x))).t(str)
-            .input(x="data").out("full_text").cache(),
-            FunctionOperator(lambda x: pd.DataFrame([
-                str(list_utils.deep_str_convert(v)) for v in x],
-                columns=["text"]
-            )).input(x="data").out("text_box_elements").cache(),
-            Alias(text_segments="text_box_list").t(list[str]),
-        ],
-        # TODO: json, csv etc...
-        # TODO: pptx, odp etc...
-        "*": [
-            Alias(data="raw_content").t(Any).docs("The unprocessed data."),
-            Constant(page_set={0}),
-            FunctionOperator(lambda x: force_decode(x)).t(str)
-            .input(x="raw_content").out("full_text").docs(
-                "Full text as a string value"),
-            Alias(clean_text="full_text").t(str),
-            FunctionOperator(lambda x: {"meta": (x or dict())}).t(dict[str, Any])
-            .input(x="_meta").out("meta").docs("Metadata of the document"),
-
-            ##### calculate some metadata ####
-            FunctionOperator(
-                lambda x: dict(file_meta=x(
-                    "filename",
-                    # "keywords",
-                    "document_type",
-                    "url",
-                    "path",
-                    "num_pages",
-                    "num_words",
-                    # "num_sents",
-                    "a_d_ratio",
-                    "language")))
-            .input(x="to_dict").t(dict[str, Any])
-            .out("file_meta").cache().docs(
-                "Some fast-to-calculate metadata information about a document"),
-
-            ## Standard text splitter for splitting text along lines...
-            FunctionOperator(lambda x: pd.DataFrame(x.split("\n\n"), columns=["text"]))
-            .input(x="full_text").out("text_box_elements").t(pd.DataFrame).cache()
-            .docs("Text boxes extracted as a pandas Dataframe with some additional metadata"),
-            FunctionOperator(lambda df: df.get("text", None).to_list()).t(list[str])
-            .input(df="text_box_elements").out("text_box_list").cache()
-            .docs("Text boxes as a list"),
-            # TODO: replace this with a real, generic table detection
-            #       e.g. running the text through pandoc or scan for html tables
-            Constant(tables_df=[]),
-            # TODO: define datatype correctly
-            FunctionOperator(lambda tables_df: [df.to_dict('index') for df in tables_df]).cache()
-            .input("tables_df").out("tables_dict").t(list[dict])
-            .docs("List of Table"),
-            Alias(tables="tables_dict"),
-
-            *ClassifierNodes,
-            *MetaDataNodes,
-            *DocumentStructureNodes,
-            *SpacyNodes,
-            *KnowledgeGraphNodes,
-            *VectorizationNodes,
-            *IndexNodes,
-            *LLMNodes
-        ]
-    }
+    _operators = document_operators
 
     def __init__(
             self,
