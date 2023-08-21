@@ -389,7 +389,7 @@ def test_sql_download():
     # d = docs.props_bag(["vector"]).take(3)
     df = docs.dataframe.get_partition(0)
 
-    vector_bag = docs.get_dicts("data", "text_segment_vectors")
+    vector_bag = docs.get_dicts("data", "text_segment_vecs")
     data = vector_bag.take(1)
     new_bag = docs.get_dicts("source", "full_text")
     new_bag.take(1)
