@@ -159,6 +159,20 @@ def calculate_a_d_ratio(ft: str) -> float:
     return ratio
 
 
+# nodes which help to extract the structure of a document
+PDFDocumentStructureNodes = [
+    extract_textstructure.DocumentObjects()
+    .input("table_elements", "elements").out("document_objects").cache(allow_disk_cache=True),
+    extract_textstructure.PageTemplateGenerator()
+    .input("document_objects").out("page_templates").cache()
+    .docs("generates a text page with table & figure hints"),
+    FunctionOperator(lambda pt, ps: "".join(f"\n\n-------- {p} --------\n\n" + pt[p] for p in ps))
+    .input(pt="page_templates", ps="page_set").out("page_templates_str").cache(),
+    FunctionOperator(lambda tables, elements: dict(table_context={
+        k: extract_textstructure.get_object_context(v.bbox, elements, "table") for k, v in enumerate(tables)}))
+    .input("elements", tables="table_elements").out("table_context").cache()
+]
+
 PDFNodes = [
     PDFFileLoader()
     .input(fobj="raw_content", page_numbers="_page_numbers", max_pages="_max_pages")
@@ -213,7 +227,9 @@ PDFNodes = [
     TitleExtractor()
     .input("line_elements").out("titles", "side_titles").cache(),
     LanguageExtractor().cache()
-    .input(text="full_text").out("language").cache()
+    .input(text="full_text").out("language").cache(),
+
+    *PDFDocumentStructureNodes
 ]
 
 HTMLNodes = [
@@ -291,20 +307,6 @@ OCRNodes = [
     .input("graphic_elements", "line_elements", "pages_bbox", "text_box_elements", "filename",
            "images")
     .out("table_candidates").cache(),
-]
-
-# nodes which help to extract the structure of a document
-DocumentStructureNodes = [
-    extract_textstructure.DocumentObjects()
-    .input("table_elements", "elements").out("document_objects").cache(allow_disk_cache=True),
-    extract_textstructure.PageTemplateGenerator()
-    .input("document_objects").out("page_templates").cache()
-    .docs("generates a text page with table & figure hints"),
-    FunctionOperator(lambda pt, ps: "".join(f"\n\n-------- {p} --------\n\n" + pt[p] for p in ps))
-    .input(pt="page_templates", ps="page_set").out("page_templates_str").cache(),
-    FunctionOperator(lambda tables, elements: dict(table_context={
-        k: extract_textstructure.get_object_context(v.bbox, elements, "table") for k, v in enumerate(tables)}))
-    .input("elements", tables="table_elements").out("table_context").cache()
 ]
 
 ClassifierNodes = [
@@ -657,7 +659,6 @@ document_operators = {
 
         *ClassifierNodes,
         *MetaDataNodes,
-        *DocumentStructureNodes,
         *SpacyNodes,
         *KnowledgeGraphNodes,
         *VectorizationNodes,

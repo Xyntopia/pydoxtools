@@ -28,6 +28,22 @@ return type
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
+### page_set
+            
+A constant value
+
+Can be called using:
+
+    <Document>.x('page_set')
+    # or
+    <Document>.page_set
+
+return type
+: set[int] | typing.Any
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
 ### full_text
             
 Full text as a string value
@@ -192,6 +208,22 @@ return type
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
+### page_classifier
+            
+
+
+Can be called using:
+
+    <Document>.x('page_classifier')
+    # or
+    <Document>.page_classifier
+
+return type
+: typing.Callable[[list[str]], pandas.core.frame.DataFrame]
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
 ### num_pages
             
 No documentation
@@ -268,6 +300,70 @@ Can be called using:
 
 return type
 : <class 'str'\> | typing.Any
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### document_objects
+            
+
+
+Can be called using:
+
+    <Document>.x('document_objects')
+    # or
+    <Document>.document_objects
+
+return type
+: typing.Any
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### page_templates
+            
+generates a text page with table & figure hints
+
+Can be called using:
+
+    <Document>.x('page_templates')
+    # or
+    <Document>.page_templates
+
+return type
+: dict[int, str]
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### page_templates_str
+            
+No documentation
+
+Can be called using:
+
+    <Document>.x('page_templates_str')
+    # or
+    <Document>.page_templates_str
+
+return type
+: typing.Any
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### table_context
+            
+No documentation
+
+Can be called using:
+
+    <Document>.x('table_context')
+    # or
+    <Document>.table_context
+
+return type
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -406,6 +502,38 @@ return type
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
+### entities
+            
+Extract entities from text
+
+Can be called using:
+
+    <Document>.x('entities')
+    # or
+    <Document>.entities
+
+return type
+: list[str]
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### url
+            
+Url of this document
+
+Can be called using:
+
+    <Document>.x('url')
+    # or
+    <Document>.url
+
+return type
+: typing.Any
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
 ### relationships
             
 
@@ -527,38 +655,6 @@ Can be called using:
     <Document>.x('knowledge_graph')
     # or
     <Document>.knowledge_graph
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
-### entities
-            
-Extract entities from text
-
-Can be called using:
-
-    <Document>.x('entities')
-    # or
-    <Document>.entities
-
-return type
-: list[str]
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
-### url
-            
-Url of this document
-
-Can be called using:
-
-    <Document>.x('url')
-    # or
-    <Document>.url
 
 return type
 : typing.Any
@@ -1363,22 +1459,6 @@ return type
 supports pipeline flows:
 : application/pdf, image, image/jpeg, image/png, image/tiff
 
-### page_set
-            
-A list of the extracted pages of the pdf
-
-Can be called using:
-
-    <Document>.x('page_set')
-    # or
-    <Document>.page_set
-
-return type
-: set[int]
-
-supports pipeline flows:
-: application/pdf, image, image/jpeg, image/png, image/tiff
-
 ### pages_bbox
             
 Return the 'mediabox' property of the pdf page which gives the size of the page of a pdf in 72 dpi, which is the standard unit of measurement in pdfs.
@@ -1487,22 +1567,6 @@ Can be called using:
 
 return type
 : <class 'pandas.core.frame.DataFrame'\>
-
-supports pipeline flows:
-: application/pdf, image, image/jpeg, image/png, image/tiff
-
-### page_templates
-            
-generates a text page with table & figure hints
-
-Can be called using:
-
-    <Document>.x('page_templates')
-    # or
-    <Document>.page_templates
-
-return type
-: dict[int, str]
 
 supports pipeline flows:
 : application/pdf, image, image/jpeg, image/png, image/tiff

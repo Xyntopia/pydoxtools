@@ -612,6 +612,8 @@ def test_list_query():
 if __name__ == "__main__":
     # a = pd.DataFrame(sd.sents)
     # a[2]
+    test_string_extraction()
+
     file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/PFR-PR23_BAT-110__V1.00_.pdf"
     # run_single_non_interactive_document_test(file)
     doc = Document(file)
