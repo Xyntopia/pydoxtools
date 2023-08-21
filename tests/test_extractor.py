@@ -4,6 +4,7 @@ import io
 import logging
 import pathlib
 import pickle
+import time
 from pathlib import Path
 
 import pytest
@@ -223,11 +224,22 @@ def test_chat_gpt():
 
 
 def test_gpt4all():
+    # make sure we have a small context window
+    # to test the gpt4all model
+    text = "Bats and birds have four legs and wings, because two of the four legs are wings."
+
     doc = Document(
-        fobj=make_path_absolute("./data/sample.rtf"),
+        fobj=text,
         chat_model_id='llama-2-7b-chat.ggmlv3.q4_0'
+        #chat_model_id='orca-mini-3b.ggmlv3.q4_0'
     )
+
+    start_time = time.time()
     ans = doc.chat_answers(["what is the text about?"])
+    logger.info(ans)
+    end_time = time.time()
+    execution_time = end_time - start_time
+    logger.info(f"Execution time for chat_answers: {execution_time} seconds")
 
 
 def test_pandoc():

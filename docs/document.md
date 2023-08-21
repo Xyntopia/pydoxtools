@@ -1363,7 +1363,7 @@ supports pipeline flows:
 
 ### chat_model_id
             
-In order to use openai-chatgpt, you can use 'gpt-3.5-turbo'.The standard model that can be used right now is 'ggml-mpt-7b-chat' which runs locally and can be used for commercial purposesAdditionally, we support gpt4all models. Currently availablemodels are: ggml-gpt4all-j-v1.3-groovy.bin, ggml-gpt4all-l13b-snoozy.bin, ggml-mpt-7b-chat.bin, ggml-gpt4all-j-v1.2-jazzy.bin, ggml-gpt4all-j-v1.1-breezy.bin, ggml-gpt4all-j.bin, ggml-vicuna-7b-1.1-q4_2.bin, ggml-vicuna-13b-1.1-q4_2.bin, ggml-wizardLM-7B.q4_2.bin, ggml-stable-vicuna-13B.q4_2.bin, ggml-mpt-7b-base.bin, ggml-nous-gpt4-vicuna-13b.bin, ggml-mpt-7b-instruct.bin, ggml-wizard-13b-uncensored.bin
+In order to use openai-chatgpt, you can use 'gpt-3.5-turbo' or 'gpt-4'.Additionally, we support models used by gpt4all library whichcan be run locally and most are available for commercial purposes. Currently available models are: ['wizardlm-13b-v1.1-superhot-8k.ggmlv3.q4_0', 'ggml-model-gpt4all-falcon-q4_0', 'ous-hermes-13b.ggmlv3.q4_0', 'GPT4All-13B-snoozy.ggmlv3.q4_0', 'orca-mini-7b.ggmlv3.q4_0', 'orca-mini-3b.ggmlv3.q4_0', 'orca-mini-13b.ggmlv3.q4_0', 'wizardLM-13B-Uncensored.ggmlv3.q4_0', 'ggml-replit-code-v1-3', 'ggml-all-MiniLM-L6-v2-f16', 'starcoderbase-3b-ggml', 'starcoderbase-7b-ggml', 'llama-2-7b-chat.ggmlv3.q4_0']
 
 Can be called using:
 

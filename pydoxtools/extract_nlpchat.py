@@ -79,7 +79,8 @@ def gpt4allchat(messages, model_id="ggml-mpt-7b-instruct", max_tokens=256, tempe
     model = get_cached_gpt4model(model_id)
     task_msg = "\n".join([m['content'] for m in messages])
     res = model.generate(prompt=task_msg, temp=temperature, max_tokens=max_tokens)
-    return res
+
+    return res[0]
 
 
 def chat_completion(msgs: list[dict[str, str], ...], model_id: str, max_tokens: int) -> str:
@@ -218,13 +219,13 @@ class LLMChat(Operator):
             for task in tasks:
                 msgs = ({"role": "system",
                          "content": "You are a helpful assistant that aims to complete the given task."
-                                    "Do not add any amount of explanatory text."},
+                                    "Do not add any amount of explanatory text.\n"},
                         {"role": "user",
                          "content": f"# Instruction: "
                                     f"The prompt below is a question to answer, a task to complete, or a conversation "
                                     f"to respond to; decide which and write an appropriate response.\n\n"
-                                    f"## Prompt: {task} \n\n"
-                                    f"## Input for the task: {text}.\n\n"
+                                    f"## Prompt:\n\n{task}\n\n"
+                                    f"## Input for the task:\n\n{text}.\n\n"
                                     f"## Result:\n\n"})
 
                 result = chat_completion(msgs, model_id=model_id, max_tokens=2000)
