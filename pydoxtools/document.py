@@ -22,6 +22,7 @@ import yaml
 from dask.bag import Bag
 
 from . import dask_operators
+from . import extract_nlpchat
 from . import list_utils
 from . import nlp_utils, extract_textstructure
 from .dask_operators import SQLTableLoader, DocumentBagMap
@@ -32,7 +33,6 @@ from .extract_filesystem import force_decode, load_raw_file_content
 from .extract_html import HtmlExtractor
 from .extract_index import IndexExtractor, KnnQuery, \
     SimilarityGraph, TextrankOperator, TextPieceSplitter, ChromaIndexFromBag
-from .extract_nlpchat import LLMChat
 from .extract_objects import EntityExtractor
 from .extract_ocr import OCRExtractor
 from .extract_pandoc import PandocLoader, PandocOperator, PandocConverter, PandocBlocks, PandocToPdxConverter
@@ -283,7 +283,7 @@ PandocNodes = [
     PandocOperator(method="tables_df")
     .input(pandoc_blocks="pandoc_blocks").out("tables_df").cache(),
     PandocOperator(method="lists")
-    .input(pandoc_blocks="pandoc_blocks").out("lists").cache()
+    .input(pandoc_blocks="pandoc_blocks").out("lists").cache(),
 ]
 
 OCRNodes = [
@@ -536,17 +536,12 @@ LLMNodes = [
 
     ########### Chat AI ##################
     Configuration(chat_model_id="gpt-3.5-turbo").docs(
-        "In order to use openai-chatgpt, you can use 'gpt-3.5-turbo'."
-        "The standard model that can be used right now is 'ggml-mpt-7b-chat' "
-        "which runs locally and can be used for commercial purposes"
-        "Additionally, we support gpt4all models. Currently available"
-        "models are: ggml-gpt4all-j-v1.3-groovy.bin, ggml-gpt4all-l13b-snoozy.bin, "
-        "ggml-mpt-7b-chat.bin, ggml-gpt4all-j-v1.2-jazzy.bin, ggml-gpt4all-j-v1.1-breezy.bin, "
-        "ggml-gpt4all-j.bin, ggml-vicuna-7b-1.1-q4_2.bin, ggml-vicuna-13b-1.1-q4_2.bin, "
-        "ggml-wizardLM-7B.q4_2.bin, ggml-stable-vicuna-13B.q4_2.bin, ggml-mpt-7b-base.bin, "
-        "ggml-nous-gpt4-vicuna-13b.bin, ggml-mpt-7b-instruct.bin, ggml-wizard-13b-uncensored.bin"
+        "In order to use openai-chatgpt, you can use 'gpt-3.5-turbo' or 'gpt-4'."
+        "Additionally, we support models used by gpt4all library which"
+        "can be run locally and most are available for commercial purposes. "
+        f"Currently available models are: {extract_nlpchat.gpt4_models()}"
     ),
-    LLMChat().input(property_dict="to_dict", model_id="chat_model_id")
+    extract_nlpchat.LLMChat().input(property_dict="to_dict", model_id="chat_model_id")
     .out("chat_answers").cache()
 ]
 
@@ -623,6 +618,14 @@ document_operators = {
         Alias(clean_text="full_text").t(str),
         FunctionOperator(lambda x: {"meta": (x or dict())}).t(dict[str, Any])
         .input(x="_meta").out("meta").docs("Metadata of the document"),
+
+        ##### generalized pages ########
+
+        # TODO: extract the correct page number for all documents
+        FunctionOperator(lambda x: {0: x})
+        .input(x="clean_text").out("page_templates").cache()
+        .docs("create page templates from pandoc documents. This is a temporary workaround "
+              " as we do not have the correct page numbers implemented yet."),
 
         ##### calculate some metadata ####
         FunctionOperator(
@@ -1076,7 +1079,7 @@ operations and include the documentation there. Lambda functions should not be u
             str: A string representation of the instance.
         """
         if isinstance(self._source, (str, bytes)):
-            return f"{self.__module__}.{self.__class__.__name__}(source={self.source[:10]})"
+            return f"{self.__module__}.{self.__class__.__name__}(source={self.source[-10:]})"
         else:
             return f"{self.__module__}.{self.__class__.__name__}(source={self.source})"
 

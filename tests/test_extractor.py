@@ -225,7 +225,7 @@ def test_chat_gpt():
 def test_gpt4all():
     doc = Document(
         fobj=make_path_absolute("./data/sample.rtf"),
-        chat_model_id='ggml-mpt-7b-instruct'
+        chat_model_id='llama-2-7b-chat.ggmlv3.q4_0'
     )
     ans = doc.chat_answers(["what is the text about?"])
 
@@ -612,7 +612,7 @@ def test_list_query():
 if __name__ == "__main__":
     # a = pd.DataFrame(sd.sents)
     # a[2]
-    test_string_extraction()
+    test_gpt4all()
 
     file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/PFR-PR23_BAT-110__V1.00_.pdf"
     # run_single_non_interactive_document_test(file)

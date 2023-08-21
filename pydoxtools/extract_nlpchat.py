@@ -58,7 +58,7 @@ def openai_chat_completion(msgs, model_id='gpt-3.5-turbo', max_tokens=256):
 
 
 @functools.lru_cache
-def get_gpt4model(model_id):
+def get_cached_gpt4model(model_id):
     from gpt4all import GPT4All
     # gptj = GPT4All("ggml-gpt4all-j-v1.3-groovy")
     gptj = GPT4All(model_id)
@@ -71,13 +71,14 @@ def gpt4_models():
         from gpt4all import GPT4All
         return [m["filename"].strip('.bin') for m in GPT4All.list_models()]
     except requests.exceptions.JSONDecodeError:
-        return ["ggml-mpt-7b-instruct"]
+        return [""]
 
 
 @cache.memoize()
-def gpt4allchat(messages, model_id="ggml-mpt-7b-instruct", max_tokens=256, *args, **kwargs):
-    gptj = get_gpt4model(model_id)
-    res = gptj.chat_completion(messages, default_prompt_footer=False, default_prompt_header=False)
+def gpt4allchat(messages, model_id="ggml-mpt-7b-instruct", max_tokens=256, temperature=0.0):
+    model = get_cached_gpt4model(model_id)
+    task_msg = "\n".join([m['content'] for m in messages])
+    res = model.generate(prompt=task_msg, temp=temperature, max_tokens=max_tokens)
     return res
 
 
@@ -89,7 +90,7 @@ def chat_completion(msgs: list[dict[str, str], ...], model_id: str, max_tokens: 
     elif model_id in gpt4_models():
         completion = gpt4allchat(
             model_id=model_id, temperature=0.0, messages=msgs, max_tokens=max_tokens)
-        result = completion["choices"][0]['message']['content']
+        result = completion  # ["choices"][0]['message']['content']
     else:
         result = ""
         raise NotImplementedError(f"We can currently not handle the model {model_id}")
@@ -105,6 +106,8 @@ def task_chat(
         format="yaml",
         method="prompt"
 ):
+    """This function generates a chat prompt for a task. It is used to generate the prompt for the chat
+    interface"""
     msgs = []
     msgs.append({"role": "system",
                  "content": "You are a helpful assistant that aims to complete the given task."
@@ -224,7 +227,7 @@ class LLMChat(Operator):
                                     f"## Input for the task: {text}.\n\n"
                                     f"## Result:\n\n"})
 
-                result = chat_completion(msgs, model_id=model_id)
+                result = chat_completion(msgs, model_id=model_id, max_tokens=2000)
 
                 results.append(result)
             return results
@@ -264,25 +267,6 @@ def very_slow():
     )
     for seq in sequences:
         print(f"Result: {seq['generated_text']}")
-
-
-def reasonable_speed():
-    from gpt4all import GPT4All
-
-    # gptj = GPT4All("ggml-gpt4all-j-v1.3-groovy")
-    models = [(m['filename'], m['description']) for m in GPT4All.list_models()]
-    gptj = GPT4All("ggml-mpt-7b-instruct")
-    messages = [{"role": "user", "content": "Name 3 colors"}]
-    res = gptj.chat_completion(messages)
-
-    messages = [{"role": "user", "content": "What colors did you previously name?"}]
-    gptj.chat_completion(messages)
-
-    messages = [
-        {"role": "user", "content": "Name 3 colors"},
-        {'role': 'assistant', 'content': 'Blue, Green and Yellow'},
-        {"role": "user", "content": "What colors did you previously name?"}]
-    gptj.chat_completion(messages)
 
 
 def yaml_loader(txt: str):

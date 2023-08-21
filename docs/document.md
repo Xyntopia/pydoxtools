@@ -94,6 +94,22 @@ return type
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
+### page_templates
+            
+create page templates from pandoc documents. This is a temporary workaround  as we do not have the correct page numbers implemented yet.
+
+Can be called using:
+
+    <Document>.x('page_templates')
+    # or
+    <Document>.page_templates
+
+return type
+: dict[int, str] | typing.Any
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
 ### file_meta
             
 Some fast-to-calculate metadata information about a document
@@ -300,70 +316,6 @@ Can be called using:
 
 return type
 : <class 'str'\> | typing.Any
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
-### document_objects
-            
-
-
-Can be called using:
-
-    <Document>.x('document_objects')
-    # or
-    <Document>.document_objects
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
-### page_templates
-            
-generates a text page with table & figure hints
-
-Can be called using:
-
-    <Document>.x('page_templates')
-    # or
-    <Document>.page_templates
-
-return type
-: dict[int, str]
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
-### page_templates_str
-            
-No documentation
-
-Can be called using:
-
-    <Document>.x('page_templates_str')
-    # or
-    <Document>.page_templates_str
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
-### table_context
-            
-No documentation
-
-Can be called using:
-
-    <Document>.x('table_context')
-    # or
-    <Document>.table_context
-
-return type
-: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -1706,6 +1658,54 @@ Can be called using:
     <Document>.x('side_titles')
     # or
     <Document>.side_titles
+
+return type
+: typing.Any
+
+supports pipeline flows:
+: application/pdf, image, image/jpeg, image/png, image/tiff
+
+### document_objects
+            
+
+
+Can be called using:
+
+    <Document>.x('document_objects')
+    # or
+    <Document>.document_objects
+
+return type
+: typing.Any
+
+supports pipeline flows:
+: application/pdf, image, image/jpeg, image/png, image/tiff
+
+### page_templates_str
+            
+No documentation
+
+Can be called using:
+
+    <Document>.x('page_templates_str')
+    # or
+    <Document>.page_templates_str
+
+return type
+: typing.Any
+
+supports pipeline flows:
+: application/pdf, image, image/jpeg, image/png, image/tiff
+
+### table_context
+            
+No documentation
+
+Can be called using:
+
+    <Document>.x('table_context')
+    # or
+    <Document>.table_context
 
 return type
 : typing.Any
