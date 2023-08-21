@@ -231,7 +231,7 @@ def test_gpt4all():
     doc = Document(
         fobj=text,
         chat_model_id='llama-2-7b-chat.ggmlv3.q4_0'
-        #chat_model_id='orca-mini-3b.ggmlv3.q4_0'
+        # chat_model_id='orca-mini-3b.ggmlv3.q4_0'
     )
 
     start_time = time.time()
@@ -624,7 +624,7 @@ def test_list_query():
 if __name__ == "__main__":
     # a = pd.DataFrame(sd.sents)
     # a[2]
-    test_gpt4all()
+    test_url_download()
 
     file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/PFR-PR23_BAT-110__V1.00_.pdf"
     # run_single_non_interactive_document_test(file)

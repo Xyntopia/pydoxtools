@@ -661,7 +661,7 @@ class PDFTableCandidate:
     def df(self):
         """get table as a pandas dataframe"""
         try:
-            table, _ = self.convert_cells_to_df_text_only()
+            table, _ = self.convert_cells_to_df()
             table.attrs["source"] = self._filename
             table.attrs["area"] = self.bbox.tolist()
             table.attrs["page"] = self.page

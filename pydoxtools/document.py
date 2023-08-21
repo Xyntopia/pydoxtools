@@ -162,7 +162,7 @@ def calculate_a_d_ratio(ft: str) -> float:
 # nodes which help to extract the structure of a document
 PDFDocumentStructureNodes = [
     extract_textstructure.DocumentObjects()
-    .input("table_elements", "elements").out("document_objects").cache(allow_disk_cache=True),
+    .input("valid_tables", "elements").out("document_objects").cache(allow_disk_cache=True),
     extract_textstructure.PageTemplateGenerator()
     .input("document_objects").out("page_templates").cache()
     .docs("generates a text page with table & figure hints"),
@@ -170,7 +170,7 @@ PDFDocumentStructureNodes = [
     .input(pt="page_templates", ps="page_set").out("page_templates_str").cache(),
     FunctionOperator(lambda tables, elements: dict(table_context={
         k: extract_textstructure.get_object_context(v.bbox, elements, "table") for k, v in enumerate(tables)}))
-    .input("elements", tables="table_elements").out("table_context").cache()
+    .input("elements", tables="valid_tables").out("table_context").cache()
 ]
 
 PDFNodes = [
@@ -206,11 +206,11 @@ PDFNodes = [
     FunctionOperator(lambda x: [t for t in x if t.is_valid])
     .input(x="table_candidates").out("valid_tables"),
     FunctionOperator(lambda x: [t.df for t in x])
-    .input(x="table_elements").out("table_df0").cache(allow_disk_cache=True)
+    .input(x="valid_tables").out("table_df0").cache(allow_disk_cache=True)
     .t(table_df0=list[pd.DataFrame])
     .docs("Filter valid tables from table candidates by looking if meaningful values can be extracted"),
     FunctionOperator(lambda x: pd.DataFrame([t.bbox for t in x], columns=["x0", "y0", "x1", "y1"]))
-    .input(x="table_elements").out("table_areas").cache()
+    .input(x="valid_tables").out("table_areas").cache()
     .t(table_areas=list[np.ndarray])
     .docs("Areas of all detected tables"),
     FunctionOperator[list[pd.DataFrame]](lambda table_df0, lists: table_df0 + ([] if lists.empty else [lists]))
