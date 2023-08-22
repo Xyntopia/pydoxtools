@@ -167,10 +167,13 @@ PDFDocumentStructureNodes = [
     .input("document_objects").out("page_templates").cache()
     .docs("generates a text page with table & figure hints"),
     FunctionOperator(lambda pt, ps: "".join(f"\n\n-------- {p} --------\n\n" + pt[p] for p in ps))
-    .input(pt="page_templates", ps="page_set").out("page_templates_str").cache(),
-    FunctionOperator(lambda tables, elements: dict(table_context={
-        k: extract_textstructure.get_object_context(v.bbox, elements, "table") for k, v in enumerate(tables)}))
-    .input("elements", tables="valid_tables").out("table_context").cache()
+    .input(pt="page_templates", ps="page_set").out("page_templates_str").cache()
+    .t(str),
+    FunctionOperator(lambda tables, elements: {
+        k: extract_textstructure.get_object_context(v.bbox, elements, "table")
+        for k, v in enumerate(tables)
+    }).input("elements", tables="valid_tables").out("table_context").cache()
+    .t(dict[int, str])
 ]
 
 PDFNodes = [
@@ -213,15 +216,17 @@ PDFNodes = [
     .input(x="valid_tables").out("table_areas").cache()
     .t(table_areas=list[np.ndarray])
     .docs("Areas of all detected tables"),
-    FunctionOperator[list[pd.DataFrame]](lambda table_df0, lists: table_df0 + ([] if lists.empty else [lists]))
-    .cache().input("table_df0", "lists").out("tables_df").cache(),
+    FunctionOperator(lambda table_df0, lists: table_df0 + ([] if lists.empty else [lists]))
+    .cache().input("table_df0", "lists").out("tables_df").cache()
+    .t(list[pd.DataFrame]),
     ############## END TABLE STUFF ##############
     # FunctionOperator()
     # .pipe()
     FunctionOperator(text_boxes_from_elements)
     .input("line_elements").out("text_box_elements").cache(),
-    FunctionOperator[list[str]](lambda df: df.get("text", None).to_list())
-    .input(df="text_box_elements").out("text_box_list").cache(),
+    FunctionOperator(lambda df: df.get("text", None).to_list())
+    .input(df="text_box_elements").out("text_box_list").cache()
+    .t(list[str]),
     FunctionOperator(lambda tb: "\n\n".join(tb)).t(str)
     .input(tb="text_box_list").out("full_text").cache(),
     TitleExtractor()
@@ -301,8 +306,8 @@ OCRNodes = [
     FunctionOperator(lambda x: PIL.Image.open(io.BytesIO(x)))
     .input(x="raw_content").out("pil_image").cache().t(PIL.Image.Image),
     FunctionOperator(lambda x: np.array(x))
-    .input(x="pil_image").out("data").cache(),
-    FunctionOperator(lambda x: dict(images={0: x})).input(x="pil_image")
+    .input(x="pil_image").out("data").cache().t(np.array),
+    FunctionOperator(lambda x: {0: x}).input(x="pil_image")
     .out("images").no_cache().t(dict[int, PIL.Image.Image]),
     OCRExtractor()
     .input("ocr_on", "ocr_lang", file="raw_content")
@@ -339,9 +344,8 @@ MetaDataNodes = [
     FunctionOperator(calculate_a_d_ratio)
     .input(ft="full_text").out("a_d_ratio").cache()
     .docs("Letter/digit ratio of the text"),
-    FunctionOperator(
-        lambda full_text: langdetect.detect(full_text)
-    ).input("full_text").out("language").cache()
+    FunctionOperator(lambda full_text: langdetect.detect(full_text))
+    .input("full_text").out("language").cache()
     .default("unknown").docs(
         "Detect language of a document, return 'unknown' in case of an error")
 ]
@@ -389,7 +393,8 @@ KnowledgeGraphNodes = [
     .out("coreferences").cache(),
     FunctionOperator(lambda x, t: build_relationships_graph(relationships=x, coreferences=t))
     .input(x="relationships", t="coreferences")
-    .out("graph_nodes", "node_map", "graph_edges").cache(),
+    .out("graph_nodes", "node_map", "graph_edges").cache()
+    .t(graph_nodes=pd.DataFrame, node_map=dict, graph_edges=pd.DataFrame),
     FunctionOperator(lambda gn, ge, sd, cts: nx_graph(
         graph_nodes=gn, graph_edges=ge, spacy_doc=sd, graph_debug_context_size=cts))
     .input(gn="graph_nodes", ge="graph_edges", sd="spacy_doc", cts="graph_debug_context_size")
@@ -586,7 +591,7 @@ document_operators = {
     "application/x-yaml": [
         "<class 'dict'>",
         Alias(full_text="raw_content"),
-        FunctionOperator(lambda x: dict(data=yaml.unsafe_load(x)))
+        FunctionOperator(lambda x: yaml.unsafe_load(x))
         .input(x="full_text").out("data").cache()
         # TODO: we might need to have a special "result" message, that we
         #       pass around....
@@ -628,7 +633,7 @@ document_operators = {
         .input(x="raw_content").out("full_text").docs(
             "Full text as a string value"),
         Alias(clean_text="full_text").t(str),
-        FunctionOperator(lambda x: {"meta": (x or dict())}).t(dict[str, Any])
+        FunctionOperator(lambda x: (x or dict())).t(dict[str, Any])
         .input(x="_meta").out("meta").docs("Metadata of the document"),
 
         ##### generalized pages ########
@@ -641,7 +646,7 @@ document_operators = {
 
         ##### calculate some metadata ####
         FunctionOperator(
-            lambda x: dict(file_meta=x(
+            lambda x: x(
                 "filename",
                 # "keywords",
                 "document_type",
@@ -651,7 +656,7 @@ document_operators = {
                 "num_words",
                 # "num_sents",
                 "a_d_ratio",
-                "language")))
+                "language"))
         .input(x="to_dict").t(dict[str, Any])
         .out("file_meta").cache().docs(
             "Some fast-to-calculate metadata information about a document"),

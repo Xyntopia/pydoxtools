@@ -57,4 +57,8 @@ KG=doc.knowledge_graph
 
 doc.graph_nodes
 
+doc.node_map
+
+doc.graph_edges
+
 vd.draw(KG, format='svg')
