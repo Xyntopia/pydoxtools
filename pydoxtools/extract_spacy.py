@@ -259,18 +259,25 @@ class ExtractRelationships(Operator):
         return res
 
 
+@functools.lru_cache
+def load_cached_fast_coref_model(method='fast'):
+    if method == 'fast':
+        from fastcoref import FCoref
+        model = FCoref()
+    else:
+        from fastcoref import LingMessCoref
+        model = LingMessCoref()
+
+    return model
+
+
 class CoreferenceResolution(Operator):
     def __call__(
             self, spacy_doc: Doc,
             method='fast'
     ) -> list[list[tuple[int, int]]]:
         """Resolve coreferences in a spacy document"""
-        if method == 'fast':
-            from fastcoref import FCoref
-            model = FCoref()
-        else:
-            from fastcoref import LingMessCoref
-            model = LingMessCoref()
+        model = load_cached_fast_coref_model(method)
 
         preds = model.predict(
             texts=[[str(t) for t in spacy_doc]],
