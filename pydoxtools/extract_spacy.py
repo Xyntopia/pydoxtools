@@ -256,6 +256,8 @@ class ExtractRelationships(Operator):
                 })
 
         res = pd.DataFrame(relationships)
+        if res.empty:
+            res = pd.DataFrame(columns=['n1', 'n2', 'type', 'label'])
         return res
 
 
@@ -295,6 +297,13 @@ def build_relationships_graph(
 ) -> dict[str, pd.DataFrame | pd.Series]:
     # get all nodes from the relationship list
     graph_nodes = pd.DataFrame(set(relationships[["n1", "n2"]].values.flatten()), columns=["nodes"])
+
+    if graph_nodes.empty:
+        return dict(
+            graph_nodes=pd.DataFrame(columns=['nodes', 'token_idx', 'group']),
+            node_map=pd.Series(),
+            graph_edges=pd.DataFrame(columns=['n1', 'n2', 'type', 'label']),
+        )
 
     # add node groups
     graph_nodes['token_idx'] = graph_nodes.nodes.apply(lambda x: x.i).astype(int)
