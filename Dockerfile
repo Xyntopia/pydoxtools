@@ -147,7 +147,7 @@ ENTRYPOINT [ "jupyter", "lab", "--allow-root", "--ip", "0.0.0.0", "--no-browser"
 
 # -------------------------- pip install test --------------------------------------
 
-FROM python:3.8-slim as test3.8
+FROM python:3.10-slim as test3.10
 
 # TODO: add cachin directories for models, spacy etc...
 
@@ -159,27 +159,34 @@ RUN apt-get update && \
     iputils-ping build-essential \
     htop byobu \
     curl g++ wget\
-    git file \
+    git file  \
     tesseract-ocr tesseract-ocr-deu tesseract-ocr-fra tesseract-ocr-eng tesseract-ocr-spa \
+    poppler-utils graphviz graphviz-dev\
     && pip install -U pip \
     && apt-get clean autoclean \
     && apt-get autoremove --yes \
     && rm -rf /var/lib/{apt,dpkg,cache,log}/
 
+RUN wget https://github.com/jgm/pandoc/releases/download/2.19.2/pandoc-2.19.2-1-amd64.deb
+RUN dpkg -i pandoc-2.19.2-1-amd64.deb
+
+RUN pip install pytest pygraphviz
+
+# ------------------------- run test for pipy/github installation --------------------------------------
+
+FROM test3.10 as test_remote
 #RUN pip install pydoxtools
 # install from github project itself
 RUN --mount=type=cache,target=/root/.cache \
     pip install -U "pydoxtools[etl,inference] @ git+https://github.com/xyntopia/pydoxtools.git@python3.8_support"
 RUN git clone --recurse-submodules -b python3.8_support https://github.com/xyntopia/pydoxtools.git
-RUN pip install pytest
-RUN wget https://github.com/jgm/pandoc/releases/download/2.19.2/pandoc-2.19.2-1-amd64.deb
-RUN dpkg -i pandoc-2.19.2-1-amd64.deb
 
-# -------------------------- run tests --------------------------------------
+# -------------------------- run tests from local installation --------------------------------------
 
-FROM test3.8 as test_local
+FROM test3.10 as test_local
 
 COPY . /pydoxtools/
 WORKDIR pydoxtools
-RUN pip install .
+RUN --mount=type=cache,target=/root/.cache  \
+    pip install ".[etl,inference]"
 #RUN pytest

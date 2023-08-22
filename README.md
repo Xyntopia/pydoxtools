@@ -9,7 +9,7 @@
 
 ***
 
-(*WIP*) [Documentation](https://pydoxtools.xyntopia.com)
+[Documentation](https://pydoxtools.xyntopia.com)
 
 Pydoxtools is a library that provides a sophisticated interface for reading and
 writing documents, designed to work with AI models such as GPT, Alpaca, and
@@ -46,8 +46,8 @@ method once it becomes more stable:
 
     pip install -U pydoxtools[etl,inference]
 
-For loading additional file formats (docx, odt, epub) and images, check out
-the additional > [Installation Options](#installation-options) <.
+For loading additional file formats (docx, odt, epub), OCR and other options,
+check out the additional > [Installation Options](#installation-options) <.
 
 ## 🚀 Teaser 🚀
 
@@ -175,6 +175,21 @@ very limited resources!
 
 ## Installation Options
 
+If you simply want to get going, you can install the following libraries on your system
+which will do evrything for you:
+
+```bash
+sudo apt-get install tesseract-ocr tesseract-ocr-deu tesseract-ocr-fra tesseract-ocr-eng tesseract-ocr-spa \
+                     poppler-utils graphviz graphviz-dev \
+sudo apt-get install pandoc
+# OR (for getting the newest version with all features)
+# cd /tmp
+# wget https://github.com/jgm/pandoc/releases/download/2.19.2/pandoc-2.19.2-1-amd64.deb
+# dpkg -i pandoc-2.19.2-1-amd64.deb
+```
+
+Below are some explanation what the different
+
 ### Supporting \*.docx, \*.odt, \*.epub
 
 In order to be able to load docx, odt and rtf files, you have to install pandoc.
@@ -191,14 +206,34 @@ In order to be able to use this, install tesseract on your system:
 
 Under linux this looks like the following:
 
-    sudo apt-get update && sudo apt-get tesseract-ocr
-    # install tesseract languages 
-    # Display a list of all Tesseract language packs:
-    #   apt-cache search tesseract-ocr
-    # install all languages:
-    # sudo apt install tesseract-ocr-*
-    # install only german, french, english, spanish language packs
-    # sudo apt install tesseract-ocr-deu tesseract-ocr-fra tesseract-ocr-eng tesseract-ocr-spa
+```bash
+sudo apt-get update && sudo apt-get tesseract-ocr
+# install tesseract languages 
+# Display a list of all Tesseract language packs:
+#   apt-cache search tesseract-ocr
+# install all languages:
+# sudo apt install tesseract-ocr-*
+# install only german, french, english, spanish language packs
+sudo apt install tesseract-ocr-deu tesseract-ocr-fra tesseract-ocr-eng tesseract-ocr-spa
+```
+
+### pdf image rendering
+
+For pdf rendering, Pydoxtools makes use of a library "poppler" which
+needs to be installed on your system. Under linux, this looks like the following:
+
+```bash
+sudo apt-get install poppler-utils
+```
+
+### Graphviz
+
+For visualizing the document logic, you need to install graphviz on your system.
+Under linux, this looks like the following:
+
+```bash
+sudo apt-get install graphviz graphviz-dev
+```
 
 ## Development
 

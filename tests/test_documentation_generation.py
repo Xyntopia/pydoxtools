@@ -2,6 +2,7 @@ from __future__ import annotations  # this is so, that we can use python3.10 ann
 
 import mimetypes
 import pathlib
+import os
 
 from pydoxtools import Document, DocumentBag
 from pydoxtools.settings import _PYDOXTOOLS_DIR
@@ -15,17 +16,22 @@ def make_path_absolute(f: pathlib.Path | str):
 
 def test_pipeline_graph():
     # TODO: generate graphs for all document types
+    SVG_DIR = _PYDOXTOOLS_DIR / f"docs/images"
+
+    if not os.path.exists(SVG_DIR):
+        os.makedirs(SVG_DIR)
+
     for k in Document._pipelines:
         ending = mimetypes.guess_extension(k, strict=False) or k
         ending = ending.replace("/", "_")
         Document.pipeline_graph(
-            image_path=_PYDOXTOOLS_DIR / f"docs/images/document_logic_{ending}.svg",
+            image_path=SVG_DIR / f"document_logic_{ending}.svg",
             document_logic_id=k
         )
 
     for k in DocumentBag._pipelines:
         DocumentBag.pipeline_graph(
-            image_path=_PYDOXTOOLS_DIR / f"docs/images/documentbag_logic_{k}.svg",
+            image_path=SVG_DIR / f"documentbag_logic_{k}.svg",
             document_logic_id=k
         )
 
