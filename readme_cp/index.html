@@ -17,7 +17,7 @@
         <link rel="next" href="../examples/">
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.13">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.15">
     
     
       
@@ -25,10 +25,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.85bb2934.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.26e3688c.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.a6bdf11c.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ecc896b0.min.css">
       
       
 
@@ -314,6 +314,19 @@
     🚀 Teaser 🚀
   </a>
   
+    <nav class="md-nav" aria-label="🚀 Teaser 🚀">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#supported-file-formats" class="md-nav__link">
+    Supported File Formats
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -388,6 +401,20 @@
           <li class="md-nav__item">
   <a href="#image-ocr-support" class="md-nav__link">
     Image OCR Support
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pdf-image-rendering" class="md-nav__link">
+    pdf image rendering
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphviz" class="md-nav__link">
+    Graphviz
   </a>
   
 </li>
@@ -596,6 +623,19 @@
     🚀 Teaser 🚀
   </a>
   
+    <nav class="md-nav" aria-label="🚀 Teaser 🚀">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#supported-file-formats" class="md-nav__link">
+    Supported File Formats
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -674,6 +714,20 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#pdf-image-rendering" class="md-nav__link">
+    pdf image rendering
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphviz" class="md-nav__link">
+    Graphviz
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -728,7 +782,7 @@
 <a href="https://github.com/xyntopia/pydoxtools/discussions"><img alt="GitHub discussions" src="https://img.shields.io/badge/discuss-online-845ef7" /></a>
 <a href="https://github.com/xyntopia/pydoxtools/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/xyntopia/pydoxtools" /></a></p>
 <hr />
-<p>(<em>WIP</em>) <a href="https://pydoxtools.xyntopia.com">Documentation</a></p>
+<p><a href="https://pydoxtools.xyntopia.com">Documentation</a></p>
 <p>Pydoxtools is a library that provides a sophisticated interface for reading and
 writing documents, designed to work with AI models such as GPT, Alpaca, and
 Huggingface. It offers functionalities such as:</p>
@@ -758,8 +812,8 @@ the latest version from GitHub as follows:</p>
 method once it becomes more stable:</p>
 <pre><code>pip install -U pydoxtools[etl,inference]
 </code></pre>
-<p>For loading additional file formats (docx, odt, epub) and images, check out
-the additional &gt; <a href="#installation-options">Installation Options</a> &lt;.</p>
+<p>For loading additional file formats (docx, odt, epub), OCR and other options,
+check out the additional &gt; <a href="#installation-options">Installation Options</a> &lt;.</p>
 <h2 id="teaser">🚀 Teaser 🚀</h2>
 <p>Experience a new level of convenience and efficiency in handling
 documents with Pydoxtools, and reimagine your data extraction pipelines!</p>
@@ -794,6 +848,17 @@ print(doc.chat_answers([&quot;Answer if a 5-year old would be able to follow the
 </code></pre>
 <p>With Pydoxtools, you can easily access and process your documents, perform various extractions,
 and utilize AI models for more advanced analysis.</p>
+<h3 id="supported-file-formats">Supported File Formats</h3>
+<p>Pydoxtools already supports loading from a large variety of different sources:</p>
+<ul>
+<li>Documents from URLs,</li>
+<li>pdf, html, docx, doc, odt, markdwn, rtf, epub, mediawiki</li>
+<li>everything supported by <a href="https://pandoc.org/">pandoc</a>,</li>
+<li>images (png, jpg, bmp, tiff etc...),</li>
+<li>And some "native-python" dataformats: PIL.Image.Image, <class 'dict'>, <class 'list'></li>
+<li>data formats: yaml (json in progress)</li>
+<li>And more!</li>
+</ul>
 <h2 id="some-features-in-more-detail">Some Features in More Detail</h2>
 <h3 id="large-pipelines">Large Pipelines</h3>
 <p>Pydoxtools' main feature is the ability to mix LLMs and other
@@ -854,6 +919,17 @@ very limited resources!</p>
 <li>ingest documents into a vector db</li>
 </ul>
 <h2 id="installation-options">Installation Options</h2>
+<p>If you simply want to get going, you can install the following libraries on your system
+which will do evrything for you:</p>
+<pre><code class="language-bash">sudo apt-get install tesseract-ocr tesseract-ocr-deu tesseract-ocr-fra tesseract-ocr-eng tesseract-ocr-spa \
+                     poppler-utils graphviz graphviz-dev \
+sudo apt-get install pandoc
+# OR (for getting the newest version with all features)
+# cd /tmp
+# wget https://github.com/jgm/pandoc/releases/download/2.19.2/pandoc-2.19.2-1-amd64.deb
+# dpkg -i pandoc-2.19.2-1-amd64.deb
+</code></pre>
+<p>Below are some explanation what the different</p>
 <h3 id="supporting-docx-odt-epub">Supporting *.docx, *.odt, *.epub</h3>
 <p>In order to be able to load docx, odt and rtf files, you have to install pandoc.
 Right now, the python pandoc library does not work with pandoc version &gt; 3.0.0. It
@@ -864,14 +940,24 @@ is therefore recommended to install a version from here for your OS:</p>
 <a href="https://en.wikipedia.org/wiki/Optical_character_recognition">OCR</a>.
 In order to be able to use this, install tesseract on your system:</p>
 <p>Under linux this looks like the following:</p>
-<pre><code>apt-get update &amp;&amp; tesseract-ocr
+<pre><code class="language-bash">sudo apt-get update &amp;&amp; sudo apt-get tesseract-ocr
 # install tesseract languages 
 # Display a list of all Tesseract language packs:
 #   apt-cache search tesseract-ocr
 # install all languages:
 # sudo apt install tesseract-ocr-*
 # install only german, french, english, spanish language packs
-# sudo apt install tesseract-ocr-deu tesseract-ocr-fra tesseract-ocr-eng tesseract-ocr-spa
+sudo apt install tesseract-ocr-deu tesseract-ocr-fra tesseract-ocr-eng tesseract-ocr-spa
+</code></pre>
+<h3 id="pdf-image-rendering">pdf image rendering</h3>
+<p>For pdf rendering, Pydoxtools makes use of a library "poppler" which
+needs to be installed on your system. Under linux, this looks like the following:</p>
+<pre><code class="language-bash">sudo apt-get install poppler-utils
+</code></pre>
+<h3 id="graphviz">Graphviz</h3>
+<p>For visualizing the document logic, you need to install graphviz on your system.
+Under linux, this looks like the following:</p>
+<pre><code class="language-bash">sudo apt-get install graphviz graphviz-dev
 </code></pre>
 <h2 id="development">Development</h2>
 <p>--&gt; see <a href="DEVELOPMENT"></a></p>
