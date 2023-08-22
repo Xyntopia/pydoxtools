@@ -429,6 +429,9 @@ class PDFTableCandidate:
         # create indices for our graphical and line elements for
         # faster spatial queries
         # TODO: we might not need "w" and "h" or other elements...
+        # self.df_ge[['w', 'h']] = self.df_ge[['x1', 'y1']] - self.df_ge[['x0', 'y0']]
+        if self.df_ge.empty:
+            return pd.DataFrame()
         ge = self.df_ge[box_cols + ['w', 'h']].sort_values(
             by=['y0', 'y1', 'x0', 'x1'],
         ).set_index(['y0', 'y1', 'x0', 'x1'], drop=False).copy()
@@ -744,6 +747,7 @@ class PDFTableCandidate:
                 else:
                     return False
 
+                # this part here is a trained decision tree classifier
                 if ((vlines_num / cells_detected_num) + (cells_span_num / cells_detected_num)) <= 1.2666667699813843:
                     if ((words_area_sum / h) - (h / cells_num)) <= 11.474941492080688:
                         return False  # classification scores: [[0.01 0.  ]]

@@ -52,14 +52,15 @@ python-pptx = { version = "^0.6.21", optional = true }
 pandoc = { version = "^2.3", optional = true }
 packaging = "^23.0"
 torch = { version = ">=1.12.1", optional = true }
-pytesseract = {version = "^0.3.10", optional = true}
+pytesseract = { version = "^0.3.10", optional = true }
 pyyaml = "^6.0"
-dask = {extras = ["complete"], version = "^2023.4.1", optional = true}
+dask = { extras = ["complete"], version = "^2023.4.1", optional = true }
 diskcache = "^5.6.1"
 chardet = "^5.1.0"
-chromadb = {version = "^0.3.23", optional = true}
+chromadb = { version = "^0.3.23", optional = true }
 gpt4all = "^1.0.8"
-fastcoref = "^2.1.6"
+fastcoref = "^2.1.6" # needed for knowlecdge base creation
+timm = "^0.9.5" # this one is needed for document layout analysis
 
 [tool.poetry.extras]
 # extraction-transformation-load facilities
@@ -71,7 +72,7 @@ etl = ["goose3", "langdetect", "tldextract", "spacy", "pdfminer.six",
 ]
 # TODO: rename & regroups extras (e.g. light, medium average or something like that...)
 inference = ["transformers", "scikit-learn", "tqdm", "torch", "pytorch-lightning", "spacy",
-    "beautifulsoup4", "pandas", "urlextract", "hnswlib", "chromadb", "gpt4all"]
+    "beautifulsoup4", "pandas", "urlextract", "hnswlib", "chromadb", "gpt4all", "timm", "fastcoref"]
 
 [tool.poetry.group.colab]
 optional = true
@@ -137,7 +138,7 @@ datasets = "^2.10.1"
 evaluate = "^0.4.0"
 pygraphviz = "^1.10"
 mkdocs = "^1.4.2"
-mkdocstrings = {extras = ["crystal", "python"], version = "^0.21.2"}
+mkdocstrings = { extras = ["crystal", "python"], version = "^0.21.2" }
 mkdocs-material = "^9.1.8"
 
 [build-system]
