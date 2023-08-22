@@ -572,6 +572,15 @@ def test_image_table_recognition():
     assert len(d2.table_candidates) >= 1
     assert len(d2.tables) >= 0
 
+    # from bytes
+    doc_str = d2.raw_content
+    d3 = Document(fobj=doc_str, source=file)
+    img4 = d3.x("images")[0]
+    assert (d3.data == d.data).all()
+    # TODO: we need to update this to the same number as above!
+    assert len(d3.table_candidates) >= 1
+    assert len(d3.tables) >= 0
+
 
 def test_pdf_pages():
     doc = Document(make_path_absolute("./data/Doxcavator.pdf"))
@@ -638,6 +647,7 @@ if __name__ == "__main__":
     # a = pd.DataFrame(sd.sents)
     # a[2]
     test_image_table_recognition()
+    # test_all_documents()
 
     file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/PFR-PR23_BAT-110__V1.00_.pdf"
     # run_single_non_interactive_document_test(file)

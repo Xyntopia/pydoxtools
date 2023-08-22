@@ -298,8 +298,8 @@ OCRNodes = [
     # and then further processed from there
     "application/pdf",  # as we are extracting a pdf we would like to use the pdf functions...
     Configuration(ocr_lang="auto", ocr_on=True),
-    FunctionOperator(lambda x: PIL.Image.open(x))
-    .input(x="_fobj").out("pil_image").cache().t(PIL.Image.Image),
+    FunctionOperator(lambda x: PIL.Image.open(io.BytesIO(x)))
+    .input(x="raw_content").out("pil_image").cache().t(PIL.Image.Image),
     FunctionOperator(lambda x: np.array(x))
     .input(x="pil_image").out("data").cache(),
     FunctionOperator(lambda x: dict(images={0: x})).input(x="pil_image")
