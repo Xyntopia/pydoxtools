@@ -153,7 +153,7 @@ Can be called using:
     <Document>.text_box_list
 
 return type
-: list[str] | typing.Any
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -169,7 +169,7 @@ Can be called using:
     <Document>.tables_df
 
 return type
-: list[pandas.core.frame.DataFrame] | str | list[str] | list[pandas.core.frame.DataFrame] | typing.Any
+: str | list[str] | list[pandas.core.frame.DataFrame] | typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -561,7 +561,7 @@ Can be called using:
     <Document>.graph_nodes
 
 return type
-: typing.Any
+: <class 'pandas.core.frame.DataFrame'\>
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -577,7 +577,7 @@ Can be called using:
     <Document>.node_map
 
 return type
-: typing.Any
+: <class 'dict'\>
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -593,7 +593,7 @@ Can be called using:
     <Document>.graph_edges
 
 return type
-: typing.Any
+: <class 'pandas.core.frame.DataFrame'\>
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
