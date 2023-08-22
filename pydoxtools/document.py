@@ -286,13 +286,24 @@ PandocNodes = [
     .input(pandoc_blocks="pandoc_blocks").out("lists").cache(),
 ]
 
+PILImageNodes = [
+    "image", "application/pdf",
+    FunctionOperator(lambda x: np.array(x))
+    .input(x="_fobj").out("data").cache(),
+    Alias(pil_image="_fobj"),
+]
+
 OCRNodes = [
     # add a "base-document" type (.pdf) images get converted into pdfs
     # and then further processed from there
     "application/pdf",  # as we are extracting a pdf we would like to use the pdf functions...
     Configuration(ocr_lang="auto", ocr_on=True),
-    FunctionOperator(lambda x: dict(images={0: x})).input(x="_fobj")
-    .out("images").no_cache(),
+    FunctionOperator(lambda x: PIL.Image.open(x))
+    .input(x="_fobj").out("pil_image").cache().t(PIL.Image.Image),
+    FunctionOperator(lambda x: np.array(x))
+    .input(x="pil_image").out("data").cache(),
+    FunctionOperator(lambda x: dict(images={0: x})).input(x="pil_image")
+    .out("images").no_cache().t(dict[int, PIL.Image.Image]),
     OCRExtractor()
     .input("ocr_on", "ocr_lang", file="raw_content")
     .out("ocr_pdf_file").cache(),
@@ -568,6 +579,7 @@ document_operators = {
     "image": OCRNodes,
     # the first base doc types have priority over the last ones
     # so here .png > image > .pdf
+    'PIL.Image.Image': PILImageNodes,
     'image/png': ["image", "application/pdf"],
     'image/jpeg': ["image", "application/pdf"],
     'image/tiff': ["image", "application/pdf"],
@@ -1029,7 +1041,7 @@ operations and include the documentation there. Lambda functions should not be u
             b = io.BytesIO()
             self._fobj.save(b, 'PNG')
             buffer = b.getvalue()
-            mimetype = 'image/png'
+            mimetype = 'PIL.Image.Image'
         else:
             mimetype = str(type(self._fobj))
             buffer = self._fobj
