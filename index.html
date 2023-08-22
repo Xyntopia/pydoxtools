@@ -288,15 +288,15 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#basic-agent-functionality" class="md-nav__link">
-    Basic Agent Functionality
+  <a href="#building-custom-pipelines-with-llms-large-language-models-and-other-ai-tools" class="md-nav__link">
+    Building Custom Pipelines with LLMs (Large Language Models) and other AI Tools
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#building-custom-pipelines-with-llms-large-language-models-and-other-ai-tools" class="md-nav__link">
-    Building Custom Pipelines with LLMs (Large Language Models) and other AI Tools
+  <a href="#basic-agent-functionality" class="md-nav__link">
+    Basic Agent Functionality
   </a>
   
 </li>
@@ -491,15 +491,15 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#basic-agent-functionality" class="md-nav__link">
-    Basic Agent Functionality
+  <a href="#building-custom-pipelines-with-llms-large-language-models-and-other-ai-tools" class="md-nav__link">
+    Building Custom Pipelines with LLMs (Large Language Models) and other AI Tools
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#building-custom-pipelines-with-llms-large-language-models-and-other-ai-tools" class="md-nav__link">
-    Building Custom Pipelines with LLMs (Large Language Models) and other AI Tools
+  <a href="#basic-agent-functionality" class="md-nav__link">
+    Basic Agent Functionality
   </a>
   
 </li>
@@ -532,7 +532,7 @@
 
 
 <h1 id="welcome-to-pydoxtools-documentation">Welcome to Pydoxtools Documentation!</h1>
-<p>For a short overview over Pydoxtools, checkout the readme on the project page:</p>
+<p>For a short overview over Pydoxtools, checkout the readme:</p>
 <p><a href="readme_cp">Readme</a></p>
 <h2 id="introduction">Introduction</h2>
 <p>Pydoxtools provides a user-friendly interface for document analysis and
@@ -542,10 +542,6 @@ manipulation, consisting of four main classes:</p>
 <li><a class="autorefs autorefs-internal" href="documentbag/#pydoxtools.DocumentBag">pydoxtools.DocumentBag</a></li>
 <li><a class="autorefs autorefs-internal" href="reference/#pydoxtools.document_base.Pipeline">pydoxtools.Pipeline</a></li>
 <li><a class="autorefs autorefs-internal" href="agent/#pydoxtools.LLMAgent">pydoxtools.LLMAgent</a></li>
-</ul>
-<p>Additionally, it offers a collection of operators:</p>
-<ul>
-<li>[pydoxtools.operators][]</li>
 </ul>
 <h3 id="here-are-some-examples-to-get-started">Here are some examples to get started:</h3>
 <ul>
@@ -566,18 +562,6 @@ with AI and LLMs in automated settings. As a result, it is not possible
 to configure <em>how</em> documents are loaded using configuration parameters.
 However, you can easily achieve specific data organization by chaining documents together.</p>
 <p>TODO:  provide an example</p>
-<h3 id="basic-agent-functionality">Basic Agent Functionality</h3>
-<p>Pydoxtools provides basic LLM Agent functionality out-of-the-box. It provides
-an [Agent][pydoxtools.Agent] class which implements the basic functionality
-needed to create AI Agents which make use of pydoxtools Pipelines, especially
-<a class="autorefs autorefs-internal" href="document/#pydoxtools.Document">Document</a> and <a class="autorefs autorefs-internal" href="documentbag/#pydoxtools.DocumentBag">DocumentBag</a>.</p>
-<p>The agent can be customized, and complicated applications can be created with just
-a few lines of code. Some examples are:</p>
-<ul>
-<li>Automatic Documenttext writing in under 100 lines:
-  <a href="https://github.com/Xyntopia/pydoxtools/blob/main/examples/automatic_project_writing.py">example</a></li>
-<li>TODO: add more examples...</li>
-</ul>
 <h3 id="building-custom-pipelines-with-llms-large-language-models-and-other-ai-tools">Building Custom Pipelines with LLMs (Large Language Models) and other AI Tools</h3>
 <p>The Pipeline class allows you to create complex, custom pipelines that come
 with several built-in features, making them easy to integrate with modern AI tools:</p>
@@ -592,6 +576,18 @@ with several built-in features, making them easy to integrate with modern AI too
 <a class="autorefs autorefs-internal" href="document/#pydoxtools.Document">pydoxtools.Document</a> or <a class="autorefs autorefs-internal" href="documentbag/#pydoxtools.DocumentBag">pydoxtools.DocumentBag</a> as a base for
 a new pipeline and only replace small parts to achieve the desired
 custom functionality.</p>
+<h3 id="basic-agent-functionality">Basic Agent Functionality</h3>
+<p>Pydoxtools provides basic LLM Agent functionality out-of-the-box. It provides
+an [Agent][pydoxtools.Agent] class which implements the basic functionality
+needed to create AI Agents which make use of pydoxtools Pipelines, especially
+<a class="autorefs autorefs-internal" href="document/#pydoxtools.Document">Document</a> and <a class="autorefs autorefs-internal" href="documentbag/#pydoxtools.DocumentBag">DocumentBag</a>.</p>
+<p>The agent can be customized, and complicated applications can be created with just
+a few lines of code. Some examples are:</p>
+<ul>
+<li>Automatic Documenttext writing in under 100 lines:
+  <a href="https://github.com/Xyntopia/pydoxtools/blob/main/examples/automatic_project_writing.py">example</a></li>
+<li>TODO: add more examples...</li>
+</ul>
 <h2 id="visualizing-pipelines">Visualizing Pipelines</h2>
 <p>Visualizing pipelines can be incredibly helpful when developing your
 own pipeline on top of a complex one, such as the document pipeline.
