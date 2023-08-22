@@ -89,6 +89,18 @@ print(doc.chat_answers(["Answer if a 5-year old would be able to follow these in
 With Pydoxtools, you can easily access and process your documents, perform various extractions,
 and utilize AI models for more advanced analysis.
 
+### Supported File Formats
+
+Pydoxtools already supports loading from a large variety of different sources:
+
+- Documents from URLs,
+- pdf, html, docx, doc, odt, markdwn, rtf, epub, mediawiki
+- everything supported by [pandoc](https://pandoc.org/),
+- images (png, jpg, bmp, tiff etc...),
+- And some "native-python" dataformats: PIL.Image.Image, <class 'dict'>, <class 'list'>
+- data formats: yaml (json in progress)
+- And more!
+
 ## Some Features in More Detail
 
 ### Large Pipelines

@@ -464,17 +464,17 @@ def test_nlp_utils():
 def test_disk_cache():
     d = Document(source=make_path_absolute("../README.md")).set_disk_cache_settings(
         enable=False,
-        ttl=3600  # keep cache for 1 hour
+        ttl=5*60  # keep cache for 5 minutes
     )
     kw = sorted(d.keywords)
     d = Document(source=make_path_absolute("../README.md")).set_disk_cache_settings(
         enable=True,
-        ttl=3600  # keep cache for 1 hour
+        ttl=5*60  # keep cache for 5 minutes
     )
     assert sorted(d.keywords) == kw
     d = Document(source=make_path_absolute("../README.md")).set_disk_cache_settings(
         enable=True,
-        ttl=3600  # keep cache for 1 hour
+        ttl=5*60  # keep cache for 5 minutes
     )
     assert sorted(d.keywords) == kw
     assert d._stats["cache_hits"] == 0
@@ -646,13 +646,7 @@ def test_list_query():
 if __name__ == "__main__":
     # a = pd.DataFrame(sd.sents)
     # a[2]
-    d = Document(
-        "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/berrybase_raspberrypi4.html",
-    )
-    d.relationships
-    d.graph_nodes
-    d.knowledge_graph
-    # test_all_documents()
+    test_disk_cache()
 
     file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/PFR-PR23_BAT-110__V1.00_.pdf"
     # run_single_non_interactive_document_test(file)
