@@ -1,6 +1,6 @@
 # Welcome to Pydoxtools Documentation!
 
-For a short overview over Pydoxtools, checkout the readme on the project page:
+For a short overview over Pydoxtools, checkout the readme:
 
 [Readme](readme_cp)
 
@@ -13,10 +13,6 @@ manipulation, consisting of four main classes:
 - [pydoxtools.DocumentBag][]
 - [pydoxtools.Pipeline][]
 - [pydoxtools.LLMAgent][]
-
-Additionally, it offers a collection of operators:
-
-- [pydoxtools.operators][]
 
 ### Here are some examples to get started:
 
@@ -42,21 +38,6 @@ However, you can easily achieve specific data organization by chaining documents
 
 TODO:  provide an example
 
-### Basic Agent Functionality
-
-Pydoxtools provides basic LLM Agent functionality out-of-the-box. It provides
-an [Agent][pydoxtools.Agent] class which implements the basic functionality
-needed to create AI Agents which make use of pydoxtools Pipelines, especially
-[Document][pydoxtools.Document] and [DocumentBag][pydoxtools.DocumentBag].
-
-The agent can be customized, and complicated applications can be created with just
-a few lines of code. Some examples are:
-
-- Automatic Documenttext writing in under 100 lines:
-  [example](https://github.com/Xyntopia/pydoxtools/blob/main/examples/automatic_project_writing.py)
-- TODO: add more examples...
-
-
 ### Building Custom Pipelines with LLMs (Large Language Models) and other AI Tools
 
 The Pipeline class allows you to create complex, custom pipelines that come
@@ -72,6 +53,20 @@ To develop a custom pipeline, you can utilize the extensive library of
 [pydoxtools.Document][] or [pydoxtools.DocumentBag][] as a base for
 a new pipeline and only replace small parts to achieve the desired
 custom functionality.
+
+### Basic Agent Functionality
+
+Pydoxtools provides basic LLM Agent functionality out-of-the-box. It provides
+an [Agent][pydoxtools.Agent] class which implements the basic functionality
+needed to create AI Agents which make use of pydoxtools Pipelines, especially
+[Document][pydoxtools.Document] and [DocumentBag][pydoxtools.DocumentBag].
+
+The agent can be customized, and complicated applications can be created with just
+a few lines of code. Some examples are:
+
+- Automatic Documenttext writing in under 100 lines:
+  [example](https://github.com/Xyntopia/pydoxtools/blob/main/examples/automatic_project_writing.py)
+- TODO: add more examples...
 
 ## Visualizing Pipelines
 
