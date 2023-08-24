@@ -12,7 +12,7 @@ import pytest
 import pydoxtools
 import pydoxtools.document
 from pydoxtools.document import Document, DocumentBag
-from pydoxtools.list_utils import flatten, iterablefyer
+from pydoxtools.list_utils import flatten, ensure_list
 from pydoxtools.operators_base import OperatorException
 from pydoxtools.settings import settings
 
@@ -60,7 +60,7 @@ single_test_file = make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf")
 
 def test_document_type_detection():
     for t, v in test_files_w_type.items():
-        for f in iterablefyer(v):
+        for f in ensure_list(v):
             d = Document(make_path_absolute(f))
             logger.info(f"testing filetype detection for {f}")
             assert d.document_type == t

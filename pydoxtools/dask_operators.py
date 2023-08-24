@@ -144,7 +144,7 @@ class DocumentBagMap(Operator):
 
         def extract_func_creator(props: list[str]):
             def extract(d):
-                list_doc_mapping = list_utils.iterablefyer(props)
+                list_doc_mapping = list_utils.ensure_list(props)
                 fobj = d.to_dict(*list_doc_mapping)
                 fobj = list_utils.remove_list_from_lonely_object(fobj)
                 return fobj
@@ -160,7 +160,7 @@ class DocumentBagMap(Operator):
             The mapping functions has to accept a pydoxtools.Document as input.
             """
             if not callable(mapping_func):
-                props = list_utils.iterablefyer(mapping_func)
+                props = list_utils.ensure_list(mapping_func)
                 mapping_func = extract_func_creator(props)
             if forgiving_extracts:
                 mapping_func = safe_mapping(mapping_func)

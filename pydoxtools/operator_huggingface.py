@@ -14,7 +14,7 @@ from typing import Dict, List, Tuple, Callable
 import torch
 
 from pydoxtools import nlp_utils
-from pydoxtools.list_utils import iterablefyer
+from pydoxtools.list_utils import ensure_list
 from pydoxtools.nlp_utils import tokenize_windows
 from pydoxtools.operators_base import Operator
 
@@ -143,7 +143,7 @@ class HuggingfacePipeline(Operator):
                 data = property_dict(*props)
 
             text = str(data)
-            input = iterablefyer(input)
+            input = ensure_list(input)
 
             res = pipeline(input, context=text)
             return res
@@ -174,7 +174,7 @@ class QamExtractor(Operator):
 
             # TODO: sort answers regarding threshold
             text = str(data)
-            questions = iterablefyer(questions)
+            questions = ensure_list(questions)
             allanswers = answer_questions_on_long_text(questions, text, model_id=trf_model_id)
             answers = list(allanswers.values())
             return answers

@@ -20,7 +20,7 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
-def iterablefyer(property):
+def ensure_list(property):
     """
     This function turns everything into an iterable
     if somthing is a string, it will be turned into list[str]

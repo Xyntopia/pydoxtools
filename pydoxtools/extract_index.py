@@ -239,7 +239,7 @@ class ChromaIndexFromBag(Operator):
                 ids=None,
         ):
             if metadata:
-                metadata = list_utils.iterablefyer(metadata)
+                metadata = list_utils.ensure_list(metadata)
 
             # we need to initialize a new connection here, so that we can do this in a
             # distributed manner ;).
@@ -285,7 +285,7 @@ class ChromaIndexFromBag(Operator):
                 if embeddings is not None:
                     query_embeddings = embeddings
                 else:
-                    query = list_utils.iterablefyer(query)
+                    query = list_utils.ensure_list(query)
                     query_embeddings = [query_vectorizer(q).tolist() for q in query]
 
                 _, collection = init_chroma(chroma_settings, collection_name)
