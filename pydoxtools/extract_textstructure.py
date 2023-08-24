@@ -13,6 +13,7 @@ from sklearn.ensemble import IsolationForest
 import pydoxtools.operators_base
 from pydoxtools import document_base
 from . import cluster_utils
+from . import list_utils
 
 
 def _line2txt(LTOBJ: typing.Iterable, size_hints=False):
@@ -368,23 +369,29 @@ class DocumentObjects(pydoxtools.operators_base.Operator):
 
 
 class PageTemplateGenerator(pydoxtools.operators_base.Operator):
-    def __call__(self, document_objects: list[document_base.DocumentElement]) -> dict[str, dict[int, str]]:
+    def __call__(
+            self, document_objects: list[document_base.DocumentElement]
+    ) -> typing.Callable[[list[str]], dict[int, str]]:
         # remove all tables from elements and insert a placeholder so that
         # we can more easily query the page with LLMs
 
-        objs = pd.DataFrame(document_objects)
-        objs = objs.sort_values(by=["p_num", "y0"], ascending=[True, False])
-        pages = objs.p_num.unique()
-        new_text = objs.apply(
-            lambda x: (place_holder_template.format(x.place_holder_text)
-                       if x.type == document_base.ElementType.Table
-                       else x.text),
-            axis=1)
-        page_templates = {p: "\n\n".join(new_text[objs.p_num == p]) for p in pages}
-        # page_templates = {p: "\n\n".join(objs[objs.p_num == p].text) for p in pages}
+        def generate(exclude: list[str] | document_base.ElementType = None) -> dict[int, str]:
+            exclude = list_utils.ensure_list(exclude)
+            objs = pd.DataFrame(document_objects)
+            objs = objs.sort_values(by=["p_num", "y0"], ascending=[True, False])
+            pages = objs.p_num.unique()
+            new_text = objs.apply(
+                lambda x: (place_holder_template.format(x.place_holder_text)
+                           if (x.type in exclude)
+                           else x.text),
+                axis=1)
+            page_templates = {p: "\n\n".join(new_text[objs.p_num == p]) for p in pages}
+            # page_templates = {p: "\n\n".join(objs[objs.p_num == p].text) for p in pages}
 
-        # elements = elements.sort_values(by="y0")#.loc[(19,578)]
-        return {"page_templates": page_templates}
+            # elements = elements.sort_values(by="y0")#.loc[(19,578)]
+            return page_templates
+
+        return generate
 
 
 def get_object_context(bbox: tuple | np.ndarray, elements: pd.DataFrame, placeholder: str = "area"):

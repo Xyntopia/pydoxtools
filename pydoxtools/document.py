@@ -166,7 +166,7 @@ PDFDocumentStructureNodes = [
     extract_textstructure.PageTemplateGenerator()
     .input("document_objects").out("page_templates").cache()
     .docs("generates a text page with table & figure hints"),
-    FunctionOperator(lambda pt, ps: "".join(f"\n\n-------- {p} --------\n\n" + pt[p] for p in ps))
+    FunctionOperator(lambda pt, ps: "".join(f"\n\n-------- {p} --------\n\n" + pt[p] for p in ps()))
     .input(pt="page_templates", ps="page_set").out("page_templates_str").cache()
     .t(str),
     FunctionOperator(lambda tables, elements: {
@@ -1141,7 +1141,7 @@ class DocumentBagCreator(Operator):
                 if callable(new_document):
                     fobj = new_document(d)
                 else:
-                    list_doc_mapping = list_utils.iterablefyer(new_document)
+                    list_doc_mapping = list_utils.ensure_list(new_document)
                     fobj = d.to_dict(*list_doc_mapping)
 
                 fobj = remove_list_from_lonely_object(fobj)
@@ -1150,7 +1150,7 @@ class DocumentBagCreator(Operator):
                     if callable(document_metas):
                         meta_dict = document_metas(d)
                     else:
-                        list_meta_mapping = list_utils.iterablefyer(document_metas)
+                        list_meta_mapping = list_utils.ensure_list(document_metas)
                         meta_dict = d.to_dict(*list_meta_mapping)
                     if len(meta_dict) == 1:
                         meta_dict = next(iter(meta_dict.values()))
