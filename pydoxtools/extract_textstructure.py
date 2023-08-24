@@ -344,6 +344,7 @@ class DocumentObjects(pydoxtools.operators_base.Operator):
                 type=document_base.ElementType.Table,
                 x0=x0, y0=y0, x1=x1, y1=y1,
                 obj=table,
+                text=table.df.to_string(header=False, index=False),
                 p_num=p,
                 place_holder_text=f"Table{table_num}"
             )
