@@ -385,7 +385,7 @@ class PageTemplateGenerator(pydoxtools.operators_base.Operator):
                            if (x.type in exclude)
                            else x.text),
                 axis=1)
-            page_templates = {p: "\n\n".join(new_text[objs.p_num == p]) for p in pages}
+            page_templates = {p: "\n\n".join(new_text.dropna()[objs.p_num == p]) for p in pages}
             # page_templates = {p: "\n\n".join(objs[objs.p_num == p].text) for p in pages}
 
             # elements = elements.sort_values(by="y0")#.loc[(19,578)]

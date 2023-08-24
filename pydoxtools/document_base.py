@@ -738,6 +738,7 @@ supports pipeline flows:
                 if json_schema:
                     # if a model should be a valid json schema, omit the definition
                     continue
+
             arg = (typing.Optional[operator_types],
                    pydantic.Field(
                        None, description=v['description'],
