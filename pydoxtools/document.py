@@ -184,7 +184,8 @@ PDFDocumentStructureNodes = [
 PDFNodes = [
     PDFFileLoader()
     .input(fobj="raw_content", page_numbers="_page_numbers", max_pages="_max_pages")
-    .out("pages_bbox", "elements", meta="meta_pdf", pages="page_set").cache().docs(),
+    .out("pages_bbox", "elements", meta="meta_pdf", pages="page_set").cache().docs(
+        "Loads a pdf file and returns a list of basic document elements such as lines, figures, etc."),
     Configuration(image_dpi=72 * 3)
     .docs("The dpi when rendering the document."
           " The standard image generation resolution is set to 216 dpi for pdfs"
@@ -192,25 +193,32 @@ PDFNodes = [
           " table extraction)"),
     PDFImageRenderer()
     .input(fobj="raw_content", dpi="image_dpi", page_numbers="page_set")
-    .out("images").cache(),
+    .out("images").cache()
+    .docs("Render a pdf into images which can be used for further downstream processing"),
     FunctionOperator(lambda pages: len(pages)).t(int)
-    .input(pages="page_set").out("num_pages").cache(),
+    .input(pages="page_set").out("num_pages").cache()
+    .docs("Outputs the number of pages in the document"),
     # TODO: move these filters etc... into a generalized text-structure pipeline!
     #  we are converting pandoc elements into the same thing
     #  anyways!!
     DocumentElementFilter(element_type=ElementType.Text)
-    .input("elements").out("line_elements").cache(),
+    .input("elements").out("line_elements").cache()
+    .docs("Filters the document elements and only keeps the text elements"),
     DocumentElementFilter(element_type=ElementType.Graphic)
-    .input("elements").out("graphic_elements").cache(),
+    .input("elements").out("graphic_elements").cache()
+    .docs("Filters the document elements and only keeps the graphic elements"),
     DocumentElementFilter(element_type=ElementType.Image)
-    .input("elements").out("image_elements").cache(),
+    .input("elements").out("image_elements").cache()
+    .docs("Filters the document elements and only keeps the image elements"),
 
     #########  TABLE STUFF ##############
     ListExtractor().cache()
-    .input("line_elements").out("lists"),
+    .input("line_elements").out("lists")
+    .docs("Extracts lists from the document text elements"),
     TableCandidateAreasExtractor()
     .input("graphic_elements", "line_elements", "pages_bbox", "text_box_elements", "filename")
-    .out("table_candidates", box_levels="table_box_levels").cache(),
+    .out("table_candidates", box_levels="table_box_levels").cache()
+    .docs("Extracts table candidates from the document graphic elements"),
     FunctionOperator(lambda x: [t for t in x if t.is_valid])
     .input(x="table_candidates").out("valid_tables"),
     FunctionOperator(lambda x: [t.df for t in x])
