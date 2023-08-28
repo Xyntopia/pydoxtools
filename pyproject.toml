@@ -51,7 +51,11 @@ python-pptx = { version = "^0.6.21", optional = true }
 # TODO: odp  / open document presentation
 pandoc = { version = "^2.3", optional = true }
 packaging = "^23.0"
-torch = { version = ">=1.12.1", optional = true }
+# this is a temporary workaround, as poetry install
+# for some reason doesn't install libcublas with pytorch 2.0.1 etc...
+# https://stackoverflow.com/questions/76327419/valueerror-libcublas-so-0-9-not-found-in-the-system-path
+# https://github.com/pytorch/pytorch/issues/100974
+torch = { version = ">=1.12.1, !=2.0.1", optional = true }
 pytesseract = { version = "^0.3.10", optional = true }
 pyyaml = "^6.0"
 dask = { extras = ["complete"], version = "^2023.4.1", optional = true }
