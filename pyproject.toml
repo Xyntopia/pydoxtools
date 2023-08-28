@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pydoxtools"
-version = "0.7.0"
+version = "0.7.1"
 description = "This library contains a set of tools in order to extract and synthesize structured information from documents"
 authors = ["thomas meschede <yeusblender@gmail.com>"]
 license = "MIT"
