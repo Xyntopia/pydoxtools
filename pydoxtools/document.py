@@ -6,6 +6,7 @@ import json
 import logging
 import mimetypes
 import re
+import tempfile
 from functools import cached_property
 from pathlib import Path
 from typing import IO, Protocol, Any, Callable
@@ -939,10 +940,10 @@ operations and include the documentation there. Lambda functions should not be u
     def filename(self) -> str | None:
         """return filename or some other identifier of a file"""
         _, filepath, _ = self.document_type_detection()
-        if filepath:
+        if isinstance(filepath, Path):
             return filepath.name
         else:
-            return "<unknown>"
+            return filepath or "<unknown>"
 
     @property
     def path(self):
@@ -1047,9 +1048,19 @@ operations and include the documentation there. Lambda functions should not be u
             self._fobj.save(b, 'PNG')
             buffer = b.getvalue()
             mimetype = 'PIL.Image.Image'
+        elif isinstance(self._fobj, tempfile.SpooledTemporaryFile):
+            detected_filepath = self._source
+            buffer = self._fobj.read()
+            if self._document_type == "auto":
+                mimetype = magic.from_buffer(buffer, mime=True)
+            else:
+                mimetype = self._document_type
         else:
             mimetype = str(type(self._fobj))
             buffer = self._fobj
+
+        if mimetype == "unknown" and self._document_type != "auto":
+            mimetype = self._document_type
 
         if mimetype == "unknown" and self._source:
             mimetype, encoding = mimetypes.guess_type(self._source, strict=False)

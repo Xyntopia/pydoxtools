@@ -52,7 +52,7 @@ class PageClassifier(Operator):
     def __init__(self):
         super().__init__()
 
-    def __call__(self, page_templates: dict[int, str]) -> typing.Callable[[list[str]], pd.DataFrame]:
+    def __call__(self, page_templates: dict[int, str]) -> typing.Callable[[list[str]], dict]:
         """Helps to classify pages based on a list of candidate labels"""
 
         def _classify_page(candidate_labels: list[str]) -> pd.DataFrame:
@@ -64,7 +64,7 @@ class PageClassifier(Operator):
                     **{k: v for k, v in zip(res["labels"], res["scores"])}
                 )
 
-            return pd.DataFrame(classes).T
+            return pd.DataFrame(classes).T.to_dict(orient="records")
 
         return _classify_page
 

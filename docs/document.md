@@ -105,7 +105,7 @@ Can be called using:
     <Document>.page_templates
 
 return type
-: dict[int, str] | typing.Any
+: typing.Any | typing.Callable[[list[str]], dict[int, str]]
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -235,7 +235,7 @@ Can be called using:
     <Document>.page_classifier
 
 return type
-: typing.Callable[[list[str]], pandas.core.frame.DataFrame]
+: typing.Callable[[list[str]], dict]
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -1470,7 +1470,7 @@ Can be called using:
     <Document>.images
 
 return type
-: dict[<module 'PIL.Image' from '/home/tom/.cache/pypoetry/virtualenvs/pydoxtools-ob-vhHEj-py3.10/lib/python3.10/site-packages/PIL/Image.py'\>] | typing.Any
+: dict[<module 'PIL.Image' from '/home/tom/.cache/pypoetry/virtualenvs/xyntopia-api-dRPqELhy-py3.10/lib/python3.10/site-packages/PIL/Image.py'\>] | typing.Any
 
 supports pipeline flows:
 : PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff

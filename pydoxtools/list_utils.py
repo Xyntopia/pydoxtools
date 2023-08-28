@@ -16,6 +16,7 @@ from operator import itemgetter
 from typing import Any, Dict
 
 import pandas as pd
+import pydantic
 
 logger = logging.getLogger(__name__)
 
@@ -160,6 +161,8 @@ def deep_str_convert(obj: Any) -> Any:
             res = [deep_str_convert(o) for o in obj]
     elif isinstance(obj, str):
         res = obj
+    elif isinstance(obj, pydantic.BaseModel):
+        res = obj.dict()
     elif isinstance(obj, bytes):
         try:
             res = obj.decode('utf-8')
@@ -173,7 +176,7 @@ def deep_str_convert(obj: Any) -> Any:
         res = obj.to_dict("records")
         # TODO: recursivly enter the generated dict
     elif isinstance(obj, pd.Series):
-        res = obj.to_dict()
+        res = deep_str_convert(obj.to_dict())
     elif isinstance(obj, numbers.Number):
         res = obj  # leave untouched
     else:
