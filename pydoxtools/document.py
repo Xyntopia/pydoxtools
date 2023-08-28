@@ -163,18 +163,22 @@ def calculate_a_d_ratio(ft: str) -> float:
 # nodes which help to extract the structure of a document
 PDFDocumentStructureNodes = [
     extract_textstructure.DocumentObjects()
-    .input("valid_tables", "elements").out("document_objects").cache(allow_disk_cache=True),
+    .input("valid_tables", "elements").out("document_objects").cache(allow_disk_cache=True)
+    .docs("extracts a list of document objects such as tables, text boxes, figures, etc."),
     extract_textstructure.PageTemplateGenerator()
     .input("document_objects").out("page_templates").cache()
     .docs("generates a text page with table & figure hints"),
-    FunctionOperator(lambda pt, ps: "".join(f"\n\n-------- {p} --------\n\n" + pt[p] for p in ps()))
+    FunctionOperator(lambda pt, ps: "".join(f"\n\n-------- {p} --------\n\n" + pt()[p] for p in ps))
     .input(pt="page_templates", ps="page_set").out("page_templates_str").cache()
-    .t(str),
+    .t(str)
+    .docs("Outputs a nice text version of the documents with annotated document objects"
+          " such as page numbers, tables, figures, etc."),
     FunctionOperator(lambda tables, elements: {
         k: extract_textstructure.get_object_context(v.bbox, elements, "table")
         for k, v in enumerate(tables)
     }).input("elements", tables="valid_tables").out("table_context").cache()
     .t(dict[int, str])
+    .docs("Outputs a dictionary with the context of each table in the document"),
 ]
 
 PDFNodes = [

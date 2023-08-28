@@ -308,7 +308,7 @@ class DocumentObjects(pydoxtools.operators_base.Operator):
             self,
             valid_tables,
             elements: pd.DataFrame
-    ):
+    ) -> list[document_base.DocumentElement]:
         elements = get_template_elements(elements, include_image=False)
 
         table_elements = []

@@ -1470,7 +1470,7 @@ Can be called using:
     <Document>.images
 
 return type
-: dict[<module 'PIL.Image' from '/home/tom/.cache/pypoetry/virtualenvs/xyntopia-api-dRPqELhy-py3.10/lib/python3.10/site-packages/PIL/Image.py'\>] | typing.Any
+: dict[<module 'PIL.Image' from '/home/tom/.cache/pypoetry/virtualenvs/pydoxtools-ob-vhHEj-py3.10/lib/python3.10/site-packages/PIL/Image.py'\>] | typing.Any
 
 supports pipeline flows:
 : PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff
@@ -1667,7 +1667,7 @@ supports pipeline flows:
 
 ### document_objects
             
-
+extracts a list of document objects such as tables, text boxes, figures, etc.
 
 Can be called using:
 
@@ -1676,14 +1676,14 @@ Can be called using:
     <Document>.document_objects
 
 return type
-: typing.Any
+: list[pydoxtools.document_base.DocumentElement]
 
 supports pipeline flows:
 : PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff
 
 ### page_templates_str
             
-No documentation
+Outputs a nice text version of the documents with annotated document objects such as page numbers, tables, figures, etc.
 
 Can be called using:
 
@@ -1699,7 +1699,7 @@ supports pipeline flows:
 
 ### table_context
             
-No documentation
+Outputs a dictionary with the context of each table in the document
 
 Can be called using:
 

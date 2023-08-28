@@ -646,10 +646,9 @@ def test_list_query():
 if __name__ == "__main__":
     # a = pd.DataFrame(sd.sents)
     # a[2]
-    test_disk_cache()
-
-    file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/PFR-PR23_BAT-110__V1.00_.pdf"
+    file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/north_american_countries.png"
     # run_single_non_interactive_document_test(file)
-    doc = Document(file)
-    doc.text_box_elements
+    run_single_non_interactive_document_test(file)
+    #doc = Document(file)
+    #doc.text_box_elements
     pass
