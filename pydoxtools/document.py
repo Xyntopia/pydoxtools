@@ -218,9 +218,10 @@ PDFNodes = [
     TableCandidateAreasExtractor()
     .input("graphic_elements", "line_elements", "pages_bbox", "text_box_elements", "filename")
     .out("table_candidates", box_levels="table_box_levels").cache()
-    .docs("Extracts table candidates from the document graphic elements"),
+    .docs("Detects table candidates from the document elements"),
     FunctionOperator(lambda x: [t for t in x if t.is_valid])
-    .input(x="table_candidates").out("valid_tables"),
+    .input(x="table_candidates").out("valid_tables")
+    .docs("Filter valid tables from table candidates by looking if meaningful values can be extracted"),
     FunctionOperator(lambda x: [t.df for t in x])
     .input(x="valid_tables").out("table_df0").cache(allow_disk_cache=True)
     .t(table_df0=list[pd.DataFrame])
@@ -231,21 +232,28 @@ PDFNodes = [
     .docs("Areas of all detected tables"),
     FunctionOperator(lambda table_df0, lists: table_df0 + ([] if lists.empty else [lists]))
     .cache().input("table_df0", "lists").out("tables_df").cache()
-    .t(list[pd.DataFrame]),
+    .t(list[pd.DataFrame])
+    .docs("Dataframes of all tables"),
     ############## END TABLE STUFF ##############
     # FunctionOperator()
     # .pipe()
     FunctionOperator(text_boxes_from_elements)
-    .input("line_elements").out("text_box_elements").cache(),
+    .input("line_elements").out("text_box_elements").cache()
+    .docs("Extracts a dataframe of text boxes from the document by grouping text elements")
+    .t(pd.DataFrame),
     FunctionOperator(lambda df: df.get("text", None).to_list())
     .input(df="text_box_elements").out("text_box_list").cache()
-    .t(list[str]),
+    .t(list[str])
+    .docs("Extracts list of text boxes from the document by grouping text elements"),
     FunctionOperator(lambda tb: "\n\n".join(tb)).t(str)
-    .input(tb="text_box_list").out("full_text").cache(),
+    .input(tb="text_box_list").out("full_text").cache()
+    .docs("Extracts the full text from the document by grouping text elements"),
     TitleExtractor()
-    .input("line_elements").out("titles", "side_titles").cache(),
+    .input("line_elements").out("titles", "side_titles").cache()
+    .docs("Extracts the titles from the document by detecting unusual font styles"),
     LanguageExtractor().cache()
-    .input(text="full_text").out("language").cache(),
+    .input(text="full_text").out("language").cache()
+    .docs("Extracts the language of the document"),
 
     *PDFDocumentStructureNodes
 ]
@@ -255,59 +263,78 @@ HTMLNodes = [
     .input(raw_html="raw_content", url="source")
     .out("main_content_clean_html", "summary", "language", "goose_article",
          "main_content", "schemadata", "final_urls", "pdf_links", "title",
-         "short_title", "url", tables="tables_df", html_keywords="html_keywords_str").cache(),
+         "short_title", "url", tables="tables_df", html_keywords="html_keywords_str").cache()
+    .docs("Extracts the main content from the html document, removing boilerplate and other noise"),
     FunctionOperator(lambda article: article.links)
-    .input(article="goose_article").out("urls").cache(),
+    .input(article="goose_article").out("urls").cache()
+    .docs("Extracts the urls from the html document"),
     FunctionOperator(lambda article: article.top_image)
-    .input(article="goose_article").out("main_image").cache(),
+    .input(article="goose_article").out("main_image").cache()
+    .docs("Extracts the main image from the html document"),
     Alias(full_text="main_content").t(str),
     FunctionOperator(lambda x: pd.DataFrame(get_text_only_blocks(x), columns=["text"])).cache()
-    .input(x="raw_content").out("text_box_elements"),
+    .input(x="raw_content").out("text_box_elements")
+    .docs("Extracts the text boxes from the html document"),
     FunctionOperator(lambda t, s: [t, s])
-    .input(t="title", s="short_title").out("titles").cache(),
+    .input(t="title", s="short_title").out("titles").cache()
+    .docs("Extracts the titles from the html document"),
     FunctionOperator(lambda x: {w.strip() for w in x.split(",")})
-    .input(x="html_keywords_str").out("html_keywords").cache(),
+    .input(x="html_keywords_str").out("html_keywords").cache()
+    .docs("Extracts explicitly given keywords from the html document"),
 
     ########### AGGREGATION ##############
     FunctionOperator(lambda **kwargs: set(list_utils.flatten(kwargs.values())))
-    .input("html_keywords", "textrank_keywords").out("keywords").cache(),
+    .input("html_keywords", "textrank_keywords").out("keywords").cache()
+    .docs("Aggregates the keywords from the html document and found by other algorithms"),
 ]
 
 # can handle a lot of different input formats
 PandocNodes = [
     PandocLoader()
     .input(raw_content="raw_content", document_type="document_type")
-    .out("pandoc_document").cache(),
-    Configuration(full_text_format="markdown"),
+    .out("pandoc_document").cache()
+    .docs("Loads the document using the pandoc project [https://pandoc.org/](https://pandoc.org/)"
+          " into a pydoxtools list of [][pydoxtools.document_base.DocumentElement]"),
+    Configuration(full_text_format="markdown")
+    .docs("The format used to convert the document to a string"),
     PandocConverter()
     .input(output_format="full_text_format", pandoc_document="pandoc_document")
-    .out("full_text").t(str).cache(),
+    .out("full_text").t(str).cache()
+    .docs("Converts the document to a string using pandoc"),
     FunctionOperator(lambda x: lambda o: PandocConverter()(x, output_format=o))
-    .input(x="pandoc_document").out("convert_to").cache(),
-    Constant(clean_format="plain"),
+    .input(x="pandoc_document").out("convert_to").cache()
+    .docs("Generic pandoc converter for other document formats. TODO: better docs"),
+    Constant(clean_format="plain")
+    .docs("The format used to convert the document to a clean string for downstream processing tasks"),
     PandocToPdxConverter()
     .input("pandoc_document").out("text_box_elements").cache().docs(
         "split a pandoc document into text elements."),
     SectionsExtractor()
-    .input(df="text_box_elements").out("sections").cache(),
+    .input(df="text_box_elements").out("sections").cache()
+    .docs("Extracts the sections from the document by grouping text elements"),
     PandocConverter()  # clean for downstram processing tasks
     .input(output_format="clean_format", pandoc_document="pandoc_document")
     .out("clean_text").cache().docs(
         "for some downstream tasks, it is better to have pure text, without any sructural elements in it"),
     PandocBlocks()
-    .input(pandoc_document="pandoc_document").out("pandoc_blocks").cache(),
+    .input(pandoc_document="pandoc_document").out("pandoc_blocks").cache()
+    .docs("Extracts the pandoc blocks from the document"),
     PandocOperator(method="headers")
-    .input(pandoc_blocks="pandoc_blocks").out("headers").cache(),
+    .input(pandoc_blocks="pandoc_blocks").out("headers").cache()
+    .docs("Extracts the headers from the document"),
     PandocOperator(method="tables_df")
-    .input(pandoc_blocks="pandoc_blocks").out("tables_df").cache(),
+    .input(pandoc_blocks="pandoc_blocks").out("tables_df").cache()
+    .docs("Extracts the tables from the document as a dataframe"),
     PandocOperator(method="lists")
-    .input(pandoc_blocks="pandoc_blocks").out("lists").cache(),
+    .input(pandoc_blocks="pandoc_blocks").out("lists").cache()
+    .docs("Extracts the lists from the document"),
 ]
 
 PILImageNodes = [
     "image", "application/pdf",
     FunctionOperator(lambda x: np.array(x))
-    .input(x="_fobj").out("data").cache(),
+    .input(x="_fobj").out("data").cache()
+    .docs("Converts the image to a numpy array"),
     Alias(pil_image="_fobj"),
 ]
 
@@ -315,42 +342,60 @@ OCRNodes = [
     # add a "base-document" type (.pdf) images get converted into pdfs
     # and then further processed from there
     "application/pdf",  # as we are extracting a pdf we would like to use the pdf functions...
-    Configuration(ocr_lang="auto", ocr_on=True),
+    Configuration(ocr_lang="auto", ocr_on=True)
+    .docs("Configuration for the ocr extractor. We can turn it on/off and specify the language"
+          " used for OCR."),
     FunctionOperator(lambda x: PIL.Image.open(io.BytesIO(x)))
-    .input(x="raw_content").out("pil_image").cache().t(PIL.Image.Image),
+    .input(x="raw_content").out("pil_image").cache().t(PIL.Image.Image)
+    .docs("Converts the image to a PIL-style image for downstream processing tasks"),
     FunctionOperator(lambda x: np.array(x))
-    .input(x="pil_image").out("data").cache().t(np.array),
+    .input(x="pil_image").out("data").cache().t(np.array)
+    .docs("Converts the image to a numpy array for downstream processing tasks"),
     FunctionOperator(lambda x: {0: x}).input(x="pil_image")
-    .out("images").no_cache().t(dict[int, PIL.Image.Image]),
+    .out("images").no_cache().t(dict[int, PIL.Image.Image])
+    .docs("Access images as a dictionary with page numbers as keys for downstream processing tasks "),
     OCRExtractor()
     .input("ocr_on", "ocr_lang", file="raw_content")
-    .out("ocr_pdf_file").cache(),
+    .out("ocr_pdf_file").cache()
+    .docs("Extracts the text from the document using OCR. It does this by creating a pdf which "
+          "is important in order to keep the positional information of the text elements."),
     # we need to do overwrite the pdf loading for images we inherited from
     # the ".pdf" logic as we are
     # now taking the pdf from a different variable
     PDFFileLoader()
     .input(fobj="ocr_pdf_file")
     .out("pages_bbox", "elements", meta="meta_pdf", pages="page_set")
-    .cache(),
+    .cache().docs("Loads the pdf file into a list of [][pydoxtools.document_base.DocumentElement]"),
     TableCandidateAreasExtractor(method="images")
     .input("graphic_elements", "line_elements", "pages_bbox", "text_box_elements", "filename",
            "images")
-    .out("table_candidates").cache(),
+    .out("table_candidates").cache()
+    .docs("Extracts the table candidates from the document. As this is an image, we need to "
+          "use a different method than for pdfs. Right now this relies on neural networks."
+          " TODO: add adtitional pure text-based method."),
 ]
 
 ClassifierNodes = [
     TextBlockClassifier()
-    .input("text_box_elements").out("addresses").cache(),
+    .input("text_box_elements").out("addresses").cache()
+    .docs("Classifies the text elements into addresses, emails, phone numbers, etc. if possible."),
     PageClassifier()
-    .input("page_templates").out("page_classifier").cache(),
+    .input("page_templates").out("page_classifier").cache()
+    .docs("Classifies the pages into different types. This is useful for example for "
+          "identifiying table of contents, certain chapters etc... . This works "
+          "as a zero-shot classifier and the classes are not predefined. "
+          "it can by called like this: \n\n"
+          "Document('somefile.pdf').page_classifier(candidate_labels=['table_of_contents', 'credits', 'license'])"),
 ]
 
 MetaDataNodes = [
     ## calculate some metadata values
     FunctionOperator(lambda full_text: 1 + (len(full_text) // 1000))
-    .input("full_text").out("num_pages").cache().t(int),
+    .input("full_text").out("num_pages").cache().t(int)
+    .docs("Number of pages in the document"),
     FunctionOperator(lambda clean_text: len(clean_text.split()))
-    .input("clean_text").out("num_words").cache().t(int),
+    .input("clean_text").out("num_words").cache().t(int)
+    .docs("Number of words in the document"),
     FunctionOperator(lambda spacy_sents: len(spacy_sents))
     .input("spacy_sents").out("num_sents").no_cache().t(int)
     .docs("number of sentences"),
@@ -397,21 +442,25 @@ KnowledgeGraphNodes = [
     Alias(url="source").docs("Url of this document"),
     ExtractRelationships()
     .input("spacy_doc")
-    .out("relationships").cache(),
+    .out("relationships").cache()
+    .docs("Extract relationships from text for building a knowledge graph"),
     Configuration(
         coreference_method="fast",
         graph_debug_context_size=0
     ).docs("can be 'fast' or 'accurate'"),
     CoreferenceResolution().input("spacy_doc", method="coreference_method")
-    .out("coreferences").cache(),
+    .out("coreferences").cache()
+    .docs("Resolve coreferences in the text"),
     FunctionOperator(lambda x, t: build_relationships_graph(relationships=x, coreferences=t))
     .input(x="relationships", t="coreferences")
     .out("graph_nodes", "node_map", "graph_edges").cache()
-    .t(graph_nodes=pd.DataFrame, node_map=dict, graph_edges=pd.DataFrame),
+    .t(graph_nodes=pd.DataFrame, node_map=dict, graph_edges=pd.DataFrame)
+    .docs("Builds a graph from the relationships and coreferences"),
     FunctionOperator(lambda gn, ge, sd, cts: nx_graph(
         graph_nodes=gn, graph_edges=ge, spacy_doc=sd, graph_debug_context_size=cts))
     .input(gn="graph_nodes", ge="graph_edges", sd="spacy_doc", cts="graph_debug_context_size")
-    .out("knowledge_graph").cache(),
+    .out("knowledge_graph").cache()
+    .docs("Builds a networkx graph from the relationships and coreferences"),
 ]
 
 VectorizationNodes = [
@@ -455,20 +504,22 @@ VectorizationNodes = [
         lambda m, t, o: lambda txt: nlp_utils.calculate_string_embeddings(
             text=txt, model_id=m, only_tokenizer=t, overlap_ratio=o)[0].mean(0)
     ).input(m="vectorizer_model", t="vectorizer_only_tokenizer", o="vectorizer_overlap_ratio")
-    .out("vectorizer").cache(),
+    .out("vectorizer").cache()
+    .docs("Get the vectorizer function used for this document for an arbitrary text"),
     FunctionOperator(
         lambda x, m, t, o: nlp_utils.calculate_string_embeddings(
             text=x, model_id=m, only_tokenizer=t, overlap_ratio=o)
     ).input(x="full_text", m="vectorizer_model",
             t="vectorizer_only_tokenizer", o="vectorizer_overlap_ratio")
     .out("vec_res").cache()
-    .docs("Calculate context-based vectors for the entire text"),
+    .docs("Calculate context-based vectors (embeddings) for the entire text"),
     FunctionOperator(lambda x: dict(emb=x[0], tok=x[1]))
     .input(x="vec_res").out(emb="tok_embeddings", tok="tokens").no_cache()
     .docs("Get the tokenized text"),
     FunctionOperator[list[float]](lambda x: x.mean(0))
     .input(x="tok_embeddings").out("embedding").cache()
-    .docs("Get an embedding for the entire text")
+    .docs("Get a vector (embedding) for the entire text by taking the mean of the "
+          "contextual embeddings of all tokens"),
 ]
 
 IndexNodes = [
@@ -485,7 +536,8 @@ IndexNodes = [
     .input(min_size="min_size_text_segment", max_size="max_size_text_segment",
            large_segment_overlap="text_segment_overlap", full_text="full_text",
            max_text_segment_num="max_text_segment_num")
-    .out("text_segments").cache(),
+    .out("text_segments").cache()
+    .docs("Split the text into segments"),
     # TODO: we would like to have the context-based vectors so we should
     #       calculate this "backwards" from the vectors for the entire text
     #       and not for each individual segment...
@@ -493,31 +545,40 @@ IndexNodes = [
     .input(elements="text_segments",
            model_id="vectorizer_model",
            only_tokenizer="vectorizer_only_tokenizer")
-    .out("text_segment_vec_res").cache(),
+    .out("text_segment_vec_res").cache()
+    .docs("Calculate the embeddings for each text segment"),
     FunctionOperator(lambda x: np.array([r[0].mean(0) for r in x]))
-    .input(x="text_segment_vec_res").out("text_segment_vecs").cache(),
+    .input(x="text_segment_vec_res").out("text_segment_vecs").cache()
+    .docs("Get the embeddings for individual text segments"),
     FunctionOperator(lambda x: np.array(range(len(x)))).input(x="text_segments")
-    .out("text_segment_ids").cache(),
+    .out("text_segment_ids").cache()
+    .docs("Get the a list of ids for individual text segments"),
     IndexExtractor()
     .input(vecs="text_segment_vecs", ids="text_segment_ids").out("text_segment_index")
-    .cache(),
+    .cache().docs("Create an index for the text segments"),
     KnnQuery().input(index="text_segment_index", idx_values="text_segments",
                      vectorizer="vectorizer")
-    .out("segment_query").cache(),
+    .out("segment_query").cache()
+    .docs("Create a query function for the text segments which can be used to do nearest-neighbor queries"),
 
     ########### NOUN_INDEX #############
     IndexExtractor()
-    .input(vecs="noun_vecs", ids="noun_ids").out("noun_index").cache(),
+    .input(vecs="noun_vecs", ids="noun_ids").out("noun_index").cache()
+    .docs("Create an index for the nouns"),
     FunctionOperator(lambda spacy_nlp: lambda x: spacy_nlp(x).vector)
-    .input("spacy_nlp").out("spacy_vectorizer").cache(),
+    .input("spacy_nlp").out("spacy_vectorizer").cache()
+    .docs("Create a vectorizer function from spacy library."),
     KnnQuery().input(index="noun_index", idx_values="noun_chunks",
                      vectorizer="spacy_vectorizer")
-    .out("noun_query").cache(),
+    .out("noun_query").cache()
+    .docs("Create a query function for the nouns which can be used to do nearest-neighbor queries"),
     SimilarityGraph().input(index_query_func="noun_query", source="noun_chunks")
-    .out("noun_graph").cache(),
+    .out("noun_graph").cache()
+    .docs("Create a graph of similar nouns"),
     Configuration(top_k_text_rank_keywords=5),
     TextrankOperator()
-    .input(top_k="top_k_text_rank_keywords", G="noun_graph").out("textrank_keywords").cache(),
+    .input(top_k="top_k_text_rank_keywords", G="noun_graph").out("textrank_keywords").cache()
+    .docs("Extract keywords from the graph of similar nouns"),
     # TODO: we will probably get better keywords if we first get the most important sentences or
     #       a summary and then exract keywords from there :).
     Alias(keywords="textrank_keywords"),
@@ -525,15 +586,20 @@ IndexNodes = [
 
     ########### SENTENCE_INDEX ###########
     IndexExtractor()
-    .input(vecs="sent_vecs", ids="sent_ids").out("sent_index").cache(),
+    .input(vecs="sent_vecs", ids="sent_ids").out("sent_index").cache()
+    .docs("Create an index for the sentences"),
     KnnQuery().input(index="sent_index", idx_values="spacy_sents",
                      vectorizer="spacy_vectorizer")
-    .out("sent_query").cache(),
+    .out("sent_query").cache()
+    .docs("Create a query function for the sentences which can be used to do nearest-neighbor queries")
     SimilarityGraph().input(index_query_func="sent_query", source="spacy_sents")
-    .out("sent_graph").cache(),
-    Configuration(top_k_text_rank_sentences=5),
+    .out("sent_graph").cache()
+    .docs("Create a graph of similar sentences"),
+    Configuration(top_k_text_rank_sentences=5)
+    .docs("controls the number of most important sentences that are extracted from the text."),
     TextrankOperator()
-    .input(top_k="top_k_text_rank_sentences", G="sent_graph").out("textrank_sents").cache(),
+    .input(top_k="top_k_text_rank_sentences", G="sent_graph").out("textrank_sents").cache()
+    .docs("Extract the most important sentences from the graph of similar sentences"),
 ]
 
 LLMNodes = [
@@ -555,13 +621,15 @@ LLMNodes = [
         x="clean_text", m="summarizer_model",
         to="summarizer_token_overlap",
         ml="summarizer_max_text_len"
-    ).out("slow_summary").cache(),
+    ).out("slow_summary").cache()
+    .docs("Summarize the text using the Huggingface summarization pipeline"),
 
     ########### QaM machine #############
     # TODO: make sure we can set the model that we want to use dynamically!
     Configuration(qam_model_id='deepset/minilm-uncased-squad2'),
     QamExtractor()
-    .input(property_dict="to_dict", trf_model_id="qam_model_id").out("answers").cache(),
+    .input(property_dict="to_dict", trf_model_id="qam_model_id").out("answers").cache()
+    .docs("Extract answers from the text using the Huggingface question answering pipeline"),
 
     ########### Chat AI ##################
     Configuration(chat_model_id="gpt-3.5-turbo").docs(
@@ -572,6 +640,7 @@ LLMNodes = [
     ),
     extract_nlpchat.LLMChat().input(property_dict="to_dict", model_id="chat_model_id")
     .out("chat_answers").cache()
+    .docs("Extract answers from the text using OpenAI Chat GPT and other models."),
 ]
 
 document_operators = {
@@ -606,31 +675,41 @@ document_operators = {
         Alias(full_text="raw_content"),
         FunctionOperator(lambda x: yaml.unsafe_load(x))
         .input(x="full_text").out("data").cache()
+        .docs("Load yaml data from a string"),
         # TODO: we might need to have a special "result" message, that we
         #       pass around....
     ],
     # simple dictionary with arbitrary data from python
     "<class 'dict'>": [  # pipeline to handle data based documents
         FunctionOperator(lambda x: yaml.dump(list_utils.deep_str_convert(x))).t(str)
-        .input(x="data").out("full_text").cache(),
+        .input(x="data").out("full_text").cache()
+        .docs("Dump dict data to a yaml-like string"),
         DictSelector()
         .input(selectable="data").out("data_sel").cache().docs(
             "select values by key from source data in Document"),
         FunctionOperator(lambda x: pd.DataFrame([
             str(k) + ": " + str(v) for k, v in list_utils.flatten_dict(x).items()],
             columns=["text"]
-        )).input(x="data").out("text_box_elements").cache(),
+        )).input(x="data").out("text_box_elements").cache()
+        .docs("Create a dataframe from a dictionary. TODO: this is not working correctly, it should "
+              "create a list of [][pydoxtools.document_base.DocumentELements]"),
         Alias(text_segments="text_box_list").t(list[str]),
+        # TODO: make this resemble pytho dicts?
+        #       by returning keys, values, items as normal functions?
         FunctionOperator(lambda x: x.keys())
-        .input(x="data").out("keys").no_cache(),
+        .input(x="data").out("keys").no_cache()
+        .docs("Get the keys of the dictionary"),
         FunctionOperator(lambda x: x.values())
-        .input(x="data").out("values").no_cache(),
-        FunctionOperator(lambda x: x.values())
+        .input(x="data").out("values").no_cache()
+        .docs("Get the values of the dictionary"),
+        FunctionOperator(lambda x: x.items())
         .input(x="data").out("items").no_cache()
+        .docs("Get the items of the dictionary"),
     ],
     "<class 'list'>": [
         FunctionOperator(lambda x: yaml.dump(list_utils.deep_str_convert(x))).t(str)
-        .input(x="data").out("full_text").cache(),
+        .input(x="data").out("full_text").cache()
+        .docs("Dump list data to a yaml-like string"),
         FunctionOperator(lambda x: pd.DataFrame([
             str(list_utils.deep_str_convert(v)) for v in x],
             columns=["text"]
