@@ -79,13 +79,13 @@ len(files)
 file=pathlib.Path('../README.md')
 file.resolve()
 pdf_file = training_data / "sparepartsnow/06_Kraftspannfutter_Zylinder_Luenetten_2020.01_de_web.pdf"
-pdf_file = training_data / "sparepartsnow/D7235-en.pdf"
+#pdf_file = training_data / "sparepartsnow/D7235-en.pdf"
 print(pdf_file)
 
 # %%
 pages = np.arange(10, 15).tolist()
 pages = [10, 18, 19]  # we have an unreasonable number of elements here..  what is going on?
-pdf = componardo.documentx.DocumentX(pdf_file)
+pdf = componardo.documentx.DocumentX(pdf_file, page_numbers=pages)
 x = pdf.x("elements", disk_cache=True)
 
 # %%
@@ -101,7 +101,7 @@ pdf.page_set
 # ## Do some layout document analysis
 
 # %%
-page = 4
+page = 18
 pdf = componardo.documentx.DocumentX(pdf_file, page_numbers=[page])
 vda.plot_box_layers(
     box_layers=[
@@ -129,25 +129,11 @@ vda.plot_box_layers(
 pdf.tables_df[0]
 
 # %% [markdown]
-# ## extract a knowledge graph
+# ## document templates
 
 # %%
-pdf = pydoxtools.Document(pdf_file)#, page_numbers=list(range(164, 166)))
-svg = vd.draw(pdf.noun_graph, format='svg')
-svg
-
-# %%
-pdf = pydoxtools.Document(pdf_file,spacy_model_size="lg", coreference_method="fast")
-
-# %% [markdown]
-# simply get a table of all nodes in the graph
-
-# %%
-pdf.graph_nodes
-
-# %%
-KG = pdf.knowledge_graph
-vd.draw(KG, format='svg')
+import pydoxtools.document_base
+print("".join(f"\n\n-------- {{page_{p}}} --------\n\n" + pdf.page_templates(exclude=document_base.ElementType.Table)[p] for p in pdf.pages_with_tables))
 
 # %% [markdown]
 # ## extract summary information
@@ -186,3 +172,38 @@ from IPython.display import Markdown
 
 print(len(pdf.markdown_docs()))
 Markdown(pdf.markdown_docs()[5000:10000])
+
+# %% [markdown]
+# ## extract a knowledge graph
+
+# %%
+#pdf.noun_graph
+
+# %%
+pdf = pydoxtools.Document(pdf_file, page_numbers=list(range(164, 166)))
+
+# %%
+#import networkx as nx
+#graph = pdf.noun_graph
+#graphviz = nx.nx_agraph.to_agraph(graph)
+#print(str(graphviz))
+
+# %%
+svg = vd.draw(pdf.noun_graph, format='svg')
+svg
+
+# %%
+pdf = pydoxtools.Document("https://en.wikipedia.org/wiki/Rocket", 
+                          spacy_model_size="lg", coreference_method="fast")
+
+# %% [markdown]
+# simply get a table of all nodes in the graph
+
+# %%
+pdf.x("graph_nodes",disk_cache=True)
+
+# %%
+KG = pdf.knowledge_graph
+vd.draw(KG, engine="fdp", format='svg')
+
+# %%

@@ -442,8 +442,8 @@ KnowledgeGraphNodes = [
     Alias(url="source").docs("Url of this document"),
     ExtractRelationships()
     .input("spacy_doc")
-    .out("relationships").cache()
-    .docs("Extract relationships from text for building a knowledge graph"),
+    .out("semantic_relations").cache()
+    .docs("Extract relations from text for building a knowledge graph"),
     Configuration(
         coreference_method="fast",
         graph_debug_context_size=0
@@ -451,16 +451,16 @@ KnowledgeGraphNodes = [
     CoreferenceResolution().input("spacy_doc", method="coreference_method")
     .out("coreferences").cache()
     .docs("Resolve coreferences in the text"),
-    FunctionOperator(lambda x, t: build_relationships_graph(relationships=x, coreferences=t))
-    .input(x="relationships", t="coreferences")
+    FunctionOperator(lambda x, t: build_relationships_graph(semantic_relations=x, coreferences=t))
+    .input(x="semantic_relations", t="coreferences")
     .out("graph_nodes", "node_map", "graph_edges").cache()
     .t(graph_nodes=pd.DataFrame, node_map=dict, graph_edges=pd.DataFrame)
-    .docs("Builds a graph from the relationships and coreferences"),
+    .docs("Builds a graph from the relations and coreferences"),
     FunctionOperator(lambda gn, ge, sd, cts: nx_graph(
         graph_nodes=gn, graph_edges=ge, spacy_doc=sd, graph_debug_context_size=cts))
     .input(gn="graph_nodes", ge="graph_edges", sd="spacy_doc", cts="graph_debug_context_size")
     .out("knowledge_graph").cache()
-    .docs("Builds a networkx graph from the relationships and coreferences"),
+    .docs("Builds a networkx graph from the relations and coreferences"),
 ]
 
 VectorizationNodes = [
@@ -591,7 +591,7 @@ IndexNodes = [
     KnnQuery().input(index="sent_index", idx_values="spacy_sents",
                      vectorizer="spacy_vectorizer")
     .out("sent_query").cache()
-    .docs("Create a query function for the sentences which can be used to do nearest-neighbor queries")
+    .docs("Create a query function for the sentences which can be used to do nearest-neighbor queries"),
     SimilarityGraph().input(index_query_func="sent_query", source="spacy_sents")
     .out("sent_graph").cache()
     .docs("Create a graph of similar sentences"),

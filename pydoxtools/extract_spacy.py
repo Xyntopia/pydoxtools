@@ -201,7 +201,7 @@ class ExtractRelationships(Operator):
     def __call__(
             self, spacy_doc: Doc
     ) -> pd.DataFrame:
-        """Extract some relationships of a spacy document for use in a knowledge graph"""
+        """Extract some semantic_relations of a spacy document for use in a knowledge graph"""
         relationships = []
 
         tok: spacy.tokens.Token
@@ -216,7 +216,7 @@ class ExtractRelationships(Operator):
                             'label': tok.head.text,
                         })
 
-            # Attribute relationships
+            # Attribute semantic_relations
             if tok.dep_ in {"attr"}:
                 subject = [w for w in tok.head.lefts if w.dep_ == "nsubj"]
                 if subject:
@@ -228,7 +228,7 @@ class ExtractRelationships(Operator):
                         'label': 'is',
                     })
 
-            # Prepositional relationships
+            # Prepositional semantic_relations
             if tok.dep_ == "pobj" and tok.head.dep_ == "prep":
                 relationships.append({
                     'n1': tok.head.head,
@@ -237,7 +237,7 @@ class ExtractRelationships(Operator):
                     'label': 'related',
                 })
 
-            # Possessive relationships
+            # Possessive semantic_relations
             if tok.dep_ == "poss":
                 relationships.append({
                     'n1': tok,
@@ -246,7 +246,7 @@ class ExtractRelationships(Operator):
                     'label': 'owns',
                 })
 
-            # Adjective relationships
+            # Adjective semantic_relations
             if tok.dep_ == "amod":
                 relationships.append({
                     'n1': tok.head,
@@ -292,11 +292,11 @@ class CoreferenceResolution(Operator):
 
 
 def build_relationships_graph(
-        relationships: pd.DataFrame,
+        semantic_relations: pd.DataFrame,
         coreferences: list[list[tuple[int, int]]],
 ) -> dict[str, pd.DataFrame | pd.Series]:
     # get all nodes from the relationship list
-    graph_nodes = pd.DataFrame(set(relationships[["n1", "n2"]].values.flatten()), columns=["nodes"])
+    graph_nodes = pd.DataFrame(set(semantic_relations[["n1", "n2"]].values.flatten()), columns=["nodes"])
 
     if graph_nodes.empty:
         return dict(
@@ -307,12 +307,7 @@ def build_relationships_graph(
 
     # add node groups
     graph_nodes['token_idx'] = graph_nodes.nodes.apply(lambda x: x.i).astype(int)
-
-    #
     graph_nodes.set_index('token_idx', inplace=True)
-
-    # G[doc.spacy_doc[4]]
-    coreferences = coreferences
 
     # add groups to nodes
     graph_nodes['group'] = graph_nodes.index  # set standard group to token index
@@ -345,7 +340,7 @@ def build_relationships_graph(
     graph_nodes['tok_idx'] = graph_nodes.toks.apply(lambda x: set([t.i for t in x]))
     node_map = graph_nodes[['idx', 'tok_idx']].explode('tok_idx').set_index('tok_idx').idx
 
-    edges = relationships.apply(lambda r: pd.Series(dict(
+    edges = semantic_relations.apply(lambda r: pd.Series(dict(
         n1=node_map[r.n1.i],
         n2=node_map[r.n2.i],
         label=r.label,
@@ -365,7 +360,7 @@ def nx_graph(
         spacy_doc: Doc,
         graph_debug_context_size=0,
 ) -> nx.DiGraph:
-    """build a graph from the relationships extracted from a spacy document"""
+    """build a graph from the semantic_relations extracted from a spacy document"""
     KG = nx.DiGraph()
 
     for _, node in graph_nodes.iterrows():

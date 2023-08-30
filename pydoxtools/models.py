@@ -13,7 +13,7 @@ Component
 
 without the underscore...
 
-In the case of relationships inside a neomodel they are defined by either:
+In the case of semantic_relations inside a neomodel they are defined by either:
 
 - Capital Letters in the beginning
 - or an underscore at the end

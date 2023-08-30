@@ -150,6 +150,8 @@ def draw(graph, engine="dot", format='jpg'):
     """format can also be "svg" and more suppoted by graphviz"""
     graphviz = nx.nx_agraph.to_agraph(graph)
     graphviz.graph_attr["overlap"] = "false"
+    # TODO: sanitize all labels and nodestrings and other stuff!
+    #graphviz.no
     res = graphviz.draw(prog=engine, format=format)
     if format == 'svg':
         # this is for ipython notebooks
@@ -157,7 +159,7 @@ def draw(graph, engine="dot", format='jpg'):
         # display(HTML(svg_html))
         return SVG(res)
     else:
-        return res
+        return res, graphviz
 
 
 def draw_knowledge_graph(KG):
