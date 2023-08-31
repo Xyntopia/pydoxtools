@@ -65,6 +65,7 @@ chromadb = { version = "^0.3.23", optional = true }
 gpt4all = "^1.0.8"
 fastcoref = "^2.1.6" # needed for knowlecdge base creation
 timm = "^0.9.5" # this one is needed for document layout analysis
+pygraphviz = {version = "^1.11", optional = true}
 
 [tool.poetry.extras]
 # extraction-transformation-load facilities
@@ -72,7 +73,7 @@ etl = ["goose3", "langdetect", "tldextract", "spacy", "pdfminer.six",
     "extruct", "urlextract", "quantulum3", "stemming",
     "quantities", "readability-lxml", "pandas", "beautifulsoup4", "hnswlib",
     "networkx", "openai", "textract", "pandoc", "python-pptx", "dask", "pytesseract",
-    "pdf2image"
+    "pdf2image","pygraphviz"
 ]
 # TODO: rename & regroups extras (e.g. light, medium average or something like that...)
 inference = ["transformers", "scikit-learn", "tqdm", "torch", "pytorch-lightning", "spacy",

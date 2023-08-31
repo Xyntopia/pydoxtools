@@ -5365,7 +5365,7 @@ plugins = ["importlib-metadata"]
 name = "pygraphviz"
 version = "1.11"
 description = "Python interface to Graphviz"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
@@ -8213,4 +8213,4 @@ inference = ["beautifulsoup4", "chromadb", "fastcoref", "gpt4all", "hnswlib", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<4.0" # python version constraints are caused by scipy
-content-hash = "52c28261aed8d57214180538ad2cc2f012176c12339e8f7e1c4775ed3773a27c"
+content-hash = "efb63c852446de24df4b806fe2e9993cfb59962e1dab7ff57cb9e2f2bde978ca"
