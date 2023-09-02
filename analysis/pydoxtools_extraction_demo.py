@@ -132,7 +132,7 @@ pdf.tables_df[0]
 # ## document templates
 
 # %%
-import pydoxtools.document_base
+from pydoxtools import document_base
 print("".join(f"\n\n-------- {{page_{p}}} --------\n\n" + pdf.page_templates(exclude=document_base.ElementType.Table)[p] for p in pdf.pages_with_tables))
 
 # %% [markdown]
@@ -200,10 +200,33 @@ pdf = pydoxtools.Document("https://en.wikipedia.org/wiki/Rocket",
 # simply get a table of all nodes in the graph
 
 # %%
-pdf.x("graph_nodes",disk_cache=True)
+#pdf.x("graph_nodes",disk_cache=True)
 
 # %%
-KG = pdf.knowledge_graph
-vd.draw(KG, engine="fdp", format='svg')
+pdf = pydoxtools.Document("https://en.wikipedia.org/wiki/Rocket", 
+                          spacy_model_size="lg", coreference_method="fast")
+KG = pdf.x("knowledge_graph",disk_cache=True)
+
+# and visualize...
+svg = vd.draw(KG, engine="fdp", format='svg')
+
+# %%
+from IPython.display import HTML, display
+
+# %%
+svg_html = '<div style="width:100%; height:100%;">{}</div>'.format(svg.data)
+display(HTML(svg_html))
+
+# %%
+import networkx as nx
+# Find the weakly connected components
+weakly_connected_components = nx.weakly_connected_components(KG)
+
+# Find the largest weakly connected component
+sorted_weakly_connected_component = sorted(weakly_connected_components, key=len)
+
+# %%
+for i in range(1,6):
+    display(vd.draw(KG.subgraph(sorted_weakly_connected_component[-i]), format="svg"))
 
 # %%

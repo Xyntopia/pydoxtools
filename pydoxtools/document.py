@@ -15,6 +15,7 @@ from urllib.parse import urlparse
 import PIL
 import dask.bag
 import langdetect
+import networkx
 import numpy as np
 import pandas as pd
 import pydantic
@@ -38,7 +39,7 @@ from .extract_objects import EntityExtractor
 from .extract_ocr import OCRExtractor
 from .extract_pandoc import PandocLoader, PandocOperator, PandocConverter, PandocBlocks, PandocToPdxConverter
 from .extract_spacy import (SpacyOperator, extract_spacy_token_vecs, get_spacy_embeddings, extract_noun_chunks,
-                            ExtractRelationships, build_relationships_graph, CoreferenceResolution, nx_graph)
+                            ExtractRelationships, build_document_graph, CoreferenceResolution)
 from .extract_tables import ListExtractor, TableCandidateAreasExtractor
 from .extract_textstructure import DocumentElementFilter, text_boxes_from_elements, TitleExtractor, SectionsExtractor
 from .html_utils import get_text_only_blocks
@@ -432,6 +433,7 @@ SpacyNodes = [
 ]
 
 KnowledgeGraphNodes = [
+
     # TODO: combine entities with coreferences
     EntityExtractor().cache()
     .input("spacy_doc").out("entities").cache()
@@ -449,18 +451,20 @@ KnowledgeGraphNodes = [
         graph_debug_context_size=0
     ).docs("can be 'fast' or 'accurate'"),
     CoreferenceResolution().input("spacy_doc", method="coreference_method")
-    .out("coreferences").cache()
+    .out("coreferences").cache(allow_disk_cache=True)
     .docs("Resolve coreferences in the text"),
-    FunctionOperator(lambda x, t: build_relationships_graph(semantic_relations=x, coreferences=t))
-    .input(x="semantic_relations", t="coreferences")
-    .out("graph_nodes", "node_map", "graph_edges").cache()
-    .t(graph_nodes=pd.DataFrame, node_map=dict, graph_edges=pd.DataFrame)
-    .docs("Builds a graph from the relations and coreferences"),
-    FunctionOperator(lambda gn, ge, sd, cts: nx_graph(
-        graph_nodes=gn, graph_edges=ge, spacy_doc=sd, graph_debug_context_size=cts))
-    .input(gn="graph_nodes", ge="graph_edges", sd="spacy_doc", cts="graph_debug_context_size")
-    .out("knowledge_graph").cache()
-    .docs("Builds a networkx graph from the relations and coreferences"),
+
+    FunctionOperator(lambda x, t, do, ps, cts, m: build_document_graph(
+        semantic_relations=x, coreferences=t, document_objects=do, page_set=ps,
+        cts=cts, meta=m
+    )).input(x="semantic_relations", t="coreferences", do="document_objects", ps="page_set",
+             cts="graph_debug_context_size", m="meta")
+    .out("document_graph").cache(allow_disk_cache=True)
+    .t(document_graph=networkx.DiGraph)
+    .docs("Builds a [networkx graph](https://networkx.org/documentation/stable/reference/classes/digraph.html) "
+          "from the relations and coreferences"),
+
+    Alias(DG="document_graph")
 ]
 
 VectorizationNodes = [

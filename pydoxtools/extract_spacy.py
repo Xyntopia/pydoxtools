@@ -1,19 +1,20 @@
 import functools
+import html
+import itertools
 import logging
 import subprocess
 import typing
 from typing import Optional, Any
 
+import networkx
 import numpy as np
 import pandas as pd
 import spacy
-import html
 import torch
 from spacy import Language
 from spacy.tokens import Doc, Token, Span
 
-import networkx as nx
-
+import pydoxtools.document_base
 from . import list_utils
 from .document_base import TokenCollection
 from .operators_base import Operator
@@ -291,19 +292,34 @@ class CoreferenceResolution(Operator):
         return tok_id_coreferences
 
 
-def build_relationships_graph(
+def document_element_relations(page_set: set[int], document_objects: list[pydoxtools.document_base.DocumentElement]):
+    """creating relations between document elements"""
+
+    entities = ["document"]
+    relations = []
+    for p in page_set:
+        relations += [["document", "has", f"page[{p}]"]]
+
+    for do in document_objects:
+        p = do.p_num
+        relations += [[f"page[{p}]", "has", do.place_holder_text]]
+
+    return relations, entities
+
+
+def build_document_graph(
         semantic_relations: pd.DataFrame,
         coreferences: list[list[tuple[int, int]]],
-) -> dict[str, pd.DataFrame | pd.Series]:
+        document_objects: list[pydoxtools.document_base.DocumentElement],
+        page_set: set[int],
+        cts: int,  # graph context size for debugging
+        meta: dict  # document metadata
+) -> networkx.DiGraph:
     # get all nodes from the relationship list
     graph_nodes = pd.DataFrame(set(semantic_relations[["n1", "n2"]].values.flatten()), columns=["nodes"])
 
-    if graph_nodes.empty:
-        return dict(
-            graph_nodes=pd.DataFrame(columns=['nodes', 'token_idx', 'group']),
-            node_map=pd.Series(),
-            graph_edges=pd.DataFrame(columns=['n1', 'n2', 'type', 'label']),
-        )
+    # generate node ids
+    ids = itertools.count()
 
     # add node groups
     graph_nodes['token_idx'] = graph_nodes.nodes.apply(lambda x: x.i).astype(int)
@@ -328,51 +344,47 @@ def build_relationships_graph(
         toks = pd.DataFrame(token_list.nodes, columns=["tok"])
         toks["text"] = toks.apply(lambda x: x[0].text, axis=1)
         most_occuring_text = toks["text"].value_counts().index[0]
-        idx = toks.loc[toks.text == most_occuring_text].tok.apply(lambda x: x.i).min()
         return pd.Series(dict(
             label=most_occuring_text,
-            idx=idx,
+            idx=next(ids),
             toks=token_list.nodes
         ))
 
     graph_nodes = graph_nodes.apply(identify_mean_node, axis=1)
 
     graph_nodes['tok_idx'] = graph_nodes.toks.apply(lambda x: set([t.i for t in x]))
+    # node_map maps the index of a token to a graph node index
     node_map = graph_nodes[['idx', 'tok_idx']].explode('tok_idx').set_index('tok_idx').idx
 
     edges = semantic_relations.apply(lambda r: pd.Series(dict(
         n1=node_map[r.n1.i],
         n2=node_map[r.n2.i],
-        label=r.label,
-        type=r.type
+        data=dict(label=r.label,
+                  type=r.type)
     )), axis=1)
 
-    return dict(
-        graph_nodes=graph_nodes,
-        node_map=node_map,
-        graph_edges=edges
-    )
+    # convert graph_nodes into a dictionary
+    graph_nodes = graph_nodes.set_index('idx').to_dict('index')
 
+    DG = networkx.DiGraph()
+    DG.add_nodes_from(graph_nodes.items())
 
-def nx_graph(
-        graph_nodes: pd.DataFrame,
-        graph_edges: pd.DataFrame,
-        spacy_doc: Doc,
-        graph_debug_context_size=0,
-) -> nx.DiGraph:
-    """build a graph from the semantic_relations extracted from a spacy document"""
-    KG = nx.DiGraph()
+    # add additional nodes & edges
+    doc_id = next(ids)
+    DG.add_node(doc_id, **{"label": "document"})
+    page_map = {}
+    for p in page_set:
+        p_id = next(ids)
+        DG.add_node(p_id, **{"label": f"page[{p}]", "page_num": 0})
+        DG.add_edge(doc_id, p_id, label="has", type="document_hierarchy")
+        page_map[p] = p_id
 
-    for _, node in graph_nodes.iterrows():
-        # TODO: add more debug info in case of nodes that have been merged by coreference
-        # we can do this here, because we always chose a "valid" spacy-token as the representative index
-        # in case of a merge, the index of the most frequent token is chosen
-        t = spacy_doc[node.idx]
-        tx = graphviz_prepare(t, ct_size=graph_debug_context_size)
-        KG.add_node(node.idx, label=tx, shape="box")
+    for do in document_objects:
+        do_id = next(ids)
+        p = do.p_num
+        DG.add_node(do_id, **{"label": do.place_holder_text, "obj": do})
+        DG.add_edge(page_map[p], do_id, label="has", type="document_hierarchy")
 
-    for _, e in graph_edges.iterrows():
-        tx = graphviz_sanitize(e.label)
-        KG.add_edge(e.n1, e.n2, label=tx, type=e["type"])
+    DG.add_edges_from(edges.values)
 
-    return KG
+    return DG

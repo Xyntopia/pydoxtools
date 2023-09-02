@@ -404,6 +404,9 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         df = pd.DataFrame(dictlist)
         return df
 
+    def df(self, *args, **kwargs):
+        self.to_dataframe(*args, **kwargs)
+
     def to_yaml(self, *args, **kwargs):
         """
         Returns a dictionary that accumulates the properties given in *args or with a mapping in **kwargs, and dumps the output as YAML.
