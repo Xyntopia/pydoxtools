@@ -1,5 +1,4 @@
 import functools
-import html
 import itertools
 import logging
 import subprocess
@@ -174,28 +173,20 @@ class SpacyOperator(Operator):
         )
 
 
-def graphviz_sanitize(text: str) -> str:
-    """sanitize text for use in graphviz"""
-    text = html.escape(text).replace('\n', '<br/>')
-    return text
-
-
-def graphviz_prepare(token: spacy.tokens.Token, ct_size=100) -> str:
-    """sanitize text for use in graphviz"""
-    text = token.text
-    text = graphviz_sanitize(text)
-    document_text = token.doc.text
+def get_token_context(token: spacy.tokens.Token, ct_size=100) -> tuple[str, str, str]:
+    document_text: str = token.doc.text
     n = token.idx
-    if ct_size:
-        ct = document_text[max(0, n - ct_size):n + ct_size]
-        # ct = graphviz_sanitize(ct)
-        ct = (f'<<font point-size="8">{graphviz_sanitize(ct[:ct_size])}</font>'
-              f'<font point-size="15">{graphviz_sanitize(ct[ct_size:len(text) + ct_size])}</font>'
-              f'<font point-size="8">{graphviz_sanitize(ct[len(text) + ct_size:])}</font>>')
-        tx = ct
-    else:
-        tx = f'<<font point-size="15">{text}</font>>'
-    return tx
+    text = token.text
+    ct = document_text[:n + ct_size]
+    pre_c_start = n - min(ct_size, n)
+    tok_start = n
+    tok_end = n + len(text)
+    post_c_end = tok_end + min(ct_size, len(document_text) - n)
+    # ct = graphviz_sanitize(ct)
+    ct = (document_text[pre_c_start:tok_start],
+          document_text[tok_start:tok_end],
+          document_text[tok_end:post_c_end])
+    return ct
 
 
 class ExtractRelationships(Operator):
@@ -315,11 +306,29 @@ def build_document_graph(
         cts: int,  # graph context size for debugging
         meta: dict  # document metadata
 ) -> networkx.DiGraph:
-    # get all nodes from the relationship list
-    graph_nodes = pd.DataFrame(set(semantic_relations[["n1", "n2"]].values.flatten()), columns=["nodes"])
-
     # generate node ids
     ids = itertools.count()
+
+    DG = networkx.DiGraph()
+    # add additional nodes & edges
+    doc_id = next(ids)
+    meta['label'] = "document"
+    DG.add_node(doc_id, **meta)
+    page_map = {}
+    for p in page_set:
+        p_id = next(ids)
+        DG.add_node(p_id, label=f"page[{p}]", page_num=0)
+        DG.add_edge(doc_id, p_id, label="is parent", type="document_hierarchy")
+        page_map[p] = p_id
+
+    for do in document_objects:
+        do_id = next(ids)
+        p = do.p_num
+        DG.add_node(do_id, label=do.place_holder_text, obj=do)
+        DG.add_edge(page_map[p], do_id, label="is parent", type="document_hierarchy")
+
+    # get all nodes from the relationship list
+    graph_nodes = pd.DataFrame(set(semantic_relations[["n1", "n2"]].values.flatten()), columns=["nodes"])
 
     # add node groups
     graph_nodes['token_idx'] = graph_nodes.nodes.apply(lambda x: x.i).astype(int)
@@ -344,8 +353,10 @@ def build_document_graph(
         toks = pd.DataFrame(token_list.nodes, columns=["tok"])
         toks["text"] = toks.apply(lambda x: x[0].text, axis=1)
         most_occuring_text = toks["text"].value_counts().index[0]
+        first_token = token_list.nodes[0]
         return pd.Series(dict(
             label=most_occuring_text,
+            context=get_token_context(first_token, ct_size=cts),
             idx=next(ids),
             toks=token_list.nodes
         ))
@@ -365,26 +376,7 @@ def build_document_graph(
 
     # convert graph_nodes into a dictionary
     graph_nodes = graph_nodes.set_index('idx').to_dict('index')
-
-    DG = networkx.DiGraph()
     DG.add_nodes_from(graph_nodes.items())
-
-    # add additional nodes & edges
-    doc_id = next(ids)
-    DG.add_node(doc_id, **{"label": "document"})
-    page_map = {}
-    for p in page_set:
-        p_id = next(ids)
-        DG.add_node(p_id, **{"label": f"page[{p}]", "page_num": 0})
-        DG.add_edge(doc_id, p_id, label="has", type="document_hierarchy")
-        page_map[p] = p_id
-
-    for do in document_objects:
-        do_id = next(ids)
-        p = do.p_num
-        DG.add_node(do_id, **{"label": do.place_holder_text, "obj": do})
-        DG.add_edge(page_map[p], do_id, label="has", type="document_hierarchy")
-
     DG.add_edges_from(edges.values)
 
     return DG

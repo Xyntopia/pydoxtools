@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import html
 import logging
+import re
 from enum import Enum
 
 import networkx as nx
@@ -146,17 +148,45 @@ def graphviz_styling(G):
     return G
 
 
+def graphviz_sanitize(text: str, max_length=1000) -> str:
+    """sanitize text for use in graphviz"""
+    text = html.escape(text).replace('\n', '<br/>')
+    text = re.sub(r'[^\x20-\x7E]+', '', text)  # remove non-printable characters
+    text = text[:max_length]  # limit the length of the text
+    return text
+
+
+def graphviz_context_render(context: tuple[str, str, str]) -> str:
+    """sanitize text for use in graphviz"""
+    pre_context, text, post_context = context
+    pre_context = graphviz_sanitize(pre_context)
+    text = graphviz_sanitize(text)
+    post_context = graphviz_sanitize(post_context)
+
+    ct = (f'<<font point-size="8">{pre_context}</font>'
+          f'<font point-size="15">{text}</font>'
+          f'<font point-size="8">{post_context}</font>>')
+    return ct
+
+
 def draw(graph, engine="dot", format='jpg'):
-    """format can also be "svg" and more suppoted by graphviz"""
-    graphviz = nx.nx_agraph.to_agraph(graph)
+    """format can also be "svg" and more supported by graphviz"""
+    # Create a copy of the graph
+    graph_copy = graph.copy()
+
+    # Update node attributes in the copy
+    for node, data in graph_copy.nodes(data=True):
+        if 'label' in data:
+            data['label'] = graphviz_sanitize(data['label'])
+        if context := data.get('context'):
+            data['label'] = graphviz_context_render(context)
+
+    # Convert the modified copy to an agraph
+    graphviz = nx.nx_agraph.to_agraph(graph_copy)
     graphviz.graph_attr["overlap"] = "false"
-    # TODO: sanitize all labels and nodestrings and other stuff!
-    #graphviz.no
+
     res = graphviz.draw(prog=engine, format=format)
     if format == 'svg':
-        # this is for ipython notebooks
-        # svg_html = '<div style="width:500%; height:500%;">{}</div>'.format(svg)
-        # display(HTML(svg_html))
         return SVG(res)
     else:
         return res, graphviz
