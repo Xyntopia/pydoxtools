@@ -732,8 +732,14 @@ document_operators = {
         FunctionOperator(lambda x: (x or dict())).t(dict[str, Any])
         .input(x="_meta").out("meta").docs("Metadata of the document"),
 
-        ##### generalized pages ########
+        # document structure
+        Constant(document_objects=[])
+        # .input()
+        # .out("document_objects").cache(allow_disk_cache=True)
+        .docs("extracts a list of document objects such as tables, text boxes, figures, etc."
+              "TODO: this does only work for PDFs right now..."),
 
+        ##### generalized pages ########
         # TODO: extract the correct page number for all documents
         FunctionOperator(lambda x: {0: x})
         .input(x="clean_text").out("page_templates").cache()

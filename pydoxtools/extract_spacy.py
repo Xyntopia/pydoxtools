@@ -174,18 +174,21 @@ class SpacyOperator(Operator):
 
 
 def get_token_context(token: spacy.tokens.Token, ct_size=100) -> tuple[str, str, str]:
-    document_text: str = token.doc.text
-    n = token.idx
-    text = token.text
-    ct = document_text[:n + ct_size]
-    pre_c_start = n - min(ct_size, n)
-    tok_start = n
-    tok_end = n + len(text)
-    post_c_end = tok_end + min(ct_size, len(document_text) - n)
-    # ct = graphviz_sanitize(ct)
-    ct = (document_text[pre_c_start:tok_start],
-          document_text[tok_start:tok_end],
-          document_text[tok_end:post_c_end])
+    if ct_size:
+        document_text: str = token.doc.text
+        n = token.idx
+        text = token.text
+        ct = document_text[:n + ct_size]
+        pre_c_start = n - min(ct_size, n)
+        tok_start = n
+        tok_end = n + len(text)
+        post_c_end = tok_end + min(ct_size, len(document_text) - n)
+        # ct = graphviz_sanitize(ct)
+        ct = (document_text[pre_c_start:tok_start],
+              document_text[tok_start:tok_end],
+              document_text[tok_end:post_c_end])
+    else:
+        ct = None
     return ct
 
 
@@ -354,12 +357,14 @@ def build_document_graph(
         toks["text"] = toks.apply(lambda x: x[0].text, axis=1)
         most_occuring_text = toks["text"].value_counts().index[0]
         first_token = token_list.nodes[0]
-        return pd.Series(dict(
+        node_attrs = dict(
             label=most_occuring_text,
-            context=get_token_context(first_token, ct_size=cts),
             idx=next(ids),
             toks=token_list.nodes
-        ))
+        )
+        if cts:
+            node_attrs["context"] = get_token_context(first_token, ct_size=cts)
+        return pd.Series(node_attrs)
 
     graph_nodes = graph_nodes.apply(identify_mean_node, axis=1)
 

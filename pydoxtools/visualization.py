@@ -150,18 +150,45 @@ def graphviz_styling(G):
 
 def graphviz_sanitize(text: str, max_length=1000) -> str:
     """sanitize text for use in graphviz"""
-    text = html.escape(text).replace('\n', '<br/>')
-    text = re.sub(r'[^\x20-\x7E]+', '', text)  # remove non-printable characters
-    text = text[:max_length]  # limit the length of the text
+    text = text.replace('\n', '<br/>')
+
+    # Characters that need to be escaped
+    escape_chars = {
+        r'\\': r'\\\\',
+        r'\t': r'\\t',
+        r'\r': r'\\r',
+        r'\f': r'\\f',
+        r'\{': r'\\{',
+        r'\}': r'\\}',
+        r'\|': r'\\|',
+        r'\"': r'&quot;',
+        r'\[': r'\\[',
+        r'\]': r'\\]',
+    }
+
+    # Escape characters
+    for char, escaped_char in escape_chars.items():
+        text = re.sub(char, escaped_char, text)
+
+    # Remove non-ASCII characters
+    text = re.sub(r'[^\x20-\x7E]+', '', text)
+
+    # Limit the length of the text
+    text = text[:max_length]
+
+    # Replace empty strings with a placeholder
+    if text.strip() == '':
+        text = '<empty>'
+
     return text
 
 
 def graphviz_context_render(context: tuple[str, str, str]) -> str:
     """sanitize text for use in graphviz"""
     pre_context, text, post_context = context
-    pre_context = graphviz_sanitize(pre_context)
-    text = graphviz_sanitize(text)
-    post_context = graphviz_sanitize(post_context)
+    pre_context = html.escape(graphviz_sanitize(pre_context))
+    text = html.escape(graphviz_sanitize(text))
+    post_context = html.escape(graphviz_sanitize(post_context))
 
     ct = (f'<<font point-size="8">{pre_context}</font>'
           f'<font point-size="15">{text}</font>'
@@ -185,11 +212,14 @@ def draw(graph, engine="dot", format='jpg'):
     graphviz = nx.nx_agraph.to_agraph(graph_copy)
     graphviz.graph_attr["overlap"] = "false"
 
+    if format == 'graphviz':
+        return str(graphviz)
+
     res = graphviz.draw(prog=engine, format=format)
     if format == 'svg':
         return SVG(res)
     else:
-        return res, graphviz
+        return res
 
 
 def draw_knowledge_graph(KG):
