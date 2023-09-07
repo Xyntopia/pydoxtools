@@ -11,6 +11,7 @@ import pytest
 
 import pydoxtools
 import pydoxtools.document
+from pydoxtools import visualization
 from pydoxtools.document import Document, DocumentBag
 from pydoxtools.list_utils import flatten, ensure_list
 from pydoxtools.operators_base import OperatorException
@@ -464,17 +465,17 @@ def test_nlp_utils():
 def test_disk_cache():
     d = Document(source=make_path_absolute("../README.md")).set_disk_cache_settings(
         enable=False,
-        ttl=5*60  # keep cache for 5 minutes
+        ttl=5 * 60  # keep cache for 5 minutes
     )
     kw = sorted(d.keywords)
     d = Document(source=make_path_absolute("../README.md")).set_disk_cache_settings(
         enable=True,
-        ttl=5*60  # keep cache for 5 minutes
+        ttl=5 * 60  # keep cache for 5 minutes
     )
     assert sorted(d.keywords) == kw
     d = Document(source=make_path_absolute("../README.md")).set_disk_cache_settings(
         enable=True,
-        ttl=5*60  # keep cache for 5 minutes
+        ttl=5 * 60  # keep cache for 5 minutes
     )
     assert sorted(d.keywords) == kw
     assert d._stats["cache_hits"] == 0
@@ -643,12 +644,29 @@ def test_list_query():
     doc.segment_query("['product' 'id' 'ID Nr' Nr. Id.]")
 
 
+def test_document_graph():
+    pdf = pydoxtools.Document(Path("/../pydoxtools/README.md"),
+                              spacy_model_size="sm", coreference_method="fast",
+                              graph_debug_context_size=0)
+    KG = pdf.x("document_graph")
+
+    jpg = visualization.draw(KG, engine="fdp", format='jpg')
+
+    # and WITH context
+    pdf = pydoxtools.Document(Path("/../pydoxtools/README.md"),
+                              spacy_model_size="sm", coreference_method="fast",
+                              graph_debug_context_size=30)
+    KG = pdf.x("document_graph")
+
+    jpg = visualization.draw(KG, engine="fdp", format='jpg')
+
+
 if __name__ == "__main__":
     # a = pd.DataFrame(sd.sents)
     # a[2]
     file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/north_american_countries.png"
     # run_single_non_interactive_document_test(file)
     run_single_non_interactive_document_test(file)
-    #doc = Document(file)
-    #doc.text_box_elements
+    # doc = Document(file)
+    # doc.text_box_elements
     pass
