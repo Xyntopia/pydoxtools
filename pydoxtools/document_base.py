@@ -55,7 +55,7 @@ class ElementType(Enum):
 @dataclass(**slot_args)
 class DocumentElement:
     type: ElementType
-    p_num: int | None = None
+    p_num: int | list[int] = 0
     x0: float | None = None
     y0: float | None = None
     x1: float | None = None

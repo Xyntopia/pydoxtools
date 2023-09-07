@@ -223,10 +223,6 @@ PDFNodes = [
     .input("line_elements").out("text_box_elements").cache()
     .docs("Extracts a dataframe of text boxes from the document by grouping text elements")
     .t(pd.DataFrame),
-    FunctionOperator(lambda df: df.get("text", None).to_list())
-    .input(df="text_box_elements").out("text_box_list").cache()
-    .t(list[str])
-    .docs("Extracts list of text boxes from the document by grouping text elements"),
     FunctionOperator(lambda tb: "\n\n".join(tb)).t(str)
     .input(tb="text_box_list").out("full_text").cache()
     .docs("Extracts the full text from the document by grouping text elements"),
@@ -254,6 +250,7 @@ HTMLNodes = [
     .input(article="goose_article").out("main_image").cache()
     .docs("Extracts the main image from the html document"),
     Alias(full_text="main_content").t(str),
+    # TODO: replace this with a new "elements" list.
     FunctionOperator(lambda x: pd.DataFrame(get_text_only_blocks(x), columns=["text"])).cache()
     .input(x="raw_content").out("text_box_elements")
     .docs("Extracts the text boxes from the html document"),
@@ -291,10 +288,8 @@ PandocNodes = [
     PandocToPdxConverter()
     .input("pandoc_document").out("elements").cache().docs(
         "split a pandoc document into text elements."),
-    # TODO: what do we need "text_box_elements" for ight be agood idea to use this as a pure filter?
-    Alias(text_box_elements="elements"),
     SectionsExtractor()
-    .input(df="text_box_elements").out("sections").cache()
+    .input("elements").out("sections").cache()
     .docs("Extracts the sections from the document by grouping text elements"),
     PandocConverter()  # clean for downstram processing tasks
     .input(output_format="clean_format", pandoc_document="pandoc_document")
@@ -624,9 +619,10 @@ TextStructureNodes = [
     .docs("extracts a list of document objects such as tables, text boxes, figures, etc.")
     .cache(),
     Alias(document_objects="elements"),
-    FunctionOperator(lambda x: pd.DataFrame(x).text)
-    .input(x="elements").out("text_box_elements").t(pd.Series).cache()
+    FunctionOperator(lambda x: pd.DataFrame(x).text.to_list())
+    .input(x="elements").out("text_box_elements").t(list[str]).cache()
     .docs("Text boxes extracted as a pandas Dataframe with some additional metadata"),
+    Alias(text_box_list="text_box_elements"),
 
     DocumentElementFilter(element_type=ElementType.Header)
     .input("elements").out("headers").cache()
@@ -708,10 +704,9 @@ document_operators = {
         DictSelector()
         .input(selectable="data").out("data_sel").cache().docs(
             "select values by key from source data in Document"),
-        FunctionOperator(lambda x: pd.DataFrame([
-            str(k) + ": " + str(v) for k, v in list_utils.flatten_dict(x).items()],
-            columns=["text"]
-        )).input(x="data").out("text_box_elements").cache()
+        # TODO: use a document_element creation function for this...
+        FunctionOperator(lambda x: [str(k) + ": " + str(v) for k, v in list_utils.flatten_dict(x).items()])
+        .input(x="data").out("text_box_elements").cache().t(list[str])
         .docs("Create a dataframe from a dictionary. TODO: this is not working correctly, it should "
               "create a list of [][pydoxtools.document_base.DocumentELements]"),
         Alias(text_segments="text_box_list").t(list[str]),
@@ -731,10 +726,8 @@ document_operators = {
         FunctionOperator(lambda x: yaml.dump(list_utils.deep_str_convert(x))).t(str)
         .input(x="data").out("full_text").cache()
         .docs("Dump list data to a yaml-like string"),
-        FunctionOperator(lambda x: pd.DataFrame([
-            str(list_utils.deep_str_convert(v)) for v in x],
-            columns=["text"]
-        )).input(x="data").out("text_box_elements").cache(),
+        FunctionOperator(lambda x: [str(list_utils.deep_str_convert(v)) for v in x])
+        .input(x="data").out("text_box_elements").cache(),
         Alias(text_segments="text_box_list").t(list[str]),
     ],
     # TODO: json, csv etc...
@@ -748,8 +741,6 @@ document_operators = {
         Alias(clean_text="full_text").t(str),
         FunctionOperator(lambda x: (x or dict())).t(dict[str, Any])
         .input(x="_meta").out("meta").docs("Metadata of the document"),
-
-        *TextStructureNodes,
 
         ##### calculate some metadata ####
         FunctionOperator(
@@ -768,9 +759,6 @@ document_operators = {
         .out("file_meta").cache().docs(
             "Some fast-to-calculate metadata information about a document"),
 
-        FunctionOperator(lambda df: df.to_list()).t(list[str])
-        .input(df="text_box_elements").out("text_box_list").cache()
-        .docs("Text boxes as a list"),
         # TODO: replace this with a real, generic table detection
         #       e.g. running the text through pandoc or scan for html tables
         Constant(tables_df=[]),
@@ -780,6 +768,7 @@ document_operators = {
         .docs("List of Table"),
         Alias(tables="tables_dict"),
 
+        *TextStructureNodes,
         *ClassifierNodes,
         *MetaDataNodes,
         *SpacyNodes,

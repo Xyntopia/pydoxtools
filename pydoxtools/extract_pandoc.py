@@ -108,7 +108,7 @@ class PandocToPdxConverter(pydoxtools.operators_base.Operator):
     def __init__(self):
         super().__init__()
 
-    def __call__(self, pandoc_document: "pandoc.types.Pandoc") -> pd.DataFrame:
+    def __call__(self, pandoc_document: "pandoc.types.Pandoc") -> list[pydoxtools.document_base.DocumentElement]:
         # extract subsections
         pdoc = pandoc_document
         metadata = pdoc[0]
@@ -169,5 +169,4 @@ class PandocToPdxConverter(pydoxtools.operators_base.Operator):
 
             pdx_elements.append(pdx_el)
 
-        df = pd.DataFrame(pdx_elements)
-        return df
+        return pdx_elements

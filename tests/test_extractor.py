@@ -667,10 +667,12 @@ def test_document_graph():
 if __name__ == "__main__":
     # a = pd.DataFrame(sd.sents)
     # a[2]
-    test_string_extraction()
-    # file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/north_american_countries.png"
+    # test_all_documents()
+    file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/Starship.xml"
+    doc = Document(file)
+    doc.document_type
+
+    run_single_non_interactive_document_test(file)
     # run_single_non_interactive_document_test(file)
-    # run_single_non_interactive_document_test(file)
-    # doc = Document(file)
     # doc.text_box_elements
     pass

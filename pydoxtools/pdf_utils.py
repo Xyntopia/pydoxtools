@@ -394,9 +394,4 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
                 else:
                     continue
 
-            logger.debug(f"process page {page_num}")
-
-        # TODO: validate pandas dataframe using document_base.DocumentElement
-        docelementsframe = pd.DataFrame(docelements)
-
-        return docelementsframe, extracted_page_numbers, pages_bbox
+        return docelements, extracted_page_numbers, pages_bbox

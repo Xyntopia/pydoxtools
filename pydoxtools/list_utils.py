@@ -5,8 +5,8 @@ Created on Thu Apr  9 22:12:25 2020
 """
 from __future__ import annotations
 
-import dataclasses
 import collections
+import dataclasses
 import datetime
 import logging
 import math
@@ -34,6 +34,8 @@ def ensure_list(property):
         return [property]
     elif isinstance(property, Iterable):
         return property
+    elif property is None:
+        return []
     else:
         return [property]
 

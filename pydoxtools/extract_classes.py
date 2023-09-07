@@ -73,7 +73,7 @@ class TextBlockClassifier(Operator):
     def __init__(self):
         super().__init__()
 
-    def __call__(self, text_box_elements: pd.DataFrame) -> list[str]:
+    def __call__(self, text_box_elements: list[str]) -> list[str]:
         tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
         model_name = "txtblockclassifier"
         model_dir = settings.PDX_MODEL_DIR / model_name
@@ -86,7 +86,6 @@ class TextBlockClassifier(Operator):
         # TODO: only extract "unique" addresses
         model = AutoModelForSequenceClassification.from_pretrained(model_dir, num_labels=2)  # .to("cuda")
         model = pipeline("text-classification", model=model, tokenizer=tokenizer)
-        text = text_box_elements.str.strip()
-        res = text.apply(lambda x: model(
-            [x], truncation=True, padding=True)[0]["label"])
-        return text[res == "address"].to_list()
+        text = [t.strip() for t in text_box_elements]
+        res = [model([x], truncation=True, padding=True)[0]["label"] for x in text]
+        return [c for c, t in zip(res, text) if c == "address"]

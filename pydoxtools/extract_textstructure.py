@@ -162,7 +162,8 @@ class SectionsExtractor(pydoxtools.operators_base.Operator):
     extract sections from a textbox dataframe
     """
 
-    def __call__(self, df: pd.DataFrame):
+    def __call__(self, elements: list[document_base.DocumentElement]):
+        df = pd.DataFrame(elements)
         bg = group_elements(df, ['sections'], agg="sections")
         return {"sections": bg}
 
