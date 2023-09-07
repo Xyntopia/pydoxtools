@@ -86,7 +86,7 @@ class TextBlockClassifier(Operator):
         # TODO: only extract "unique" addresses
         model = AutoModelForSequenceClassification.from_pretrained(model_dir, num_labels=2)  # .to("cuda")
         model = pipeline("text-classification", model=model, tokenizer=tokenizer)
-        text = text_box_elements["text"].str.strip()
+        text = text_box_elements.str.strip()
         res = text.apply(lambda x: model(
             [x], truncation=True, padding=True)[0]["label"])
         return text[res == "address"].to_list()

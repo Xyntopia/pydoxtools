@@ -403,11 +403,16 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
     @functools.lru_cache
     def to_dataframe(self, *args, **kwargs):
         dictlist = self.to_dict(*args, **kwargs)
-        df = pd.DataFrame(dictlist)
+        if len(dictlist) == 1:
+            name = next(iter(dictlist))
+            df = pd.DataFrame(dictlist[name])
+            df.name = name
+        else:
+            df = pd.DataFrame(dictlist)
         return df
 
     def df(self, *args, **kwargs):
-        self.to_dataframe(*args, **kwargs)
+        return self.to_dataframe(*args, **kwargs)
 
     def to_yaml(self, *args, **kwargs):
         """

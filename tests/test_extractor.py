@@ -144,8 +144,11 @@ def run_single_non_interactive_document_test(file_name):
 def test_string_extraction():
     file = make_path_absolute("./data/alan_turing.txt")
     doc = Document(source=str(file))
-    doc.document_type
-    doc.keywords
+    assert doc.df("elements").shape == (5, 23)
+    assert doc.document_type == 'text/plain'
+    assert 'Turing' in doc.keywords
+    doc.text_box_elements
+    doc.full_text
     doc.run_pipeline_fast()
 
     with open(file, "r") as f:
@@ -664,9 +667,10 @@ def test_document_graph():
 if __name__ == "__main__":
     # a = pd.DataFrame(sd.sents)
     # a[2]
-    file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/north_american_countries.png"
+    test_string_extraction()
+    # file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/north_american_countries.png"
     # run_single_non_interactive_document_test(file)
-    run_single_non_interactive_document_test(file)
+    # run_single_non_interactive_document_test(file)
     # doc = Document(file)
     # doc.text_box_elements
     pass

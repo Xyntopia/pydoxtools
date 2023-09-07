@@ -5,6 +5,7 @@ Created on Thu Apr  9 22:12:25 2020
 """
 from __future__ import annotations
 
+import dataclasses
 import collections
 import datetime
 import logging
@@ -162,7 +163,9 @@ def deep_str_convert(obj: Any) -> Any:
     elif isinstance(obj, str):
         res = obj
     elif isinstance(obj, pydantic.BaseModel):
-        res = obj.dict()
+        res = deep_str_convert(obj.dict())
+    elif dataclasses.is_dataclass(obj):
+        res = deep_str_convert(dataclasses.asdict(obj))
     elif isinstance(obj, bytes):
         try:
             res = obj.decode('utf-8')

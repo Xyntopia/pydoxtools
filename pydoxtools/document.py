@@ -37,11 +37,12 @@ from .extract_index import IndexExtractor, KnnQuery, \
     SimilarityGraph, TextrankOperator, TextPieceSplitter, ChromaIndexFromBag
 from .extract_objects import EntityExtractor
 from .extract_ocr import OCRExtractor
-from .extract_pandoc import PandocLoader, PandocConverter, PandocBlocks, PandocToPdxConverter
+from .extract_pandoc import PandocLoader, PandocConverter, PandocToPdxConverter
 from .extract_spacy import (SpacyOperator, extract_spacy_token_vecs, get_spacy_embeddings, extract_noun_chunks,
                             ExtractRelationships, build_document_graph, CoreferenceResolution)
 from .extract_tables import ListExtractor, TableCandidateAreasExtractor
-from .extract_textstructure import DocumentElementFilter, text_boxes_from_elements, TitleExtractor, SectionsExtractor
+from .extract_textstructure import (DocumentElementFilter, text_boxes_from_elements,
+                                    TitleExtractor, SectionsExtractor, extract_text_elements)
 from .html_utils import get_text_only_blocks
 from .list_utils import remove_list_from_lonely_object
 from .nlp_utils import calculate_string_embeddings, summarize_long_text
@@ -290,6 +291,7 @@ PandocNodes = [
     PandocToPdxConverter()
     .input("pandoc_document").out("elements").cache().docs(
         "split a pandoc document into text elements."),
+    # TODO: what do we need "text_box_elements" for ight be agood idea to use this as a pure filter?
     Alias(text_box_elements="elements"),
     SectionsExtractor()
     .input(df="text_box_elements").out("sections").cache()
@@ -297,10 +299,7 @@ PandocNodes = [
     PandocConverter()  # clean for downstram processing tasks
     .input(output_format="clean_format", pandoc_document="pandoc_document")
     .out("clean_text").cache().docs(
-        "for some downstream tasks, it is better to have pure text, without any sructural elements in it"),
-    PandocBlocks()
-    .input(pandoc_document="pandoc_document").out("pandoc_blocks").cache()
-    .docs("Extracts the pandoc blocks from the document")
+        "for some downstream tasks, it is better to have pure text, without any sructural elements in it")
 ]
 
 PILImageNodes = [
@@ -620,14 +619,23 @@ LLMNodes = [
 ]
 
 TextStructureNodes = [
+    FunctionOperator(extract_text_elements)
+    .input(text="full_text").out("elements")
+    .docs("extracts a list of document objects such as tables, text boxes, figures, etc.")
+    .cache(),
+    Alias(document_objects="elements"),
+    FunctionOperator(lambda x: pd.DataFrame(x).text)
+    .input(x="elements").out("text_box_elements").t(pd.Series).cache()
+    .docs("Text boxes extracted as a pandas Dataframe with some additional metadata"),
+
     DocumentElementFilter(element_type=ElementType.Header)
-    .input(x="elements").out("headers").cache()
+    .input("elements").out("headers").cache()
     .docs("Extracts the headers from the document"),
     DocumentElementFilter(element_type=ElementType.Header)
-    .input(x="elements").out("tables").cache()
+    .input("elements").out("tables").cache()
     .docs("Extracts the tables from the document as a dataframe"),
     DocumentElementFilter(element_type=ElementType.List)
-    .input(x="elements").out("lists").cache()
+    .input("elements").out("lists").cache()
     .docs("Extracts the lists from the document"),
     DocumentElementFilter(element_type=ElementType.Text)
     .input("elements").out("line_elements").cache()
@@ -638,11 +646,6 @@ TextStructureNodes = [
     DocumentElementFilter(element_type=ElementType.Image)
     .input("elements").out("image_elements").cache()
     .docs("Filters the document elements and only keeps the image elements"),
-
-    Constant(document_objects=[])
-    # .input()
-    # .out("document_objects").cache(allow_disk_cache=True)
-    .docs("extracts a list of document objects such as tables, text boxes, figures, etc."),
 
     ##### generalized pages ########
     # TODO: extract the correct page number for all documents
@@ -765,11 +768,7 @@ document_operators = {
         .out("file_meta").cache().docs(
             "Some fast-to-calculate metadata information about a document"),
 
-        ## Standard text splitter for splitting text along lines...
-        FunctionOperator(lambda x: pd.DataFrame(x.split("\n\n"), columns=["text"]))
-        .input(x="full_text").out("text_box_elements").t(pd.DataFrame).cache()
-        .docs("Text boxes extracted as a pandas Dataframe with some additional metadata"),
-        FunctionOperator(lambda df: df.get("text", None).to_list()).t(list[str])
+        FunctionOperator(lambda df: df.to_list()).t(list[str])
         .input(df="text_box_elements").out("text_box_list").cache()
         .docs("Text boxes as a list"),
         # TODO: replace this with a real, generic table detection

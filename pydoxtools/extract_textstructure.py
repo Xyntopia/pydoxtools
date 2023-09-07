@@ -68,6 +68,21 @@ def mime_type(self) -> str:
     return "unknown"
 
 
+# TODO: Maybe move title detection and similar things into this function as well?
+def extract_text_elements(text: str) -> list[document_base.DocumentElement]:
+    # we should also make sure, if its possible or us to detect any sort of ASCII
+    # or pandoc tables here...
+    elements = [document_base.DocumentElement(
+        type=document_base.ElementType.TextBox,
+        text=tb,
+        place_holder_text=f"textblock{i}",
+        level=1,
+        p_num=0
+    ) for i, tb in enumerate(text.split("\n\n"))]
+
+    return elements
+
+
 class DocumentElementFilter(pydoxtools.operators_base.Operator):
     """Filter document elements for various criteria"""
 
@@ -75,8 +90,10 @@ class DocumentElementFilter(pydoxtools.operators_base.Operator):
         super().__init__()
         self.element_type = element_type
 
-    def __call__(self, elements: pd.DataFrame) -> pd.DataFrame:
-        df = elements.loc[elements["type"] == self.element_type].copy()
+    def __call__(
+            self, elements: list[pydoxtools.document_base.DocumentElement]
+    ) -> list[pydoxtools.document_base.DocumentElement]:
+        df = [e for e in elements if e.type == self.element_type]
         return df
 
 
@@ -379,6 +396,8 @@ class PageTemplateGenerator(pydoxtools.operators_base.Operator):
         def generate(exclude: list[str] | document_base.ElementType = None) -> dict[int, str]:
             exclude = list_utils.ensure_list(exclude)
             objs = pd.DataFrame(document_objects)
+            if objs.empty:
+                return {}
             objs = objs.sort_values(by=["p_num", "y0"], ascending=[True, False])
             pages = objs.p_num.unique()
             new_text = objs.apply(

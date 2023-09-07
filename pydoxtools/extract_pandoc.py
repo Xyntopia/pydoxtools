@@ -89,15 +89,6 @@ class PandocLoader(pydoxtools.operators_base.Operator):
         return pandoc_format
 
 
-class PandocBlocks(pydoxtools.operators_base.Operator):
-    def __init__(self):
-        super().__init__()
-
-    def __call__(self, pandoc_document: "pandoc.types.Pandoc") -> list["pandoc.types.Block"]:
-        txtblocks = [elt for elt in pandoc_document[1] if isinstance(elt, pandoc.types.Block)]
-        return txtblocks
-
-
 class PandocConverter(pydoxtools.operators_base.Operator):
     def __call__(self, pandoc_document: "pandoc.types.Pandoc", output_format: str) -> str:
         full_text = pandoc.write(pandoc_document, format=output_format)
