@@ -48,6 +48,8 @@ class ElementType(Enum):
     Image = 3
     Table = 4
     TextBox = 5
+    List = 6
+    Header = 7
 
 
 @dataclass(**slot_args)

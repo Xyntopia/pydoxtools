@@ -189,7 +189,7 @@ pdf = pydoxtools.Document(pdf_file, page_numbers=list(range(164, 166)))
 #print(str(graphviz))
 
 # %%
-svg = vd.draw(pdf.noun_graph, format='svg')
+svg = vd.draw(pdf.noun_graph, engine="fdp", format='svg')
 svg
 
 # %%
@@ -205,7 +205,7 @@ pdf = pydoxtools.Document("https://en.wikipedia.org/wiki/Rocket",
 # %%
 pdf = pydoxtools.Document("https://en.wikipedia.org/wiki/Rocket", 
                           spacy_model_size="lg", coreference_method="fast")
-KG = pdf.x("knowledge_graph",disk_cache=True)
+KG = pdf.x("document_graph")
 
 # and visualize...
 svg = vd.draw(KG, engine="fdp", format='svg')

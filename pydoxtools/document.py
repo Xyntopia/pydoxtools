@@ -37,7 +37,7 @@ from .extract_index import IndexExtractor, KnnQuery, \
     SimilarityGraph, TextrankOperator, TextPieceSplitter, ChromaIndexFromBag
 from .extract_objects import EntityExtractor
 from .extract_ocr import OCRExtractor
-from .extract_pandoc import PandocLoader, PandocOperator, PandocConverter, PandocBlocks, PandocToPdxConverter
+from .extract_pandoc import PandocLoader, PandocConverter, PandocBlocks, PandocToPdxConverter
 from .extract_spacy import (SpacyOperator, extract_spacy_token_vecs, get_spacy_embeddings, extract_noun_chunks,
                             ExtractRelationships, build_document_graph, CoreferenceResolution)
 from .extract_tables import ListExtractor, TableCandidateAreasExtractor
@@ -191,18 +191,6 @@ PDFNodes = [
     FunctionOperator(lambda pages: len(pages)).t(int)
     .input(pages="page_set").out("num_pages").cache()
     .docs("Outputs the number of pages in the document"),
-    # TODO: move these filters etc... into a generalized text-structure pipeline!
-    #  we are converting pandoc elements into the same thing
-    #  anyways!!
-    DocumentElementFilter(element_type=ElementType.Text)
-    .input("elements").out("line_elements").cache()
-    .docs("Filters the document elements and only keeps the text elements"),
-    DocumentElementFilter(element_type=ElementType.Graphic)
-    .input("elements").out("graphic_elements").cache()
-    .docs("Filters the document elements and only keeps the graphic elements"),
-    DocumentElementFilter(element_type=ElementType.Image)
-    .input("elements").out("image_elements").cache()
-    .docs("Filters the document elements and only keeps the image elements"),
 
     #########  TABLE STUFF ##############
     ListExtractor().cache()
@@ -300,8 +288,9 @@ PandocNodes = [
     Constant(clean_format="plain")
     .docs("The format used to convert the document to a clean string for downstream processing tasks"),
     PandocToPdxConverter()
-    .input("pandoc_document").out("text_box_elements").cache().docs(
+    .input("pandoc_document").out("elements").cache().docs(
         "split a pandoc document into text elements."),
+    Alias(text_box_elements="elements"),
     SectionsExtractor()
     .input(df="text_box_elements").out("sections").cache()
     .docs("Extracts the sections from the document by grouping text elements"),
@@ -311,16 +300,7 @@ PandocNodes = [
         "for some downstream tasks, it is better to have pure text, without any sructural elements in it"),
     PandocBlocks()
     .input(pandoc_document="pandoc_document").out("pandoc_blocks").cache()
-    .docs("Extracts the pandoc blocks from the document"),
-    PandocOperator(method="headers")
-    .input(pandoc_blocks="pandoc_blocks").out("headers").cache()
-    .docs("Extracts the headers from the document"),
-    PandocOperator(method="tables_df")
-    .input(pandoc_blocks="pandoc_blocks").out("tables_df").cache()
-    .docs("Extracts the tables from the document as a dataframe"),
-    PandocOperator(method="lists")
-    .input(pandoc_blocks="pandoc_blocks").out("lists").cache()
-    .docs("Extracts the lists from the document"),
+    .docs("Extracts the pandoc blocks from the document")
 ]
 
 PILImageNodes = [
@@ -640,6 +620,25 @@ LLMNodes = [
 ]
 
 TextStructureNodes = [
+    DocumentElementFilter(element_type=ElementType.Header)
+    .input(x="elements").out("headers").cache()
+    .docs("Extracts the headers from the document"),
+    DocumentElementFilter(element_type=ElementType.Header)
+    .input(x="elements").out("tables").cache()
+    .docs("Extracts the tables from the document as a dataframe"),
+    DocumentElementFilter(element_type=ElementType.List)
+    .input(x="elements").out("lists").cache()
+    .docs("Extracts the lists from the document"),
+    DocumentElementFilter(element_type=ElementType.Text)
+    .input("elements").out("line_elements").cache()
+    .docs("Filters the document elements and only keeps the text elements"),
+    DocumentElementFilter(element_type=ElementType.Graphic)
+    .input("elements").out("graphic_elements").cache()
+    .docs("Filters the document elements and only keeps the graphic elements"),
+    DocumentElementFilter(element_type=ElementType.Image)
+    .input("elements").out("image_elements").cache()
+    .docs("Filters the document elements and only keeps the image elements"),
+
     Constant(document_objects=[])
     # .input()
     # .out("document_objects").cache(allow_disk_cache=True)

@@ -107,6 +107,16 @@ class PandocConverter(pydoxtools.operators_base.Operator):
 class PandocToPdxConverter(pydoxtools.operators_base.Operator):
     """convert pandoc elemens in our "own" element format"""
 
+    # TODO: also find lists, that are nested inside tables for example...
+    #       this means we would have to iterate over all textblocks and reorganize its structure.
+    #       this could be done for example by searching for BulletLists, that are not preceded
+    #       by BulletList elements and thus finding the "beginning" of a BulletList we can
+    #       now combine consecutive elements into a single list block. Otherwise
+    #       we would find every sub-list as a separate entitiy. ...
+
+    def __init__(self):
+        super().__init__()
+
     def __call__(self, pandoc_document: "pandoc.types.Pandoc") -> pd.DataFrame:
         # extract subsections
         pdoc = pandoc_document
@@ -119,55 +129,54 @@ class PandocToPdxConverter(pydoxtools.operators_base.Operator):
                 section_title = PandocConverter()(el, output_format="plain").strip()
                 boxnum += 1
                 pdx_el = pydoxtools.document_base.DocumentElement(
-                    type=pydoxtools.document_base.ElementType.Text,
+                    type=pydoxtools.document_base.ElementType.Header,
                     sections=[section_title],
+                    place_holder_text=f"header{boxnum}",
                     rawtext=PandocConverter()(el, output_format="markdown").strip(),
                     text=section_title,
                     level=0,
-                    boxnum=boxnum
+                    boxnum=boxnum,
+                    obj=el
+                )
+            elif isinstance(el, pandoc.types.Table):
+                table = pd.read_html(pandoc.write(el, format="html"))[0].to_dict('index')
+                boxnum += 1
+                pdx_el = pydoxtools.document_base.DocumentElement(
+                    type=pydoxtools.document_base.ElementType.Table,
+                    sections=[section_title] if section_title else [],
+                    place_holder_text=f"table{boxnum}",
+                    rawtext=PandocConverter()(el, output_format="markdown").strip(),
+                    text=PandocConverter()(el, output_format="plain").strip(),
+                    level=1,
+                    boxnum=boxnum,
+                    obj=table
+                )
+            elif isinstance(el, (pandoc.types.OrderedList, pandoc.types.BulletList)):
+                boxnum += 1
+                pdx_el = pydoxtools.document_base.DocumentElement(
+                    type=pydoxtools.document_base.ElementType.List,
+                    sections=[section_title] if section_title else [],
+                    place_holder_text=f"list{boxnum}",
+                    rawtext=PandocConverter()(el, output_format="markdown").strip(),
+                    text=PandocConverter()(el, output_format="plain").strip(),
+                    level=1,
+                    boxnum=boxnum,
+                    obj=el
                 )
             else:
                 boxnum += 1
                 pdx_el = pydoxtools.document_base.DocumentElement(
                     type=pydoxtools.document_base.ElementType.Text,
-                    sections=[section_title],
+                    sections=[section_title] if section_title else [],
+                    place_holder_text=f"text{boxnum}",
                     rawtext=PandocConverter()(el, output_format="markdown").strip(),
                     text=PandocConverter()(el, output_format="plain").strip(),
                     level=1,
-                    boxnum=boxnum
+                    boxnum=boxnum,
+                    obj=el
                 )
+
             pdx_elements.append(pdx_el)
+
         df = pd.DataFrame(pdx_elements)
         return df
-
-
-class PandocOperator(pydoxtools.operators_base.Operator):
-    """
-    Extract tables, headers and lists from a pandoc document
-    """
-
-    # TODO: also find lists, that are nested inside tables for example...
-    #       this means we would have to iterate over all textblocks and reorganize its structure.
-    #       this could be done for example by searching for BulletLists, that are not preceded
-    #       by BulletList elements and thus finding the "beginning" of a BulletList we can
-    #       now combine consecutive elements into a single list block. Otherwise
-    #       we would find every sub-list as a separate entitiy. ...
-    # pandoc.types.CodeBlock
-    def __init__(self, method: str):
-        super().__init__()
-        self._method = method
-
-    def __call__(self, pandoc_blocks: list["pandoc.types.Block"]) -> str | list[str] | list[pd.DataFrame]:
-        if self._method == "headers":
-            headers = [pandoc.write(elt[2], format="markdown").strip() for elt in pandoc_blocks
-                       if isinstance(elt, pandoc.types.Header)]
-            return headers
-        elif self._method == "tables_df":
-            # txtblocks = [elt for elt in pandoc.iter(doc) if isinstance(elt, pandoc.types.Block)]
-            tables = [pd.read_html(pandoc.write(elt, format="html"))[0] for elt in pandoc_blocks if
-                      isinstance(elt, pandoc.types.Table)]
-            return tables
-        elif self._method == "lists":
-            olists = [extract_list(elt) for elt in pandoc_blocks if isinstance(elt, (pandoc.types.OrderedList,))]
-            blists = [extract_list(elt) for elt in pandoc_blocks if isinstance(elt, (pandoc.types.BulletList,))]
-            return olists + blists
