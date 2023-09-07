@@ -163,17 +163,9 @@ def calculate_a_d_ratio(ft: str) -> float:
 
 # nodes which help to extract the structure of a document
 PDFDocumentStructureNodes = [
-    extract_textstructure.DocumentObjects()
+    extract_textstructure.PDFDocumentObjects()
     .input("valid_tables", "elements").out("document_objects").cache(allow_disk_cache=True)
     .docs("extracts a list of document objects such as tables, text boxes, figures, etc."),
-    extract_textstructure.PageTemplateGenerator()
-    .input("document_objects").out("page_templates").cache()
-    .docs("generates a text page with table & figure hints"),
-    FunctionOperator(lambda pt, ps: "".join(f"\n\n-------- {p} --------\n\n" + pt()[p] for p in ps))
-    .input(pt="page_templates", ps="page_set").out("page_templates_str").cache()
-    .t(str)
-    .docs("Outputs a nice text version of the documents with annotated document objects"
-          " such as page numbers, tables, figures, etc."),
     FunctionOperator(lambda tables, elements: {
         k: extract_textstructure.get_object_context(v.bbox, elements, "table")
         for k, v in enumerate(tables)
@@ -647,6 +639,29 @@ LLMNodes = [
     .docs("Extract answers from the text using OpenAI Chat GPT and other models."),
 ]
 
+TextStructureNodes = [
+    Constant(document_objects=[])
+    # .input()
+    # .out("document_objects").cache(allow_disk_cache=True)
+    .docs("extracts a list of document objects such as tables, text boxes, figures, etc."),
+
+    ##### generalized pages ########
+    # TODO: extract the correct page number for all documents
+    #     # TODO: replace with a generalized page template generator...
+    extract_textstructure.PageTemplateGenerator()
+    .input("document_objects").out("page_templates").cache()
+    .docs("generates a text page with table & figure hints"),
+
+    FunctionOperator(lambda pt, ps: "".join(f"\n\n-------- {p} --------\n\n" + pt()[p] for p in ps))
+    .input(pt="page_templates", ps="page_set").out("page_templates_str").cache()
+    .t(str)
+    .docs("Outputs a nice text version of the documents with annotated document objects"
+          " such as page numbers, tables, figures, etc."),
+    FunctionOperator(lambda pt, ps: "".join(pt(exclude="all")[p] for p in ps))
+    .input(pt="page_templates", ps="page_set").out("page_templates_str_minimal").cache()
+    .t(str)
+]
+
 document_operators = {
     # .pdf
     "application/pdf": PDFNodes,
@@ -732,19 +747,7 @@ document_operators = {
         FunctionOperator(lambda x: (x or dict())).t(dict[str, Any])
         .input(x="_meta").out("meta").docs("Metadata of the document"),
 
-        # document structure
-        Constant(document_objects=[])
-        # .input()
-        # .out("document_objects").cache(allow_disk_cache=True)
-        .docs("extracts a list of document objects such as tables, text boxes, figures, etc."
-              "TODO: this does only work for PDFs right now..."),
-
-        ##### generalized pages ########
-        # TODO: extract the correct page number for all documents
-        FunctionOperator(lambda x: {0: x})
-        .input(x="clean_text").out("page_templates").cache()
-        .docs("create page templates from pandoc documents. This is a temporary workaround "
-              " as we do not have the correct page numbers implemented yet."),
+        *TextStructureNodes,
 
         ##### calculate some metadata ####
         FunctionOperator(

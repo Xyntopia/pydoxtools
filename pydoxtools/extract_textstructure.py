@@ -300,7 +300,7 @@ def get_area_context(
     return table_context
 
 
-class DocumentObjects(pydoxtools.operators_base.Operator):
+class PDFDocumentObjects(pydoxtools.operators_base.Operator):
     def __init__(self):
         super().__init__()
 
