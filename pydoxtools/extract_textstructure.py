@@ -129,7 +129,7 @@ def group_elements(elements: pd.DataFrame, by: list[str], agg: str):
         return df["text"].to_dict()
 
 
-def text_boxes_from_elements(line_elements: pd.DataFrame) -> dict[str, pd.DataFrame | None]:
+def text_boxes_from_elements(line_elements: list[document_base.DocumentElement]) -> dict[str, pd.DataFrame | None]:
     """
     # TODO: get rid of this function.... too many levels
 
@@ -150,11 +150,9 @@ def text_boxes_from_elements(line_elements: pd.DataFrame) -> dict[str, pd.DataFr
     TODO: do some schema validation on the pandas dataframes...
     """
 
-    if "boxnum" in line_elements:
-        bg = group_elements(line_elements, ['p_num', 'boxnum'], agg="boxes_from_lines_w_bb")
-        return dict(text_box_elements=bg)
-    else:
-        return dict(text_box_elements=None)
+    df = pd.DataFrame(line_elements)
+    bg = group_elements(df, ['p_num', 'boxnum'], agg="boxes_from_lines_w_bb")
+    return dict(text_box_elements=bg)
 
 
 class SectionsExtractor(pydoxtools.operators_base.Operator):
@@ -181,6 +179,7 @@ class TitleExtractor(pydoxtools.operators_base.Operator):
     """
 
     def __call__(self, line_elements):
+        line_elements = pd.DataFrame(line_elements)
         dfl = self.prepare_features(line_elements)
         return dict(
             titles=self.titles(dfl),
@@ -293,7 +292,7 @@ def get_area_context(
 
     # page_templates={}
     # for p in pdf.page_set:
-    elements = get_template_elements(elements=elements, page_num=page_num, include_image=False)
+    elements = get_template_elements(elements=pd.DataFrame(elements), page_num=page_num, include_image=False)
 
     # include boundingbox around table + context
     le = cluster_utils.boundarybox_query(
@@ -327,7 +326,7 @@ class PDFDocumentObjects(pydoxtools.operators_base.Operator):
             valid_tables,
             elements: pd.DataFrame
     ) -> list[document_base.DocumentElement]:
-        elements = get_template_elements(elements, include_image=False)
+        elements = get_template_elements(pd.DataFrame(elements), include_image=False)
 
         table_elements = []
         for table_num, table in enumerate(valid_tables):

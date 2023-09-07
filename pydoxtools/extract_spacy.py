@@ -330,58 +330,59 @@ def build_document_graph(
         DG.add_node(do_id, label=do.place_holder_text, obj=do)
         DG.add_edge(page_map[p], do_id, label="is parent", type="document_hierarchy")
 
-    # get all nodes from the relationship list
-    graph_nodes = pd.DataFrame(set(semantic_relations[["n1", "n2"]].values.flatten()), columns=["nodes"])
+    if not semantic_relations.empty:
+        # get all nodes from the relationship list
+        graph_nodes = pd.DataFrame(set(semantic_relations[["n1", "n2"]].values.flatten()), columns=["nodes"])
 
-    # add node groups
-    graph_nodes['token_idx'] = graph_nodes.nodes.apply(lambda x: x.i).astype(int)
-    graph_nodes.set_index('token_idx', inplace=True)
+        # add node groups
+        graph_nodes['token_idx'] = graph_nodes.nodes.apply(lambda x: x.i).astype(int)
+        graph_nodes.set_index('token_idx', inplace=True)
 
-    # add groups to nodes
-    graph_nodes['group'] = graph_nodes.index  # set standard group to token index
-    for i, cr_group in enumerate(coreferences):
-        indices = list(list_utils.flatten(
-            [list(range(idx[0], idx[1])) for idx in cr_group])
-        )
-        # rel.loc[indices, 'group'] = i
-        group_idx = min(indices)
-        valid_indices = graph_nodes.index[graph_nodes.index.isin(indices)]
-        graph_nodes.loc[valid_indices, 'group'] = group_idx
-        # nG = nx.identified_nodes(G, node,node2)
+        # add groups to nodes
+        graph_nodes['group'] = graph_nodes.index  # set standard group to token index
+        for i, cr_group in enumerate(coreferences):
+            indices = list(list_utils.flatten(
+                [list(range(idx[0], idx[1])) for idx in cr_group])
+            )
+            # rel.loc[indices, 'group'] = i
+            group_idx = min(indices)
+            valid_indices = graph_nodes.index[graph_nodes.index.isin(indices)]
+            graph_nodes.loc[valid_indices, 'group'] = group_idx
+            # nG = nx.identified_nodes(G, node,node2)
 
-    # grouping all tokens
-    graph_nodes = graph_nodes.groupby('group').agg({'nodes': list})
+        # grouping all tokens
+        graph_nodes = graph_nodes.groupby('group').agg({'nodes': list})
 
-    def identify_mean_node(token_list: pd.Series):
-        toks = pd.DataFrame(token_list.nodes, columns=["tok"])
-        toks["text"] = toks.apply(lambda x: x[0].text, axis=1)
-        most_occuring_text = toks["text"].value_counts().index[0]
-        first_token = token_list.nodes[0]
-        node_attrs = dict(
-            label=most_occuring_text,
-            idx=next(ids),
-            toks=token_list.nodes
-        )
-        if cts:
-            node_attrs["context"] = get_token_context(first_token, ct_size=cts)
-        return pd.Series(node_attrs)
+        def identify_mean_node(token_list: pd.Series):
+            toks = pd.DataFrame(token_list.nodes, columns=["tok"])
+            toks["text"] = toks.apply(lambda x: x[0].text, axis=1)
+            most_occuring_text = toks["text"].value_counts().index[0]
+            first_token = token_list.nodes[0]
+            node_attrs = dict(
+                label=most_occuring_text,
+                idx=next(ids),
+                toks=token_list.nodes
+            )
+            if cts:
+                node_attrs["context"] = get_token_context(first_token, ct_size=cts)
+            return pd.Series(node_attrs)
 
-    graph_nodes = graph_nodes.apply(identify_mean_node, axis=1)
+        graph_nodes = graph_nodes.apply(identify_mean_node, axis=1)
 
-    graph_nodes['tok_idx'] = graph_nodes.toks.apply(lambda x: set([t.i for t in x]))
-    # node_map maps the index of a token to a graph node index
-    node_map = graph_nodes[['idx', 'tok_idx']].explode('tok_idx').set_index('tok_idx').idx
+        graph_nodes['tok_idx'] = graph_nodes.toks.apply(lambda x: set([t.i for t in x]))
+        # node_map maps the index of a token to a graph node index
+        node_map = graph_nodes[['idx', 'tok_idx']].explode('tok_idx').set_index('tok_idx').idx
 
-    edges = semantic_relations.apply(lambda r: pd.Series(dict(
-        n1=node_map[r.n1.i],
-        n2=node_map[r.n2.i],
-        data=dict(label=r.label,
-                  type=r.type)
-    )), axis=1)
+        edges = semantic_relations.apply(lambda r: pd.Series(dict(
+            n1=node_map[r.n1.i],
+            n2=node_map[r.n2.i],
+            data=dict(label=r.label,
+                      type=r.type)
+        )), axis=1)
 
-    # convert graph_nodes into a dictionary
-    graph_nodes = graph_nodes.set_index('idx').to_dict('index')
-    DG.add_nodes_from(graph_nodes.items())
-    DG.add_edges_from(edges.values)
+        # convert graph_nodes into a dictionary
+        graph_nodes = graph_nodes.set_index('idx').to_dict('index')
+        DG.add_nodes_from(graph_nodes.items())
+        DG.add_edges_from(edges.values)
 
     return DG

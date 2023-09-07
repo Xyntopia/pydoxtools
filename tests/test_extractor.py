@@ -668,9 +668,12 @@ if __name__ == "__main__":
     # a = pd.DataFrame(sd.sents)
     # a[2]
     # test_all_documents()
-    file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/Starship.xml"
+    file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/north_american_countries.png"
     doc = Document(file)
     doc.document_type
+    doc.elements
+    doc.line_elements
+    doc.text_box_elements
 
     run_single_non_interactive_document_test(file)
     # run_single_non_interactive_document_test(file)

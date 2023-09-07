@@ -647,6 +647,8 @@ def boundarybox_query(bbs, bbox, tol=10.0, exclude=False):
     """
     # valid_areas.loc[valid_areas.x0>bbox[0]].loc[valid_areas.x1<bbox[2]]
     # in order to increase the speed we filter with several .loc operations
+    if bbs.empty:
+        return pd.DataFrame()
     if exclude:
         return bbs.loc[~((bbs.y0 > (bbox[1] - tol)) & (bbs.y1 < (bbox[3] + tol))
                          & (bbs.x0 > (bbox[0] - tol)) & (bbs.x1 < (bbox[2] + tol)))]

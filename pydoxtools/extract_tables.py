@@ -243,19 +243,20 @@ class ListExtractor(Operator):
     Extract lines that might be part of a "list".
     """
 
-    def __call__(self, line_elements: pd.DataFrame) -> pd.DataFrame:
+    def __call__(self, line_elements: list[pydoxtools.document_base.DocumentElement]) -> pd.DataFrame:
         # search for lines that are part of lists
         # play around with this expression here: https://regex101.com/r/xrnKlm/1
         degree_search = r"^[\-\*∙•](?![\d\-]+\s?(?:(?:[°˚][CKF]?)|[℃℉]))"
-        has_list_char = line_elements.rawtext.str.strip().str.contains(degree_search, regex=True, flags=re.UNICODE)
-        list_lines = line_elements[has_list_char].rawtext.str.strip().to_frame()
+        df_le = pd.DataFrame(line_elements)
+        has_list_char = df_le.rawtext.str.strip().str.contains(degree_search, regex=True, flags=re.UNICODE)
+        list_lines = df_le[has_list_char].rawtext.str.strip().to_frame()
 
         return list_lines
 
 
 class HTMLTableExtractor():
     def __call__(self):
-        # TODO: put this into
+        # TODO: put this into the html pipeline...
 
         lists = extract_lists(raw_html)
         html_tables = []
@@ -989,8 +990,8 @@ class TableCandidateAreasExtractor(Operator):
 
     def use_pdf_source(
             self,
-            graphic_elements: pd.DataFrame,
-            line_elements: pd.DataFrame,
+            graphic_elements: list[pydoxtools.document_base.DocumentElement],
+            line_elements: list[pydoxtools.document_base.DocumentElement],
             pages_bbox,
             text_box_elements,
             filename=None
@@ -1004,8 +1005,9 @@ class TableCandidateAreasExtractor(Operator):
         min_size = 5.0  # minimum size of a graphics element
         margin = 20  # margin of the page
         max_area_page_ratio = 0.4  # maximum area on a page to occupy by a graphics element
-        pages = graphic_elements.p_num.unique()
-        ge = graphic_elements
+        ge = pd.DataFrame(graphic_elements)
+        le = pd.DataFrame(line_elements)
+        pages = ge.p_num.unique()
         # we keep distance_threshold constant as the same effect can be gained
         # through tbe.area_detection_params but a lot more fine-grained as
         # it directly controls the sensitivity of the distance function
@@ -1029,7 +1031,7 @@ class TableCandidateAreasExtractor(Operator):
                 min_elem_x=min_elem_x, min_elem_y=min_elem_y,
                 page_bbox=page_bbox
             )
-            df_le = line_elements[line_elements["p_num"] == p]
+            df_le = le[le["p_num"] == p]
             # TODO: make TableExtractionParameters configurable in document
             table_areas, box_iterations[p] = detect_table_area_candidates(
                 self._tbe,
@@ -1052,8 +1054,8 @@ class TableCandidateAreasExtractor(Operator):
 
     def __call__(
             self,
-            graphic_elements: pd.DataFrame,
-            line_elements: pd.DataFrame,
+            graphic_elements: list[pydoxtools.document_base.DocumentElement],
+            line_elements: list[pydoxtools.document_base.DocumentElement],
             pages_bbox,
             text_box_elements,
             filename=None,
@@ -1062,13 +1064,15 @@ class TableCandidateAreasExtractor(Operator):
         # TODO: merge the common parts of the "use" method
         if self._method == "images":
             table_areas = []
-            pages = line_elements.p_num.unique()
+            df_le = pd.DataFrame(line_elements)
+            df_ge = pd.DataFrame(graphic_elements)
+            pages = df_le.p_num.unique()
             for page_num in pages:
                 img = images[page_num]
                 areas = self.use_table_transformer(img, pages_bbox[page_num])
                 for area in areas.values:
                     table = PDFTableCandidate(
-                        line_elements, graphic_elements, area,
+                        df_le, df_ge, area,
                         tbe=self._tbe,
                         page=page_num, page_bbox=pages_bbox[page_num],
                         file_name=filename)
@@ -1076,6 +1080,7 @@ class TableCandidateAreasExtractor(Operator):
 
             return dict(
                 table_candidates=table_areas,
+                box_levels=[]
             )
         else:
             return self.use_pdf_source(graphic_elements,

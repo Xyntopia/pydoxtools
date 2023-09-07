@@ -336,7 +336,7 @@ OCRNodes = [
     TableCandidateAreasExtractor(method="images")
     .input("graphic_elements", "line_elements", "pages_bbox", "text_box_elements", "filename",
            "images")
-    .out("table_candidates").cache()
+    .out("table_candidates", box_levels="table_box_levels").cache()
     .docs("Extracts the table candidates from the document. As this is an image, we need to "
           "use a different method than for pdfs. Right now this relies on neural networks."
           " TODO: add adtitional pure text-based method."),
