@@ -290,8 +290,8 @@ PandocNodes = [
     .docs("Generic pandoc converter for other document formats. TODO: better docs"),
     Constant(clean_format="plain")
     .docs("The format used to convert the document to a clean string for downstream processing tasks"),
-    FunctionOperator(lambda pdoc: pdoc[0])
-    .input("pandoc_document").out("meta_pandoc")
+    FunctionOperator(lambda pdoc: pdoc[0]._arg0)
+    .input(pdoc="pandoc_document").out("meta_pandoc")
     .docs("meta information from pandoc document"),
     Alias(embedded_meta="meta_pandoc"),
     PandocToPdxConverter()
@@ -366,7 +366,7 @@ ClassifierNodes = [
 
 MetaDataNodes = [
     Constant(embedded_meta={}).docs("represents the metadata embedded in the file"),
-    FunctionOperator(lambda x, em: {**(x or dict()), **em}).t(dict[str, Any])
+    FunctionOperator(lambda x, em: dict(meta={**(x or dict()), **em})).t(dict[str, Any])
     .input(x="_meta", em="embedded_meta").out("meta").docs("Metadata of the document"),
 
     ## calculate some metadata values
@@ -1011,7 +1011,7 @@ operations and include the documentation there. Lambda functions should not be u
         self._fobj = fobj  # file or data object
         self._source = source
         self._document_type = document_type  # override pipeline selection
-        self._meta = meta
+        self._meta = meta or {}
         self._page_numbers = page_numbers
         self._max_pages = max_pages
 

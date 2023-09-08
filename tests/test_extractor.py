@@ -648,7 +648,7 @@ def test_list_query():
 
 
 def test_document_graph():
-    pdf = pydoxtools.Document(Path("/../pydoxtools/README.md"),
+    pdf = pydoxtools.Document(make_path_absolute("../../pydoxtools/README.md"),
                               spacy_model_size="sm", coreference_method="fast",
                               graph_debug_context_size=0)
     KG = pdf.x("document_graph")
@@ -656,7 +656,7 @@ def test_document_graph():
     jpg = visualization.draw(KG, engine="fdp", format='jpg')
 
     # and WITH context
-    pdf = pydoxtools.Document(Path("/../pydoxtools/README.md"),
+    pdf = pydoxtools.Document(make_path_absolute("../../pydoxtools/README.md"),
                               spacy_model_size="sm", coreference_method="fast",
                               graph_debug_context_size=30)
     KG = pdf.x("document_graph")
@@ -670,7 +670,7 @@ if __name__ == "__main__":
     # test_all_documents()
     file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/north_american_countries.png"
     doc = Document(file)
-    test_dict()
+    test_document_graph()
 
     # run_single_non_interactive_document_test(file)
     # run_single_non_interactive_document_test(file)
