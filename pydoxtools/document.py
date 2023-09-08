@@ -180,6 +180,7 @@ PDFNodes = [
     .input(fobj="raw_content", page_numbers="_page_numbers", max_pages="_max_pages")
     .out("pages_bbox", "elements", meta="meta_pdf", pages="page_set").cache().docs(
         "Loads a pdf file and returns a list of basic document elements such as lines, figures, etc."),
+    Alias(embedded_meta="meta_pdf"),
     Configuration(image_dpi=72 * 3)
     .docs("The dpi when rendering the document."
           " The standard image generation resolution is set to 216 dpi for pdfs"
@@ -289,6 +290,10 @@ PandocNodes = [
     .docs("Generic pandoc converter for other document formats. TODO: better docs"),
     Constant(clean_format="plain")
     .docs("The format used to convert the document to a clean string for downstream processing tasks"),
+    FunctionOperator(lambda pdoc: pdoc[0])
+    .input("pandoc_document").out("meta_pandoc")
+    .docs("meta information from pandoc document"),
+    Alias(embedded_meta="meta_pandoc"),
     PandocToPdxConverter()
     .input("pandoc_document").out("elements").cache().docs(
         "split a pandoc document into text elements."),
@@ -360,6 +365,10 @@ ClassifierNodes = [
 ]
 
 MetaDataNodes = [
+    Constant(embedded_meta={}).docs("represents the metadata embedded in the file"),
+    FunctionOperator(lambda x, em: {**(x or dict()), **em}).t(dict[str, Any])
+    .input(x="_meta", em="embedded_meta").out("meta").docs("Metadata of the document"),
+
     ## calculate some metadata values
     FunctionOperator(lambda full_text: 1 + (len(full_text) // 1000))
     .input("full_text").out("num_pages").cache().t(int)
@@ -376,7 +385,24 @@ MetaDataNodes = [
     FunctionOperator(lambda full_text: langdetect.detect(full_text))
     .input("full_text").out("language").cache()
     .default("unknown").docs(
-        "Detect language of a document, return 'unknown' in case of an error")
+        "Detect language of a document, return 'unknown' in case of an error"),
+
+    ##### calculate some metadata ####
+    FunctionOperator(
+        lambda x: x(
+            "filename",
+            # "keywords",
+            "document_type",
+            "url",
+            "path",
+            "num_pages",
+            "num_words",
+            # "num_sents",
+            "a_d_ratio",
+            "language"))
+    .input(x="to_dict").t(dict[str, Any])
+    .out("file_meta").cache().docs(
+        "Some fast-to-calculate metadata information about a document"),
 ]
 
 SpacyNodes = [
@@ -630,9 +656,11 @@ TextStructureNodes = [
     DocumentElementFilter(element_type=ElementType.Header)
     .input("elements").out("headers").cache()
     .docs("Extracts the headers from the document"),
-    DocumentElementFilter(element_type=ElementType.Header)
+    DocumentElementFilter(element_type=ElementType.Table)
     .input("elements").out("tables").cache()
     .docs("Extracts the tables from the document as a dataframe"),
+    FunctionOperator(lambda x: [pd.DataFrame(t.obj) for t in x]).t(list[pd.DataFrame])
+    .input(x="tables").out("tables_df").cache(),
     DocumentElementFilter(element_type=ElementType.List)
     .input("elements").out("lists").cache()
     .docs("Extracts the lists from the document"),
@@ -740,26 +768,6 @@ document_operators = {
         .input(x="raw_content").out("full_text").docs(
             "Full text as a string value"),
         Alias(clean_text="full_text").t(str),
-        FunctionOperator(lambda x: (x or dict())).t(dict[str, Any])
-        .input(x="_meta").out("meta").docs("Metadata of the document"),
-
-        ##### calculate some metadata ####
-        FunctionOperator(
-            lambda x: x(
-                "filename",
-                # "keywords",
-                "document_type",
-                "url",
-                "path",
-                "num_pages",
-                "num_words",
-                # "num_sents",
-                "a_d_ratio",
-                "language"))
-        .input(x="to_dict").t(dict[str, Any])
-        .out("file_meta").cache().docs(
-            "Some fast-to-calculate metadata information about a document"),
-
         # TODO: replace this with a real, generic table detection
         #       e.g. running the text through pandoc or scan for html tables
         Constant(tables_df=[]),

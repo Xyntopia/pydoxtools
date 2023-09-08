@@ -260,9 +260,9 @@ def test_pandoc():
     for f in pandoc_files:
         logger.info(f"testing pandoc with {f}")
         doc = Document(fobj=make_path_absolute(f))
-        assert isinstance(doc.pandoc_blocks, list)
+        assert isinstance(doc.elements, list)
         try:
-            assert isinstance(doc.pandoc_blocks[0], pandoc.types.Block)
+            assert isinstance(doc.elements[0], pandoc.types.Block)
         except:
             logger.warning(f"no blocks in the file {f}!")
 
@@ -671,7 +671,7 @@ if __name__ == "__main__":
     # test_all_documents()
     file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/north_american_countries.png"
     doc = Document(file)
-    test_table_extraction()
+    test_pandoc()
 
     #run_single_non_interactive_document_test(file)
     # run_single_non_interactive_document_test(file)

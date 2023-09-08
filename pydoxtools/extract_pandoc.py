@@ -111,11 +111,10 @@ class PandocToPdxConverter(pydoxtools.operators_base.Operator):
     def __call__(self, pandoc_document: "pandoc.types.Pandoc") -> list[pydoxtools.document_base.DocumentElement]:
         # extract subsections
         pdoc = pandoc_document
-        metadata = pdoc[0]
         pdx_elements = []  # declare our own element "format"
         section_title = None
         boxnum = 0
-        for el in pdoc[1]:
+        for el in pdoc[1]:  # [0] is potential metadata
             if isinstance(el, pandoc.types.Header):
                 section_title = PandocConverter()(el, output_format="plain").strip()
                 boxnum += 1

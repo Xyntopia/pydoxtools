@@ -78,41 +78,9 @@ return type
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
-### meta
-            
-Metadata of the document
-
-Can be called using:
-
-    <Document>.x('meta')
-    # or
-    <Document>.meta
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
-### file_meta
-            
-Some fast-to-calculate metadata information about a document
-
-Can be called using:
-
-    <Document>.x('file_meta')
-    # or
-    <Document>.file_meta
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
 ### tables_df
             
-A constant value
+No documentation
 
 Can be called using:
 
@@ -370,6 +338,38 @@ return type
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
+### embedded_meta
+            
+represents the metadata embedded in the file
+
+Can be called using:
+
+    <Document>.x('embedded_meta')
+    # or
+    <Document>.embedded_meta
+
+return type
+: typing.Any
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### meta
+            
+Metadata of the document
+
+Can be called using:
+
+    <Document>.x('meta')
+    # or
+    <Document>.meta
+
+return type
+: typing.Any
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
 ### num_pages
             
 Number of pages in the document
@@ -446,6 +446,22 @@ Can be called using:
 
 return type
 : <class 'str'\> | typing.Any
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### file_meta
+            
+Some fast-to-calculate metadata information about a document
+
+Can be called using:
+
+    <Document>.x('file_meta')
+    # or
+    <Document>.file_meta
+
+return type
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -1913,6 +1929,22 @@ Can be called using:
     <Document>.x('clean_format')
     # or
     <Document>.clean_format
+
+return type
+: typing.Any
+
+supports pipeline flows:
+: application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, mediawiki, pandoc, text/markdown, text/rtf
+
+### meta_pandoc
+            
+meta information from pandoc document
+
+Can be called using:
+
+    <Document>.x('meta_pandoc')
+    # or
+    <Document>.meta_pandoc
 
 return type
 : typing.Any
