@@ -168,7 +168,7 @@ PDFDocumentStructureNodes = [
     .input("valid_tables", "elements").out("document_objects").cache(allow_disk_cache=True)
     .docs("extracts a list of document objects such as tables, text boxes, figures, etc."),
     FunctionOperator(lambda tables, elements: {
-        k: extract_textstructure.get_object_context(v.bbox, elements, "table")
+        k: extract_textstructure.get_bbox_context(v.bbox, elements, v.page, "table")
         for k, v in enumerate(tables)
     }).input("elements", tables="valid_tables").out("table_context").cache()
     .t(dict[int, str])
@@ -257,7 +257,7 @@ HTMLNodes = [
         text=tb,
         boxnum=i,
         level=1,
-    ) for i,tb in enumerate(get_text_only_blocks(x))]).cache()
+    ) for i, tb in enumerate(get_text_only_blocks(x))]).cache()
     .input(x="raw_content").out("text_box_elements")
     .docs("Extracts the text boxes from the html document"),
     FunctionOperator(lambda t, s: [t, s])
