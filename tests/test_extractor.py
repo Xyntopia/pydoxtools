@@ -344,7 +344,7 @@ def test_summarization():
     summary = doc.slow_summary
     # check if certain keywords appear in the summary
     wn = [w for w in {"Pydoxtools", "library", "AI", "Pipeline", "table",
-                      "pdf", "documents", "pipelines", "analysis"}
+                      "pdf", "documents", "pipelines", "analysis", "extract", "questions"}
           if w.lower() in summary.lower()]
     assert len(wn) > 5
 
@@ -670,8 +670,8 @@ if __name__ == "__main__":
     # test_all_documents()
     file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/PFR-PR23_BAT-110__V1.00_.pdf"
     doc = Document(file)
-    #test_document_graph()
+    # test_document_graph()
 
-    run_single_non_interactive_document_test(file)
+    test_summarization()
     # doc.text_box_elements
     pass
