@@ -1,3 +1,10 @@
+---
+title: 'pydoxtools (Python Library)'
+library name: pydoxtools
+keywords: [ pydoxtools, AI, AI-Composition, ETL, pipelines, knowledge graphs ]
+---
+
+
 🎩✨📄 pydoxtools (Python Library) 🎩✨📄
 ================================================================================
 
@@ -11,14 +18,19 @@
 
 [Documentation](https://pydoxtools.xyntopia.com)
 
+*If you have any problems or questions, please create a github [issue](https://github.com/Xyntopia/pydoxtools/issues). So that other poeple who might want to use it can see the potential solution!*
+
+## Summary
+
 Pydoxtools is a library that provides a sophisticated interface for reading and
-writing documents, designed to work with AI models such as GPT, Alpaca, and
-Huggingface. It offers functionalities such as:
+writing documents, designed to work with AI models such as GPT, LLama2, and
+a variety of models on Huggingface. It offers functionalities such as:b
 
 - Pipeline management
 - Integration with AI (LLMs and more) models
 - low-resource (PDF) table extraction without configuration and expensive
   layout detection algorithms!
+- Knowledge base extraction as a one-liner
 - Document analysis and question-answering
 - Support for most of todays document formats
 - Vector index Creation
