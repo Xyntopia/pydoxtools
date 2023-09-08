@@ -255,8 +255,9 @@ HTMLNodes = [
     FunctionOperator(lambda x: [DocumentElement(
         type=ElementType.TextBox,
         text=tb,
+        boxnum=i,
         level=1,
-    ) for tb in enumerate(get_text_only_blocks(x))]).cache()
+    ) for i,tb in enumerate(get_text_only_blocks(x))]).cache()
     .input(x="raw_content").out("text_box_elements")
     .docs("Extracts the text boxes from the html document"),
     FunctionOperator(lambda t, s: [t, s])

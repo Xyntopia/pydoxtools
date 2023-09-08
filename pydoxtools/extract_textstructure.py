@@ -262,7 +262,7 @@ def get_template_elements(
         page_num: int = None,
         include_image: bool = False,
         vertical_elements=False
-):
+) -> pd.DataFrame:
     elements = elements.loc[elements["type"] != document_base.ElementType.Graphic].copy()
     if include_image:
         img_idxs = (elements["type"] == document_base.ElementType.Image)
@@ -330,7 +330,7 @@ class PDFDocumentObjects(pydoxtools.operators_base.Operator):
             valid_tables,
             elements: pd.DataFrame
     ) -> list[document_base.DocumentElement]:
-        elements = get_template_elements(pd.DataFrame(elements), include_image=False)
+        elements_df = get_template_elements(pd.DataFrame(elements), include_image=False)
 
         table_elements = []
         for table_num, table in enumerate(valid_tables):
@@ -339,7 +339,7 @@ class PDFDocumentObjects(pydoxtools.operators_base.Operator):
             # page_templates={}
             # for p in pdf.page_set:
             p = table.page
-            page_elements = elements.loc[elements.p_num == p]
+            page_elements = elements_df.loc[elements_df.p_num == p]
 
             # page_template[p]
 
@@ -355,7 +355,7 @@ class PDFDocumentObjects(pydoxtools.operators_base.Operator):
                 page_elements, table.bbox, tol=0
             ).copy()
             # and remove from our elements
-            elements = elements.drop(le.index.tolist())
+            elements_df = elements_df.drop(le.index.tolist())
             # elements = elements[]
 
             # create a new "table-element"
@@ -373,16 +373,17 @@ class PDFDocumentObjects(pydoxtools.operators_base.Operator):
 
         # now do textboxes
         txtboxes = text_boxes_from_elements(elements)["text_box_elements"]
+        more_textboxes = [e for e in elements if e.type == document_base.ElementType.TextBox]
+        txtboxes = pd.DataFrame(txtboxes + more_textboxes)
+        # TODO: filter textboxes for vertical lines...
+        # right now we're simply filtering out textboxes with just a single letter...
         txtboxes = txtboxes.loc[txtboxes.text.str.len() > 1].reset_index()
         docel_fields = {f.name for f in fields(document_base.DocumentElement)}
         # make sure we only have rows that work in our dataclass
         txtboxes = txtboxes.loc[:, txtboxes.columns.intersection(docel_fields)]
 
-        # filter textboxes for vertical lines...
         objects = [document_base.DocumentElement(
-            type=document_base.ElementType.TextBox,
-            place_holder_text=f"TextBox{v.boxnum}",
-            **v
+            **{**v, "place_holder_text": f"TextBox{v.boxnum}"}
         ) for idx, v in txtboxes.T.items()]
         # txtboxes = pd.concat([txtboxes.reset_index(), table_elements],
         #                     ignore_index=True).sort_values(by=["p_num", "y0"], ascending=[True, False])

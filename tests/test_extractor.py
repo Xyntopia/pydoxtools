@@ -668,11 +668,10 @@ if __name__ == "__main__":
     # a = pd.DataFrame(sd.sents)
     # a[2]
     # test_all_documents()
-    file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/north_american_countries.png"
+    file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/berrybase_raspberrypi4.html"
     doc = Document(file)
-    test_document_graph()
+    #test_document_graph()
 
-    # run_single_non_interactive_document_test(file)
-    # run_single_non_interactive_document_test(file)
+    run_single_non_interactive_document_test(file)
     # doc.text_box_elements
     pass
