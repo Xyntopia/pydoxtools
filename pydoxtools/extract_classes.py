@@ -7,6 +7,7 @@ import langdetect
 import pandas as pd
 from transformers import AutoModelForSequenceClassification, pipeline, AutoTokenizer
 
+import pydoxtools.document_base
 from pydoxtools.operators_base import Operator
 from pydoxtools.settings import settings
 
@@ -73,12 +74,12 @@ class TextBlockClassifier(Operator):
     def __init__(self):
         super().__init__()
 
-    def __call__(self, text_box_elements: list[str]) -> list[str]:
+    def __call__(self, text_box_elements: list[pydoxtools.document_base.DocumentElement]) -> list[str]:
         tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
         model_name = "txtblockclassifier"
         model_dir = settings.PDX_MODEL_DIR / model_name
         if not model_dir.exists():
-            # TODO: download "any" model that we want from transformers
+            # TODO: download "any" model that we want from transformerss
             logger.info(f"model {model_name} not found in pydoxtools models, download directly from transformers!")
             model_dir = "xyntopia/tb_classifier"
         # tokenizer_kwargs = {'padding': True, 'truncation': True, 'max_length': 512, 'return_tensors': 'pt'}
@@ -86,6 +87,6 @@ class TextBlockClassifier(Operator):
         # TODO: only extract "unique" addresses
         model = AutoModelForSequenceClassification.from_pretrained(model_dir, num_labels=2)  # .to("cuda")
         model = pipeline("text-classification", model=model, tokenizer=tokenizer)
-        text = [t.strip() for t in text_box_elements]
+        text = [t.text.strip() for t in text_box_elements]
         res = [model([x], truncation=True, padding=True)[0]["label"] for x in text]
-        return [c for c, t in zip(res, text) if c == "address"]
+        return [t for c, t in zip(res, text) if c == "address"]

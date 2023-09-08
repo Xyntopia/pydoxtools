@@ -557,6 +557,7 @@ def test_image_table_recognition():
     file = make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf")
     pdf = Document(file)
     assert len(pdf.table_candidates) == 2
+    assert len(pdf.tables) == 2
     img = pdf.x("images")[0]
 
     test_img_file = Path('/tmp/test.png')
@@ -566,7 +567,7 @@ def test_image_table_recognition():
     img2 = d.x("images")[0]
     # TODO: we need to update this to the same number as above!
     assert len(d.table_candidates) >= 1
-    assert len(d.tables) >= 0
+    assert len(pdf.tables) == 2
     # raise NotImplementedError("Correct text-based table readout!!")
 
     d2 = Document(test_img_file)
@@ -574,7 +575,7 @@ def test_image_table_recognition():
     assert (d2.data == d.data).all()
     # TODO: we need to update this to the same number as above!
     assert len(d2.table_candidates) >= 1
-    assert len(d2.tables) >= 0
+    assert len(pdf.tables) == 2
 
     # from bytes
     doc_str = d2.raw_content
@@ -583,7 +584,7 @@ def test_image_table_recognition():
     assert (d3.data == d.data).all()
     # TODO: we need to update this to the same number as above!
     assert len(d3.table_candidates) >= 1
-    assert len(d3.tables) >= 0
+    assert len(pdf.tables) == 2
 
 
 def test_pdf_pages():
@@ -670,12 +671,9 @@ if __name__ == "__main__":
     # test_all_documents()
     file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/north_american_countries.png"
     doc = Document(file)
-    doc.document_type
-    doc.elements
-    doc.line_elements
-    doc.text_box_elements
+    test_address_extraction()
 
-    run_single_non_interactive_document_test(file)
+    #run_single_non_interactive_document_test(file)
     # run_single_non_interactive_document_test(file)
     # doc.text_box_elements
     pass

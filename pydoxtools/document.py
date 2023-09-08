@@ -28,7 +28,7 @@ from . import extract_nlpchat
 from . import list_utils
 from . import nlp_utils, extract_textstructure
 from .dask_operators import SQLTableLoader, DocumentBagMap
-from .document_base import Pipeline, ElementType
+from .document_base import Pipeline, ElementType, DocumentElement
 from .extract_classes import LanguageExtractor, TextBlockClassifier, PageClassifier
 from .extract_filesystem import PathLoader
 from .extract_filesystem import force_decode, load_raw_file_content
@@ -223,8 +223,8 @@ PDFNodes = [
     .input("line_elements").out("text_box_elements").cache()
     .docs("Extracts a dataframe of text boxes from the document by grouping text elements")
     .t(pd.DataFrame),
-    FunctionOperator(lambda tb: "\n\n".join(tb)).t(str)
-    .input(tb="text_box_list").out("full_text").cache()
+    FunctionOperator(lambda tb: "\n\n".join(te.text for te in tb)).t(str)
+    .input(tb="text_box_elements").out("full_text").cache()
     .docs("Extracts the full text from the document by grouping text elements"),
     TitleExtractor()
     .input("line_elements").out("titles", "side_titles").cache()
@@ -251,7 +251,11 @@ HTMLNodes = [
     .docs("Extracts the main image from the html document"),
     Alias(full_text="main_content").t(str),
     # TODO: replace this with a new "elements" list.
-    FunctionOperator(lambda x: pd.DataFrame(get_text_only_blocks(x), columns=["text"])).cache()
+    FunctionOperator(lambda x: [DocumentElement(
+        type=ElementType.TextBox,
+        text=tb,
+        level=1,
+    ) for tb in enumerate(get_text_only_blocks(x))]).cache()
     .input(x="raw_content").out("text_box_elements")
     .docs("Extracts the text boxes from the html document"),
     FunctionOperator(lambda t, s: [t, s])
@@ -619,10 +623,9 @@ TextStructureNodes = [
     .docs("extracts a list of document objects such as tables, text boxes, figures, etc.")
     .cache(),
     Alias(document_objects="elements"),
-    FunctionOperator(lambda x: pd.DataFrame(x).text.to_list())
+    FunctionOperator(lambda x: [tb for tb in x if x.type == ElementType.TextBox])
     .input(x="elements").out("text_box_elements").t(list[str]).cache()
     .docs("Text boxes extracted as a pandas Dataframe with some additional metadata"),
-    Alias(text_box_list="text_box_elements"),
 
     DocumentElementFilter(element_type=ElementType.Header)
     .input("elements").out("headers").cache()
@@ -709,7 +712,6 @@ document_operators = {
         .input(x="data").out("text_box_elements").cache().t(list[str])
         .docs("Create a dataframe from a dictionary. TODO: this is not working correctly, it should "
               "create a list of [][pydoxtools.document_base.DocumentELements]"),
-        Alias(text_segments="text_box_list").t(list[str]),
         # TODO: make this resemble pytho dicts?
         #       by returning keys, values, items as normal functions?
         FunctionOperator(lambda x: x.keys())
@@ -727,8 +729,7 @@ document_operators = {
         .input(x="data").out("full_text").cache()
         .docs("Dump list data to a yaml-like string"),
         FunctionOperator(lambda x: [str(list_utils.deep_str_convert(v)) for v in x])
-        .input(x="data").out("text_box_elements").cache(),
-        Alias(text_segments="text_box_list").t(list[str]),
+        .input(x="data").out("text_box_elements").cache().t(list[str]),
     ],
     # TODO: json, csv etc...
     # TODO: pptx, odp etc...

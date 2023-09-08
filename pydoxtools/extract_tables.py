@@ -993,7 +993,7 @@ class TableCandidateAreasExtractor(Operator):
             graphic_elements: list[pydoxtools.document_base.DocumentElement],
             line_elements: list[pydoxtools.document_base.DocumentElement],
             pages_bbox,
-            text_box_elements,
+            text_box_elements: list[pydoxtools.document_base.DocumentElement],
             filename=None
     ):
         # get minimum length for lines by searching for
@@ -1007,6 +1007,7 @@ class TableCandidateAreasExtractor(Operator):
         max_area_page_ratio = 0.4  # maximum area on a page to occupy by a graphics element
         ge = pd.DataFrame(graphic_elements)
         le = pd.DataFrame(line_elements)
+        text_box_elements = pd.DataFrame(text_box_elements)
         pages = ge.p_num.unique()
         # we keep distance_threshold constant as the same effect can be gained
         # through tbe.area_detection_params but a lot more fine-grained as
@@ -1057,7 +1058,7 @@ class TableCandidateAreasExtractor(Operator):
             graphic_elements: list[pydoxtools.document_base.DocumentElement],
             line_elements: list[pydoxtools.document_base.DocumentElement],
             pages_bbox,
-            text_box_elements,
+            text_box_elements: list[pydoxtools.document_base.DocumentElement],
             filename=None,
             images: dict[int, PIL.Image.Image] = None,
     ):

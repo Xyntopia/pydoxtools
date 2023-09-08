@@ -109,9 +109,10 @@ def group_elements(elements: pd.DataFrame, by: list[str], agg: str):
                       lambda x: "".join(_line2txt(obj, size_hints=False) if obj else "" for obj in x.values)),
             text=("rawtext", "sum")
         )
-        # overlay text with tmp_text
+        # overlay text with tmp_text wherever we were able to construct a "tmp_text" object
         tmp_text_selector = bg.tmp_text.str.len() > 0
         bg.loc[tmp_text_selector, "text"] = bg.loc[tmp_text_selector, "tmp_text"]
+        bg.drop(columns=['tmp_text'])
         # strip whitespace from boxes
         bg["text"] = bg["text"].str.strip()
         # remove empty box_groups
@@ -152,7 +153,15 @@ def text_boxes_from_elements(line_elements: list[document_base.DocumentElement])
 
     df = pd.DataFrame(line_elements)
     bg = group_elements(df, ['p_num', 'boxnum'], agg="boxes_from_lines_w_bb")
-    return dict(text_box_elements=bg)
+    tbs = bg.apply(lambda x: document_base.DocumentElement(
+        type=document_base.ElementType.TextBox,
+        text=x.text,
+        level=1,
+        p_num=x.name[0],
+        boxnum=x.name[1],
+        x0=x.x0, y0=x.y0, x1=x.x1, y1=x.y1,
+    ), axis=1).to_list()
+    return dict(text_box_elements=tbs)
 
 
 class SectionsExtractor(pydoxtools.operators_base.Operator):
