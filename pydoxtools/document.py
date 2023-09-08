@@ -736,7 +736,10 @@ document_operators = {
         .input(selectable="data").out("data_sel").cache().docs(
             "select values by key from source data in Document"),
         # TODO: use a document_element creation function for this...
-        FunctionOperator(lambda x: [str(k) + ": " + str(v) for k, v in list_utils.flatten_dict(x).items()])
+        FunctionOperator(lambda x: [DocumentElement(
+            type=ElementType.TextBox,
+            text=str(k) + ": " + str(v)
+        ) for k, v in list_utils.flatten_dict(x).items()])
         .input(x="data").out("text_box_elements").cache().t(list[str])
         .docs("Create a dataframe from a dictionary. TODO: this is not working correctly, it should "
               "create a list of [][pydoxtools.document_base.DocumentELements]"),
@@ -756,7 +759,10 @@ document_operators = {
         FunctionOperator(lambda x: yaml.dump(list_utils.deep_str_convert(x))).t(str)
         .input(x="data").out("full_text").cache()
         .docs("Dump list data to a yaml-like string"),
-        FunctionOperator(lambda x: [str(list_utils.deep_str_convert(v)) for v in x])
+        FunctionOperator(lambda x: [DocumentElement(
+            type=ElementType.TextBox,
+            text=str(list_utils.deep_str_convert(v))
+        ) for v in x])
         .input(x="data").out("text_box_elements").cache().t(list[str]),
     ],
     # TODO: json, csv etc...

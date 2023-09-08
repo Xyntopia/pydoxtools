@@ -256,13 +256,12 @@ def test_pandoc():
         "./data/basic-v3plus2.epub"
     ]
 
-    import pandoc.types
     for f in pandoc_files:
         logger.info(f"testing pandoc with {f}")
         doc = Document(fobj=make_path_absolute(f))
         assert isinstance(doc.elements, list)
         try:
-            assert isinstance(doc.elements[0], pandoc.types.Block)
+            assert isinstance(doc.elements[0], pydoxtools.document_base.DocumentElement)
         except:
             logger.warning(f"no blocks in the file {f}!")
 
@@ -671,9 +670,9 @@ if __name__ == "__main__":
     # test_all_documents()
     file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/north_american_countries.png"
     doc = Document(file)
-    test_pandoc()
+    test_dict()
 
-    #run_single_non_interactive_document_test(file)
+    # run_single_non_interactive_document_test(file)
     # run_single_non_interactive_document_test(file)
     # doc.text_box_elements
     pass
