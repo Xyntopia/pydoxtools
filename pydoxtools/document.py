@@ -623,7 +623,7 @@ TextStructureNodes = [
     .docs("extracts a list of document objects such as tables, text boxes, figures, etc.")
     .cache(),
     Alias(document_objects="elements"),
-    FunctionOperator(lambda x: [tb for tb in x if x.type == ElementType.TextBox])
+    FunctionOperator(lambda x: [tb for tb in x if tb.type == ElementType.TextBox])
     .input(x="elements").out("text_box_elements").t(list[str]).cache()
     .docs("Text boxes extracted as a pandas Dataframe with some additional metadata"),
 

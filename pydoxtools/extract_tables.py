@@ -1021,7 +1021,12 @@ class TableCandidateAreasExtractor(Operator):
         box_iterations: dict[int, list[pd.DataFrame]] = {}
         table_candidates: list[PDFTableCandidate] = []
         for p in pages:
-            tbe = text_box_elements.loc[p]
+            tbe = text_box_elements.loc[text_box_elements.p_num==p].copy()
+            # do some calculations
+            # tbe['y_mean'] = tbe[['y0', 'y1']].mean(axis=1)
+            # tbe['x_mean'] = tbe[['x0', 'x1']].mean(axis=1)
+            tbe['w'] = tbe.x1 - tbe.x0
+            tbe['h'] = tbe.y1 - tbe.y0
             min_elem_x = max(tbe.w.min(), min_size)
             min_elem_y = max(tbe.h.min(), min_size)
             page_bbox = b = pages_bbox[p]

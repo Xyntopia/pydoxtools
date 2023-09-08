@@ -117,11 +117,6 @@ def group_elements(elements: pd.DataFrame, by: list[str], agg: str):
         bg["text"] = bg["text"].str.strip()
         # remove empty box_groups
         bg = bg[bg.text.str.len() > 0].copy()
-        # do some calculations
-        bg['y_mean'] = bg[['y0', 'y1']].mean(axis=1)
-        bg['x_mean'] = bg[['x0', 'x1']].mean(axis=1)
-        bg['w'] = bg.x1 - bg.x0
-        bg['h'] = bg.y1 - bg.y0
         return bg
     elif "sections":
         group = elements.explode('sections').groupby(*by)

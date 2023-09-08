@@ -671,7 +671,7 @@ if __name__ == "__main__":
     # test_all_documents()
     file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/north_american_countries.png"
     doc = Document(file)
-    test_address_extraction()
+    test_table_extraction()
 
     #run_single_non_interactive_document_test(file)
     # run_single_non_interactive_document_test(file)
