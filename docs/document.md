@@ -94,22 +94,6 @@ return type
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
-### page_templates
-            
-create page templates from pandoc documents. This is a temporary workaround  as we do not have the correct page numbers implemented yet.
-
-Can be called using:
-
-    <Document>.x('page_templates')
-    # or
-    <Document>.page_templates
-
-return type
-: typing.Any | typing.Callable[[list[str]], dict[int, str]]
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
 ### file_meta
             
 Some fast-to-calculate metadata information about a document
@@ -119,38 +103,6 @@ Can be called using:
     <Document>.x('file_meta')
     # or
     <Document>.file_meta
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
-### text_box_elements
-            
-Text boxes extracted as a pandas Dataframe with some additional metadata
-
-Can be called using:
-
-    <Document>.x('text_box_elements')
-    # or
-    <Document>.text_box_elements
-
-return type
-: <class 'pandas.core.frame.DataFrame'\> | pandas.core.frame.DataFrame | None | typing.Any
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
-### text_box_list
-            
-Text boxes as a list
-
-Can be called using:
-
-    <Document>.x('text_box_list')
-    # or
-    <Document>.text_box_list
 
 return type
 : typing.Any
@@ -169,7 +121,7 @@ Can be called using:
     <Document>.tables_df
 
 return type
-: str | list[str] | list[pandas.core.frame.DataFrame] | typing.Any
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -192,15 +144,191 @@ supports pipeline flows:
 
 ### tables
             
-Alias for: 
-
-* tables_dict->tables (output)
+Extracts the tables from the document as a dataframe
 
 Can be called using:
 
     <Document>.x('tables')
     # or
     <Document>.tables
+
+return type
+: list[pydoxtools.document_base.DocumentElement]
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### elements
+            
+extracts a list of document objects such as tables, text boxes, figures, etc.
+
+Can be called using:
+
+    <Document>.x('elements')
+    # or
+    <Document>.elements
+
+return type
+: <class 'pandas.core.frame.DataFrame'\> | list[pydoxtools.document_base.DocumentElement]
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### document_objects
+            
+Alias for: 
+
+* elements->document_objects (output)
+
+Can be called using:
+
+    <Document>.x('document_objects')
+    # or
+    <Document>.document_objects
+
+return type
+: list[pydoxtools.document_base.DocumentElement] | typing.Any
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### text_box_elements
+            
+Text boxes extracted as a pandas Dataframe with some additional metadata
+
+Can be called using:
+
+    <Document>.x('text_box_elements')
+    # or
+    <Document>.text_box_elements
+
+return type
+: pandas.core.frame.DataFrame | None | typing.Any
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### headers
+            
+Extracts the headers from the document
+
+Can be called using:
+
+    <Document>.x('headers')
+    # or
+    <Document>.headers
+
+return type
+: list[pydoxtools.document_base.DocumentElement]
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### lists
+            
+Extracts the lists from the document
+
+Can be called using:
+
+    <Document>.x('lists')
+    # or
+    <Document>.lists
+
+return type
+: <class 'pandas.core.frame.DataFrame'\> | list[pydoxtools.document_base.DocumentElement]
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### line_elements
+            
+Filters the document elements and only keeps the text elements
+
+Can be called using:
+
+    <Document>.x('line_elements')
+    # or
+    <Document>.line_elements
+
+return type
+: list[pydoxtools.document_base.DocumentElement]
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### graphic_elements
+            
+Filters the document elements and only keeps the graphic elements
+
+Can be called using:
+
+    <Document>.x('graphic_elements')
+    # or
+    <Document>.graphic_elements
+
+return type
+: list[pydoxtools.document_base.DocumentElement]
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### image_elements
+            
+Filters the document elements and only keeps the image elements
+
+Can be called using:
+
+    <Document>.x('image_elements')
+    # or
+    <Document>.image_elements
+
+return type
+: list[pydoxtools.document_base.DocumentElement]
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### page_templates
+            
+generates a text page with table & figure hints
+
+Can be called using:
+
+    <Document>.x('page_templates')
+    # or
+    <Document>.page_templates
+
+return type
+: typing.Callable[[list[str]], dict[int, str]]
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### page_templates_str
+            
+Outputs a nice text version of the documents with annotated document objects such as page numbers, tables, figures, etc.
+
+Can be called using:
+
+    <Document>.x('page_templates_str')
+    # or
+    <Document>.page_templates_str
+
+return type
+: typing.Any
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### page_templates_str_minimal
+            
+No documentation
+
+Can be called using:
+
+    <Document>.x('page_templates_str_minimal')
+    # or
+    <Document>.page_templates_str_minimal
 
 return type
 : typing.Any
@@ -210,7 +338,7 @@ supports pipeline flows:
 
 ### addresses
             
-
+Classifies the text elements into addresses, emails, phone numbers, etc. if possible.
 
 Can be called using:
 
@@ -226,7 +354,9 @@ supports pipeline flows:
 
 ### page_classifier
             
+Classifies the pages into different types. This is useful for example for identifiying table of contents, certain chapters etc... . This works as a zero-shot classifier and the classes are not predefined. it can by called like this: 
 
+Document('somefile.pdf').page_classifier(candidate_labels=['table_of_contents', 'credits', 'license'])
 
 Can be called using:
 
@@ -242,7 +372,7 @@ supports pipeline flows:
 
 ### num_pages
             
-No documentation
+Number of pages in the document
 
 Can be called using:
 
@@ -258,7 +388,7 @@ supports pipeline flows:
 
 ### num_words
             
-No documentation
+Number of words in the document
 
 Can be called using:
 
@@ -486,15 +616,15 @@ return type
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
-### relationships
+### semantic_relations
             
-
+Extract relations from text for building a knowledge graph
 
 Can be called using:
 
-    <Document>.x('relationships')
+    <Document>.x('semantic_relations')
     # or
-    <Document>.relationships
+    <Document>.semantic_relations
 
 return type
 : <class 'pandas.core.frame.DataFrame'\>
@@ -536,7 +666,7 @@ supports pipeline flows:
 
 ### coreferences
             
-
+Resolve coreferences in the text
 
 Can be called using:
 
@@ -550,63 +680,33 @@ return type
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
-### graph_nodes
+### document_graph
             
-No documentation
+Builds a [networkx graph](https://networkx.org/documentation/stable/reference/classes/digraph.html) from the relations and coreferences
 
 Can be called using:
 
-    <Document>.x('graph_nodes')
+    <Document>.x('document_graph')
     # or
-    <Document>.graph_nodes
+    <Document>.document_graph
 
 return type
-: <class 'pandas.core.frame.DataFrame'\>
+: <class 'networkx.classes.digraph.DiGraph'\>
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
-### node_map
+### DG
             
-No documentation
+Alias for: 
+
+* document_graph->DG (output)
 
 Can be called using:
 
-    <Document>.x('node_map')
+    <Document>.x('DG')
     # or
-    <Document>.node_map
-
-return type
-: <class 'dict'\>
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
-### graph_edges
-            
-No documentation
-
-Can be called using:
-
-    <Document>.x('graph_edges')
-    # or
-    <Document>.graph_edges
-
-return type
-: <class 'pandas.core.frame.DataFrame'\>
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
-### knowledge_graph
-            
-No documentation
-
-Can be called using:
-
-    <Document>.x('knowledge_graph')
-    # or
-    <Document>.knowledge_graph
+    <Document>.DG
 
 return type
 : typing.Any
@@ -780,7 +880,7 @@ supports pipeline flows:
 
 ### vectorizer
             
-No documentation
+Get the vectorizer function used for this document for an arbitrary text
 
 Can be called using:
 
@@ -796,7 +896,7 @@ supports pipeline flows:
 
 ### vec_res
             
-Calculate context-based vectors for the entire text
+Calculate context-based vectors (embeddings) for the entire text
 
 Can be called using:
 
@@ -844,7 +944,7 @@ supports pipeline flows:
 
 ### embedding
             
-Get an embedding for the entire text
+Get a vector (embedding) for the entire text by taking the mean of the contextual embeddings of all tokens
 
 Can be called using:
 
@@ -924,18 +1024,7 @@ supports pipeline flows:
 
 ### text_segments
             
-Extract small pieces of text with a few more rules
-    to make them more usable in an index.
-
-    For example, it is a good idea to make text-pieces not too small. Text pieces should
-    also not bee too big. So that they encode not too much information
-    into the vector. This makes queries on an index more precise.
-    Additionally, we should try to segment a piece of text into its
-    logical structure and try to preserve text blocks such as paragraphs,
-    tables etc... as much as possible.
-
-    if we split up large text blocks we will let the individual pieces overlap
-    just a little bit in order to preserve some of the context.
+Split the text into segments
 
 Can be called using:
 
@@ -944,19 +1033,14 @@ Can be called using:
     <Document>.text_segments
 
 return type
-: list[str] | typing.Any
+: list[str]
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### text_segment_vec_res
             
-Take a function and apply it elementwise to
-    an iterable. Return a list or iterator.
-
-    the "elements" argument will be evaluated
-    element-wise. You can specify additional arguments for the
-    function using *args and **kwargs.
+Calculate the embeddings for each text segment
 
 Can be called using:
 
@@ -972,7 +1056,7 @@ supports pipeline flows:
 
 ### text_segment_vecs
             
-No documentation
+Get the embeddings for individual text segments
 
 Can be called using:
 
@@ -988,7 +1072,7 @@ supports pipeline flows:
 
 ### text_segment_ids
             
-No documentation
+Get the a list of ids for individual text segments
 
 Can be called using:
 
@@ -1004,11 +1088,7 @@ supports pipeline flows:
 
 ### text_segment_index
             
-Class extracts an index form a document
-    TODO: make it flexible which kind of index we can use for this :).
-
-    --> for example we could also use a scikit-learn knn index or some brute-force method
-        etc....
+Create an index for the text segments
 
 Can be called using:
 
@@ -1024,7 +1104,7 @@ supports pipeline flows:
 
 ### segment_query
             
-
+Create a query function for the text segments which can be used to do nearest-neighbor queries
 
 Can be called using:
 
@@ -1040,11 +1120,7 @@ supports pipeline flows:
 
 ### noun_index
             
-Class extracts an index form a document
-    TODO: make it flexible which kind of index we can use for this :).
-
-    --> for example we could also use a scikit-learn knn index or some brute-force method
-        etc....
+Create an index for the nouns
 
 Can be called using:
 
@@ -1060,7 +1136,7 @@ supports pipeline flows:
 
 ### spacy_vectorizer
             
-No documentation
+Create a vectorizer function from spacy library.
 
 Can be called using:
 
@@ -1076,7 +1152,7 @@ supports pipeline flows:
 
 ### noun_query
             
-
+Create a query function for the nouns which can be used to do nearest-neighbor queries
 
 Can be called using:
 
@@ -1092,9 +1168,7 @@ supports pipeline flows:
 
 ### noun_graph
             
-this function buils a "directed similarity graph" by taking the similarity of words in a document
-     and connecting tokens which are similar. This can then be used for further analysis
-     such as textrank (wordranks, sentence ranks, paragraph ranking) etc...
+Create a graph of similar nouns
 
 Can be called using:
 
@@ -1128,7 +1202,7 @@ supports pipeline flows:
 
 ### textrank_keywords
             
-
+Extract keywords from the graph of similar nouns
 
 Can be called using:
 
@@ -1162,11 +1236,7 @@ supports pipeline flows:
 
 ### sent_index
             
-Class extracts an index form a document
-    TODO: make it flexible which kind of index we can use for this :).
-
-    --> for example we could also use a scikit-learn knn index or some brute-force method
-        etc....
+Create an index for the sentences
 
 Can be called using:
 
@@ -1182,7 +1252,7 @@ supports pipeline flows:
 
 ### sent_query
             
-
+Create a query function for the sentences which can be used to do nearest-neighbor queries
 
 Can be called using:
 
@@ -1198,9 +1268,7 @@ supports pipeline flows:
 
 ### sent_graph
             
-this function buils a "directed similarity graph" by taking the similarity of words in a document
-     and connecting tokens which are similar. This can then be used for further analysis
-     such as textrank (wordranks, sentence ranks, paragraph ranking) etc...
+Create a graph of similar sentences
 
 Can be called using:
 
@@ -1216,9 +1284,7 @@ supports pipeline flows:
 
 ### top_k_text_rank_sentences
             
-Configuration for values:
-
-* top_k_text_rank_sentences = 5 (default)
+controls the number of most important sentences that are extracted from the text.
 
 Can be called using:
 
@@ -1234,7 +1300,7 @@ supports pipeline flows:
 
 ### textrank_sents
             
-
+Extract the most important sentences from the graph of similar sentences
 
 Can be called using:
 
@@ -1310,7 +1376,7 @@ supports pipeline flows:
 
 ### slow_summary
             
-No documentation
+Summarize the text using the Huggingface summarization pipeline
 
 Can be called using:
 
@@ -1344,10 +1410,7 @@ supports pipeline flows:
 
 ### answers
             
-Question Answering Machine Operator
-
-    The Operator generates a function takes questions and gives back
-    answers on the given text.
+Extract answers from the text using the Huggingface question answering pipeline
 
 Can be called using:
 
@@ -1379,9 +1442,7 @@ supports pipeline flows:
 
 ### chat_answers
             
-Use LLMChat on data in our pipeline!
-
-    model_id: if model_language=="auto" we also need to set our model_size
+Extract answers from the text using OpenAI Chat GPT and other models.
 
 Can be called using:
 
@@ -1397,7 +1458,7 @@ supports pipeline flows:
 
 ### meta_pdf
             
-Extract metadata from pdf
+Loads the pdf file into a list of [][pydoxtools.document_base.DocumentElement]
 
 Can be called using:
 
@@ -1413,7 +1474,7 @@ supports pipeline flows:
 
 ### pages_bbox
             
-Return the 'mediabox' property of the pdf page which gives the size of the page of a pdf in 72 dpi, which is the standard unit of measurement in pdfs.
+Loads the pdf file into a list of [][pydoxtools.document_base.DocumentElement]
 
 Can be called using:
 
@@ -1423,22 +1484,6 @@ Can be called using:
 
 return type
 : <class 'numpy.ndarray'\>
-
-supports pipeline flows:
-: PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff
-
-### elements
-            
-Extract a list of textelements from pdf: Textlines, Graphics, Figures
-
-Can be called using:
-
-    <Document>.x('elements')
-    # or
-    <Document>.elements
-
-return type
-: <class 'pandas.core.frame.DataFrame'\>
 
 supports pipeline flows:
 : PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff
@@ -1461,7 +1506,7 @@ supports pipeline flows:
 
 ### images
             
-No documentation
+Access images as a dictionary with page numbers as keys for downstream processing tasks
 
 Can be called using:
 
@@ -1475,73 +1520,9 @@ return type
 supports pipeline flows:
 : PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff
 
-### line_elements
-            
-Filter document elements for various criteria
-
-Can be called using:
-
-    <Document>.x('line_elements')
-    # or
-    <Document>.line_elements
-
-return type
-: <class 'pandas.core.frame.DataFrame'\>
-
-supports pipeline flows:
-: PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff
-
-### graphic_elements
-            
-Filter document elements for various criteria
-
-Can be called using:
-
-    <Document>.x('graphic_elements')
-    # or
-    <Document>.graphic_elements
-
-return type
-: <class 'pandas.core.frame.DataFrame'\>
-
-supports pipeline flows:
-: PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff
-
-### image_elements
-            
-Filter document elements for various criteria
-
-Can be called using:
-
-    <Document>.x('image_elements')
-    # or
-    <Document>.image_elements
-
-return type
-: <class 'pandas.core.frame.DataFrame'\>
-
-supports pipeline flows:
-: PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff
-
-### lists
-            
-Extract lines that might be part of a "list".
-
-Can be called using:
-
-    <Document>.x('lists')
-    # or
-    <Document>.lists
-
-return type
-: <class 'pandas.core.frame.DataFrame'\> | str | list[str] | list[pandas.core.frame.DataFrame]
-
-supports pipeline flows:
-: PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/markdown, text/rtf
-
 ### table_box_levels
             
-produces a list of potential table objects
+Extracts the table candidates from the document. As this is an image, we need to use a different method than for pdfs. Right now this relies on neural networks. TODO: add adtitional pure text-based method.
 
 Can be called using:
 
@@ -1557,7 +1538,7 @@ supports pipeline flows:
 
 ### table_candidates
             
-produces a list of potential table objects
+Extracts the table candidates from the document. As this is an image, we need to use a different method than for pdfs. Right now this relies on neural networks. TODO: add adtitional pure text-based method.
 
 Can be called using:
 
@@ -1573,7 +1554,7 @@ supports pipeline flows:
 
 ### valid_tables
             
-No documentation
+Filter valid tables from table candidates by looking if meaningful values can be extracted
 
 Can be called using:
 
@@ -1621,14 +1602,7 @@ supports pipeline flows:
 
 ### titles
             
-This Operator extracts titels and other interesting text parts
-    from a visual document. It does this by characterising parts
-    of the text being "different" than the rest using an
-    Isolation Forest algorithm (anomyla detection).
-    Features are for example: font size,
-    position, length etc...
-
-    #TODO: use this for html and other kinds of text files as well...
+Extracts the titles from the document by detecting unusual font styles
 
 Can be called using:
 
@@ -1644,52 +1618,13 @@ supports pipeline flows:
 
 ### side_titles
             
-This Operator extracts titels and other interesting text parts
-    from a visual document. It does this by characterising parts
-    of the text being "different" than the rest using an
-    Isolation Forest algorithm (anomyla detection).
-    Features are for example: font size,
-    position, length etc...
-
-    #TODO: use this for html and other kinds of text files as well...
+Extracts the titles from the document by detecting unusual font styles
 
 Can be called using:
 
     <Document>.x('side_titles')
     # or
     <Document>.side_titles
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff
-
-### document_objects
-            
-extracts a list of document objects such as tables, text boxes, figures, etc.
-
-Can be called using:
-
-    <Document>.x('document_objects')
-    # or
-    <Document>.document_objects
-
-return type
-: list[pydoxtools.document_base.DocumentElement]
-
-supports pipeline flows:
-: PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff
-
-### page_templates_str
-            
-Outputs a nice text version of the documents with annotated document objects such as page numbers, tables, figures, etc.
-
-Can be called using:
-
-    <Document>.x('page_templates_str')
-    # or
-    <Document>.page_templates_str
 
 return type
 : typing.Any
@@ -1715,7 +1650,7 @@ supports pipeline flows:
 
 ### html_keywords_str
             
-
+Extracts the main content from the html document, removing boilerplate and other noise
 
 Can be called using:
 
@@ -1731,7 +1666,7 @@ supports pipeline flows:
 
 ### main_content_clean_html
             
-
+Extracts the main content from the html document, removing boilerplate and other noise
 
 Can be called using:
 
@@ -1747,7 +1682,7 @@ supports pipeline flows:
 
 ### summary
             
-
+Extracts the main content from the html document, removing boilerplate and other noise
 
 Can be called using:
 
@@ -1763,7 +1698,7 @@ supports pipeline flows:
 
 ### goose_article
             
-
+Extracts the main content from the html document, removing boilerplate and other noise
 
 Can be called using:
 
@@ -1779,7 +1714,7 @@ supports pipeline flows:
 
 ### main_content
             
-
+Extracts the main content from the html document, removing boilerplate and other noise
 
 Can be called using:
 
@@ -1795,7 +1730,7 @@ supports pipeline flows:
 
 ### schemadata
             
-
+Extracts the main content from the html document, removing boilerplate and other noise
 
 Can be called using:
 
@@ -1811,7 +1746,7 @@ supports pipeline flows:
 
 ### final_urls
             
-
+Extracts the main content from the html document, removing boilerplate and other noise
 
 Can be called using:
 
@@ -1827,7 +1762,7 @@ supports pipeline flows:
 
 ### pdf_links
             
-
+Extracts the main content from the html document, removing boilerplate and other noise
 
 Can be called using:
 
@@ -1843,7 +1778,7 @@ supports pipeline flows:
 
 ### title
             
-
+Extracts the main content from the html document, removing boilerplate and other noise
 
 Can be called using:
 
@@ -1859,7 +1794,7 @@ supports pipeline flows:
 
 ### short_title
             
-
+Extracts the main content from the html document, removing boilerplate and other noise
 
 Can be called using:
 
@@ -1875,7 +1810,7 @@ supports pipeline flows:
 
 ### urls
             
-No documentation
+Extracts the urls from the html document
 
 Can be called using:
 
@@ -1891,7 +1826,7 @@ supports pipeline flows:
 
 ### main_image
             
-No documentation
+Extracts the main image from the html document
 
 Can be called using:
 
@@ -1907,7 +1842,7 @@ supports pipeline flows:
 
 ### html_keywords
             
-No documentation
+Extracts explicitly given keywords from the html document
 
 Can be called using:
 
@@ -1923,7 +1858,7 @@ supports pipeline flows:
 
 ### pandoc_document
             
-Converts a string or a raw byte string into pandoc intermediate format.
+Loads the document using the pandoc project [https://pandoc.org/](https://pandoc.org/) into a pydoxtools list of [][pydoxtools.document_base.DocumentElement]
 
 Can be called using:
 
@@ -1939,9 +1874,7 @@ supports pipeline flows:
 
 ### full_text_format
             
-Configuration for values:
-
-* full_text_format = markdown (default)
+The format used to convert the document to a string
 
 Can be called using:
 
@@ -1957,7 +1890,7 @@ supports pipeline flows:
 
 ### convert_to
             
-No documentation
+Generic pandoc converter for other document formats. TODO: better docs
 
 Can be called using:
 
@@ -1973,7 +1906,7 @@ supports pipeline flows:
 
 ### clean_format
             
-A constant value
+The format used to convert the document to a clean string for downstream processing tasks
 
 Can be called using:
 
@@ -1989,7 +1922,7 @@ supports pipeline flows:
 
 ### sections
             
-extract sections from a textbox dataframe
+Extracts the sections from the document by grouping text elements
 
 Can be called using:
 
@@ -2003,44 +1936,9 @@ return type
 supports pipeline flows:
 : application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, mediawiki, pandoc, text/markdown, text/rtf
 
-### pandoc_blocks
-            
-
-
-Can be called using:
-
-    <Document>.x('pandoc_blocks')
-    # or
-    <Document>.pandoc_blocks
-
-return type
-: list['pandoc.types.Block']
-
-supports pipeline flows:
-: application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, mediawiki, pandoc, text/markdown, text/rtf
-
-### headers
-            
-Extract tables, headers and lists from a pandoc document
-
-Can be called using:
-
-    <Document>.x('headers')
-    # or
-    <Document>.headers
-
-return type
-: str | list[str] | list[pandas.core.frame.DataFrame]
-
-supports pipeline flows:
-: application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, mediawiki, pandoc, text/markdown, text/rtf
-
 ### ocr_lang
             
-Configuration for values:
-
-* ocr_lang = auto (default)
-* ocr_on = True (default)
+Configuration for the ocr extractor. We can turn it on/off and specify the language used for OCR.
 
 Can be called using:
 
@@ -2056,10 +1954,7 @@ supports pipeline flows:
 
 ### ocr_on
             
-Configuration for values:
-
-* ocr_lang = auto (default)
-* ocr_on = True (default)
+Configuration for the ocr extractor. We can turn it on/off and specify the language used for OCR.
 
 Can be called using:
 
@@ -2075,7 +1970,7 @@ supports pipeline flows:
 
 ### pil_image
             
-No documentation
+Converts the image to a PIL-style image for downstream processing tasks
 
 Can be called using:
 
@@ -2091,11 +1986,7 @@ supports pipeline flows:
 
 ### ocr_pdf_file
             
-Takes an image encoded in bytes and returns a pdf document
-    which can be used to extract data.
-
-    TODO: maybe we could add "lines" here and detect other thigns such as images,
-          figures  etc...?
+Extracts the text from the document using OCR. It does this by creating a pdf which is important in order to keep the positional information of the text elements.
 
 Can be called using:
 
@@ -2127,7 +2018,7 @@ supports pipeline flows:
 
 ### keys
             
-No documentation
+Get the keys of the dictionary
 
 Can be called using:
 
@@ -2143,7 +2034,7 @@ supports pipeline flows:
 
 ### values
             
-No documentation
+Get the values of the dictionary
 
 Can be called using:
 
@@ -2159,7 +2050,7 @@ supports pipeline flows:
 
 ### items
             
-No documentation
+Get the items of the dictionary
 
 Can be called using:
 
