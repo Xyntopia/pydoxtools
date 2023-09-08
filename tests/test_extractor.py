@@ -668,7 +668,7 @@ if __name__ == "__main__":
     # a = pd.DataFrame(sd.sents)
     # a[2]
     # test_all_documents()
-    file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/berrybase_raspberrypi4.html"
+    file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/PFR-PR23_BAT-110__V1.00_.pdf"
     doc = Document(file)
     #test_document_graph()
 

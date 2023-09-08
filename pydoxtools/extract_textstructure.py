@@ -294,13 +294,12 @@ def get_area_context(
     # remove all tables from elements and insert a placeholder so that
     # we can more easily query the page with LLMs
 
-    # page_templates={}
-    # for p in pdf.page_set:
-    elements = get_template_elements(elements=pd.DataFrame(elements), page_num=page_num, include_image=False)
+    # get text elements around the table
+    el_df = get_template_elements(elements=pd.DataFrame(elements), page_num=page_num, include_image=False)
 
     # include boundingbox around table + context
     le = cluster_utils.boundarybox_query(
-        elements, bbox,
+        el_df, bbox,
         tol=context_margin
     ).copy()
 
@@ -313,7 +312,9 @@ def get_area_context(
     area_box = pd.DataFrame(bbox.reshape(1, -1), columns=["x0", "y0", "x1", "y1"])
     area_box["text"] = place_holder_template.format(placeholder)
 
-    boxes = text_boxes_from_elements(le)["text_box_elements"]
+    # TODO:  just use the normal "document-elements" for this instead of creating a fake
+    #       area element
+    boxes = pd.DataFrame(text_boxes_from_elements(le)["text_box_elements"])
     boxes = pd.concat([boxes.reset_index(), area_box], ignore_index=True).sort_values(
         by=["y0", "x0"], ascending=[False, True])
 
@@ -371,8 +372,10 @@ class PDFDocumentObjects(pydoxtools.operators_base.Operator):
             )
             table_elements.append(table_box)
 
-        # now do textboxes
-        txtboxes = text_boxes_from_elements(elements)["text_box_elements"]
+        # now do the textboxes
+        txtboxes = text_boxes_from_elements(
+            [e for e in elements if e.type == document_base.ElementType.Text]
+        )["text_box_elements"]
         more_textboxes = [e for e in elements if e.type == document_base.ElementType.TextBox]
         txtboxes = pd.DataFrame(txtboxes + more_textboxes)
         # TODO: filter textboxes for vertical lines...
@@ -419,10 +422,14 @@ class PageTemplateGenerator(pydoxtools.operators_base.Operator):
         return generate
 
 
-def get_object_context(bbox: tuple | np.ndarray, elements: pd.DataFrame, placeholder: str = "area"):
+def get_bbox_context(
+        bbox: tuple | np.ndarray, elements: list[pydoxtools.document_base.DocumentElement],
+        page_num: int,
+        placeholder: str = "area"
+):
     """Get the context of a table from the document"""
     table_context = get_area_context(
-        elements=elements, bbox=bbox, page_num=19, context_margin=20,
+        elements=pd.DataFrame(elements), bbox=bbox, page_num=page_num, context_margin=20,
         placeholder=placeholder
     )
     return table_context
