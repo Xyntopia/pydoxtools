@@ -86,6 +86,13 @@ class DocumentElement:
     fill: bool | None = None
     evenodd: int | None = None
     level: int = 0
+    id: int = None
+
+    _counter: typing.ClassVar = 0
+
+    def __post_init__(self):
+        DocumentElement._counter += 1
+        self.id = DocumentElement._counter
 
     @property
     def bbox(self):

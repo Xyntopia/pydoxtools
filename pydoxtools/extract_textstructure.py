@@ -435,7 +435,7 @@ class PageTemplateGenerator(pydoxtools.operators_base.Operator):
                 allowed_elems = set(document_base.ElementType) - set(typelist)
 
             new_text = objs.apply(
-                lambda x: (place_holder_template.format(x.type.name)
+                lambda x: (place_holder_template.format(f"{x.type.name}_{x.id}")
                            if (x.type not in allowed_elems)
                            else x.text),
                 axis=1)
