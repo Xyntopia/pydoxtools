@@ -327,7 +327,7 @@ class PDFDocumentObjects(pydoxtools.operators_base.Operator):
             self,
             valid_tables,
             elements: list[document_base.DocumentElement]
-    ) -> list[document_base.DocumentElement]:
+    ) -> dict[str, dict[int, document_base.DocumentElement]]:
         # so first, we add everything to the document elements...
         elements_df = pd.DataFrame(elements)
 
@@ -388,17 +388,18 @@ class PDFDocumentObjects(pydoxtools.operators_base.Operator):
 
         # remove all textboxes and join back with elements
         elements_df = pd.concat([elements_df, pd.DataFrame(table_elements)], ignore_index=True)
-        elements_df= elements_df.drop(columns='id').reset_index(names="id")
+        # set unique object IDs
+        elements_df = elements_df.drop(columns='id').reset_index(names="id")
         # convert all rows back into document elements
-        objs = elements_df.apply(
+        objs = {el.id: el for el in elements_df.apply(
             lambda x: document_base.DocumentElement(**x.to_dict()), axis=1
-        ).to_list()
-        return objs
+        ).to_list()}
+        return dict(document_objects=objs)
 
 
 class PageTemplateGenerator(pydoxtools.operators_base.Operator):
     def __call__(
-            self, document_objects: list[document_base.DocumentElement]
+            self, document_objects: dict[int, document_base.DocumentElement]
     ) -> typing.Callable[[list[str]], dict[int, str]]:
         """
         creates a "clean" text page from any document which can be used for providing context to LLMs for example.
@@ -407,7 +408,7 @@ class PageTemplateGenerator(pydoxtools.operators_base.Operator):
         """
         # remove all tables from elements and insert a placeholder so that
         # we can more easily query the page with LLMs
-        objs = pd.DataFrame(document_objects)
+        objs = pd.DataFrame.from_dict(document_objects,"index")
 
         # TODO: what do we do with vertical elements here? right now we're simply removing them
         objs = objs.loc[objs.mean_char_orientation != 90]
