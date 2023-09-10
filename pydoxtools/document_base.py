@@ -1,5 +1,6 @@
 from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
+import dataclasses
 import functools
 import json
 import logging
@@ -8,7 +9,6 @@ import pickle
 import sys
 import typing
 import uuid
-from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
 from time import time
@@ -35,7 +35,7 @@ else:
     slot_args = dict(slots=True)
 
 
-@dataclass(eq=True, frozen=True, **slot_args)
+@dataclasses.dataclass(eq=True, frozen=True, **slot_args)
 class Font:
     name: str
     size: float
@@ -59,9 +59,11 @@ def convert_strings_to_enum_values(strings: list[str | Enum], enum):
     return [value for value in enum_values if value is not None] + already_enums
 
 
-@dataclass(**slot_args)
+@dataclasses.dataclass(**slot_args)
 class DocumentElement:
     type: ElementType
+    labels: list[str] = dataclasses.field(
+        default_factory=list)  # can be used to classify elements in multiple ways e.g. "address"
     p_num: int | list[int] = 0
     x0: float | None = None
     y0: float | None = None

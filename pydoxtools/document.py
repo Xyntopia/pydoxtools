@@ -165,7 +165,7 @@ def calculate_a_d_ratio(ft: str) -> float:
 # nodes which help to extract the structure of a document
 PDFDocumentStructureNodes = [
     extract_textstructure.PDFDocumentObjects()
-    .input("valid_tables", "elements").out("document_objects").cache(allow_disk_cache=True)
+    .input("valid_tables", "elements", "labeled_text_boxes").out("document_objects").cache(allow_disk_cache=True)
     .docs("extracts a list of document objects such as tables, text boxes, figures, etc."),
     FunctionOperator(lambda tables, elements: {
         k: extract_textstructure.get_bbox_context(v.bbox, elements, v.page, "table")
@@ -354,8 +354,13 @@ OCRNodes = [
 
 ClassifierNodes = [
     TextBlockClassifier()
-    .input("text_box_elements").out("addresses").cache()
+    .t(list[DocumentElement])
+    .input("text_box_elements").out("labeled_text_boxes").cache()
     .docs("Classifies the text elements into addresses, emails, phone numbers, etc. if possible."),
+    FunctionOperator(lambda x: [t.text for t in x if "address" in t.labels])
+    .t(list[str])
+    .input(x="labeled_text_boxes").out("addresses")
+    .docs("get addresses from text"),
     PageClassifier()
     .input("page_templates").out("page_classifier").cache()
     .docs("Classifies the pages into different types. This is useful for example for "
@@ -658,9 +663,10 @@ TextStructureNodes = [
     .input(text="full_text").out("elements")
     .docs("extracts a list of document objects such as tables, text boxes, figures, etc.")
     .cache(),
-    FunctionOperator(lambda elements: {id: el for id, el in enumerate(elements)})
-    .t(dict[int, DocumentElement])
-    .input("elements").out("document_objects")
+    FunctionOperator(lambda els, ltbs: {
+        id: el for id, el in enumerate(els + ltbs) if el != ElementType.Text
+    }).t(dict[int, DocumentElement])
+    .input(els="elements", ltbs="labeled_text_boxes").out("document_objects")
     .docs("output a list of document elements which can be referenced by id"),
     Alias(do="document_objects"),
     FunctionOperator(lambda x: [tb for tb in x if tb.type == ElementType.TextBox])

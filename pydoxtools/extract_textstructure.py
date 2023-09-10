@@ -326,19 +326,17 @@ class PDFDocumentObjects(pydoxtools.operators_base.Operator):
     def __call__(
             self,
             valid_tables,
-            elements: list[document_base.DocumentElement]
+            elements: list[document_base.DocumentElement],
+            labeled_text_boxes: list[document_base.DocumentElement],
     ) -> dict[str, dict[int, document_base.DocumentElement]]:
         # so first, we add everything to the document elements...
         elements_df = pd.DataFrame(elements)
 
         # we do lowest-hierarchy objects first, so that they can be "wiped out"
         # at later stage by higher-hierarchy objects
-        txtboxes = text_boxes_from_elements(
-            [e for e in elements if e.type == document_base.ElementType.Text]
-        )["text_box_elements"]
-        more_textboxes = [e for e in elements if e.type == document_base.ElementType.TextBox]
+        labeled_text_boxes
         # TODO: detect vertical textboxes by checking for vertical lines...
-        txtboxes = pd.DataFrame(txtboxes + more_textboxes)
+        txtboxes = pd.DataFrame(labeled_text_boxes)
 
         # remove all textboxes and join back with elements
         elements_df = pd.concat([elements_df[elements_df.type != document_base.ElementType.Text],
@@ -408,7 +406,7 @@ class PageTemplateGenerator(pydoxtools.operators_base.Operator):
         """
         # remove all tables from elements and insert a placeholder so that
         # we can more easily query the page with LLMs
-        objs = pd.DataFrame.from_dict(document_objects,"index")
+        objs = pd.DataFrame.from_dict(document_objects, "index")
 
         # TODO: what do we do with vertical elements here? right now we're simply removing them
         objs = objs.loc[objs.mean_char_orientation != 90]
@@ -422,6 +420,7 @@ class PageTemplateGenerator(pydoxtools.operators_base.Operator):
 
         def generate(
                 object_list: list[str | document_base.ElementType] | str | document_base.ElementType = None,
+                use_labels=False,
                 include=False
         ) -> dict[int, str]:
             if objs.empty:
@@ -437,7 +436,7 @@ class PageTemplateGenerator(pydoxtools.operators_base.Operator):
                 allowed_elems = set(document_base.ElementType) - set(typelist)
 
             new_text = objs.apply(
-                lambda x: (place_holder_template.format(f"{x.type.name}_{x.id}")
+                lambda x: (place_holder_template.format(f"{x.type.name}_{x.id}:{x.labels if use_labels else ''}")
                            if (x.type not in allowed_elems)
                            else x.text),
                 axis=1)

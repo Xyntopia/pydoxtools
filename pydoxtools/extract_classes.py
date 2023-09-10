@@ -1,5 +1,6 @@
 from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
+import dataclasses
 import logging
 import typing
 
@@ -55,6 +56,7 @@ class PageClassifier(Operator):
 
     def __call__(self, page_templates: dict[int, str]) -> typing.Callable[[list[str]], dict]:
         """Helps to classify pages based on a list of candidate labels"""
+        raise NotImplementedError("correct page_templates!")
 
         def _classify_page(candidate_labels: list[str]) -> pd.DataFrame:
             classes = {}
@@ -74,7 +76,9 @@ class TextBlockClassifier(Operator):
     def __init__(self):
         super().__init__()
 
-    def __call__(self, text_box_elements: list[pydoxtools.document_base.DocumentElement]) -> list[str]:
+    def __call__(
+            self, text_box_elements: list[pydoxtools.document_base.DocumentElement]
+    ) -> list[pydoxtools.document_base.DocumentElement]:
         tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
         model_name = "txtblockclassifier"
         model_dir = settings.PDX_MODEL_DIR / model_name
@@ -89,4 +93,5 @@ class TextBlockClassifier(Operator):
         model = pipeline("text-classification", model=model, tokenizer=tokenizer)
         text = [t.text.strip() for t in text_box_elements]
         res = [model([x], truncation=True, padding=True)[0]["label"] for x in text]
-        return [t for c, t in zip(res, text) if c == "address"]
+        labeled_text_boxes = [dataclasses.replace(t, labels=[label]) for t, label in zip(text_box_elements, res)]
+        return labeled_text_boxes
