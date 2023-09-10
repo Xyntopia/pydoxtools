@@ -388,6 +388,7 @@ class PDFDocumentObjects(pydoxtools.operators_base.Operator):
 
         # remove all textboxes and join back with elements
         elements_df = pd.concat([elements_df, pd.DataFrame(table_elements)], ignore_index=True)
+        elements_df= elements_df.drop(columns='id').reset_index(names="id")
         # convert all rows back into document elements
         objs = elements_df.apply(
             lambda x: document_base.DocumentElement(**x.to_dict()), axis=1

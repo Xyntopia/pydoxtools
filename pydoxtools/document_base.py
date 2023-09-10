@@ -88,12 +88,6 @@ class DocumentElement:
     level: int = 0
     id: int = None
 
-    _counter: typing.ClassVar = 0
-
-    def __post_init__(self):
-        DocumentElement._counter += 1
-        self.id = DocumentElement._counter
-
     @property
     def bbox(self):
         return (self.x0, self.y0, self.x1, self.y1)
