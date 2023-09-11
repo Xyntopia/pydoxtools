@@ -75,7 +75,6 @@ def extract_text_elements(text: str) -> list[document_base.DocumentElement]:
     elements = [document_base.DocumentElement(
         type=document_base.ElementType.TextBox,
         text=tb,
-        place_holder_text=f"textblock{i}",
         level=1,
         p_num=0
     ) for i, tb in enumerate(text.split("\n\n"))]
@@ -334,10 +333,8 @@ class PDFDocumentObjects(pydoxtools.operators_base.Operator):
 
         # we do lowest-hierarchy objects first, so that they can be "wiped out"
         # at later stage by higher-hierarchy objects
-        labeled_text_boxes
         # TODO: detect vertical textboxes by checking for vertical lines...
         txtboxes = pd.DataFrame(labeled_text_boxes)
-
         # remove all textboxes and join back with elements
         elements_df = pd.concat([elements_df[elements_df.type != document_base.ElementType.Text],
                                  txtboxes], ignore_index=True)
@@ -380,7 +377,6 @@ class PDFDocumentObjects(pydoxtools.operators_base.Operator):
                 obj=table,
                 text=table.df.to_string(header=False, index=False),
                 p_num=p,
-                place_holder_text=f"Table{table_num}"
             )
             table_elements.append(table_box)
 

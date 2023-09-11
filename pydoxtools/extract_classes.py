@@ -93,5 +93,9 @@ class TextBlockClassifier(Operator):
         model = pipeline("text-classification", model=model, tokenizer=tokenizer)
         text = [t.text.strip() for t in text_box_elements]
         res = [model([x], truncation=True, padding=True)[0]["label"] for x in text]
-        labeled_text_boxes = [dataclasses.replace(t, labels=[label]) for t, label in zip(text_box_elements, res)]
+        labeled_text_boxes = [
+            dataclasses.replace(t, labels=[label])
+            for t, label in zip(text_box_elements, res)
+            if label != "unknown"
+        ]
         return labeled_text_boxes

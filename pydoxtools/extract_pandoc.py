@@ -121,7 +121,6 @@ class PandocToPdxConverter(pydoxtools.operators_base.Operator):
                 pdx_el = pydoxtools.document_base.DocumentElement(
                     type=pydoxtools.document_base.ElementType.Header,
                     sections=[section_title],
-                    place_holder_text=f"header{boxnum}",
                     rawtext=PandocConverter()(el, output_format="markdown").strip(),
                     text=section_title,
                     level=0,
@@ -134,7 +133,6 @@ class PandocToPdxConverter(pydoxtools.operators_base.Operator):
                 pdx_el = pydoxtools.document_base.DocumentElement(
                     type=pydoxtools.document_base.ElementType.Table,
                     sections=[section_title] if section_title else [],
-                    place_holder_text=f"table{boxnum}",
                     rawtext=PandocConverter()(el, output_format="markdown").strip(),
                     text=PandocConverter()(el, output_format="plain").strip(),
                     level=1,
@@ -146,7 +144,6 @@ class PandocToPdxConverter(pydoxtools.operators_base.Operator):
                 pdx_el = pydoxtools.document_base.DocumentElement(
                     type=pydoxtools.document_base.ElementType.List,
                     sections=[section_title] if section_title else [],
-                    place_holder_text=f"list{boxnum}",
                     rawtext=PandocConverter()(el, output_format="markdown").strip(),
                     text=PandocConverter()(el, output_format="plain").strip(),
                     level=1,
@@ -158,7 +155,6 @@ class PandocToPdxConverter(pydoxtools.operators_base.Operator):
                 pdx_el = pydoxtools.document_base.DocumentElement(
                     type=pydoxtools.document_base.ElementType.Text,
                     sections=[section_title] if section_title else [],
-                    place_holder_text=f"text{boxnum}",
                     rawtext=PandocConverter()(el, output_format="markdown").strip(),
                     text=PandocConverter()(el, output_format="plain").strip(),
                     level=1,

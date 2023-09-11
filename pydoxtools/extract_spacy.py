@@ -158,7 +158,8 @@ class SpacyOperator(Operator):
             full_text: str,
             language: str,
             spacy_model: str,
-            model_size: str
+            model_size: str,
+            use_clean_text: str
     ) -> typing.Dict[str, Language | Doc]:
         """Load a document using spacy"""
         if spacy_model == "auto":
@@ -304,7 +305,7 @@ def document_element_relations(page_set: set[int], document_objects: list[pydoxt
 def build_document_graph(
         semantic_relations: pd.DataFrame,
         coreferences: list[list[tuple[int, int]]],
-        document_objects: list[pydoxtools.document_base.DocumentElement],
+        document_objects: dict[int, pydoxtools.document_base.DocumentElement],
         page_set: set[int],
         cts: int,  # graph context size for debugging
         meta: dict  # document metadata
@@ -324,11 +325,34 @@ def build_document_graph(
         DG.add_edge(doc_id, p_id, label="is parent", type="document_hierarchy")
         page_map[p] = p_id
 
-    for do in document_objects:
-        do_id = next(ids)
-        p = do.p_num
-        DG.add_node(do_id, label=do.place_holder_text, obj=do)
-        DG.add_edge(page_map[p], do_id, label="is parent", type="document_hierarchy")
+    # TODO: with each one of the following types
+    #       we might need to be careful, how o make them "useful" for
+    #       a KG. Sometimes, there might just be "too many" of one element
+    allowed_types = (
+        pydoxtools.document_base.ElementType.Table,
+        pydoxtools.document_base.ElementType.TextBox,
+        pydoxtools.document_base.ElementType.Image,
+        pydoxtools.document_base.ElementType.List,
+        pydoxtools.document_base.ElementType.Figure,
+    )
+    label_nodes_map: dict[str, int] = {}
+    for id, do in document_objects.items():
+        if do.type in allowed_types:
+            if do.labels:
+                do_id = next(ids)
+                p = do.p_num
+                node_label = do.place_holder_text
+                DG.add_node(do_id, label=node_label, obj=do)
+                DG.add_edge(page_map[p], do_id, label="is parent", type="document_hierarchy")
+                # and add the labels as well
+                for l in do.labels:
+                    if l in label_nodes_map:
+                        label_id = label_nodes_map[l]
+                    else:
+                        label_id = next(ids)
+                        DG.add_node(label_id, label=l)
+                        label_nodes_map[l] = label_id
+                    DG.add_edge(do_id, label_id, label="is")
 
     if not semantic_relations.empty:
         # get all nodes from the relationship list

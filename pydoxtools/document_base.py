@@ -71,7 +71,6 @@ class DocumentElement:
     y1: float | None = None
     i0: int | None = None  # in text based documents, this hints to the start character of the element in the raw text file
     i1: int | None = None  # in text based documenta, this hints to the end character of the element in the raw text file
-    place_holder_text: str | None = None
     rawtext: str | None = None  # e.g. a formated html string
     text: str | None = None  # only the content, without document-type specific formatting or similar...
     sections: list[str] | None = None
@@ -93,6 +92,10 @@ class DocumentElement:
     @property
     def bbox(self):
         return (self.x0, self.y0, self.x1, self.y1)
+
+    @property
+    def place_holder_text(self):
+        return f"{self.type.name}_{self.id}"
 
 
 class TokenCollection:
