@@ -416,7 +416,7 @@ class PageTemplateGenerator(pydoxtools.operators_base.Operator):
 
         def generate(
                 object_list: list[str | document_base.ElementType] | str | document_base.ElementType = None,
-                use_labels=False,
+                labels=False,
                 include=False
         ) -> dict[int, str]:
             if objs.empty:
@@ -431,10 +431,20 @@ class PageTemplateGenerator(pydoxtools.operators_base.Operator):
             else:
                 allowed_elems = set(document_base.ElementType) - set(typelist)
 
+            def generate_placeholder(x: pd.Series):
+                placeholder = f"{x.type.name}_{x.id}"
+                if labels:
+                    if x.labels and (x.labels != ['unknown']):
+                        label = ':' + str(x.labels) if labels else ''
+                        placeholder += label
+                return placeholder
+
             new_text = objs.apply(
-                lambda x: (place_holder_template.format(f"{x.type.name}_{x.id}:{x.labels if use_labels else ''}")
-                           if (x.type not in allowed_elems)
-                           else x.text),
+                lambda x: (
+                    place_holder_template.format(generate_placeholder(x))
+                    if (x.type not in allowed_elems)
+                    else x.text
+                ),
                 axis=1)
             page_templates = {p: "\n\n".join(new_text.dropna()[objs.p_num == p]) for p in pages}
             # page_templates = {p: "\n\n".join(objs[objs.p_num == p].text) for p in pages}

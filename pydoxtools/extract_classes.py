@@ -96,6 +96,5 @@ class TextBlockClassifier(Operator):
         labeled_text_boxes = [
             dataclasses.replace(t, labels=[label])
             for t, label in zip(text_box_elements, res)
-            if label != "unknown"
         ]
         return labeled_text_boxes

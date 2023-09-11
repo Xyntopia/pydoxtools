@@ -158,8 +158,7 @@ class SpacyOperator(Operator):
             full_text: str,
             language: str,
             spacy_model: str,
-            model_size: str,
-            use_clean_text: str
+            model_size: str
     ) -> typing.Dict[str, Language | Doc]:
         """Load a document using spacy"""
         if spacy_model == "auto":
@@ -287,21 +286,6 @@ class CoreferenceResolution(Operator):
         return tok_id_coreferences
 
 
-def document_element_relations(page_set: set[int], document_objects: list[pydoxtools.document_base.DocumentElement]):
-    """creating relations between document elements"""
-
-    entities = ["document"]
-    relations = []
-    for p in page_set:
-        relations += [["document", "has", f"page[{p}]"]]
-
-    for do in document_objects:
-        p = do.p_num
-        relations += [[f"page[{p}]", "has", do.place_holder_text]]
-
-    return relations, entities
-
-
 def build_document_graph(
         semantic_relations: pd.DataFrame,
         coreferences: list[list[tuple[int, int]]],
@@ -338,7 +322,7 @@ def build_document_graph(
     label_nodes_map: dict[str, int] = {}
     for id, do in document_objects.items():
         if do.type in allowed_types:
-            if do.labels:
+            if do.labels and (do.labels != ["unknown"]):
                 do_id = next(ids)
                 p = do.p_num
                 node_label = do.place_holder_text
