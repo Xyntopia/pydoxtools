@@ -1,6 +1,7 @@
 from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
 import dataclasses
+import functools
 import logging
 import typing
 
@@ -54,13 +55,15 @@ class PageClassifier(Operator):
     def __init__(self):
         super().__init__()
 
-    def __call__(self, page_templates: dict[int, str]) -> typing.Callable[[list[str]], dict]:
+    def __call__(self, page_templates: typing.Callable) -> typing.Callable[[list[str]], dict]:
         """Helps to classify pages based on a list of candidate labels"""
-        raise NotImplementedError("correct page_templates!")
 
+        pts = page_templates()
+
+        @functools.lru_cache
         def _classify_page(candidate_labels: list[str]) -> pd.DataFrame:
             classes = {}
-            for page_num, page_text in page_templates.items():
+            for page_num, page_text in pts.items():
                 res = zero_shot_classifier(page_text, candidate_labels)
                 classes[page_num] = dict(
                     page=page_num,

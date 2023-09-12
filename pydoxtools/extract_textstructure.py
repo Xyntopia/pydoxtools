@@ -339,6 +339,10 @@ class PDFDocumentObjects(pydoxtools.operators_base.Operator):
         elements_df = pd.concat([elements_df[elements_df.type != document_base.ElementType.Text],
                                  txtboxes], ignore_index=True)
 
+        # we also remove all graphic elements, because we can only interprete them in their "entirety"
+        # and need to render a potential figure for example first...
+        elements_df = elements_df[elements_df.type != document_base.ElementType.Graphic]
+
         table_elements = []
         # and we need to make sure to remove every element from our list which is inside a table or other high-level
         # document object.
@@ -410,14 +414,15 @@ class PageTemplateGenerator(pydoxtools.operators_base.Operator):
         # TODO: filter textboxes for vertical lines...
         # right now we're simply filtering out textboxes with just a single letter. This way we can remove
         # funny text (e.g. vertical text that we haven't made sens of...)
-        objs = objs.loc[objs.text.str.len() > 1].reset_index()
+        objs = objs.loc[(objs.text.str.len() > 1) | (objs.type != document_base.ElementType.TextBox)].reset_index()
         objs = objs.sort_values(by=["p_num", "y0", "x0"], ascending=[True, False, True])
         pages = objs.p_num.unique()
 
         def generate(
-                object_list: list[str | document_base.ElementType] | str | document_base.ElementType = None,
+                object_list: tuple[str | document_base.ElementType] | str | document_base.ElementType = None,
                 labels=False,
-                include=False
+                include=False,
+                show_non_text=True
         ) -> dict[int, str]:
             if objs.empty:
                 return {}
@@ -443,7 +448,7 @@ class PageTemplateGenerator(pydoxtools.operators_base.Operator):
                 lambda x: (
                     place_holder_template.format(generate_placeholder(x))
                     if (x.type not in allowed_elems)
-                    else x.text
+                    else x.text or place_holder_template.format(generate_placeholder(x))
                 ),
                 axis=1)
             page_templates = {p: "\n\n".join(new_text.dropna()[objs.p_num == p]) for p in pages}

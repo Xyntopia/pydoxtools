@@ -144,7 +144,7 @@ def run_single_non_interactive_document_test(file_name):
 def test_string_extraction():
     file = make_path_absolute("./data/alan_turing.txt")
     doc = Document(source=str(file))
-    assert doc.df("elements").shape == (5, 23)
+    assert doc.df("elements").shape == (5, 26)
     assert doc.document_type == 'text/plain'
     assert 'Turing' in doc.keywords
     doc.text_box_elements
@@ -664,14 +664,28 @@ def test_document_graph():
     jpg = visualization.draw(KG, engine="fdp", format='jpg')
 
 
+def test_page_templates():
+    doc = Document(make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf"))
+    page0 = doc.page_templates(("Table", "Image"), include=False)[0]
+    assert len(doc.page_templates_str_minimal) <= len(doc.page_templates_str)
+    assert "{Table_18}" in page0
+    assert "{Image_1}" in page0
+
+
+def test_zero_shot_classifier():
+    doc = Document(make_path_absolute("./data/north_american_countries.png"))
+    res = doc.page_classifier(("encyclopdia article", "about countries", "product description", "license"))
+    assert res[0]['encyclopdia article'] > res[0]['license']
+
+
 if __name__ == "__main__":
     # a = pd.DataFrame(sd.sents)
     # a[2]
     # test_all_documents()
     file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/PFR-PR23_BAT-110__V1.00_.pdf"
     doc = Document(file)
+    test_zero_shot_classifier()
     # test_document_graph()
 
-    test_summarization()
     # doc.text_box_elements
     pass

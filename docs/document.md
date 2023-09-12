@@ -546,6 +546,22 @@ return type
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
+### clean_spacy_text
+            
+Generate text to be used for spacy. Depending on the 'use_clean_text_for_spacy' option it will use page templates and replace complicated text structures such as tables for better text understanding.
+
+Can be called using:
+
+    <Document>.x('clean_spacy_text')
+    # or
+    <Document>.clean_spacy_text
+
+return type
+: typing.Any
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
 ### spacy_doc
             
 Spacy Document and Language Model for this document

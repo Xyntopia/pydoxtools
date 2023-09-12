@@ -238,7 +238,7 @@ class ExtractRelationships(Operator):
                     'n1': tok,
                     'n2': tok.head,
                     'type': 'Possessive',
-                    'label': 'owns',
+                    'label': 'has',
                 })
 
             # Adjective semantic_relations

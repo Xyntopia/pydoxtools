@@ -713,7 +713,7 @@ TextStructureNodes = [
     .t(str)
     .docs("Outputs a nice text version of the documents with annotated document objects"
           " such as page numbers, tables, figures, etc."),
-    FunctionOperator(lambda pt, ps: "".join(pt(exclude="all")[p] for p in ps))
+    FunctionOperator(lambda pt, ps: "".join(pt(["TextBox"], include="True")[p] for p in ps))
     .input(pt="page_templates", ps="page_set").out("page_templates_str_minimal").cache()
     .t(str)
 ]
