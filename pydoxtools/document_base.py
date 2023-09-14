@@ -953,18 +953,18 @@ supports pipeline flows:
         graph = nx.DiGraph()
         logic = cls._pipelines[document_logic_id]
 
-        for name, f in logic.items():
-            f_class = "\n".join([f.__class__.__name__] + list(f._out_mapping.keys()))
-            name = f.__class__.__name__
+        for name, operator in logic.items():
+            f_class = "\n".join([operator.__class__.__name__] + list(operator._out_mapping.keys()))
+            name = operator.name()
             shape = "none"
-            if isinstance(f, Configuration):
+            if isinstance(operator, Configuration):
                 shape = "invhouse"
             graph.add_node(f_class, shape=shape, label=name)
             # out-edges
-            for k, v in f._out_mapping.items():
+            for k, v in operator._out_mapping.items():
                 graph.add_node(v)  # , shape="none")
                 graph.add_edge(f_class, v)
-            for k, v in f._in_mapping.items():
+            for k, v in operator._in_mapping.items():
                 graph.add_edge(v, f_class)
             # f._dynamic_config
 

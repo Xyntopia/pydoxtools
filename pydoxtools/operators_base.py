@@ -233,6 +233,10 @@ class Operator(ABC, typing.Generic[OperatorReturnType]):
             self.__node_doc__ = doc_str
         return self
 
+    def name(self):
+        """Will be used in the pipeline documentation. To identify the class"""
+        return self.__class__.__name__
+
 
 class Alias(Operator):
     """
@@ -325,6 +329,9 @@ class FunctionOperator(Operator[CallableType]):
                 return self._default_return_value
             else:
                 raise err
+
+    def name(self):
+        return f"FO:{self._func.__name__}"
 
 
 class ElementWiseOperator(Operator):
