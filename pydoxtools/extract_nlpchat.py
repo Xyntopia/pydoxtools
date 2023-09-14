@@ -71,7 +71,10 @@ def gpt4_models():
         from gpt4all import GPT4All
         return [m["filename"].strip('.bin') for m in GPT4All.list_models()]
     except requests.exceptions.JSONDecodeError:
-        return [""]
+        return ["We were not able to get the list of models from GPT4all, not able to decode json response"]
+    except requests.exceptions.ConnectionError:
+        logger.warning("no internet connection, can not retrieve GPT4all models")
+        return ["We were not able to get the list of models from GPT4all, no internet connection"]
 
 
 @cache.memoize()
