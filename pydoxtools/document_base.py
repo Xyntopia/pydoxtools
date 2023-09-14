@@ -707,7 +707,7 @@ supports pipeline flows:
             raise e
         except Exception as e:
             logger.error(f"Extraction error in {self}, '{operator_name}': {e}")
-            raise OperatorException(f"could not get {operator_name} for {self}")
+            raise OperatorException(f"{type(e)}: could not get '{operator_name}' for {self}")
             # raise e
 
         # TODO automatically wrap the result with functools.cache if

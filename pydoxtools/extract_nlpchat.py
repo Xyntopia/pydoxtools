@@ -17,21 +17,29 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+class ChatException(Exception):
+    pass
+
+
 @cache.memoize()
 def openai_chat_completion_with_diskcache(
         model_id: str, temperature: float,
         messages: tuple[dict[str, str], ...],
         max_tokens: int = 256,
 ):
-    import openai  # only import openai if we actually need it :)
-    openai.api_key = settings.OPENAI_API_KEY
-    completion = openai.ChatCompletion.create(
-        model=model_id,
-        temperature=temperature,
-        messages=messages,
-        max_tokens=max_tokens
-    )
-    return completion
+    try:
+        import openai  # only import openai if we actually need it :)
+        openai.api_key = settings.OPENAI_API_KEY
+        completion = openai.ChatCompletion.create(
+            model=model_id,
+            temperature=temperature,
+            messages=messages,
+            max_tokens=max_tokens
+        )
+        return completion
+    except openai.error.APIConnectionError:
+        logger.exception("no internet connection, can not use ChatGPT services.")
+        raise ChatException("Could not connect to OpenAI. Internet connection required in order to use ChatGPT.")
 
 
 # TODO: add a "normal" prompt
