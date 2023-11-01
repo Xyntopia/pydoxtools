@@ -10,3 +10,7 @@ training_data/
 dist/
 build/
 site/
+
+# Added by cargo
+
+/target
