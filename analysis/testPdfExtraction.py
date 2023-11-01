@@ -1,3 +1,6 @@
+import re
+
+
 def parse_pdf_header(pdf_content):
     # The PDF header starts with '%PDF-' and is usually within the first few lines
     header_position = pdf_content.find(b'%PDF-')
@@ -53,6 +56,68 @@ def get_object(pdf_content, obj_num, xref_table):
     else:
         # Handle other object types
         pass  # ...
+
+
+def extract_objects(pdf_content, xref_table):
+    objects = []
+    for obj_num, obj_offset in xref_table.items():
+        obj_dict = {}
+        obj_pos = obj_offset
+        # Find the end of the object (assumes the next object starts with its object number)
+        obj_end = pdf_content.find(f'{obj_num + 1} 0 obj'.encode(), obj_pos)
+        if obj_end == -1:
+            # If this is the last object, find the 'endobj' keyword to determine the end of the object
+            obj_end = pdf_content.find(b'endobj', obj_pos + 1) + len('endobj')
+        obj_data = pdf_content[obj_pos:obj_end].decode('utf-8', 'ignore')
+        # Split the object data into lines and process each line
+        for line in obj_data.split('\n'):
+            if line.startswith('<<'):
+                # This is the start of a dictionary; parse the dictionary
+                dict_end = obj_data.find('>>', obj_pos) + len('>>')
+                dict_data = obj_data[obj_pos:dict_end]
+                # Assume each line contains one key-value pair
+                for dict_line in dict_data.split('\n'):
+                    key_value = dict_line.split(' ', 1)
+                    if len(key_value) == 2:
+                        obj_dict[key_value[0]] = key_value[1]
+                obj_pos = dict_end  # Update the position to the end of the dictionary
+            elif line.startswith('stream'):
+                # This is the start of a stream; find the end of the stream
+                stream_end = obj_data.find('endstream', obj_pos) + len('endstream')
+                stream_data = obj_data[obj_pos:stream_end]
+                obj_dict['Stream'] = stream_data
+                obj_pos = stream_end  # Update the position to the end of the stream
+        objects.append(obj_dict)
+    return objects
+
+
+def split_pdf_objects(pdf_content, xref_table):
+    object_dict = {}
+    sorted_offsets = sorted(list(xref_table.values()))
+
+    for i, obj_offset in enumerate(sorted_offsets):
+        obj_pos = obj_offset
+        if i + 1 < len(sorted_offsets):
+            # If this is not the last known object, find the end position based on the next object's offset
+            obj_end = sorted_offsets[i + 1]
+        else:
+            # TODO: this is probably not the end, as there can be multiple objects! we would
+            #       have to look for the "last" endobj  I assume...
+            # If this is the last known object, find the 'endobj' keyword to determine the end of the object
+            obj_end = pdf_content.find(b'endobj', obj_pos) + len('endobj')
+            if obj_end == -1 + len('endobj'):  # if 'endobj' is not found
+                obj_end = len(pdf_content)  # use the end of the pdf content
+
+        # Extract objects between current object and next object or end of file
+        between_objects_data = pdf_content[obj_pos:obj_end]
+        for match in re.finditer(rb'(\d+ \d+ obj)', between_objects_data):
+            start_pos = match.start()
+            end_pos = between_objects_data.find(b'endobj', start_pos) + len('endobj')
+            if end_pos != -1 + len('endobj'):  # if 'endobj' is found
+                obj_num = int(match.group(1).split()[0])
+                object_dict[obj_num] = between_objects_data[start_pos:end_pos]
+
+    return object_dict
 
 
 def get_pages(catalog):
@@ -133,5 +198,13 @@ xref_position = find_xref_position(pdf_content)
 print(f"PDF Header: {header}\n\n")
 print(f"xref Position: {xref_position}\n\n")
 print(pdf_content[xref_position:xref_position + 100].decode('utf-8', 'ignore'))
+print(pdf_content[xref_position:].decode('utf-8', 'ignore'))
 
 xref_table = parse_xref_table(pdf_content, xref_position)
+
+# Assuming xref_table has been populated and pdf_content contains the PDF data
+objects_list = extract_objects(pdf_content, xref_table)
+
+# Usage:
+# Assuming xref_table has been populated and pdf_content contains the PDF data
+object_dict = split_pdf_objects(pdf_content, xref_table)
