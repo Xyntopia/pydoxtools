@@ -1,6 +1,3 @@
-import re
-
-
 def parse_pdf_header(pdf_content):
     # The PDF header starts with '%PDF-' and is usually within the first few lines
     header_position = pdf_content.find(b'%PDF-')
@@ -68,8 +65,6 @@ def split_pdf_objects(pdf_content, xref_table):
             # If this is not the last known object, find the end position based on the next object's offset
             obj_end = sorted_offsets[i + 1]
         else:
-            # TODO: this is probably not the end, as there can be multiple objects! we would
-            #       have to look for the "last" endobj  I assume...
             # If this is the last known object, find the 'endobj' keyword to determine the end of the object
             obj_end = pdf_content.find(b'endobj', obj_pos) + len('endobj')
             if obj_end == -1 + len('endobj'):  # if 'endobj' is not found
@@ -77,14 +72,40 @@ def split_pdf_objects(pdf_content, xref_table):
 
         # Extract objects between current object and next object or end of file
         between_objects_data = pdf_content[obj_pos:obj_end]
-        for match in re.finditer(rb'(\d+ \d+ obj)', between_objects_data):
-            start_pos = match.start()
-            end_pos = between_objects_data.find(b'endobj', start_pos) + len('endobj')
-            if end_pos != -1 + len('endobj'):  # if 'endobj' is found
-                obj_num = int(match.group(1).split()[0])
-                object_dict[obj_num] = between_objects_data[start_pos:end_pos]
+
+        for obj_start in find_substring_occurrences(b' obj', between_objects_data):
+            # Check if there are two ints before this occurrence in the form of "i1 i2 obj"
+            space_pos = between_objects_data.rfind(b' ', 0, obj_start)
+            if space_pos == -1:
+                continue  # Malformed object declaration, skip to next occurrence
+
+            # Extract the substring that should contain "i1 i2"
+            i1_i2_substring = between_objects_data[max(0, space_pos - 10):obj_start]
+            parts = i1_i2_substring.split()
+            if len(parts) < 2 or not (parts[-2].isdigit() and parts[-1].isdigit()):
+                continue  # Malformed object declaration, skip to next occurrence
+
+            # Find the next 'endobj' and save the entire string from including i1 and endobj as value
+            end_pos = between_objects_data.find(b'endobj', obj_start) + len('endobj')
+            if end_pos == -1 + len('endobj'):  # if 'endobj' is not found
+                continue  # Malformed object declaration, skip to next occurrence
+
+            # Take the 'i1 i2 obj' as a key and save the value in object_dict
+            obj_key = b' '.join(parts[-2:]) + b' obj'
+            object_dict[obj_key] = between_objects_data[space_pos - len(parts[-2]):end_pos]
 
     return object_dict
+
+
+def find_substring_occurrences(substring, string):
+    # Helper function to find all occurrences of a substring in a string
+    start = 0
+    while True:
+        start = string.find(substring, start)
+        if start == -1:
+            return
+        yield start
+        start += len(substring)  # use start += 1 to find overlapping matches
 
 
 def get_pages(catalog):
@@ -173,7 +194,7 @@ def parse_pdf_object(pdf_object):
             break  # Exit the loop when the end of object marker is found
         elif line.endswith(b'endstream'):
             inside_stream = False
-            parsed_object[b'stream'] = b''.join(stream_data)
+            parsed_object['stream'] = b''.join(stream_data)
             stream_data = []  # Reset stream data
         elif inside_stream:
             stream_data.append(line)
@@ -218,16 +239,10 @@ with open('../tests/data/Datasheet-Centaur-Charger-DE.6f.pdf', 'rb') as file:
 
 header = parse_pdf_header(pdf_content)
 xref_position = find_xref_position(pdf_content)
-
-print(f"PDF Header: {header}\n\n")
-print(f"xref Position: {xref_position}\n\n")
-print(pdf_content[xref_position:xref_position + 100].decode('utf-8', 'ignore'))
-print(pdf_content[xref_position:].decode('utf-8', 'ignore'))
-
 xref_table = parse_xref_table(pdf_content, xref_position)
-
-# Usage:
-# Assuming xref_table has been populated and pdf_content contains the PDF data
 object_dict = split_pdf_objects(pdf_content, xref_table)
-
 object_props = {num: parse_pdf_object(value) for num, value in object_dict.items()}
+
+import pandas as pd
+
+df = pd.DataFrame(object_props).T.drop(columns="stream")
