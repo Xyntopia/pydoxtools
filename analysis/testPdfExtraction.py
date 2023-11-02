@@ -1,3 +1,7 @@
+from parsimonious.grammar import Grammar
+from parsimonious.nodes import NodeVisitor
+
+
 def parse_pdf_header(pdf_content):
     # The PDF header starts with '%PDF-' and is usually within the first few lines
     header_position = pdf_content.find(b'%PDF-')
@@ -153,48 +157,65 @@ def handle_stream(lines):
     return None, lines
 
 
-def parse_pdf_object(pdf_object):
-    parsed_object = {
-        'id': None,
-        'props': {},
-        'stream': None,
-        'content': [],
-        'type': None
-    }
+pdf_dict_grammer = Grammar(r"""
+    props = "<<" dict ">>"
+    dict = entry*
+    entry = key ws? value
+    value = list / key / text / props
+    list = lpar array rpar
+    array = (key / word / ws)+
+    key = "/" word
+    word = ~"[a-z0-9]+"i
+    text = ~"[ a-z0-9]+"i
+    ws = ~"\s*"
+    lpar  = "["
+    rpar  = "]"
+""")
 
-    lines = iter(pdf_object.split(b'\n'))
 
-    for line in lines:
-        if line.endswith(b'endobj'):
-            break
-        elif line.startswith(b'<<'):
-            propsline = line
-            props_lines = b""
-            level = 0
-            while True:
-                try:
-                    level += propsline.count(b'<<')  # Increment level by the count of '<<' markers
-                    props_lines += propsline
-                    level -= propsline.count(b'>>')  # Decrement level by the count of '>>' markers
-                    if level == 0:
-                        break
-                    propsline = next(lines)
-                except StopIteration:
-                    break  # End of data reached before closing >>
-            props = parse_properties(props_lines)
-            if props:
-                parsed_object['props'].update(props)
-        elif line.endswith(b'stream'):
-            stream_data, remaining_lines = handle_stream(list(lines))
-            if stream_data:
-                parsed_object['stream'] = stream_data
-                lines = iter(remaining_lines)  # Update the lines iterator with the remaining lines
-        elif b' obj' in line:
-            parsed_object['id'] = line
-        else:
-            parsed_object['content'].append(line)
+class Visitor(NodeVisitor):
+    # def visit_Dictionary(self, node, visited_children):
+    # output = {}
+    # for child in visited_children:
+    #    output.update(child[0])
+    # return output
+    def visit_props(self, node, visited_children):
+        return visited_children[1]
 
-    return parsed_object
+    def visit_entry(self, node, visited_children):
+        key, value = visited_children[0], visited_children[-1][0]
+        return (key, value)
+
+    def visit_list(self, node, visited_children):
+        newlist = tuple(t[0] for t in visited_children[1] if isinstance(t[0], str))
+        return newlist
+
+    def visit_dict(self, node, visited_children):
+        out = {k: v for k, v in visited_children}
+        return out
+
+    def visit_text(self, node, visited_children):
+        return node.text
+
+    def visit_word(self, node, visited_childre):
+        return node.text
+
+    def visit_key(self, node, visited_children):
+        _, word = visited_children
+        return word
+
+    def generic_visit(self, node, visited_children):
+        """ The generic visit method. """
+        return visited_children or node
+
+
+iv = Visitor()
+
+
+def extract_props(expr):
+    tree = pdf_dict_grammer.parse(expr)
+    output = iv.visit(tree)
+    return output
 
 
 with open('../tests/data/Datasheet-Centaur-Charger-DE.6f.pdf', 'rb') as file:
@@ -207,52 +228,46 @@ object_dict = split_pdf_objects(pdf_content, xref_table)
 # object_props = {num: parse_pdf_object(value) for num, value in object_dict.items()}
 # df = pd.DataFrame(object_props).T.drop(columns="stream")
 
-from parsimonious.grammar import Grammar
-from parsimonious.nodes import NodeVisitor
-
-# example:
-expr = '<</Type/Page/MediaBox [0 0 595 842]/Rotate 0/Parent 3 0 R/Resources<</ProcSet[/PDF /ImageC /Text]/ExtGState 18 0 R/XObject 19 0 R/Font 20 0 R>>/Contents 5 0 R>>'
-pdf_object_grammer = Grammar(r"""
+pdf_obj_grammar = Grammar(r"""
     props = "<<" dict ">>"
     dict = entry*
-    entry = key value
-    value = key / integer / text / props
+    entry = key ws? value
+    value = list / key / text / props
+    list = lpar array rpar
+    array = (key / word / ws)+
     key = "/" word
-    integer = ~"[0-9]+"
     word = ~"[a-z0-9]+"i
-    text = ~"[ a-z0-9\[\]]+"i
+    text = ~"[ a-z0-9]+"i
+    ws = ~"\s*"
+    lpar  = "["
+    rpar  = "]"
 """)
-
-tree = pdf_object_grammer.parse(expr)
-print(tree)
 
 
 class Visitor(NodeVisitor):
-    # def visit_Dictionary(self, node, visited_children):
-    # output = {}
-    # for child in visited_children:
-    #    output.update(child[0])
-    # return output
-    def visit_props(self, node, visited_children):
-        return visited_children[1]
+    def visit_obj_id(self, node, visited_childred):
+        int1, _, version, _, _ = visited_childred
+        return (int1, version)
 
-    def visit_dict(self, node, visited_children):
-        out = {k: v[0] for k, v in visited_children}
-        return out
-
-    def visit_text(self, node, visited_children):
-        return node.text
-
-    def visit_key(self, node, visited_children):
-        _, word = visited_children
-        return word.text
-
+    def visit_int(self, node, visited_childred):
+        return int(node.text)
     def generic_visit(self, node, visited_children):
         """ The generic visit method. """
         return visited_children or node
 
 
 iv = Visitor()
-output = iv.visit(tree)
-for o in output:
-    print(o)
+
+pdf_obj_grammar = Grammar(r"""
+    pdfobj = obj_id ws content ws b"endobj"
+    content = int
+    obj_id = int ws int ws b"obj"
+    int = ~rb"[0-9]+"
+    ws = ~rb"\s*"
+""")
+
+testexpr = b'6 0 obj\n24535\nendobj'
+tree = pdf_obj_grammar.parse(testexpr)
+print(tree)
+
+out = iv.visit(tree)
