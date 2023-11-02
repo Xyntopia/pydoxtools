@@ -108,39 +108,6 @@ def find_substring_occurrences(substring, string):
         start += len(substring)  # use start += 1 to find overlapping matches
 
 
-def get_pages(catalog):
-    # Assuming catalog is a dictionary with a 'Pages' key
-    return catalog.get('Pages', [])
-
-
-def get_stream_data(xobject):
-    # Assuming xobject is a dictionary with a 'Stream' key
-    return xobject.get('Stream', b'')
-
-
-def extract_base_elements(pdf_content, xref_position):
-    # This is a simplified example and does not handle all cases or errors
-    xref_table = parse_xref_table(pdf_content, xref_position)
-    catalog = get_object(pdf_content, 1, xref_table)  # Assume object 1 is the catalog
-    pages = get_pages(catalog)  # You'll need to write this function
-    for page in pages:
-        resources = page['Resources']
-        fonts = resources['Font']
-        for font in fonts.values():
-            # Do something with font information
-            pass
-        xobjects = resources.get('XObject', {})
-        for xobject in xobjects.values():
-            # Check if the XObject is an image
-            if xobject['Subtype'] == 'Image':
-                image_data = get_stream_data(xobject)  # You'll need to write this function
-                # Do something with image data
-                pass
-            elif xobject['Subtype'] == 'Form':
-                # Recurse into form XObjects
-                extract_base_elements(xobject['Resources'])
-
-
 def parse_xref_table(pdf_content, xref_position):
     pos = xref_position
     xref_table = {}
@@ -230,60 +197,6 @@ def parse_pdf_object(pdf_object):
     return parsed_object
 
 
-def parse_properties(prop_line):
-    properties = {}
-    i = 0
-    stack = []
-    current_key = b''
-    current_value = b''
-    while i < len(prop_line):
-        if prop_line[i:i + 2] == b"<<":
-            # Encountered the start of a nested dictionary.
-            if current_key:
-                # If there's a key, it means we're starting a nested dictionary.
-                stack.append((properties, current_key))
-                properties = {}  # Reset properties for the nested dictionary.
-                current_key = b''  # Reset current_key.
-            i += 1  # Skip the next character.
-        elif prop_line[i:i + 2] == b">>":
-            # Encountered the end of a nested dictionary.
-            if stack:
-                # If there's a stack, it means we're ending a nested dictionary.
-                parent_properties, parent_key = stack.pop()
-                parent_properties[parent_key] = properties
-                properties = parent_properties  # Restore properties to the parent dictionary.
-            i += 1  # Skip the next character.
-        elif prop_line[i:i + 1] == b"/":
-            # Encountered a new key or a new value.
-            if current_key:
-                # If there's a current_key, it means we've found a value.
-                properties[current_key.decode()] = current_value.decode()
-                current_key = b''  # Reset current_key.
-                current_value = b''  # Reset current_value.
-        elif prop_line[i:i + 1] == b" ":
-            # Space separates keys from values.
-            if not current_key:
-                current_key = current_value  # If there's no current_key, current_value is actually the key.
-                current_value = b''  # Reset current_value.
-        else:
-            if current_key:
-                # Collect characters for keys or values.
-                current_value += prop_line[i:i + 1]
-            else:
-                current_key += prop_line[i:i + 1]
-
-        i += 1  # Move to the next character.
-
-    # Handle any remaining key-value pair.
-    if current_key:
-        properties[current_key.decode()] = current_value.decode()
-    elif current_value:
-        # Handle a single key with no value.
-        properties[current_value.decode()] = ''
-
-    return properties
-
-
 with open('../tests/data/Datasheet-Centaur-Charger-DE.6f.pdf', 'rb') as file:
     pdf_content = file.read()
 
@@ -291,52 +204,49 @@ header = parse_pdf_header(pdf_content)
 xref_position = find_xref_position(pdf_content)
 xref_table = parse_xref_table(pdf_content, xref_position)
 object_dict = split_pdf_objects(pdf_content, xref_table)
-object_props = {num: parse_pdf_object(value) for num, value in object_dict.items()}
+# object_props = {num: parse_pdf_object(value) for num, value in object_dict.items()}
+# df = pd.DataFrame(object_props).T.drop(columns="stream")
 
-import pandas as pd
-
-df = pd.DataFrame(object_props).T.drop(columns="stream")
-
-from parsimonious.grammar import Grammar, NodeVisitor
+from parsimonious.grammar import Grammar
+from parsimonious.nodes import NodeVisitor
 
 # example:
 expr = '<</Type/Page/MediaBox [0 0 595 842]/Rotate 0/Parent 3 0 R/Resources<</ProcSet[/PDF /ImageC /Text]/ExtGState 18 0 R/XObject 19 0 R/Font 20 0 R>>/Contents 5 0 R>>'
 pdf_object_grammer = Grammar(r"""
-      Dictionary = "<<" Entry* ">>"
-      Entry = Keyword Value
-      Value = NestedDictionary / Array / Reference / Keyword / Number / String
-      Keyword = "/" [A-Z 0-9]i+
-      NestedDictionary = Dictionary
-      String = ~"[A-Z 0-9]+"i
-    """)
-
-expr = '<</Type/Page/MediaBox [0 0 595 842]/Rotate 0/Parent 3 0 R/Resources<</ProcSet[/PDF /ImageC /Text]/ExtGState 18 0 R/XObject 19 0 R/Font 20 0 R>>/Contents 5 0 R>>'
-pdf_object_grammer = Grammar(r"""
-      Dictionary = "<<" Entry+ Dictionary* ">>"
-      Entry = ~".+"i
-    """)
-
-pdf_object_grammer = Grammar(r"""
-    Dictionary = "<<" (Dictionary / Entry)+ ">>"
-    Entry = ~"[A-Z /]+"i
+    props = "<<" dict ">>"
+    dict = entry*
+    entry = key value
+    value = key / integer / text / props
+    key = "/" word
+    integer = ~"[0-9]+"
+    word = ~"[a-z0-9]+"i
+    text = ~"[ a-z0-9\[\]]+"i
 """)
 
-pdf_object_grammer = Grammar(r"""
-    Dictionary = "<<" Entry* ">>"
-    Entry = Keyword Value
-    Value = Keyword / Text / Dictionary
-    Keyword = "/" Word
-    Word = ~"[a-z0-9]+"i
-    Text = ~"[ a-z0-9\[\]]+"i
-""")
-
-expr = '<</Type Page /MediaBox1 asdasdad1 /test<</MediaBox2 asdasd2 >>/MediaBox3 asdad3 >>'
-expr = '<</Type/Page/MediaBox [0 0 595 842]/Rotate 0/Parent 3 0 R/Resources<</ProcSet[/PDF /ImageC /Text]/ExtGState 18 0 R/XObject 19 0 R/Font 20 0 R>>/Contents 5 0 R>>'
 tree = pdf_object_grammer.parse(expr)
 print(tree)
 
 
 class Visitor(NodeVisitor):
+    # def visit_Dictionary(self, node, visited_children):
+    # output = {}
+    # for child in visited_children:
+    #    output.update(child[0])
+    # return output
+    def visit_props(self, node, visited_children):
+        return visited_children[1]
+
+    def visit_dict(self, node, visited_children):
+        out = {k: v[0] for k, v in visited_children}
+        return out
+
+    def visit_text(self, node, visited_children):
+        return node.text
+
+    def visit_key(self, node, visited_children):
+        _, word = visited_children
+        return word.text
+
     def generic_visit(self, node, visited_children):
         """ The generic visit method. """
         return visited_children or node
@@ -344,4 +254,5 @@ class Visitor(NodeVisitor):
 
 iv = Visitor()
 output = iv.visit(tree)
-print(output)
+for o in output:
+    print(o)
