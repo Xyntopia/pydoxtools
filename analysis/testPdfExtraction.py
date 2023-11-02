@@ -206,13 +206,11 @@ def parse_pdf_object(pdf_object):
             level = 0
             while True:
                 try:
-                    if b'<<' in propsline:
-                        level += 1
+                    level += propsline.count(b'<<')  # Increment level by the count of '<<' markers
                     props_lines += propsline
-                    if b'>>' in propsline:
-                        level -= 1
-                        if level == 0:
-                            break
+                    level -= propsline.count(b'>>')  # Decrement level by the count of '>>' markers
+                    if level == 0:
+                        break
                     propsline = next(lines)
                 except StopIteration:
                     break  # End of data reached before closing >>
