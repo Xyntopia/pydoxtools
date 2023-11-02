@@ -177,34 +177,55 @@ def parse_xref_table(pdf_content, xref_position):
     return xref_table
 
 
+def handle_stream(lines):
+    end_index = next((i for i, line in enumerate(lines) if line.endswith(b'endstream')), -1)
+    if end_index != -1:
+        stream_data = b'\n'.join(lines[:end_index])
+        remaining_lines = lines[end_index + 1:]
+        return stream_data, remaining_lines
+    return None, lines
+
+
 def parse_pdf_object(pdf_object):
     parsed_object = {
-        'id': None,  # Add an 'id' field to hold the object identifier
+        'id': None,
         'props': {},
         'stream': None,
         'content': [],
         'type': None
     }
 
-    lines = pdf_object.split(b'\n')
-    inside_stream = False
-    stream_data = []
+    lines = iter(pdf_object.split(b'\n'))
+
     for line in lines:
-        if line.endswith(b'endobj'):  # Check for the end of object marker
-            break  # Exit the loop when the end of object marker is found
-        elif line.endswith(b'endstream'):
-            inside_stream = False
-            parsed_object['stream'] = b''.join(stream_data)
-            stream_data = []  # Reset stream data
-        elif inside_stream:
-            stream_data.append(line)
+        if line.endswith(b'endobj'):
+            break
+        elif line.startswith(b'<<'):
+            propsline = line
+            props_lines = b""
+            level = 0
+            while True:
+                try:
+                    if b'<<' in propsline:
+                        level += 1
+                    props_lines += propsline
+                    if b'>>' in propsline:
+                        level -= 1
+                        if level == 0:
+                            break
+                    propsline = next(lines)
+                except StopIteration:
+                    break  # End of data reached before closing >>
+            props = parse_properties(props_lines)
+            if props:
+                parsed_object['props'].update(props)
         elif line.endswith(b'stream'):
-            inside_stream = True
-        elif line.startswith(b'<<') and line.endswith(b'>>'):
-            props = parse_properties(line)
-            parsed_object['props'].update(props)
+            stream_data, remaining_lines = handle_stream(list(lines))
+            if stream_data:
+                parsed_object['stream'] = stream_data
+                lines = iter(remaining_lines)  # Update the lines iterator with the remaining lines
         elif b' obj' in line:
-            parsed_object['id'] = line  # Capture the object identifier
+            parsed_object['id'] = line
         else:
             parsed_object['content'].append(line)
 
