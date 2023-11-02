@@ -173,45 +173,6 @@ pdf_dict_grammer = Grammar(r"""
 """)
 
 
-class Visitor(NodeVisitor):
-    # def visit_Dictionary(self, node, visited_children):
-    # output = {}
-    # for child in visited_children:
-    #    output.update(child[0])
-    # return output
-    def visit_props(self, node, visited_children):
-        return visited_children[1]
-
-    def visit_entry(self, node, visited_children):
-        key, value = visited_children[0], visited_children[-1][0]
-        return (key, value)
-
-    def visit_list(self, node, visited_children):
-        newlist = tuple(t[0] for t in visited_children[1] if isinstance(t[0], str))
-        return newlist
-
-    def visit_dict(self, node, visited_children):
-        out = {k: v for k, v in visited_children}
-        return out
-
-    def visit_text(self, node, visited_children):
-        return node.text
-
-    def visit_word(self, node, visited_childre):
-        return node.text
-
-    def visit_key(self, node, visited_children):
-        _, word = visited_children
-        return word
-
-    def generic_visit(self, node, visited_children):
-        """ The generic visit method. """
-        return visited_children or node
-
-
-iv = Visitor()
-
-
 def extract_props(expr):
     tree = pdf_dict_grammer.parse(expr)
     output = iv.visit(tree)
@@ -243,14 +204,76 @@ pdf_obj_grammar = Grammar(r"""
     rpar  = "]"
 """)
 
+pdf_obj_grammar = Grammar(r"""
+    pdfobj = obj_id objcontent "endobj"
+    objcontent = objentry*
+    objentry = stream_obj / props / int / ws
+    obj_id = int ws int ws "obj"
+    stream_obj = "stream" stream "endstream"
+    stream = ~"[asd\s]*"
+    props = "<<" dict ">>"
+    dict = entry*
+    entry = key ws? value
+    value = list / key / text / props
+    list = lpar array rpar
+    array = (key / word / ws)+
+    key = "/" word
+    word = ~"[a-z0-9]+"i
+    text = ~"[ a-z0-9]+"i
+    int = ~"[0-9]+"
+    ws = ~"\s*"
+    lpar  = "["
+    rpar  = "]"
+""")
+
 
 class Visitor(NodeVisitor):
+    def visit_pdfobj(self, node, visited_children):
+        obj_id, objcontent, _ = visited_children
+        return {obj_id: objcontent}
+
+    def visit_objcontent(self, node, visited_children):
+        objs = tuple(c[0] for c in visited_children if c[0])
+        return {k: v for k, v in objs}
+
+    def visit_ws(self, node, visited_children):
+        return None
+
     def visit_obj_id(self, node, visited_childred):
         int1, _, version, _, _ = visited_childred
         return (int1, version)
 
+    def visit_stream_obj(self, node, visited_children):
+        return ("stream", visited_children[1].text)
+
     def visit_int(self, node, visited_childred):
         return int(node.text)
+
+    def visit_props(self, node, visited_children):
+        return ("props", visited_children[1])
+
+    def visit_entry(self, node, visited_children):
+        key, value = visited_children[0], visited_children[-1][0]
+        return (key, value)
+
+    def visit_list(self, node, visited_children):
+        newlist = tuple(t[0] for t in visited_children[1] if isinstance(t[0], str))
+        return newlist
+
+    def visit_dict(self, node, visited_children):
+        out = {k: v for k, v in visited_children}
+        return out
+
+    def visit_text(self, node, visited_children):
+        return node.text
+
+    def visit_word(self, node, visited_childre):
+        return node.text
+
+    def visit_key(self, node, visited_children):
+        _, word = visited_children
+        return word
+
     def generic_visit(self, node, visited_children):
         """ The generic visit method. """
         return visited_children or node
@@ -258,16 +281,21 @@ class Visitor(NodeVisitor):
 
 iv = Visitor()
 
-pdf_obj_grammar = Grammar(r"""
-    pdfobj = obj_id ws content ws b"endobj"
-    content = int
-    obj_id = int ws int ws b"obj"
-    int = ~rb"[0-9]+"
-    ws = ~rb"\s*"
-""")
-
-testexpr = b'6 0 obj\n24535\nendobj'
-tree = pdf_obj_grammar.parse(testexpr)
+txt = '6 0 obj\n24535\nendobj'
+txt = object_dict[b'5 0 obj'][:100] + object_dict[b'5 0 obj'][-100:]
+txt = txt.decode('utf-8', 'ignore')
+txt = r"""5 0 obj
+<</Length 6 0 R/Filter /FlateDecode>>
+stream
+x/q\x1ev(JKqCP/EP?%XX\x17k\x1fN\x04iL֢ \x1ciL(,㒇պ$w\x0f;|gL^ooI\x05zh
+v\x0c+y\x13*y@A\x08:k|\x00hPcendstream
+endobj"""
+txt = """5 0 obj
+<</Length 6 0 R/Filter /FlateDecode>>
+stream
+asdasdasdasdasdaendstream
+endobj"""
+tree = pdf_obj_grammar.parse(txt)
 print(tree)
 
 out = iv.visit(tree)
