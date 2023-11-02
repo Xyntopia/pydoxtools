@@ -148,93 +148,21 @@ def parse_xref_table(pdf_content, xref_position):
     return xref_table
 
 
-def handle_stream(lines):
-    end_index = next((i for i, line in enumerate(lines) if line.endswith(b'endstream')), -1)
-    if end_index != -1:
-        stream_data = b'\n'.join(lines[:end_index])
-        remaining_lines = lines[end_index + 1:]
-        return stream_data, remaining_lines
-    return None, lines
-
-
-pdf_dict_grammer = Grammar(r"""
-    props = "<<" dict ">>"
-    dict = entry*
-    entry = key ws? value
-    value = list / key / text / props
-    list = lpar array rpar
-    array = (key / word / ws)+
-    key = "/" word
-    word = ~"[a-z0-9]+"i
-    text = ~"[ a-z0-9]+"i
-    ws = ~"\s*"
-    lpar  = "["
-    rpar  = "]"
-""")
-
-
-def extract_props(expr):
-    tree = pdf_dict_grammer.parse(expr)
-    output = iv.visit(tree)
-    return output
-
-
-with open('../tests/data/Datasheet-Centaur-Charger-DE.6f.pdf', 'rb') as file:
-    pdf_content = file.read()
-
-header = parse_pdf_header(pdf_content)
-xref_position = find_xref_position(pdf_content)
-xref_table = parse_xref_table(pdf_content, xref_position)
-object_dict = split_pdf_objects(pdf_content, xref_table)
-# object_props = {num: parse_pdf_object(value) for num, value in object_dict.items()}
-# df = pd.DataFrame(object_props).T.drop(columns="stream")
-
-pdf_obj_grammar = Grammar(r"""
-    props = "<<" dict ">>"
-    dict = entry*
-    entry = key ws? value
-    value = list / key / text / props
-    list = lpar array rpar
-    array = (key / word / ws)+
-    key = "/" word
-    word = ~"[a-z0-9]+"i
-    text = ~"[ a-z0-9]+"i
-    ws = ~"\s*"
-    lpar  = "["
-    rpar  = "]"
-""")
-
-pdf_obj_grammar = Grammar(r"""
-    pdfobj = obj_id objcontent "endobj"
-    objcontent = objentry*
-    objentry = stream_obj / props / int / ws
-    obj_id = int ws int ws "obj"
-    stream_obj = "stream" stream "endstream"
-    stream = ~"[asd\s]*"
-    props = "<<" dict ">>"
-    dict = entry*
-    entry = key ws? value
-    value = list / key / text / props
-    list = lpar array rpar
-    array = (key / word / ws)+
-    key = "/" word
-    word = ~"[a-z0-9]+"i
-    text = ~"[ a-z0-9]+"i
-    int = ~"[0-9]+"
-    ws = ~"\s*"
-    lpar  = "["
-    rpar  = "]"
-""")
-
-
 class Visitor(NodeVisitor):
     def visit_pdfobj(self, node, visited_children):
         obj_id, objcontent, _ = visited_children
-        return {obj_id: objcontent}
+        objcontent.update({"id": obj_id})
+        return objcontent
 
     def visit_objcontent(self, node, visited_children):
-        objs = tuple(c[0] for c in visited_children if c[0])
-        return {k: v for k, v in objs}
+        objs = {}
+        for c,*_ in visited_children:
+            if c:
+                if isinstance(c, int):
+                    objs['value']=c
+                else:
+                    objs[c[0]]=c[1]
+        return objs
 
     def visit_ws(self, node, visited_children):
         return None
@@ -242,9 +170,6 @@ class Visitor(NodeVisitor):
     def visit_obj_id(self, node, visited_childred):
         int1, _, version, _, _ = visited_childred
         return (int1, version)
-
-    def visit_stream_obj(self, node, visited_children):
-        return ("stream", visited_children[1].text)
 
     def visit_int(self, node, visited_childred):
         return int(node.text)
@@ -279,7 +204,69 @@ class Visitor(NodeVisitor):
         return visited_children or node
 
 
+pdf_obj_grammar = Grammar(r"""
+    pdfobj = obj_id objcontent "endobj"
+    objcontent = objentry*
+    objentry = props / int / ws
+    obj_id = int ws int ws "obj"
+    props = "<<" dict ">>"
+    dict = entry*
+    entry = key ws? value
+    value = list / key / text / props
+    list = lpar array rpar
+    array = (key / word / ws)+
+    key = "/" word
+    word = ~"[a-z0-9]+"i
+    text = ~"[ a-z0-9]+"i
+    int = ~"[0-9]+"
+    ws = ~"\s*"
+    lpar  = "["
+    rpar  = "]"
+""")
+
 iv = Visitor()
+
+
+def extract_stream_data(content: bytes) -> [bytes, bytes]:
+    stream_start = content.find(b'stream')
+    if stream_start == -1:
+        return None, content  # No stream found
+    stream_start += len(b'stream\n')  # Skip the 'stream\n' keyword
+    stream_end = content.find(b'endstream', stream_start)
+    if stream_end == -1:
+        return None, content  # No endstream found
+    stream_data = content[stream_start:stream_end]
+    remaining_content = content[:stream_start - len(b'stream\n')] + content[stream_end + len(b'endstream'):]
+    return stream_data, remaining_content
+
+
+def parse_pdf_object(pdf_object):
+    parsed_object = {}
+
+    # Handle the stream part
+    stream_data, remaining_content = extract_stream_data(pdf_object)
+    parsed_object['stream'] = stream_data
+
+    # Assuming the remaining content is well-formed and can be parsed by your grammar and visitor
+    tree = pdf_obj_grammar.parse(remaining_content.decode('utf-8', 'ignore'))
+    output = iv.visit(tree)
+
+    # Assuming the output is a dictionary, merge it with the parsed_object dictionary
+    parsed_object.update(output)
+
+    return parsed_object
+
+
+with open('../tests/data/Datasheet-Centaur-Charger-DE.6f.pdf', 'rb') as file:
+    pdf_content = file.read()
+
+header = parse_pdf_header(pdf_content)
+xref_position = find_xref_position(pdf_content)
+xref_table = parse_xref_table(pdf_content, xref_position)
+object_dict = split_pdf_objects(pdf_content, xref_table)
+object_props = {num: parse_pdf_object(value) for num, value in object_dict.items()}
+# df = pd.DataFrame(object_props).T.drop(columns="stream")
+
 
 txt = '6 0 obj\n24535\nendobj'
 txt = object_dict[b'5 0 obj'][:100] + object_dict[b'5 0 obj'][-100:]
@@ -293,9 +280,12 @@ endobj"""
 txt = """5 0 obj
 <</Length 6 0 R/Filter /FlateDecode>>
 stream
-asdasdasdasdasdaendstream
+asdasdasxdasdasdaendstream
 endobj"""
+txt = b'5 0 obj\n<</Length 6 0 R/Filter /FlateDecode>>\n\nendobj'
 tree = pdf_obj_grammar.parse(txt)
 print(tree)
 
 out = iv.visit(tree)
+
+print(out[(5, 0)])
