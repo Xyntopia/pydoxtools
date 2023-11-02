@@ -58,39 +58,6 @@ def get_object(pdf_content, obj_num, xref_table):
         pass  # ...
 
 
-def extract_objects(pdf_content, xref_table):
-    objects = []
-    for obj_num, obj_offset in xref_table.items():
-        obj_dict = {}
-        obj_pos = obj_offset
-        # Find the end of the object (assumes the next object starts with its object number)
-        obj_end = pdf_content.find(f'{obj_num + 1} 0 obj'.encode(), obj_pos)
-        if obj_end == -1:
-            # If this is the last object, find the 'endobj' keyword to determine the end of the object
-            obj_end = pdf_content.find(b'endobj', obj_pos + 1) + len('endobj')
-        obj_data = pdf_content[obj_pos:obj_end].decode('utf-8', 'ignore')
-        # Split the object data into lines and process each line
-        for line in obj_data.split('\n'):
-            if line.startswith('<<'):
-                # This is the start of a dictionary; parse the dictionary
-                dict_end = obj_data.find('>>', obj_pos) + len('>>')
-                dict_data = obj_data[obj_pos:dict_end]
-                # Assume each line contains one key-value pair
-                for dict_line in dict_data.split('\n'):
-                    key_value = dict_line.split(' ', 1)
-                    if len(key_value) == 2:
-                        obj_dict[key_value[0]] = key_value[1]
-                obj_pos = dict_end  # Update the position to the end of the dictionary
-            elif line.startswith('stream'):
-                # This is the start of a stream; find the end of the stream
-                stream_end = obj_data.find('endstream', obj_pos) + len('endstream')
-                stream_data = obj_data[obj_pos:stream_end]
-                obj_dict['Stream'] = stream_data
-                obj_pos = stream_end  # Update the position to the end of the stream
-        objects.append(obj_dict)
-    return objects
-
-
 def split_pdf_objects(pdf_content, xref_table):
     object_dict = {}
     sorted_offsets = sorted(list(xref_table.values()))
@@ -189,6 +156,63 @@ def parse_xref_table(pdf_content, xref_position):
     return xref_table
 
 
+def parse_pdf_object(pdf_object):
+    parsed_object = {
+        'id': None,  # Add an 'id' field to hold the object identifier
+        'props': {},
+        'stream': None,
+        'content': [],
+        'type': None
+    }
+
+    lines = pdf_object.split(b'\n')
+    inside_stream = False
+    stream_data = []
+    for line in lines:
+        if line.endswith(b'endobj'):  # Check for the end of object marker
+            break  # Exit the loop when the end of object marker is found
+        elif line.endswith(b'endstream'):
+            inside_stream = False
+            parsed_object[b'stream'] = b''.join(stream_data)
+            stream_data = []  # Reset stream data
+        elif inside_stream:
+            stream_data.append(line)
+        elif line.endswith(b'stream'):
+            inside_stream = True
+        elif line.startswith(b'<<') and line.endswith(b'>>'):
+            props = parse_properties(line)
+            parsed_object['props'].update(props)
+        elif b' obj' in line:
+            parsed_object['id'] = line  # Capture the object identifier
+        else:
+            parsed_object['content'].append(line)
+
+    return parsed_object
+
+
+def parse_properties(prop_line):
+    properties = {}
+    tokens = prop_line.strip(b"<>/").split(b"/")
+
+    i = 0
+    while i < len(tokens):
+        token = tokens[i].strip()
+        if b' ' in token:
+            # If the token contains a space, it's a key-value pair.
+            key, value = token.split(b' ', 1)
+            properties[key] = value
+        else:
+            # Otherwise, it's a key, and the value is in the next token.
+            key = token
+            i += 1  # Move to the next token for the value.
+            if i < len(tokens):  # Ensure we don't go out of bounds.
+                value = tokens[i]
+                properties[key] = value
+        i += 1  # Move to the next token.
+
+    return properties
+
+
 with open('../tests/data/Datasheet-Centaur-Charger-DE.6f.pdf', 'rb') as file:
     pdf_content = file.read()
 
@@ -202,9 +226,8 @@ print(pdf_content[xref_position:].decode('utf-8', 'ignore'))
 
 xref_table = parse_xref_table(pdf_content, xref_position)
 
-# Assuming xref_table has been populated and pdf_content contains the PDF data
-objects_list = extract_objects(pdf_content, xref_table)
-
 # Usage:
 # Assuming xref_table has been populated and pdf_content contains the PDF data
 object_dict = split_pdf_objects(pdf_content, xref_table)
+
+object_props = {num: parse_pdf_object(value) for num, value in object_dict.items()}
