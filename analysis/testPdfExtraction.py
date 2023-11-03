@@ -155,14 +155,18 @@ class Visitor(NodeVisitor):
         return objcontent
 
     def visit_objcontent(self, node, visited_children):
-        objs = {}
-        for c,*_ in visited_children:
+        objs = {'props': {}}
+        for c, *_ in visited_children:
             if c:
                 if isinstance(c, int):
-                    objs['value']=c
+                    objs['value'] = c
+                # if isinstance(c_)
                 else:
-                    objs[c[0]]=c[1]
+                    objs['props'].update(c)
         return objs
+
+    def visit_props(self, node, visited_children):
+        return visited_children[1]
 
     def visit_ws(self, node, visited_children):
         return None
@@ -174,12 +178,12 @@ class Visitor(NodeVisitor):
     def visit_int(self, node, visited_childred):
         return int(node.text)
 
-    def visit_props(self, node, visited_children):
-        return ("props", visited_children[1])
-
     def visit_entry(self, node, visited_children):
-        key, value = visited_children[0], visited_children[-1][0]
-        return (key, value)
+        _, key, _, val, _ = visited_children
+        return (key, val)
+
+    def visit_value(self, node, visited_children):
+        return visited_children[0]
 
     def visit_list(self, node, visited_children):
         newlist = tuple(t[0] for t in visited_children[1] if isinstance(t[0], str))
@@ -199,6 +203,14 @@ class Visitor(NodeVisitor):
         _, word = visited_children
         return word
 
+    def visit_font(self, node, visited_children):
+        prefix, flag, fontname = visited_children
+        font = {"prefix": prefix, "fontname": flag.text + fontname}
+        return font
+
+    def visit_fontname(self, node, visited_children):
+        return node.text
+
     def generic_visit(self, node, visited_children):
         """ The generic visit method. """
         return visited_children or node
@@ -211,17 +223,17 @@ pdf_obj_grammar = Grammar(r"""
     obj_id = int ws int ws "obj"
     props = "<<" dict ">>"
     dict = entry*
-    entry = key ws? value
-    value = list / key / text / props
-    list = lpar array rpar
+    entry = ws? key ws? value ws?
+    value = font / list / key / text / props
+    list = "[" array "]"
     array = (key / word / ws)+
     key = "/" word
+    font = key "+" fontname
+    fontname = word ("-" word)*
     word = ~"[a-z0-9]+"i
     text = ~"[ a-z0-9]+"i
     int = ~"[0-9]+"
     ws = ~"\s*"
-    lpar  = "["
-    rpar  = "]"
 """)
 
 iv = Visitor()
@@ -247,9 +259,12 @@ def parse_pdf_object(pdf_object):
     stream_data, remaining_content = extract_stream_data(pdf_object)
     parsed_object['stream'] = stream_data
 
-    # Assuming the remaining content is well-formed and can be parsed by your grammar and visitor
-    tree = pdf_obj_grammar.parse(remaining_content.decode('utf-8', 'ignore'))
-    output = iv.visit(tree)
+    try:
+        # Assuming the remaining content is well-formed and can be parsed by your grammar and visitor
+        tree = pdf_obj_grammar.parse(remaining_content.decode('utf-8', 'ignore'))
+        output = iv.visit(tree)
+    except Exception as e:
+        raise TypeError(f'we got a problem with this string:\n\n{remaining_content}\n\n')
 
     # Assuming the output is a dictionary, merge it with the parsed_object dictionary
     parsed_object.update(output)
@@ -267,25 +282,35 @@ object_dict = split_pdf_objects(pdf_content, xref_table)
 object_props = {num: parse_pdf_object(value) for num, value in object_dict.items()}
 # df = pd.DataFrame(object_props).T.drop(columns="stream")
 
+pdf_obj_grammar = Grammar(r"""
+    pdfobj = obj_id objcontent "endobj"
+    objcontent = objentry*
+    objentry = props / int / ws
+    obj_id = int ws int ws "obj"
+    props = "<<" dict ">>"
+    dict = entry*
+    entry = ws? key ws? value ws?
+    value = font / list / key / text / props
+    list = lpar array rpar
+    array = (key / word / ws)+
+    key = "/" word
+    font = key fontname fontstyle?
+    fontname = "+" word
+    fontstyle = "-" word
+    word = ~"[a-z0-9]+"i
+    text = ~"[ a-z0-9]+"i
+    int = ~"[0-9]+"
+    ws = ~"\s*"
+    lpar  = "["
+    rpar  = "]"
+""")
 
-txt = '6 0 obj\n24535\nendobj'
-txt = object_dict[b'5 0 obj'][:100] + object_dict[b'5 0 obj'][-100:]
+txt = \
+    b'11 0 obj\n<</BaseFont/XRQUZW+MyriadPro-Regular/FontDescriptor 10 0 R/Type/Font\n/FirstChar 1/LastChar 86/Widths[ 212 736 207 481 234 448 331 327 549 555 501 559 471 834 558\n492 542 239 666 532 482 236 513 513 513 370 646 612 497 555 658\n564 396 569 207 596 284 513 284 513 513 513 487 463 513 307 737\n551 482 569 207 292 428 493 652 469 472 542 551 548 804 513 580\n792 343 318 243 553 549 239 207 207 846 354 354 513 500 563 647\n647 538 612 605 311 689 501]\n/Encoding 44 0 R/Subtype/Type1>>\nendobj'
+txt = b'25 0 obj\n<</BaseFont/SNDABN+Helvetica/FontDescriptor 24 0 R/Type/Font\n/FirstChar 32/LastChar 32/Widths[\n278]\n/Encoding/WinAnsiEncoding/Subtype/Type1>>\nendobj'
+txt = b'24 0 obj\n<</Type/FontDescriptor/FontName/SNDABN+Helvetica/FontBBox[0 0 1000 1000]/Flags 5\n/Ascent 0\n/CapHeight 0\n/Descent 0\n/ItalicAngle 0\n/StemV 0\n/AvgWidth 278\n/MaxWidth 278\n/MissingWidth 278\n/CharSet(/space)/FontFile3 34 0 R>>\nendobj'
 txt = txt.decode('utf-8', 'ignore')
-txt = r"""5 0 obj
-<</Length 6 0 R/Filter /FlateDecode>>
-stream
-x/q\x1ev(JKqCP/EP?%XX\x17k\x1fN\x04iL֢ \x1ciL(,㒇պ$w\x0f;|gL^ooI\x05zh
-v\x0c+y\x13*y@A\x08:k|\x00hPcendstream
-endobj"""
-txt = """5 0 obj
-<</Length 6 0 R/Filter /FlateDecode>>
-stream
-asdasdasxdasdasdaendstream
-endobj"""
-txt = b'5 0 obj\n<</Length 6 0 R/Filter /FlateDecode>>\n\nendobj'
 tree = pdf_obj_grammar.parse(txt)
 print(tree)
 
 out = iv.visit(tree)
-
-print(out[(5, 0)])
