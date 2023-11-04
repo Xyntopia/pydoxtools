@@ -164,6 +164,9 @@ class Visitor(NodeVisitor):
     def visit_int(self, node, visited_childred):
         return int(node.text)
 
+    def visit_number(self, node, visited_children):
+        return float(node.text)
+
     def visit_entry(self, node, visited_children):
         _, key, _, val, _ = visited_children
         return (key, val)
@@ -173,6 +176,9 @@ class Visitor(NodeVisitor):
 
     def visit_string(self, node, visited_children):
         return visited_children[1]
+
+    def visit_uristr(self, node, visited_children):
+        return visited_children[1].text
 
     def visit_date(self, node, visited_children):
         return visited_children[1]
@@ -228,11 +234,12 @@ pdf_obj_grammar = Grammar(r"""
     props = "<<" dict ">>"
     dict = entry*
     entry = ws? key ws? value ws?
-    value = date / reference / int / props / font / list / strlist / key / text / string
+    value = date  / reference / int / props / font / list / key / text / uristr / string / strlist
     list = "[" array "]"
     strlist = "(" array ")"
+    uristr = "(" uri ")"
     string = "(" text ")"
-    array = (reference / key / int / word / ws)+
+    array = (reference / key / number / int / word / ws)+
     key = "/" word
     obj_id = int ws int ws "obj"
     reference = int ws int ws "R"
@@ -241,11 +248,13 @@ pdf_obj_grammar = Grammar(r"""
     # HH followed by ' is the absolute value of the offset from UT in hours (00-23)
     # mm followed by ' is the absolute value of the offset from UT in minutes (00-59)
     date = "(D:" text ")"
+    uri = ~"(?:mailto:)?[\w.-]+@[\w.-]+\.\w+"i
     font = key "+" fontname
     fontname = word ("-" word)*
     word = ~"[a-z0-9]+"i
-    text = ~"[ a-z0-9\.\-]+"i
+    text = ~"[ a-z0-9.-]+"i
     int = ~"-?[0-9]+"
+    number = ~"-?[0-9.]+"
     ws = ~"\s*"
 """)
 
@@ -300,27 +309,29 @@ if True:
         xref = extract_xrefs_and_trailers(pdf_content)
         object_dict = parse_xrefs(xref)
 
-
         # df = pd.DataFrame(object_props).T.drop(columns="stream")
 
-        def test_object_extraction():
-            texts = (
-                b'11 0 obj\n<</BaseFont/XRQUZW+MyriadPro-Regular/FontDescriptor 10 0 R/Type/Font\n/FirstChar 1/LastChar 86/Widths[ 212 736 207 481 234 448 331 327 549 555 501 559 471 834 558\n492 542 239 666 532 482 236 513 513 513 370 646 612 497 555 658\n564 396 569 207 596 284 513 284 513 513 513 487 463 513 307 737\n551 482 569 207 292 428 493 652 469 472 542 551 548 804 513 580\n792 343 318 243 553 549 239 207 207 846 354 354 513 500 563 647\n647 538 612 605 311 689 501]\n/Encoding 44 0 R/Subtype/Type1>>\nendobj'
-                ,
-                b'25 0 obj\n<</BaseFont/SNDABN+Helvetica/FontDescriptor 24 0 R/Type/Font\n/FirstChar 32/LastChar 32/Widths[\n278]\n/Encoding/WinAnsiEncoding/Subtype/Type1>>\nendobj'
-                ,
-                b'24 0 obj\n<</Type/FontDescriptor/FontName/SNDABN+Helvetica/FontBBox[0 0 1000 1000]/Flags 5\n/Ascent 0\n/CapHeight 0\n/Descent 0\n/ItalicAngle 0\n/StemV 0\n/AvgWidth 278\n/MaxWidth 278\n/MissingWidth 278\n/CharSet(/space)/FontFile3 34 0 R>>\nendobj'
-                ,
-                b'10 0 obj\n<</Type/FontDescriptor/FontName/XRQUZW+MyriadPro-Regular/FontBBox[-46 -250 838 837]/Flags 4\n/Ascent 837\n/CapHeight 837\n/Descent -250\n/ItalicAngle 0\n/StemV 125\n/MissingWidth 500\n/CharSet(/two/L/quoteright/A/germandbls/y/quotedblleft/n/c/three/M/parenleft/B/z/o/d/four/N/parenright/C/p/e/at/Z/five/O/D/udieresis/quotedblright/adieresis/q/f/six/P/plus/E/space/r/g/seven/comma/F/s/h/eight/degree/hyphen/R/G/egrave/endash/t/i/nine/S/period/H/u/j/Adieresis/colon/T/slash/I/Udieresis/v/k/quoteleft/U/zero/J/percent/odieresis/twosuperior/w/l/a/V/one/K/ampersand/x/m/bar/b/W)/FontFile3 36 0 R>>\nendobj'
-                ,
-                b'2 0 obj\n<</Producer(GPL Ghostscript 8.15)\n/CreationDate(D:20140311091801)\n/ModDate(D:20140311091801)\n/Title(Microsoft Word - Datasheet - Centaur Charger - rev 05 - DE.docx)\n/Creator(PScript5.dll Version 5.2.2)\n/Author(marianka pranger)>>endobj'
-            )
-            for txt in texts:
-                txtd = txt.decode('utf-8', 'ignore')
-                tree = pdf_obj_grammar.parse(txtd)
-                out = iv.visit(tree)
+        # def test_object_extraction():
+        texts = (
+            b'13 0 obj\r\n<</Subtype/Link/Rect[ 307.54 52.669 404.42 67.927] /BS<</W 0>>/F 4/A<</Type/Action/S/URI/URI(mailto:info@berlin-space-tech.com) >>>>\r\nendobj'
+            ,
+            b'3 0 obj\r\n<</Type/Page/Parent 2 0 R/Resources<</Font<</F1 5 0 R/F2 9 0 R/F3 11 0 R/F4 15 0 R/F5 17 0 R/F6 22 0 R>>/ExtGState<</GS7 7 0 R/GS8 8 0 R>>/XObject<</Image14 14 0 R/Image24 24 0 R>>/ProcSet[/PDF/Text/ImageB/ImageC/ImageI] >>/Annots[ 13 0 R] /MediaBox[ 0 0 595.32 841.92] /Contents 4 0 R/Group<</Type/Group/S/Transparency/CS/DeviceRGB>>/Tabs/S/StructParents 0>>\r\nendobj'
+            ,
+            b'11 0 obj\n<</BaseFont/XRQUZW+MyriadPro-Regular/FontDescriptor 10 0 R/Type/Font\n/FirstChar 1/LastChar 86/Widths[ 212 736 207 481 234 448 331 327 549 555 501 559 471 834 558\n492 542 239 666 532 482 236 513 513 513 370 646 612 497 555 658\n564 396 569 207 596 284 513 284 513 513 513 487 463 513 307 737\n551 482 569 207 292 428 493 652 469 472 542 551 548 804 513 580\n792 343 318 243 553 549 239 207 207 846 354 354 513 500 563 647\n647 538 612 605 311 689 501]\n/Encoding 44 0 R/Subtype/Type1>>\nendobj'
+            ,
+            b'25 0 obj\n<</BaseFont/SNDABN+Helvetica/FontDescriptor 24 0 R/Type/Font\n/FirstChar 32/LastChar 32/Widths[\n278]\n/Encoding/WinAnsiEncoding/Subtype/Type1>>\nendobj'
+            ,
+            b'24 0 obj\n<</Type/FontDescriptor/FontName/SNDABN+Helvetica/FontBBox[0 0 1000 1000]/Flags 5\n/Ascent 0\n/CapHeight 0\n/Descent 0\n/ItalicAngle 0\n/StemV 0\n/AvgWidth 278\n/MaxWidth 278\n/MissingWidth 278\n/CharSet(/space)/FontFile3 34 0 R>>\nendobj'
+            ,
+            b'10 0 obj\n<</Type/FontDescriptor/FontName/XRQUZW+MyriadPro-Regular/FontBBox[-46 -250 838 837]/Flags 4\n/Ascent 837\n/CapHeight 837\n/Descent -250\n/ItalicAngle 0\n/StemV 125\n/MissingWidth 500\n/CharSet(/two/L/quoteright/A/germandbls/y/quotedblleft/n/c/three/M/parenleft/B/z/o/d/four/N/parenright/C/p/e/at/Z/five/O/D/udieresis/quotedblright/adieresis/q/f/six/P/plus/E/space/r/g/seven/comma/F/s/h/eight/degree/hyphen/R/G/egrave/endash/t/i/nine/S/period/H/u/j/Adieresis/colon/T/slash/I/Udieresis/v/k/quoteleft/U/zero/J/percent/odieresis/twosuperior/w/l/a/V/one/K/ampersand/x/m/bar/b/W)/FontFile3 36 0 R>>\nendobj'
+            ,
+            b'2 0 obj\n<</Producer(GPL Ghostscript 8.15)\n/CreationDate(D:20140311091801)\n/ModDate(D:20140311091801)\n/Title(Microsoft Word - Datasheet - Centaur Charger - rev 05 - DE.docx)\n/Creator(PScript5.dll Version 5.2.2)\n/Author(marianka pranger)>>endobj'
+        )
+        for txt in texts[:1]:
+            txtd = txt.decode('utf-8', 'ignore')
+            tree = pdf_obj_grammar.parse(txtd)
+            out = iv.visit(tree)
 
-
-        test_object_extraction()
+        # test_object_extraction()
 
         object_props = {num: parse_pdf_object(value) for num, value in object_dict.items()}
