@@ -185,9 +185,28 @@ class Visitor(NodeVisitor):
     def visit_value(self, node, visited_children):
         return visited_children[0]
 
+    def visit_string(self, node, visited_children):
+        return visited_children[1]
+
+    def visit_date(self, node, visited_children):
+        return visited_children[1]
+
+    def visit_reference(self, node, visited_children):
+        int1, _, int2, _, _ = visited_children
+        return ("R", int1, int2)
+
     def visit_list(self, node, visited_children):
-        newlist = tuple(t[0] for t in visited_children[1] if isinstance(t[0], str))
+        newlist = visited_children[1]
         return newlist
+
+    def visit_strlist(self, node, visited_children):
+        newlist = visited_children[1]
+        return newlist
+
+    def visit_array(self, node, visited_children):
+        # whitespace is usually "None" thats why we're checking...
+        array = tuple(v[0] for v in visited_children if (v[0] is not None))
+        return array
 
     def visit_dict(self, node, visited_children):
         out = {k: v for k, v in visited_children}
@@ -220,19 +239,27 @@ pdf_obj_grammar = Grammar(r"""
     pdfobj = obj_id objcontent "endobj"
     objcontent = objentry*
     objentry = props / int / ws
-    obj_id = int ws int ws "obj"
     props = "<<" dict ">>"
     dict = entry*
     entry = ws? key ws? value ws?
-    value = font / list / key / text / props
+    value = date / reference / int / props / font / list / strlist / key / text / string
     list = "[" array "]"
-    array = (key / word / ws)+
+    strlist = "(" array ")"
+    string = "(" text ")"
+    array = (reference / key / int / word / ws)+
     key = "/" word
+    obj_id = int ws int ws "obj"
+    reference = int ws int ws "R"
+    # date format:  (D:YYYYMMDDHHmmSSOHH'mm') 
+    # O is the relationship of local time to Universal Time (UT), denoted by one of the characters +, -, or Z (see below)
+    # HH followed by ' is the absolute value of the offset from UT in hours (00-23)
+    # mm followed by ' is the absolute value of the offset from UT in minutes (00-59)
+    date = "(D:" text ")"
     font = key "+" fontname
     fontname = word ("-" word)*
     word = ~"[a-z0-9]+"i
-    text = ~"[ a-z0-9]+"i
-    int = ~"[0-9]+"
+    text = ~"[ a-z0-9\.\-]+"i
+    int = ~"-?[0-9]+"
     ws = ~"\s*"
 """)
 
@@ -279,38 +306,18 @@ header = parse_pdf_header(pdf_content)
 xref_position = find_xref_position(pdf_content)
 xref_table = parse_xref_table(pdf_content, xref_position)
 object_dict = split_pdf_objects(pdf_content, xref_table)
-object_props = {num: parse_pdf_object(value) for num, value in object_dict.items()}
 # df = pd.DataFrame(object_props).T.drop(columns="stream")
-
-pdf_obj_grammar = Grammar(r"""
-    pdfobj = obj_id objcontent "endobj"
-    objcontent = objentry*
-    objentry = props / int / ws
-    obj_id = int ws int ws "obj"
-    props = "<<" dict ">>"
-    dict = entry*
-    entry = ws? key ws? value ws?
-    value = font / list / key / text / props
-    list = lpar array rpar
-    array = (key / word / ws)+
-    key = "/" word
-    font = key fontname fontstyle?
-    fontname = "+" word
-    fontstyle = "-" word
-    word = ~"[a-z0-9]+"i
-    text = ~"[ a-z0-9]+"i
-    int = ~"[0-9]+"
-    ws = ~"\s*"
-    lpar  = "["
-    rpar  = "]"
-""")
 
 txt = \
     b'11 0 obj\n<</BaseFont/XRQUZW+MyriadPro-Regular/FontDescriptor 10 0 R/Type/Font\n/FirstChar 1/LastChar 86/Widths[ 212 736 207 481 234 448 331 327 549 555 501 559 471 834 558\n492 542 239 666 532 482 236 513 513 513 370 646 612 497 555 658\n564 396 569 207 596 284 513 284 513 513 513 487 463 513 307 737\n551 482 569 207 292 428 493 652 469 472 542 551 548 804 513 580\n792 343 318 243 553 549 239 207 207 846 354 354 513 500 563 647\n647 538 612 605 311 689 501]\n/Encoding 44 0 R/Subtype/Type1>>\nendobj'
 txt = b'25 0 obj\n<</BaseFont/SNDABN+Helvetica/FontDescriptor 24 0 R/Type/Font\n/FirstChar 32/LastChar 32/Widths[\n278]\n/Encoding/WinAnsiEncoding/Subtype/Type1>>\nendobj'
 txt = b'24 0 obj\n<</Type/FontDescriptor/FontName/SNDABN+Helvetica/FontBBox[0 0 1000 1000]/Flags 5\n/Ascent 0\n/CapHeight 0\n/Descent 0\n/ItalicAngle 0\n/StemV 0\n/AvgWidth 278\n/MaxWidth 278\n/MissingWidth 278\n/CharSet(/space)/FontFile3 34 0 R>>\nendobj'
+txt = b'10 0 obj\n<</Type/FontDescriptor/FontName/XRQUZW+MyriadPro-Regular/FontBBox[-46 -250 838 837]/Flags 4\n/Ascent 837\n/CapHeight 837\n/Descent -250\n/ItalicAngle 0\n/StemV 125\n/MissingWidth 500\n/CharSet(/two/L/quoteright/A/germandbls/y/quotedblleft/n/c/three/M/parenleft/B/z/o/d/four/N/parenright/C/p/e/at/Z/five/O/D/udieresis/quotedblright/adieresis/q/f/six/P/plus/E/space/r/g/seven/comma/F/s/h/eight/degree/hyphen/R/G/egrave/endash/t/i/nine/S/period/H/u/j/Adieresis/colon/T/slash/I/Udieresis/v/k/quoteleft/U/zero/J/percent/odieresis/twosuperior/w/l/a/V/one/K/ampersand/x/m/bar/b/W)/FontFile3 36 0 R>>\nendobj'
+txt = b'2 0 obj\n<</Producer(GPL Ghostscript 8.15)\n/CreationDate(D:20140311091801)\n/ModDate(D:20140311091801)\n/Title(Microsoft Word - Datasheet - Centaur Charger - rev 05 - DE.docx)\n/Creator(PScript5.dll Version 5.2.2)\n/Author(marianka pranger)>>endobj'
 txt = txt.decode('utf-8', 'ignore')
 tree = pdf_obj_grammar.parse(txt)
 print(tree)
 
 out = iv.visit(tree)
+
+object_props = {num: parse_pdf_object(value) for num, value in object_dict.items()}
