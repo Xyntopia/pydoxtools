@@ -25,26 +25,19 @@ def parse_pdf_header(pdf_content):
     return pdf_content[header_position:header_end].decode('utf-8', 'ignore')
 
 
-def find_xref_position(pdf_content):
+def extract_xref(pdf_content) -> bytes:
     # The xref position is typically near the end of the file
-    xref_position = pdf_content.rfind(b'startxref')
-    if xref_position == -1:
+    xref_location_hint = pdf_content.rfind(b'startxref')
+    if xref_location_hint == -1:
         raise ValueError("xref not found")
+    xref_start = int(pdf_content[xref_location_hint + len(b'startxref\n'):].split()[0])
 
-    # Skip the 'startxref' keyword and any subsequent whitespace
-    xref_position_start = xref_position + len(b'startxref')
-    while pdf_content[xref_position_start] in b'\x20\x0A\x0D\x09':  # Space, LF, CR, Tab
-        xref_position_start += 1
+    xref_end = pdf_content.rfind(b'trailer', xref_start)
+    if xref_end == -1:
+        raise ValueError("xref end not found")
 
-    # Find the end of the xref position number
-    xref_position_end = xref_position_start
-    while pdf_content[xref_position_end] not in b'\x20\x0A\x0D\x09':  # Space, LF, CR, Tab
-        xref_position_end += 1
-
-    # Convert the xref position to an integer
-    xref_position_number = int(pdf_content[xref_position_start:xref_position_end])
-
-    return xref_position_number
+    xref = pdf_content[xref_start:xref_end].strip()
+    return xref
 
 
 def get_object(pdf_content, obj_num, xref_table):
@@ -61,13 +54,13 @@ def get_object(pdf_content, obj_num, xref_table):
 
 def split_pdf_objects(pdf_content, xref_table):
     object_dict = {}
-    sorted_offsets = sorted(list(xref_table.values()))
+    sorted_offsets = sorted(xref_table)
 
     for i, obj_offset in enumerate(sorted_offsets):
-        obj_pos = obj_offset
+        obj_pos = obj_offset[0]
         if i + 1 < len(sorted_offsets):
             # If this is not the last known object, find the end position based on the next object's offset
-            obj_end = sorted_offsets[i + 1]
+            obj_end = sorted_offsets[i + 1][0]
         else:
             # If this is the last known object, find the 'endobj' keyword to determine the end of the object
             obj_end = pdf_content.find(b'endobj', obj_pos) + len('endobj')
@@ -112,40 +105,13 @@ def find_substring_occurrences(substring, string):
         start += len(substring)  # use start += 1 to find overlapping matches
 
 
-def parse_xref_table(pdf_content, xref_position):
-    pos = xref_position
-    xref_table = {}
+def parse_xref(xref_bytes: bytes):
+    table = []
+    for line in xref_bytes.split(b"\n")[2:]:
+        i1, i2, c = line.split()
+        table.append((int(i1), int(i2), c))
 
-    # Skip the 'xref' line and the object range line
-    pos = pdf_content.find(b'\n', pos) + 1  # Skip 'xref'
-    pos = pdf_content.find(b'\n', pos) + 1  # Skip object range
-
-    while True:
-        # Get the next line
-        newline_pos = pdf_content.find(b'\n', pos)
-        if newline_pos == -1:
-            raise ValueError("Trailer not found")
-
-        line = pdf_content[pos:newline_pos].decode('utf-8', 'ignore')
-
-        if line.startswith('trailer'):
-            # End of xref table
-            break
-
-        # Parse the fields based on their fixed widths
-        obj_offset = int(line[:10])
-        obj_gen_num = int(line[11:16])
-        obj_status = line[17]
-
-        # Assuming you want to store the offset of in-use objects
-        if obj_status == 'n':
-            obj_num = len(xref_table)  # Assuming objects are listed in order
-            xref_table[obj_num] = obj_offset
-
-        # Move to the next line
-        pos = newline_pos + 1
-
-    return xref_table
+    return table
 
 
 class Visitor(NodeVisitor):
@@ -299,25 +265,43 @@ def parse_pdf_object(pdf_object):
     return parsed_object
 
 
-with open('../tests/data/Datasheet-Centaur-Charger-DE.6f.pdf', 'rb') as file:
-    pdf_content = file.read()
+# def test_files():
+if True:
+    files = [
+        '../tests/data/Datasheet-Centaur-Charger-DE.6f.pdf',
+        '../tests/data/PFR-PR23_BAT-110__V1.00_.pdf'
+    ]
 
-header = parse_pdf_header(pdf_content)
-xref_position = find_xref_position(pdf_content)
-xref_table = parse_xref_table(pdf_content, xref_position)
-object_dict = split_pdf_objects(pdf_content, xref_table)
-# df = pd.DataFrame(object_props).T.drop(columns="stream")
+    for f in files:
+        with open(f, 'rb') as file:
+            pdf_content = file.read()
 
-txt = \
-    b'11 0 obj\n<</BaseFont/XRQUZW+MyriadPro-Regular/FontDescriptor 10 0 R/Type/Font\n/FirstChar 1/LastChar 86/Widths[ 212 736 207 481 234 448 331 327 549 555 501 559 471 834 558\n492 542 239 666 532 482 236 513 513 513 370 646 612 497 555 658\n564 396 569 207 596 284 513 284 513 513 513 487 463 513 307 737\n551 482 569 207 292 428 493 652 469 472 542 551 548 804 513 580\n792 343 318 243 553 549 239 207 207 846 354 354 513 500 563 647\n647 538 612 605 311 689 501]\n/Encoding 44 0 R/Subtype/Type1>>\nendobj'
-txt = b'25 0 obj\n<</BaseFont/SNDABN+Helvetica/FontDescriptor 24 0 R/Type/Font\n/FirstChar 32/LastChar 32/Widths[\n278]\n/Encoding/WinAnsiEncoding/Subtype/Type1>>\nendobj'
-txt = b'24 0 obj\n<</Type/FontDescriptor/FontName/SNDABN+Helvetica/FontBBox[0 0 1000 1000]/Flags 5\n/Ascent 0\n/CapHeight 0\n/Descent 0\n/ItalicAngle 0\n/StemV 0\n/AvgWidth 278\n/MaxWidth 278\n/MissingWidth 278\n/CharSet(/space)/FontFile3 34 0 R>>\nendobj'
-txt = b'10 0 obj\n<</Type/FontDescriptor/FontName/XRQUZW+MyriadPro-Regular/FontBBox[-46 -250 838 837]/Flags 4\n/Ascent 837\n/CapHeight 837\n/Descent -250\n/ItalicAngle 0\n/StemV 125\n/MissingWidth 500\n/CharSet(/two/L/quoteright/A/germandbls/y/quotedblleft/n/c/three/M/parenleft/B/z/o/d/four/N/parenright/C/p/e/at/Z/five/O/D/udieresis/quotedblright/adieresis/q/f/six/P/plus/E/space/r/g/seven/comma/F/s/h/eight/degree/hyphen/R/G/egrave/endash/t/i/nine/S/period/H/u/j/Adieresis/colon/T/slash/I/Udieresis/v/k/quoteleft/U/zero/J/percent/odieresis/twosuperior/w/l/a/V/one/K/ampersand/x/m/bar/b/W)/FontFile3 36 0 R>>\nendobj'
-txt = b'2 0 obj\n<</Producer(GPL Ghostscript 8.15)\n/CreationDate(D:20140311091801)\n/ModDate(D:20140311091801)\n/Title(Microsoft Word - Datasheet - Centaur Charger - rev 05 - DE.docx)\n/Creator(PScript5.dll Version 5.2.2)\n/Author(marianka pranger)>>endobj'
-txt = txt.decode('utf-8', 'ignore')
-tree = pdf_obj_grammar.parse(txt)
-print(tree)
+        header = parse_pdf_header(pdf_content)
+        xref = extract_xref(pdf_content)
+        xref_table = parse_xref(xref)
+        object_dict = split_pdf_objects(pdf_content, xref_table)
 
-out = iv.visit(tree)
 
-object_props = {num: parse_pdf_object(value) for num, value in object_dict.items()}
+        # df = pd.DataFrame(object_props).T.drop(columns="stream")
+
+        def test_object_extraction():
+            texts = (
+                b'11 0 obj\n<</BaseFont/XRQUZW+MyriadPro-Regular/FontDescriptor 10 0 R/Type/Font\n/FirstChar 1/LastChar 86/Widths[ 212 736 207 481 234 448 331 327 549 555 501 559 471 834 558\n492 542 239 666 532 482 236 513 513 513 370 646 612 497 555 658\n564 396 569 207 596 284 513 284 513 513 513 487 463 513 307 737\n551 482 569 207 292 428 493 652 469 472 542 551 548 804 513 580\n792 343 318 243 553 549 239 207 207 846 354 354 513 500 563 647\n647 538 612 605 311 689 501]\n/Encoding 44 0 R/Subtype/Type1>>\nendobj'
+                ,
+                b'25 0 obj\n<</BaseFont/SNDABN+Helvetica/FontDescriptor 24 0 R/Type/Font\n/FirstChar 32/LastChar 32/Widths[\n278]\n/Encoding/WinAnsiEncoding/Subtype/Type1>>\nendobj'
+                ,
+                b'24 0 obj\n<</Type/FontDescriptor/FontName/SNDABN+Helvetica/FontBBox[0 0 1000 1000]/Flags 5\n/Ascent 0\n/CapHeight 0\n/Descent 0\n/ItalicAngle 0\n/StemV 0\n/AvgWidth 278\n/MaxWidth 278\n/MissingWidth 278\n/CharSet(/space)/FontFile3 34 0 R>>\nendobj'
+                ,
+                b'10 0 obj\n<</Type/FontDescriptor/FontName/XRQUZW+MyriadPro-Regular/FontBBox[-46 -250 838 837]/Flags 4\n/Ascent 837\n/CapHeight 837\n/Descent -250\n/ItalicAngle 0\n/StemV 125\n/MissingWidth 500\n/CharSet(/two/L/quoteright/A/germandbls/y/quotedblleft/n/c/three/M/parenleft/B/z/o/d/four/N/parenright/C/p/e/at/Z/five/O/D/udieresis/quotedblright/adieresis/q/f/six/P/plus/E/space/r/g/seven/comma/F/s/h/eight/degree/hyphen/R/G/egrave/endash/t/i/nine/S/period/H/u/j/Adieresis/colon/T/slash/I/Udieresis/v/k/quoteleft/U/zero/J/percent/odieresis/twosuperior/w/l/a/V/one/K/ampersand/x/m/bar/b/W)/FontFile3 36 0 R>>\nendobj'
+                ,
+                b'2 0 obj\n<</Producer(GPL Ghostscript 8.15)\n/CreationDate(D:20140311091801)\n/ModDate(D:20140311091801)\n/Title(Microsoft Word - Datasheet - Centaur Charger - rev 05 - DE.docx)\n/Creator(PScript5.dll Version 5.2.2)\n/Author(marianka pranger)>>endobj'
+            )
+            for txt in texts:
+                txtd = txt.decode('utf-8', 'ignore')
+                tree = pdf_obj_grammar.parse(txtd)
+                out = iv.visit(tree)
+
+
+        test_object_extraction()
+
+        object_props = {num: parse_pdf_object(value) for num, value in object_dict.items()}
