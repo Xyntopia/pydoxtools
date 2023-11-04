@@ -25,31 +25,40 @@ def parse_pdf_header(pdf_content):
     return pdf_content[header_position:header_end].decode('utf-8', 'ignore')
 
 
-def extract_xref(pdf_content) -> bytes:
-    # The xref position is typically near the end of the file
-    xref_location_hint = pdf_content.rfind(b'startxref')
-    if xref_location_hint == -1:
-        raise ValueError("xref not found")
-    xref_start = int(pdf_content[xref_location_hint + len(b'startxref\n'):].split()[0])
+def extract_xrefs_and_trailers(pdf_content) -> list:
+    # This function now returns a list of (xref, trailer) tuples
+    xrefs_and_trailers = []
+    current_pos = -1
+    # Continue searching backwards for 'startxref' from the current position
+    current_pos = pdf_content.rfind(b'startxref', 0, current_pos)
+    if current_pos == -1:
+        raise ValueError("no xref found")
+    xref_start = int(pdf_content[current_pos + len(b'startxref\n'):].split()[0])
+    while True:
+        trailer_start = pdf_content.find(b'trailer', xref_start)
+        trailer_end = pdf_content.find(b'>>', trailer_start) + 2
+        if trailer_start == -1:
+            raise ValueError("trailer start not found")
+        xref = pdf_content[xref_start:trailer_start].strip()
+        trailer = pdf_content[trailer_start:trailer_end].strip()
+        xrefs_and_trailers.append((xref, trailer))
 
-    xref_end = pdf_content.rfind(b'trailer', xref_start)
-    if xref_end == -1:
-        raise ValueError("xref end not found")
+        # Find the previous xref offset directly after '/Prev' in the trailer
+        prev_start = trailer.find(b'/Prev ') + 6
+        if prev_start == 5:  # Not found (5 is from -1 + 6)
+            break
 
-    xref = pdf_content[xref_start:xref_end].strip()
-    return xref
+        # Extract the integer value for the previous xref offset
+        prev_end = prev_start
+        while prev_end < len(trailer) and trailer[prev_end:prev_end + 1].isdigit():
+            prev_end += 1
+        prev_offset = int(trailer[prev_start:prev_end])
 
+        # Set the current position to the previous xref offset for the next iteration
+        xref_start = prev_offset
 
-def get_object(pdf_content, obj_num, xref_table):
-    # This is a simplified example and does not handle all object types or errors
-    obj_pos = xref_table[obj_num]
-    obj_header = pdf_content[obj_pos:].split(b'\n')[0]
-    if b'stream' in obj_header:
-        # Handle stream object
-        pass  # ...
-    else:
-        # Handle other object types
-        pass  # ...
+    # We reverse to maintain the order from oldest to newest
+    return list(reversed(xrefs_and_trailers))
 
 
 def split_pdf_objects(pdf_content, xref_table):
@@ -112,6 +121,17 @@ def parse_xref(xref_bytes: bytes):
         table.append((int(i1), int(i2), c))
 
     return table
+
+
+def parse_xrefs(xrefs_and_trailers: list):
+    object_dict = {}
+    # Loop through all (xref, trailer) tuples
+    for xref_bytes, trailer_bytes in xrefs_and_trailers:
+        xref_table = parse_xref(xref_bytes)
+        temp_object_dict = split_pdf_objects(pdf_content, xref_table)
+        # Merge with the existing objects, newer entries will overwrite older ones
+        object_dict.update(temp_object_dict)
+    return object_dict
 
 
 class Visitor(NodeVisitor):
@@ -277,9 +297,8 @@ if True:
             pdf_content = file.read()
 
         header = parse_pdf_header(pdf_content)
-        xref = extract_xref(pdf_content)
-        xref_table = parse_xref(xref)
-        object_dict = split_pdf_objects(pdf_content, xref_table)
+        xref = extract_xrefs_and_trailers(pdf_content)
+        object_dict = parse_xrefs(xref)
 
 
         # df = pd.DataFrame(object_props).T.drop(columns="stream")
