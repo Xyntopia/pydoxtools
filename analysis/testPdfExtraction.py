@@ -184,7 +184,7 @@ class Visitor(NodeVisitor):
         return (int1, int2, "R")
 
     def visit_list(self, node, visited_children):
-        newlist = visited_children[1]
+        newlist = visited_children[1][0]
         return newlist
 
     def visit_array(self, node, visited_children):
@@ -198,6 +198,9 @@ class Visitor(NodeVisitor):
         return out
 
     def visit_text(self, node, visited_children):
+        return node.text.strip()
+
+    def visit_unicodetext(self, node, visited_children):
         return node.text.strip()
 
     def visit_word(self, node, visited_childre):
@@ -221,13 +224,14 @@ pdf_obj_grammar = Grammar(r"""
     entry = key value
     value = ws? "/"? (reference / int / text / list / props / word) ws?
     endobj = "endobj"
-    list = ("[" / "(") array ("]" / ")")
+    list = ("[" / "(") (array / unicodetext) ("]" / ")")
     array = ws? ((reference / key / number / int / word) ws?){1,} ws?
+    unicodetext = ~"[^\\)]*"
     key = "/" ~"[a-z0-9]+"is
     obj_id = int ws int ws "obj"
     reference = int ws int ws "R"
     text = (word / ws)+
-    word = ~"[a-z0-9.\-:@\+]+"i
+    word = ~"[a-z0-9.\-:@\+']+"i
     int = ~"-?[0-9]+"
     number = ~"-?[0-9]+\.[0-9]+"
     ws = ~"\s+"
@@ -288,6 +292,8 @@ if True:
 
         # def test_object_extraction():
         texts = (
+            b"31 0 obj\r\n<</Author(\xfe\xff\x00B\x00j\x00\xf6\x00r\x00n\x00 \x00D\x00a\x00n\x00z\x00i\x00g\x00e\x00r) /Creator(\xfe\xff\x00M\x00i\x00c\x00r\x00o\x00s\x00o\x00f\x00t\x00\xae\x00 \x00W\x00o\x00r\x00d\x00 \x00f\x00\xfc\x00r\x00 \x00O\x00f\x00f\x00i\x00c\x00e\x00 \x003\x006\x005) /CreationDate(D:20200722152437+02'00') /ModDate(D:20200722152437+02'00') /Producer(\xfe\xff\x00M\x00i\x00c\x00r\x00o\x00s\x00o\x00f\x00t\x00\xae\x00 \x00W\x00o\x00r\x00d\x00 \x00f\x00\xfc\x00r\x00 \x00O\x00f\x00f\x00i\x00c\x00e\x00 \x003\x006\x005) >>\r\nendobj"
+            ,
             b'18 0 obj\r\n[ 19 0 R] \r\nendobj'
             ,
             b'3 0 obj\n<< /Type /Pages /Kids [\n4 0 R\n21 0 R\n] /Count 2\n/Rotate 0>>\nendobj'
@@ -319,4 +325,4 @@ if True:
 
         # test_object_extraction()
 
-        # object_dict = {num: parse_pdf_object(value) for num, value in object_dict.items()}
+        object_props = {num: parse_pdf_object(value) for num, value in object_dict.items()}
