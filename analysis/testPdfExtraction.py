@@ -144,15 +144,14 @@ class Visitor(NodeVisitor):
         objs = {'props': {}}
         for c, *_ in visited_children:
             if c:
-                if isinstance(c, int):
-                    objs['value'] = c
-                # if isinstance(c_)
-                else:
+                if isinstance(c, dict):
                     objs['props'].update(c)
+                else:
+                    objs['value'] = c
         return objs
 
     def visit_props(self, node, visited_children):
-        return visited_children[1]
+        return visited_children[2]
 
     def visit_ws(self, node, visited_children):
         return None
@@ -216,8 +215,8 @@ class Visitor(NodeVisitor):
 pdf_obj_grammar = Grammar(r"""
     pdfobj = obj_id objcontent endobj
     objcontent = objentry*
-    objentry = props / int / ws
-    props = "<<" dict ">>"
+    objentry = props / reference / list / int / ws
+    props = "<<" ws? dict ws? ">>"
     dict = entry*
     entry = key value
     value = ws? "/"? (reference / int / text / list / props / word) ws?
@@ -289,8 +288,10 @@ if True:
 
         # def test_object_extraction():
         texts = (
+            b'18 0 obj\r\n[ 19 0 R] \r\nendobj'
+            ,
             b'3 0 obj\n<< /Type /Pages /Kids [\n4 0 R\n21 0 R\n] /Count 2\n/Rotate 0>>\nendobj'
-,
+            ,
             b'11 0 obj\n<</BaseFont/XRQUZW+MyriadPro-Regular/FontDescriptor 10 0 R/Type/Font\n/FirstChar 1/LastChar 86/Widths[ 212 736 207 481 234\n448 331 327 549 555 ]\n/Encoding 44 0 R/Subtype/Type1>>\nendobj'
             ,
             b'11 0 obj\n<</BaseFont/XRQUZW+MyriadPro-Regular/FontDescriptor 10 0 R/Type/Font\n/FirstChar 1/LastChar 86/Widths[ 212 736 207 481 234\n448 331 327 549 555 ]\n/Encoding 44 0 R/Subtype/Type1>>\nendobj'
@@ -311,11 +312,11 @@ if True:
             ,
             b'2 0 obj\n<</Producer(GPL Ghostscript 8.15)\n/CreationDate(D:20140311091801)\n/ModDate(D:20140311091801)\n/Title(Microsoft Word - Datasheet - Centaur Charger - rev 05 - DE.docx)\n/Creator(PScript5.dll Version 5.2.2)\n/Author(marianka pranger)>>endobj'
         )
-        for txt in texts[:1]:
+        for txt in texts[:]:
             txtd = txt.decode('utf-8', 'ignore')
             tree = pdf_obj_grammar.parse(txtd)
             out = iv.visit(tree)
 
         # test_object_extraction()
 
-        # = {num: parse_pdf_object(value) for num, value in object_dict.items()}
+        # object_dict = {num: parse_pdf_object(value) for num, value in object_dict.items()}
