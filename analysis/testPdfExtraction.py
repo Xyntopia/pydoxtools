@@ -63,7 +63,7 @@ def extract_xrefs_and_trailers(pdf_content) -> list:
 
 def split_pdf_objects(pdf_content, xref_table):
     object_dict = {}
-    sorted_offsets = sorted(xref_table)
+    sorted_offsets = [x for x in sorted(xref_table) if x[2] == b'n']
 
     for i, obj_offset in enumerate(sorted_offsets):
         obj_pos = obj_offset[0]
@@ -194,7 +194,7 @@ class Visitor(NodeVisitor):
         return array
 
     def visit_dict(self, node, visited_children):
-        out = {k: v for k, v in visited_children}
+        out = {k.lower(): v for k, v in visited_children}
         return out
 
     def visit_text(self, node, visited_children):
@@ -262,7 +262,8 @@ def parse_pdf_object(pdf_object):
 
     # Handle the stream part
     stream_data, remaining_content = extract_stream_data(pdf_object)
-    parsed_object['stream'] = stream_data
+    if stream_data:
+        parsed_object['stream'] = stream_data
 
     try:
         # Assuming the remaining content is well-formed and can be parsed by your grammar and visitor
@@ -277,6 +278,17 @@ def parse_pdf_object(pdf_object):
     return parsed_object
 
 
+def object_type_catalog(object_props: dict):
+    object_types = {}
+    for k, v in object_props.items():
+        if objtype := v.get('props', {}).get('type'):
+            if obj_list := object_types.get(objtype):
+                object_types[objtype].append(k)
+            else:
+                object_types[objtype] = [k]
+    return object_types
+
+
 # def test_files():
 if True:
     files = [
@@ -284,7 +296,7 @@ if True:
         '../tests/data/PFR-PR23_BAT-110__V1.00_.pdf'
     ]
 
-    for f in files:
+    for f in files[:1]:
         with open(f, 'rb') as file:
             pdf_content = file.read()
 
@@ -332,3 +344,11 @@ if True:
         # test_object_extraction()
 
         object_props = {num: parse_pdf_object(value) for num, value in object_dict.items()}
+        object_types = object_type_catalog(object_props)
+
+    import pandas as pd
+
+    all_props = {k: v.get('props') for k, v in object_props.items()}
+    df = pd.DataFrame(all_props)
+    df_cleaned = df.dropna(axis=1, thresh=1).dropna(thresh=5).dropna(axis=1, thresh=1)
+
