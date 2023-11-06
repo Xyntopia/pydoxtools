@@ -206,6 +206,9 @@ class Visitor(NodeVisitor):
     def visit_word(self, node, visited_childre):
         return node.text
 
+    def visit_extword(self, node, visited_children):
+        return node.text
+
     def visit_key(self, node, visited_children):
         word = visited_children[1].text
         return word
@@ -225,12 +228,13 @@ pdf_obj_grammar = Grammar(r"""
     value = ws? "/"? (reference / int / text / list / props / word) ws?
     endobj = "endobj"
     list = ("[" / "(") (array / unicodetext) ("]" / ")")
-    array = ws? ((reference / key / number / int / word) ws?){1,} ws?
+    array = ws? ((reference / key / number / int / word / extword / list) ws?){1,} ws?
     unicodetext = ~"[^\\)]*"
     key = "/" ~"[a-z0-9]+"is
     obj_id = int ws int ws "obj"
     reference = int ws int ws "R"
     text = (word / ws)+
+    extword = "<" word ">"
     word = ~"[a-z0-9.\-:@\+']+"i
     int = ~"-?[0-9]+"
     number = ~"-?[0-9]+\.[0-9]+"
@@ -292,6 +296,8 @@ if True:
 
         # def test_object_extraction():
         texts = (
+            b'222 0 obj\r\n<</Type/XRef/Size 222/W[ 1 4 2] /Root 1 0 R/Info 31 0 R/ID[<815282ED54EB134C9D4F0F780A31B1AA><815282ED54EB134C9D4F0F780A31B1AA>] /Filter/FlateDecode/Length 479>>\r\n\r\nendobj'
+            ,
             b"31 0 obj\r\n<</Author(\xfe\xff\x00B\x00j\x00\xf6\x00r\x00n\x00 \x00D\x00a\x00n\x00z\x00i\x00g\x00e\x00r) /Creator(\xfe\xff\x00M\x00i\x00c\x00r\x00o\x00s\x00o\x00f\x00t\x00\xae\x00 \x00W\x00o\x00r\x00d\x00 \x00f\x00\xfc\x00r\x00 \x00O\x00f\x00f\x00i\x00c\x00e\x00 \x003\x006\x005) /CreationDate(D:20200722152437+02'00') /ModDate(D:20200722152437+02'00') /Producer(\xfe\xff\x00M\x00i\x00c\x00r\x00o\x00s\x00o\x00f\x00t\x00\xae\x00 \x00W\x00o\x00r\x00d\x00 \x00f\x00\xfc\x00r\x00 \x00O\x00f\x00f\x00i\x00c\x00e\x00 \x003\x006\x005) >>\r\nendobj"
             ,
             b'18 0 obj\r\n[ 19 0 R] \r\nendobj'
