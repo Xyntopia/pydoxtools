@@ -121,7 +121,7 @@ Can be called using:
     <Document>.tables
 
 return type
-: list[pydoxtools.document_base.DocumentElement]
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -144,9 +144,7 @@ supports pipeline flows:
 
 ### document_objects
             
-Alias for: 
-
-* elements->document_objects (output)
+output a list of document elements which can be referenced by id
 
 Can be called using:
 
@@ -155,7 +153,25 @@ Can be called using:
     <Document>.document_objects
 
 return type
-: list[pydoxtools.document_base.DocumentElement] | typing.Any
+: dict[int, pydoxtools.document_base.DocumentElement] | typing.Any
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### do
+            
+Alias for: 
+
+* document_objects->do (output)
+
+Can be called using:
+
+    <Document>.x('do')
+    # or
+    <Document>.do
+
+return type
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -304,9 +320,25 @@ return type
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
-### addresses
+### labeled_text_boxes
             
 Classifies the text elements into addresses, emails, phone numbers, etc. if possible.
+
+Can be called using:
+
+    <Document>.x('labeled_text_boxes')
+    # or
+    <Document>.labeled_text_boxes
+
+return type
+: list[pydoxtools.document_base.DocumentElement]
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### addresses
+            
+get addresses from text
 
 Can be called using:
 
@@ -315,7 +347,7 @@ Can be called using:
     <Document>.addresses
 
 return type
-: list[str]
+: typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -468,10 +500,7 @@ supports pipeline flows:
 
 ### spacy_model_size
             
-Configuration for values:
-
-* spacy_model_size = md (default)
-* spacy_model = auto (default)
+the model size which is used for spacy text analysis. Can be:  sm,md,lg,trf.
 
 Can be called using:
 
@@ -487,16 +516,45 @@ supports pipeline flows:
 
 ### spacy_model
             
-Configuration for values:
-
-* spacy_model_size = md (default)
-* spacy_model = auto (default)
+we can also explicitly specify the spacy model we want to use.
 
 Can be called using:
 
     <Document>.x('spacy_model')
     # or
     <Document>.spacy_model
+
+return type
+: typing.Any
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### use_clean_text_for_spacy
+            
+Whether pydoxtools cleans up the text before using spacy on it.
+
+Can be called using:
+
+    <Document>.x('use_clean_text_for_spacy')
+    # or
+    <Document>.use_clean_text_for_spacy
+
+return type
+: typing.Any
+
+supports pipeline flows:
+: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
+
+### clean_spacy_text
+            
+Generate text to be used for spacy. Depending on the 'use_clean_text_for_spacy' option it will use page templates and replace complicated text structures such as tables for better text understanding.
+
+Can be called using:
+
+    <Document>.x('clean_spacy_text')
+    # or
+    <Document>.clean_spacy_text
 
 return type
 : typing.Any

@@ -2,7 +2,7 @@ from __future__ import annotations  # this is so, that we can use python3.10 ann
 
 import operator
 import typing
-from dataclasses import asdict, fields
+from dataclasses import asdict
 
 import numpy as np
 import pandas as pd
@@ -75,7 +75,6 @@ def extract_text_elements(text: str) -> list[document_base.DocumentElement]:
     elements = [document_base.DocumentElement(
         type=document_base.ElementType.TextBox,
         text=tb,
-        place_holder_text=f"textblock{i}",
         level=1,
         p_num=0
     ) for i, tb in enumerate(text.split("\n\n"))]
@@ -261,8 +260,8 @@ def get_template_elements(
         elements: pd.DataFrame,
         page_num: int = None,
         include_image: bool = False,
-        vertical_elements=False
 ) -> pd.DataFrame:
+    """filter out elements from certain pages and other things..."""
     elements = elements.loc[elements["type"] != document_base.ElementType.Graphic].copy()
     if include_image:
         img_idxs = (elements["type"] == document_base.ElementType.Image)
@@ -274,9 +273,6 @@ def get_template_elements(
 
     if page_num:
         elements = elements.loc[elements.p_num == page_num]
-
-    if not vertical_elements:
-        elements = elements.loc[elements.mean_char_orientation != 90]
 
     return elements
 
@@ -329,11 +325,28 @@ class PDFDocumentObjects(pydoxtools.operators_base.Operator):
     def __call__(
             self,
             valid_tables,
-            elements: pd.DataFrame
-    ) -> list[document_base.DocumentElement]:
-        elements_df = get_template_elements(pd.DataFrame(elements), include_image=False)
+            elements: list[document_base.DocumentElement],
+            labeled_text_boxes: list[document_base.DocumentElement],
+    ) -> dict[str, dict[int, document_base.DocumentElement]]:
+        # so first, we add everything to the document elements...
+        elements_df = pd.DataFrame(elements)
+
+        # we do lowest-hierarchy objects first, so that they can be "wiped out"
+        # at later stage by higher-hierarchy objects
+        # TODO: detect vertical textboxes by checking for vertical lines...
+        txtboxes = pd.DataFrame(labeled_text_boxes)
+        # remove all textboxes and join back with elements
+        elements_df = pd.concat([elements_df[elements_df.type != document_base.ElementType.Text],
+                                 txtboxes], ignore_index=True)
+
+        # we also remove all graphic elements, because we can only interprete them in their "entirety"
+        # and need to render a potential figure for example first...
+        elements_df = elements_df[elements_df.type != document_base.ElementType.Graphic]
 
         table_elements = []
+        # and we need to make sure to remove every element from our list which is inside a table or other high-level
+        # document object.
+
         for table_num, table in enumerate(valid_tables):
             # table_num = 0
             # table=pdf.valid_tables[table_num]
@@ -368,50 +381,75 @@ class PDFDocumentObjects(pydoxtools.operators_base.Operator):
                 obj=table,
                 text=table.df.to_string(header=False, index=False),
                 p_num=p,
-                place_holder_text=f"Table{table_num}"
             )
             table_elements.append(table_box)
 
-        # now do the textboxes
-        txtboxes = text_boxes_from_elements(
-            [e for e in elements if e.type == document_base.ElementType.Text]
-        )["text_box_elements"]
-        more_textboxes = [e for e in elements if e.type == document_base.ElementType.TextBox]
-        txtboxes = pd.DataFrame(txtboxes + more_textboxes)
-        # TODO: filter textboxes for vertical lines...
-        # right now we're simply filtering out textboxes with just a single letter...
-        txtboxes = txtboxes.loc[txtboxes.text.str.len() > 1].reset_index()
-        docel_fields = {f.name for f in fields(document_base.DocumentElement)}
-        # make sure we only have rows that work in our dataclass
-        txtboxes = txtboxes.loc[:, txtboxes.columns.intersection(docel_fields)]
-
-        objects = [document_base.DocumentElement(
-            **{**v, "place_holder_text": f"TextBox{v.boxnum}"}
-        ) for idx, v in txtboxes.T.items()]
-        # txtboxes = pd.concat([txtboxes.reset_index(), table_elements],
-        #                     ignore_index=True).sort_values(by=["p_num", "y0"], ascending=[True, False])
-
-        return objects + table_elements
+        # remove all textboxes and join back with elements
+        elements_df = pd.concat([elements_df, pd.DataFrame(table_elements)], ignore_index=True)
+        # set unique object IDs
+        elements_df = elements_df.drop(columns='id').reset_index(names="id")
+        # convert all rows back into document elements
+        objs = {el.id: el for el in elements_df.apply(
+            lambda x: document_base.DocumentElement(**x.to_dict()), axis=1
+        ).to_list()}
+        return dict(document_objects=objs)
 
 
 class PageTemplateGenerator(pydoxtools.operators_base.Operator):
     def __call__(
-            self, document_objects: list[document_base.DocumentElement]
+            self, document_objects: dict[int, document_base.DocumentElement]
     ) -> typing.Callable[[list[str]], dict[int, str]]:
+        """
+        creates a "clean" text page from any document which can be used for providing context to LLMs for example.
+        It does this by removing certain things like tables, figures etc... and leaves a placeholder
+        reference instead.
+        """
         # remove all tables from elements and insert a placeholder so that
         # we can more easily query the page with LLMs
+        objs = pd.DataFrame.from_dict(document_objects, "index")
 
-        def generate(exclude: list[str] | document_base.ElementType = None) -> dict[int, str]:
-            exclude = list_utils.ensure_list(exclude)
-            objs = pd.DataFrame(document_objects)
+        # TODO: what do we do with vertical elements here? right now we're simply removing them
+        objs = objs.loc[objs.mean_char_orientation != 90]
+
+        # TODO: filter textboxes for vertical lines...
+        # right now we're simply filtering out textboxes with just a single letter. This way we can remove
+        # funny text (e.g. vertical text that we haven't made sens of...)
+        objs = objs.loc[(objs.text.str.len() > 1) | (objs.type != document_base.ElementType.TextBox)].reset_index()
+        objs = objs.sort_values(by=["p_num", "y0", "x0"], ascending=[True, False, True])
+        pages = objs.p_num.unique()
+
+        def generate(
+                object_list: tuple[str | document_base.ElementType] | str | document_base.ElementType = None,
+                labels=False,
+                include=False,
+                show_non_text=True
+        ) -> dict[int, str]:
             if objs.empty:
                 return {}
-            objs = objs.sort_values(by=["p_num", "y0"], ascending=[True, False])
-            pages = objs.p_num.unique()
+
+            # convert list of strings into enum objects
+            object_list = list_utils.ensure_list(object_list)
+            typelist = document_base.convert_strings_to_enum_values(object_list, document_base.ElementType)
+
+            if include:
+                allowed_elems = typelist
+            else:
+                allowed_elems = set(document_base.ElementType) - set(typelist)
+
+            def generate_placeholder(x: pd.Series):
+                placeholder = f"{x.type.name}_{x.id}"
+                if labels:
+                    if x.labels and (x.labels != ['unknown']):
+                        label = ':' + str(x.labels) if labels else ''
+                        placeholder += label
+                return placeholder
+
             new_text = objs.apply(
-                lambda x: (place_holder_template.format(x.place_holder_text)
-                           if (x.type in exclude)
-                           else x.text),
+                lambda x: (
+                    place_holder_template.format(generate_placeholder(x))
+                    if (x.type not in allowed_elems)
+                    else x.text or place_holder_template.format(generate_placeholder(x))
+                ),
                 axis=1)
             page_templates = {p: "\n\n".join(new_text.dropna()[objs.p_num == p]) for p in pages}
             # page_templates = {p: "\n\n".join(objs[objs.p_num == p].text) for p in pages}

@@ -25,6 +25,8 @@ Image(jpg)
 # and visualize...
 svg = vd.draw(KG, engine="fdp", format='graphviz')
 
-print(svg)
+# +
+#print(svg)
+# -
 
 

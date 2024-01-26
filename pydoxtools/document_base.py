@@ -1,5 +1,6 @@
 from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
+import dataclasses
 import functools
 import json
 import logging
@@ -8,7 +9,6 @@ import pickle
 import sys
 import typing
 import uuid
-from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
 from time import time
@@ -35,7 +35,7 @@ else:
     slot_args = dict(slots=True)
 
 
-@dataclass(eq=True, frozen=True, **slot_args)
+@dataclasses.dataclass(eq=True, frozen=True, **slot_args)
 class Font:
     name: str
     size: float
@@ -50,19 +50,29 @@ class ElementType(Enum):
     TextBox = 5
     List = 6
     Header = 7
+    Figure = 8
 
 
-@dataclass(**slot_args)
+def convert_strings_to_enum_values(strings: list[str | Enum], enum):
+    already_enums = [string for string in strings if isinstance(string, Enum)]
+    enum_values = [getattr(enum, string, None) for string in strings if isinstance(string, str)]
+    return [value for value in enum_values if value is not None] + already_enums
+
+
+@dataclasses.dataclass(**slot_args)
 class DocumentElement:
     type: ElementType
+    labels: list[str] = dataclasses.field(
+        default_factory=list)  # can be used to classify elements in multiple ways e.g. "address"
     p_num: int | list[int] = 0
     x0: float | None = None
     y0: float | None = None
     x1: float | None = None
     y1: float | None = None
-    place_holder_text: str | None = None
-    rawtext: str | None = None
-    text: str | None = None
+    i0: int | None = None  # in text based documents, this hints to the start character of the element in the raw text file
+    i1: int | None = None  # in text based documenta, this hints to the end character of the element in the raw text file
+    rawtext: str | None = None  # e.g. a formated html string
+    text: str | None = None  # only the content, without document-type specific formatting or similar...
     sections: list[str] | None = None
     char_orientations: list[float] | None = None
     mean_char_orientation: float | None = None
@@ -77,10 +87,15 @@ class DocumentElement:
     fill: bool | None = None
     evenodd: int | None = None
     level: int = 0
+    id: int = None
 
     @property
     def bbox(self):
         return (self.x0, self.y0, self.x1, self.y1)
+
+    @property
+    def place_holder_text(self):
+        return f"{self.type.name}_{self.id}"
 
 
 class TokenCollection:

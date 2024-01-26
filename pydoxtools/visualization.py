@@ -150,6 +150,7 @@ def graphviz_styling(G):
 
 def graphviz_sanitize(text: str, max_length=1000) -> str:
     """sanitize text for use in graphviz"""
+    text = str(text)
     text = text.replace('\n', '<br/>')
 
     # Characters that need to be escaped

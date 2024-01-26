@@ -165,7 +165,7 @@ def calculate_a_d_ratio(ft: str) -> float:
 # nodes which help to extract the structure of a document
 PDFDocumentStructureNodes = [
     extract_textstructure.PDFDocumentObjects()
-    .input("valid_tables", "elements").out("document_objects").cache(allow_disk_cache=True)
+    .input("valid_tables", "elements", "labeled_text_boxes").out("document_objects").cache(allow_disk_cache=True)
     .docs("extracts a list of document objects such as tables, text boxes, figures, etc."),
     FunctionOperator(lambda tables, elements: {
         k: extract_textstructure.get_bbox_context(v.bbox, elements, v.page, "table")
@@ -354,8 +354,13 @@ OCRNodes = [
 
 ClassifierNodes = [
     TextBlockClassifier()
-    .input("text_box_elements").out("addresses").cache()
+    .t(list[DocumentElement])
+    .input("text_box_elements").out("labeled_text_boxes").cache()
     .docs("Classifies the text elements into addresses, emails, phone numbers, etc. if possible."),
+    FunctionOperator(lambda x: [t.text for t in x if "address" in t.labels])
+    .t(list[str])
+    .input(x="labeled_text_boxes").out("addresses")
+    .docs("get addresses from text"),
     PageClassifier()
     .input("page_templates").out("page_classifier").cache()
     .docs("Classifies the pages into different types. This is useful for example for "
@@ -407,11 +412,25 @@ MetaDataNodes = [
 ]
 
 SpacyNodes = [
-    Configuration(spacy_model_size="md", spacy_model="auto"),
+    Configuration(
+        spacy_model_size="md",
+        spacy_model="auto",
+        use_clean_text_for_spacy=True
+    ).docs(
+        spacy_model_size="the model size which is used for spacy text analysis. Can be:  sm,md,lg,trf.",
+        spacy_model="we can also explicitly specify the spacy model we want to use.",
+        use_clean_text_for_spacy="Whether pydoxtools cleans up the text before using spacy on it."
+    ),
+    FunctionOperator(lambda x, ct, ft: "\n\n".join(x(["Table", "Figure"]).values()) if ct else ft)
+    .input(x="page_templates", ct="use_clean_text_for_spacy", ft="full_text")
+    .out("clean_spacy_text").t(str)
+    .docs("Generate text to be used for spacy. Depending on the 'use_clean_text_for_spacy' option"
+          " it will use page templates and replace complicated text structures such as tables for"
+          " better text understanding."),
     SpacyOperator()
     .input(
         "language", "spacy_model",
-        full_text="full_text", model_size="spacy_model_size"
+        full_text="clean_spacy_text", model_size="spacy_model_size"
     ).out(doc="spacy_doc", nlp="spacy_nlp").cache()
     .docs("Spacy Document and Language Model for this document"),
     FunctionOperator(extract_spacy_token_vecs)
@@ -649,7 +668,12 @@ TextStructureNodes = [
     .input(text="full_text").out("elements")
     .docs("extracts a list of document objects such as tables, text boxes, figures, etc.")
     .cache(),
-    Alias(document_objects="elements"),
+    FunctionOperator(lambda els, ltbs: {
+        id: el for id, el in enumerate(els + ltbs) if el != ElementType.Text
+    }).t(dict[int, DocumentElement])
+    .input(els="elements", ltbs="labeled_text_boxes").out("document_objects")
+    .docs("output a list of document elements which can be referenced by id"),
+    Alias(do="document_objects"),
     FunctionOperator(lambda x: [tb for tb in x if tb.type == ElementType.TextBox])
     .input(x="elements").out("text_box_elements").t(list[str]).cache()
     .docs("Text boxes extracted as a pandas Dataframe with some additional metadata"),
@@ -657,8 +681,10 @@ TextStructureNodes = [
     DocumentElementFilter(element_type=ElementType.Header)
     .input("elements").out("headers").cache()
     .docs("Extracts the headers from the document"),
-    DocumentElementFilter(element_type=ElementType.Table)
-    .input("elements").out("tables").cache()
+    # get tables only from document_objects this will also give as the correct reference!
+    FunctionOperator(lambda do: {t.id: t for t in do.values() if t.type == ElementType.Table})
+    .t(dict[int, DocumentElement])
+    .input(do="document_objects").out("tables").cache()
     .docs("Extracts the tables from the document as a dataframe"),
     FunctionOperator(lambda x: [pd.DataFrame(t.obj) for t in x]).t(list[pd.DataFrame])
     .input(x="tables").out("tables_df").cache(),
@@ -687,7 +713,7 @@ TextStructureNodes = [
     .t(str)
     .docs("Outputs a nice text version of the documents with annotated document objects"
           " such as page numbers, tables, figures, etc."),
-    FunctionOperator(lambda pt, ps: "".join(pt(exclude="all")[p] for p in ps))
+    FunctionOperator(lambda pt, ps: "".join(pt(["TextBox"], include="True")[p] for p in ps))
     .input(pt="page_templates", ps="page_set").out("page_templates_str_minimal").cache()
     .t(str)
 ]
