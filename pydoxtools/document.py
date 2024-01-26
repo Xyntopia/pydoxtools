@@ -34,7 +34,7 @@ from .extract_filesystem import PathLoader
 from .extract_filesystem import force_decode, load_raw_file_content
 from .extract_html import HtmlExtractor
 from .extract_index import IndexExtractor, KnnQuery, \
-    SimilarityGraph, TextrankOperator, TextPieceSplitter, ChromaIndexFromBag
+    SimilarityGraph, TextrankOperator, TextPieceSplitter
 from .extract_objects import EntityExtractor
 from .extract_ocr import OCRExtractor
 from .extract_pandoc import PandocLoader, PandocConverter, PandocToPdxConverter
@@ -1505,16 +1505,6 @@ class DocumentBag(Pipeline):
             .input(doc="Document").out("vectorizer").cache()
             .docs("vectorizes a query, using the document configuration of the Documentbag"
                   " to determine which model to use."),
-            ###### building an index ######
-            ChromaIndexFromBag()
-            .input(query_vectorizer="vectorizer", doc_bag="docs")
-            .out("add_to_chroma").cache(allow_disk_cache=False).docs(
-                "in order to build an index in chrome db we need a key, text, embeddings and a key."
-                " Those come from a daskbag with dictionaries with those keys."
-                " pydoxtools will return two functions which will "
-                "- create the index"
-                "- query the index"
-            )
         ]
     }
 
