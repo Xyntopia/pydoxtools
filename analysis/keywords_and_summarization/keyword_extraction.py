@@ -104,7 +104,7 @@ doc.textrank_keywords(k=10, max_links=3, max_distance=0.2, method="noun_chunks")
 doc.textrank_keywords(k=3, max_distance=0.2)
 
 # try document vector based kw extraction
-# we check which noun-hunks are the "closest" to the document vector, assuming
+# we check which nolibaba DAMO Academy. They are mainly based on the BERT framework and currently offer three different sizes of models, including GTE-large, GTE-base, and GTE-small. The GTE models are trained on a large-scale corpus of relevance text pairs, covering a wide range of domains and scenarios. This enables the GTE models to be applied to various downstreaun-hunks are the "closest" to the document vector, assuming
 # that they represent the document in the best way
 doc.knn_query(doc.spacy_doc,filter="noun_chunks", k=30)
 
