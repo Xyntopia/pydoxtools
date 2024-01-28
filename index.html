@@ -312,15 +312,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#basic-agent-functionality" class="md-nav__link">
-    <span class="md-ellipsis">
-      Basic Agent Functionality
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -544,15 +535,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#basic-agent-functionality" class="md-nav__link">
-    <span class="md-ellipsis">
-      Basic Agent Functionality
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -596,7 +578,7 @@ manipulation consisting of three main classes:</p>
 <p>The Pipeline class is the base of it and helps to compose dynamic pipelines
 which adapt to the underlying data.</p>
 <blockquote>
-<p>in pydoxtools &gt;= 0.8.0 support for agents was removed again
+<p>in pydoxtools &gt;= 0.8.0 support for agents was removed.
 the functionality can now be found in another app:
 (taskyon.space)[https://taskyon.space]</p>
 </blockquote>
@@ -635,18 +617,6 @@ with several built-in features, making them easy to integrate with modern AI too
 <a class="autorefs autorefs-internal" href="document/#pydoxtools.Document">pydoxtools.Document</a> or <a class="autorefs autorefs-internal" href="documentbag/#pydoxtools.DocumentBag">pydoxtools.DocumentBag</a> as a base for
 a new pipeline and only replace small parts to achieve the desired
 custom functionality.</p>
-<h3 id="basic-agent-functionality">Basic Agent Functionality</h3>
-<p>Pydoxtools provides basic LLM Agent functionality out-of-the-box. It provides
-an [Agent][pydoxtools.Agent] class which implements the basic functionality
-needed to create AI Agents which make use of pydoxtools Pipelines, especially
-<a class="autorefs autorefs-internal" href="document/#pydoxtools.Document">Document</a> and <a class="autorefs autorefs-internal" href="documentbag/#pydoxtools.DocumentBag">DocumentBag</a>.</p>
-<p>The agent can be customized, and complicated applications can be created with just
-a few lines of code. Some examples are:</p>
-<ul>
-<li>Automatic Documenttext writing in under 100 lines:
-  <a href="https://github.com/Xyntopia/pydoxtools/blob/main/examples/automatic_project_writing.py">example</a></li>
-<li>TODO: add more examples...</li>
-</ul>
 <h2 id="visualizing-pipelines">Visualizing Pipelines</h2>
 <p>Visualizing pipelines can be incredibly helpful when developing your
 own pipeline on top of a complex one, such as the document pipeline.
