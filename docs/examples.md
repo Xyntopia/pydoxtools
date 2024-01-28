@@ -1,5 +1,6 @@
 # Examples
 
+<!--
 ## AI Article Writing with Information Retrieval
 
 A jupyter notebook demonstrating how we develop an app which writes articles based
@@ -19,6 +20,8 @@ And the same thing in about 100 lines of code:
 
 - [https://github.com/Xyntopia/pydoxtools/blob/main/examples/automatic_project_writing.py](https://github.com/Xyntopia/pydoxtools/blob/main/examples/automatic_project_writing.py)
 
+-->
+
 ## TODO: add examples in more detail
 
 - SQL queries
@@ -29,4 +32,4 @@ And the same thing in about 100 lines of code:
 
 ## Checkout more examples here:
 
-https://github.com/Xyntopia/pydoxtools/tree/main/examples
+[https://github.com/Xyntopia/pydoxtools/tree/main/examples](https://github.com/Xyntopia/pydoxtools/tree/main/examples)
