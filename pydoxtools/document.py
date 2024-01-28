@@ -421,7 +421,7 @@ SpacyNodes = [
         spacy_model="we can also explicitly specify the spacy model we want to use.",
         use_clean_text_for_spacy="Whether pydoxtools cleans up the text before using spacy on it."
     ),
-    FunctionOperator(lambda x, ct, ft: "\n\n".join(x(["Table", "Figure"]).values()) if ct else ft)
+    FunctionOperator(lambda x, ct, ft: "\n\n".join(x([ElementType.Table, ElementType.Figure]).values()) if ct else ft)
     .input(x="page_templates", ct="use_clean_text_for_spacy", ft="full_text")
     .out("clean_spacy_text").t(str)
     .docs("Generate text to be used for spacy. Depending on the 'use_clean_text_for_spacy' option"
