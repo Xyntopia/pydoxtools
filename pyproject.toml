@@ -68,6 +68,7 @@ fastcoref = "^2.1.6" # needed for knowlecdge base creation
 timm = "^0.9.5" # this one is needed for document layout analysis
 pygraphviz = {version = "^1.11", optional = true}
 pydantic-settings = "^2.1.0"
+tabulate = "^0.9.0"
 
 [tool.poetry.extras]
 # extraction-transformation-load facilities

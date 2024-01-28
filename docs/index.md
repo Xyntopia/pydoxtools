@@ -7,18 +7,26 @@ For a short overview over Pydoxtools, checkout the readme:
 ## Introduction
 
 Pydoxtools provides a user-friendly interface for document analysis and
-manipulation, consisting of four main classes:
+manipulation consisting of three main classes:
 
 - [pydoxtools.Document][]
 - [pydoxtools.DocumentBag][]
 - [pydoxtools.Pipeline][]
-- [pydoxtools.LLMAgent][]
 
+The Pipeline class is the base of it and helps to compose dynamic pipelines
+which adapt to the underlying data.
+
+> in pydoxtools >= 0.8.0 support for agents was removed again
+> the functionality can now be found in another app:
+> (taskyon.space)[https://taskyon.space]
+
+<!--
 ### Here are some examples to get started:
 
 - Automatic Documenttext writing in under 100 lines:
   [example](https://github.com/Xyntopia/pydoxtools/blob/main/examples/automatic_project_writing.py)
 - TODO: add more examples...
+-->
 
 ### Analyzing Documents
 
@@ -81,7 +89,7 @@ class (which is a [pydoxtools.Pipeline][]  itself) as follows:
     # for the 
     doc.logic_graph(image_path=settings._PYDOXTOOLS_DIR / "docs/images/document_logic_png.svg", document_logic_id=".png")
 
-This allows you to generate pipelines for various file types:
+This allows you to generate pipelines for various file types. For example:
 
 - [docx](images/document_logic_.docx.svg)
 - [png](images/document_logic_.png.svg)

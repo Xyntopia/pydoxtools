@@ -1,3 +1,0 @@
-# [pydoxtools.LLMAgent][]
-
-::: pydoxtools.LLMAgent

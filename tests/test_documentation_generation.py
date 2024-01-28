@@ -1,8 +1,8 @@
 from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
 import mimetypes
-import pathlib
 import os
+import pathlib
 
 from pydoxtools import Document, DocumentBag
 from pydoxtools.settings import _PYDOXTOOLS_DIR
@@ -37,7 +37,7 @@ def test_pipeline_graph():
 
 
 def test_documentation_generation():
-    docs = Document.markdown_docs()
+    docs, configuration = Document.markdown_docs()
     Document_docs = f"""
 # [pydoxtools.Document][]
 
@@ -54,13 +54,17 @@ Pipeline visualizations for the structure of the Document pipelines for differen
 document types can be found [here](https://github.com/Xyntopia/pydoxtools/tree/gh-pages/images).
 
 {docs}
+
+### Configuration parameters
+
+{configuration}
 """.strip()
     with open(make_path_absolute('../docs/document.md'), "w") as f:
         f.write(Document_docs)
 
     ###  and now DocumentBag
 
-    docbag = DocumentBag.markdown_docs()
+    docbag, configuration = DocumentBag.markdown_docs()
 
     Document_docs = f"""
 # [pydoxtools.DocumentBag][]
@@ -77,8 +81,11 @@ and functions that are created by the pipeline are documented here.
 Pipeline visualizations for the structure of the Document pipelines for different
 document types can be found [here](https://github.com/Xyntopia/pydoxtools/tree/gh-pages/images).
 
-
 {docbag}
+
+### Configuration parameters
+
+{configuration}
     """.strip()
     with open(make_path_absolute('../docs/documentbag.md'), "w") as f:
         f.write(Document_docs)

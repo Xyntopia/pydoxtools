@@ -13,7 +13,7 @@ Pipeline visualizations for the structure of the Document pipelines for differen
 document types can be found [here](https://github.com/Xyntopia/pydoxtools/tree/gh-pages/images).
 
 ### data
-            
+
 The unprocessed data.
 
 Can be called using:
@@ -29,7 +29,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### page_set
-            
+
 A constant value
 
 Can be called using:
@@ -45,7 +45,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### full_text
-            
+
 Full text as a string value
 
 Can be called using:
@@ -61,7 +61,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### clean_text
-            
+
 Alias for: 
 
 * full_text->clean_text (output)
@@ -79,7 +79,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### tables_df
-            
+
 No documentation
 
 Can be called using:
@@ -95,7 +95,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### tables_dict
-            
+
 List of Table
 
 Can be called using:
@@ -111,7 +111,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### tables
-            
+
 Extracts the tables from the document as a dataframe
 
 Can be called using:
@@ -127,7 +127,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### elements
-            
+
 extracts a list of document objects such as tables, text boxes, figures, etc.
 
 Can be called using:
@@ -143,7 +143,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### document_objects
-            
+
 output a list of document elements which can be referenced by id
 
 Can be called using:
@@ -159,7 +159,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### do
-            
+
 Alias for: 
 
 * document_objects->do (output)
@@ -177,7 +177,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### text_box_elements
-            
+
 Text boxes extracted as a pandas Dataframe with some additional metadata
 
 Can be called using:
@@ -193,7 +193,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### headers
-            
+
 Extracts the headers from the document
 
 Can be called using:
@@ -209,7 +209,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### lists
-            
+
 Extracts the lists from the document
 
 Can be called using:
@@ -225,7 +225,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### line_elements
-            
+
 Filters the document elements and only keeps the text elements
 
 Can be called using:
@@ -241,7 +241,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### graphic_elements
-            
+
 Filters the document elements and only keeps the graphic elements
 
 Can be called using:
@@ -257,7 +257,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### image_elements
-            
+
 Filters the document elements and only keeps the image elements
 
 Can be called using:
@@ -273,7 +273,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### page_templates
-            
+
 generates a text page with table & figure hints
 
 Can be called using:
@@ -289,7 +289,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### page_templates_str
-            
+
 Outputs a nice text version of the documents with annotated document objects such as page numbers, tables, figures, etc.
 
 Can be called using:
@@ -305,7 +305,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### page_templates_str_minimal
-            
+
 No documentation
 
 Can be called using:
@@ -321,7 +321,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### labeled_text_boxes
-            
+
 Classifies the text elements into addresses, emails, phone numbers, etc. if possible.
 
 Can be called using:
@@ -337,7 +337,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### addresses
-            
+
 get addresses from text
 
 Can be called using:
@@ -353,7 +353,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### page_classifier
-            
+
 Classifies the pages into different types. This is useful for example for identifiying table of contents, certain chapters etc... . This works as a zero-shot classifier and the classes are not predefined. it can by called like this: 
 
 Document('somefile.pdf').page_classifier(candidate_labels=['table_of_contents', 'credits', 'license'])
@@ -371,7 +371,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### embedded_meta
-            
+
 represents the metadata embedded in the file
 
 Can be called using:
@@ -387,7 +387,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### meta
-            
+
 Metadata of the document
 
 Can be called using:
@@ -403,7 +403,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### num_pages
-            
+
 Number of pages in the document
 
 Can be called using:
@@ -419,7 +419,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### num_words
-            
+
 Number of words in the document
 
 Can be called using:
@@ -435,7 +435,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### num_sents
-            
+
 number of sentences
 
 Can be called using:
@@ -451,7 +451,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### a_d_ratio
-            
+
 Letter/digit ratio of the text
 
 Can be called using:
@@ -467,7 +467,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### language
-            
+
 Detect language of a document, return 'unknown' in case of an error
 
 Can be called using:
@@ -483,7 +483,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### file_meta
-            
+
 Some fast-to-calculate metadata information about a document
 
 Can be called using:
@@ -498,56 +498,8 @@ return type
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
-### spacy_model_size
-            
-the model size which is used for spacy text analysis. Can be:  sm,md,lg,trf.
-
-Can be called using:
-
-    <Document>.x('spacy_model_size')
-    # or
-    <Document>.spacy_model_size
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
-### spacy_model
-            
-we can also explicitly specify the spacy model we want to use.
-
-Can be called using:
-
-    <Document>.x('spacy_model')
-    # or
-    <Document>.spacy_model
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
-### use_clean_text_for_spacy
-            
-Whether pydoxtools cleans up the text before using spacy on it.
-
-Can be called using:
-
-    <Document>.x('use_clean_text_for_spacy')
-    # or
-    <Document>.use_clean_text_for_spacy
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
 ### clean_spacy_text
-            
+
 Generate text to be used for spacy. Depending on the 'use_clean_text_for_spacy' option it will use page templates and replace complicated text structures such as tables for better text understanding.
 
 Can be called using:
@@ -563,7 +515,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### spacy_doc
-            
+
 Spacy Document and Language Model for this document
 
 Can be called using:
@@ -579,7 +531,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### spacy_nlp
-            
+
 Spacy Document and Language Model for this document
 
 Can be called using:
@@ -595,7 +547,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### spacy_vectors
-            
+
 Vectors for all tokens calculated by spacy
 
 Can be called using:
@@ -611,7 +563,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### spacy_embeddings
-            
+
 Embeddings calculated by a spacy transformer
 
 Can be called using:
@@ -627,7 +579,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### spacy_sents
-            
+
 List of sentences by spacy nlp framework
 
 Can be called using:
@@ -643,7 +595,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### spacy_noun_chunks
-            
+
 exracts nounchunks from spacy. Will not be cached because it is allin the spacy doc already
 
 Can be called using:
@@ -659,7 +611,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### entities
-            
+
 Extract entities from text
 
 Can be called using:
@@ -675,7 +627,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### url
-            
+
 Url of this document
 
 Can be called using:
@@ -691,7 +643,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### semantic_relations
-            
+
 Extract relations from text for building a knowledge graph
 
 Can be called using:
@@ -706,40 +658,8 @@ return type
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
-### coreference_method
-            
-can be 'fast' or 'accurate'
-
-Can be called using:
-
-    <Document>.x('coreference_method')
-    # or
-    <Document>.coreference_method
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
-### graph_debug_context_size
-            
-can be 'fast' or 'accurate'
-
-Can be called using:
-
-    <Document>.x('graph_debug_context_size')
-    # or
-    <Document>.graph_debug_context_size
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
 ### coreferences
-            
+
 Resolve coreferences in the text
 
 Can be called using:
@@ -755,7 +675,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### document_graph
-            
+
 Builds a [networkx graph](https://networkx.org/documentation/stable/reference/classes/digraph.html) from the relations and coreferences
 
 Can be called using:
@@ -771,7 +691,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### DG
-            
+
 Alias for: 
 
 * document_graph->DG (output)
@@ -789,7 +709,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### sents
-            
+
 Alias for: 
 
 * spacy_sents->sents (output)
@@ -807,7 +727,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### noun_chunks
-            
+
 Alias for: 
 
 * spacy_noun_chunks->noun_chunks (output)
@@ -825,7 +745,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### vector
-            
+
 Embeddings from spacy
 
 Can be called using:
@@ -841,7 +761,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### sent_vecs
-            
+
 Vectors for sentences & sentence_ids
 
 Can be called using:
@@ -857,7 +777,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### sent_ids
-            
+
 Vectors for sentences & sentence_ids
 
 Can be called using:
@@ -873,7 +793,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### noun_vecs
-            
+
 Vectors for nouns and corresponding noun ids in order to find them in the spacy document
 
 Can be called using:
@@ -889,7 +809,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### noun_ids
-            
+
 Vectors for nouns and corresponding noun ids in order to find them in the spacy document
 
 Can be called using:
@@ -904,56 +824,8 @@ return type
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
-### vectorizer_model
-            
-Choose the embeddings model (huggingface-style) and if we wantto do the vectorization using only the tokenizer. Using only thetokenizer is MUCH faster and uses lower CPU than creating actualcontextual embeddings using the model. BUt is also lower qualitybecause it lacks the context.
-
-Can be called using:
-
-    <Document>.x('vectorizer_model')
-    # or
-    <Document>.vectorizer_model
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
-### vectorizer_only_tokenizer
-            
-Choose the embeddings model (huggingface-style) and if we wantto do the vectorization using only the tokenizer. Using only thetokenizer is MUCH faster and uses lower CPU than creating actualcontextual embeddings using the model. BUt is also lower qualitybecause it lacks the context.
-
-Can be called using:
-
-    <Document>.x('vectorizer_only_tokenizer')
-    # or
-    <Document>.vectorizer_only_tokenizer
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
-### vectorizer_overlap_ratio
-            
-Choose the embeddings model (huggingface-style) and if we wantto do the vectorization using only the tokenizer. Using only thetokenizer is MUCH faster and uses lower CPU than creating actualcontextual embeddings using the model. BUt is also lower qualitybecause it lacks the context.
-
-Can be called using:
-
-    <Document>.x('vectorizer_overlap_ratio')
-    # or
-    <Document>.vectorizer_overlap_ratio
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
 ### vectorizer
-            
+
 Get the vectorizer function used for this document for an arbitrary text
 
 Can be called using:
@@ -969,7 +841,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### vec_res
-            
+
 Calculate context-based vectors (embeddings) for the entire text
 
 Can be called using:
@@ -985,7 +857,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### tok_embeddings
-            
+
 Get the tokenized text
 
 Can be called using:
@@ -1001,7 +873,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### tokens
-            
+
 Get the tokenized text
 
 Can be called using:
@@ -1017,7 +889,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### embedding
-            
+
 Get a vector (embedding) for the entire text by taking the mean of the contextual embeddings of all tokens
 
 Can be called using:
@@ -1032,72 +904,8 @@ return type
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
-### min_size_text_segment
-            
-controls the text segmentation for knowledge basesoverlap is only relevant for large text segmenets that need tobe split up into smaller pieces.
-
-Can be called using:
-
-    <Document>.x('min_size_text_segment')
-    # or
-    <Document>.min_size_text_segment
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
-### max_size_text_segment
-            
-controls the text segmentation for knowledge basesoverlap is only relevant for large text segmenets that need tobe split up into smaller pieces.
-
-Can be called using:
-
-    <Document>.x('max_size_text_segment')
-    # or
-    <Document>.max_size_text_segment
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
-### text_segment_overlap
-            
-controls the text segmentation for knowledge basesoverlap is only relevant for large text segmenets that need tobe split up into smaller pieces.
-
-Can be called using:
-
-    <Document>.x('text_segment_overlap')
-    # or
-    <Document>.text_segment_overlap
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
-### max_text_segment_num
-            
-controls the text segmentation for knowledge basesoverlap is only relevant for large text segmenets that need tobe split up into smaller pieces.
-
-Can be called using:
-
-    <Document>.x('max_text_segment_num')
-    # or
-    <Document>.max_text_segment_num
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
 ### text_segments
-            
+
 Split the text into segments
 
 Can be called using:
@@ -1113,7 +921,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### text_segment_vec_res
-            
+
 Calculate the embeddings for each text segment
 
 Can be called using:
@@ -1129,7 +937,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### text_segment_vecs
-            
+
 Get the embeddings for individual text segments
 
 Can be called using:
@@ -1145,7 +953,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### text_segment_ids
-            
+
 Get the a list of ids for individual text segments
 
 Can be called using:
@@ -1161,7 +969,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### text_segment_index
-            
+
 Create an index for the text segments
 
 Can be called using:
@@ -1177,7 +985,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### segment_query
-            
+
 Create a query function for the text segments which can be used to do nearest-neighbor queries
 
 Can be called using:
@@ -1193,7 +1001,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### noun_index
-            
+
 Create an index for the nouns
 
 Can be called using:
@@ -1209,7 +1017,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### spacy_vectorizer
-            
+
 Create a vectorizer function from spacy library.
 
 Can be called using:
@@ -1225,7 +1033,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### noun_query
-            
+
 Create a query function for the nouns which can be used to do nearest-neighbor queries
 
 Can be called using:
@@ -1241,7 +1049,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### noun_graph
-            
+
 Create a graph of similar nouns
 
 Can be called using:
@@ -1256,26 +1064,8 @@ return type
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
-### top_k_text_rank_keywords
-            
-Configuration for values:
-
-* top_k_text_rank_keywords = 5 (default)
-
-Can be called using:
-
-    <Document>.x('top_k_text_rank_keywords')
-    # or
-    <Document>.top_k_text_rank_keywords
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
 ### textrank_keywords
-            
+
 Extract keywords from the graph of similar nouns
 
 Can be called using:
@@ -1291,7 +1081,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### keywords
-            
+
 Alias for: 
 
 * textrank_keywords->keywords (output)
@@ -1309,7 +1099,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### sent_index
-            
+
 Create an index for the sentences
 
 Can be called using:
@@ -1325,7 +1115,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### sent_query
-            
+
 Create a query function for the sentences which can be used to do nearest-neighbor queries
 
 Can be called using:
@@ -1341,7 +1131,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### sent_graph
-            
+
 Create a graph of similar sentences
 
 Can be called using:
@@ -1356,24 +1146,8 @@ return type
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
-### top_k_text_rank_sentences
-            
-controls the number of most important sentences that are extracted from the text.
-
-Can be called using:
-
-    <Document>.x('top_k_text_rank_sentences')
-    # or
-    <Document>.top_k_text_rank_sentences
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
 ### textrank_sents
-            
+
 Extract the most important sentences from the graph of similar sentences
 
 Can be called using:
@@ -1388,68 +1162,8 @@ return type
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
-### summarizer_model
-            
-Configuration for values:
-
-* summarizer_model = sshleifer/distilbart-cnn-12-6 (default)
-* summarizer_token_overlap = 50 (default)
-* summarizer_max_text_len = 200 (default)
-
-Can be called using:
-
-    <Document>.x('summarizer_model')
-    # or
-    <Document>.summarizer_model
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
-### summarizer_token_overlap
-            
-Configuration for values:
-
-* summarizer_model = sshleifer/distilbart-cnn-12-6 (default)
-* summarizer_token_overlap = 50 (default)
-* summarizer_max_text_len = 200 (default)
-
-Can be called using:
-
-    <Document>.x('summarizer_token_overlap')
-    # or
-    <Document>.summarizer_token_overlap
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
-### summarizer_max_text_len
-            
-Configuration for values:
-
-* summarizer_model = sshleifer/distilbart-cnn-12-6 (default)
-* summarizer_token_overlap = 50 (default)
-* summarizer_max_text_len = 200 (default)
-
-Can be called using:
-
-    <Document>.x('summarizer_max_text_len')
-    # or
-    <Document>.summarizer_max_text_len
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
 ### slow_summary
-            
+
 Summarize the text using the Huggingface summarization pipeline
 
 Can be called using:
@@ -1464,26 +1178,8 @@ return type
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
-### qam_model_id
-            
-Configuration for values:
-
-* qam_model_id = deepset/minilm-uncased-squad2 (default)
-
-Can be called using:
-
-    <Document>.x('qam_model_id')
-    # or
-    <Document>.qam_model_id
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
 ### answers
-            
+
 Extract answers from the text using the Huggingface question answering pipeline
 
 Can be called using:
@@ -1498,24 +1194,8 @@ return type
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
-### chat_model_id
-            
-In order to use openai-chatgpt, you can use 'gpt-3.5-turbo' or 'gpt-4'.Additionally, we support models used by gpt4all library whichcan be run locally and most are available for commercial purposes. Currently available models are: ['wizardlm-13b-v1.1-superhot-8k.ggmlv3.q4_0', 'ggml-model-gpt4all-falcon-q4_0', 'ous-hermes-13b.ggmlv3.q4_0', 'GPT4All-13B-snoozy.ggmlv3.q4_0', 'orca-mini-7b.ggmlv3.q4_0', 'orca-mini-3b.ggmlv3.q4_0', 'orca-mini-13b.ggmlv3.q4_0', 'wizardLM-13B-Uncensored.ggmlv3.q4_0', 'ggml-replit-code-v1-3', 'ggml-all-MiniLM-L6-v2-f16', 'starcoderbase-3b-ggml', 'starcoderbase-7b-ggml', 'llama-2-7b-chat.ggmlv3.q4_0']
-
-Can be called using:
-
-    <Document>.x('chat_model_id')
-    # or
-    <Document>.chat_model_id
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
-
 ### chat_answers
-            
+
 Extract answers from the text using OpenAI Chat GPT and other models.
 
 Can be called using:
@@ -1531,7 +1211,7 @@ supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
 
 ### meta_pdf
-            
+
 Loads the pdf file into a list of [][pydoxtools.document_base.DocumentElement]
 
 Can be called using:
@@ -1547,7 +1227,7 @@ supports pipeline flows:
 : PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff
 
 ### pages_bbox
-            
+
 Loads the pdf file into a list of [][pydoxtools.document_base.DocumentElement]
 
 Can be called using:
@@ -1562,24 +1242,8 @@ return type
 supports pipeline flows:
 : PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff
 
-### image_dpi
-            
-The dpi when rendering the document. The standard image generation resolution is set to 216 dpi for pdfs as we want to have sufficient DPI for downstram OCR tasks (e.g. table extraction)
-
-Can be called using:
-
-    <Document>.x('image_dpi')
-    # or
-    <Document>.image_dpi
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff
-
 ### images
-            
+
 Access images as a dictionary with page numbers as keys for downstream processing tasks
 
 Can be called using:
@@ -1595,7 +1259,7 @@ supports pipeline flows:
 : PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff
 
 ### table_box_levels
-            
+
 Extracts the table candidates from the document. As this is an image, we need to use a different method than for pdfs. Right now this relies on neural networks. TODO: add adtitional pure text-based method.
 
 Can be called using:
@@ -1611,7 +1275,7 @@ supports pipeline flows:
 : PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff
 
 ### table_candidates
-            
+
 Extracts the table candidates from the document. As this is an image, we need to use a different method than for pdfs. Right now this relies on neural networks. TODO: add adtitional pure text-based method.
 
 Can be called using:
@@ -1627,7 +1291,7 @@ supports pipeline flows:
 : PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff
 
 ### valid_tables
-            
+
 Filter valid tables from table candidates by looking if meaningful values can be extracted
 
 Can be called using:
@@ -1643,7 +1307,7 @@ supports pipeline flows:
 : PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff
 
 ### table_df0
-            
+
 Filter valid tables from table candidates by looking if meaningful values can be extracted
 
 Can be called using:
@@ -1659,7 +1323,7 @@ supports pipeline flows:
 : PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff
 
 ### table_areas
-            
+
 Areas of all detected tables
 
 Can be called using:
@@ -1675,7 +1339,7 @@ supports pipeline flows:
 : PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff
 
 ### titles
-            
+
 Extracts the titles from the document by detecting unusual font styles
 
 Can be called using:
@@ -1691,7 +1355,7 @@ supports pipeline flows:
 : PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff, text/html
 
 ### side_titles
-            
+
 Extracts the titles from the document by detecting unusual font styles
 
 Can be called using:
@@ -1707,7 +1371,7 @@ supports pipeline flows:
 : PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff
 
 ### table_context
-            
+
 Outputs a dictionary with the context of each table in the document
 
 Can be called using:
@@ -1723,7 +1387,7 @@ supports pipeline flows:
 : PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff
 
 ### html_keywords_str
-            
+
 Extracts the main content from the html document, removing boilerplate and other noise
 
 Can be called using:
@@ -1739,7 +1403,7 @@ supports pipeline flows:
 : text/html
 
 ### main_content_clean_html
-            
+
 Extracts the main content from the html document, removing boilerplate and other noise
 
 Can be called using:
@@ -1755,7 +1419,7 @@ supports pipeline flows:
 : text/html
 
 ### summary
-            
+
 Extracts the main content from the html document, removing boilerplate and other noise
 
 Can be called using:
@@ -1771,7 +1435,7 @@ supports pipeline flows:
 : text/html
 
 ### goose_article
-            
+
 Extracts the main content from the html document, removing boilerplate and other noise
 
 Can be called using:
@@ -1787,7 +1451,7 @@ supports pipeline flows:
 : text/html
 
 ### main_content
-            
+
 Extracts the main content from the html document, removing boilerplate and other noise
 
 Can be called using:
@@ -1803,7 +1467,7 @@ supports pipeline flows:
 : text/html
 
 ### schemadata
-            
+
 Extracts the main content from the html document, removing boilerplate and other noise
 
 Can be called using:
@@ -1819,7 +1483,7 @@ supports pipeline flows:
 : text/html
 
 ### final_urls
-            
+
 Extracts the main content from the html document, removing boilerplate and other noise
 
 Can be called using:
@@ -1835,7 +1499,7 @@ supports pipeline flows:
 : text/html
 
 ### pdf_links
-            
+
 Extracts the main content from the html document, removing boilerplate and other noise
 
 Can be called using:
@@ -1851,7 +1515,7 @@ supports pipeline flows:
 : text/html
 
 ### title
-            
+
 Extracts the main content from the html document, removing boilerplate and other noise
 
 Can be called using:
@@ -1867,7 +1531,7 @@ supports pipeline flows:
 : text/html
 
 ### short_title
-            
+
 Extracts the main content from the html document, removing boilerplate and other noise
 
 Can be called using:
@@ -1883,7 +1547,7 @@ supports pipeline flows:
 : text/html
 
 ### urls
-            
+
 Extracts the urls from the html document
 
 Can be called using:
@@ -1899,7 +1563,7 @@ supports pipeline flows:
 : text/html
 
 ### main_image
-            
+
 Extracts the main image from the html document
 
 Can be called using:
@@ -1915,7 +1579,7 @@ supports pipeline flows:
 : text/html
 
 ### html_keywords
-            
+
 Extracts explicitly given keywords from the html document
 
 Can be called using:
@@ -1931,7 +1595,7 @@ supports pipeline flows:
 : text/html
 
 ### pandoc_document
-            
+
 Loads the document using the pandoc project [https://pandoc.org/](https://pandoc.org/) into a pydoxtools list of [][pydoxtools.document_base.DocumentElement]
 
 Can be called using:
@@ -1946,24 +1610,8 @@ return type
 supports pipeline flows:
 : application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, mediawiki, pandoc, text/markdown, text/rtf
 
-### full_text_format
-            
-The format used to convert the document to a string
-
-Can be called using:
-
-    <Document>.x('full_text_format')
-    # or
-    <Document>.full_text_format
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, mediawiki, pandoc, text/markdown, text/rtf
-
 ### convert_to
-            
+
 Generic pandoc converter for other document formats. TODO: better docs
 
 Can be called using:
@@ -1979,7 +1627,7 @@ supports pipeline flows:
 : application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, mediawiki, pandoc, text/markdown, text/rtf
 
 ### clean_format
-            
+
 The format used to convert the document to a clean string for downstream processing tasks
 
 Can be called using:
@@ -1995,7 +1643,7 @@ supports pipeline flows:
 : application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, mediawiki, pandoc, text/markdown, text/rtf
 
 ### meta_pandoc
-            
+
 meta information from pandoc document
 
 Can be called using:
@@ -2011,7 +1659,7 @@ supports pipeline flows:
 : application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, mediawiki, pandoc, text/markdown, text/rtf
 
 ### sections
-            
+
 Extracts the sections from the document by grouping text elements
 
 Can be called using:
@@ -2026,40 +1674,8 @@ return type
 supports pipeline flows:
 : application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, mediawiki, pandoc, text/markdown, text/rtf
 
-### ocr_lang
-            
-Configuration for the ocr extractor. We can turn it on/off and specify the language used for OCR.
-
-Can be called using:
-
-    <Document>.x('ocr_lang')
-    # or
-    <Document>.ocr_lang
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: PIL.Image.Image, image, image/jpeg, image/png, image/tiff
-
-### ocr_on
-            
-Configuration for the ocr extractor. We can turn it on/off and specify the language used for OCR.
-
-Can be called using:
-
-    <Document>.x('ocr_on')
-    # or
-    <Document>.ocr_on
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: PIL.Image.Image, image, image/jpeg, image/png, image/tiff
-
 ### pil_image
-            
+
 Converts the image to a PIL-style image for downstream processing tasks
 
 Can be called using:
@@ -2075,7 +1691,7 @@ supports pipeline flows:
 : PIL.Image.Image, image, image/jpeg, image/png, image/tiff
 
 ### ocr_pdf_file
-            
+
 Extracts the text from the document using OCR. It does this by creating a pdf which is important in order to keep the positional information of the text elements.
 
 Can be called using:
@@ -2091,7 +1707,7 @@ supports pipeline flows:
 : PIL.Image.Image, image, image/jpeg, image/png, image/tiff
 
 ### data_sel
-            
+
 select values by key from source data in Document
 
 Can be called using:
@@ -2107,7 +1723,7 @@ supports pipeline flows:
 : <class 'dict'\>, application/x-yaml
 
 ### keys
-            
+
 Get the keys of the dictionary
 
 Can be called using:
@@ -2123,7 +1739,7 @@ supports pipeline flows:
 : <class 'dict'\>, application/x-yaml
 
 ### values
-            
+
 Get the values of the dictionary
 
 Can be called using:
@@ -2139,7 +1755,7 @@ supports pipeline flows:
 : <class 'dict'\>, application/x-yaml
 
 ### items
-            
+
 Get the items of the dictionary
 
 Can be called using:
@@ -2153,3 +1769,47 @@ return type
 
 supports pipeline flows:
 : <class 'dict'\>, application/x-yaml
+
+### Configuration parameters
+
+| name                      | description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+|:--------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| spacy_model_size          | the model size which is used for spacy text analysis. Can be:  sm,md,lg,trf.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| spacy_model               | we can also explicitly specify the spacy model we want to use.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| use_clean_text_for_spacy  | Whether pydoxtools cleans up the text before using spacy on it.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| coreference_method        | can be 'fast' or 'accurate'                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| graph_debug_context_size  | can be 'fast' or 'accurate'                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| vectorizer_model          | Choose the embeddings model (huggingface-style) and if we wantto do the vectorization using only the tokenizer. Using only thetokenizer is MUCH faster and uses lower CPU than creating actualcontextual embeddings using the model. BUt is also lower qualitybecause it lacks the context.                                                                                                                                                                                                                                                                                                                                                               |
+| vectorizer_only_tokenizer | Choose the embeddings model (huggingface-style) and if we wantto do the vectorization using only the tokenizer. Using only thetokenizer is MUCH faster and uses lower CPU than creating actualcontextual embeddings using the model. BUt is also lower qualitybecause it lacks the context.                                                                                                                                                                                                                                                                                                                                                               |
+| vectorizer_overlap_ratio  | Choose the embeddings model (huggingface-style) and if we wantto do the vectorization using only the tokenizer. Using only thetokenizer is MUCH faster and uses lower CPU than creating actualcontextual embeddings using the model. BUt is also lower qualitybecause it lacks the context.                                                                                                                                                                                                                                                                                                                                                               |
+| min_size_text_segment     | controls the text segmentation for knowledge basesoverlap is only relevant for large text segmenets that need tobe split up into smaller pieces.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| max_size_text_segment     | controls the text segmentation for knowledge basesoverlap is only relevant for large text segmenets that need tobe split up into smaller pieces.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| text_segment_overlap      | controls the text segmentation for knowledge basesoverlap is only relevant for large text segmenets that need tobe split up into smaller pieces.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| max_text_segment_num      | controls the text segmentation for knowledge basesoverlap is only relevant for large text segmenets that need tobe split up into smaller pieces.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| top_k_text_rank_keywords  | Configuration for values:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+|                           |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+|                           | * top_k_text_rank_keywords = 5 (default)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| top_k_text_rank_sentences | controls the number of most important sentences that are extracted from the text.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| summarizer_model          | Configuration for values:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+|                           |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+|                           | * summarizer_model = sshleifer/distilbart-cnn-12-6 (default)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+|                           | * summarizer_token_overlap = 50 (default)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+|                           | * summarizer_max_text_len = 200 (default)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| summarizer_token_overlap  | Configuration for values:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+|                           |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+|                           | * summarizer_model = sshleifer/distilbart-cnn-12-6 (default)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+|                           | * summarizer_token_overlap = 50 (default)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+|                           | * summarizer_max_text_len = 200 (default)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| summarizer_max_text_len   | Configuration for values:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+|                           |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+|                           | * summarizer_model = sshleifer/distilbart-cnn-12-6 (default)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+|                           | * summarizer_token_overlap = 50 (default)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+|                           | * summarizer_max_text_len = 200 (default)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| qam_model_id              | Configuration for values:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+|                           |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+|                           | * qam_model_id = deepset/minilm-uncased-squad2 (default)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| chat_model_id             | In order to use openai-chatgpt, you can use 'gpt-3.5-turbo' or 'gpt-4'.Additionally, we support models used by gpt4all library whichcan be run locally and most are available for commercial purposes. Currently available models are: ['wizardlm-13b-v1.1-superhot-8k.ggmlv3.q4_0', 'ggml-model-gpt4all-falcon-q4_0', 'ous-hermes-13b.ggmlv3.q4_0', 'GPT4All-13B-snoozy.ggmlv3.q4_0', 'orca-mini-7b.ggmlv3.q4_0', 'orca-mini-3b.ggmlv3.q4_0', 'orca-mini-13b.ggmlv3.q4_0', 'wizardLM-13B-Uncensored.ggmlv3.q4_0', 'ggml-replit-code-v1-3', 'ggml-all-MiniLM-L6-v2-f16', 'starcoderbase-3b-ggml', 'starcoderbase-7b-ggml', 'llama-2-7b-chat.ggmlv3.q4_0'] |
+| image_dpi                 | The dpi when rendering the document. The standard image generation resolution is set to 216 dpi for pdfs as we want to have sufficient DPI for downstram OCR tasks (e.g. table extraction)                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| full_text_format          | The format used to convert the document to a string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ocr_lang                  | Configuration for the ocr extractor. We can turn it on/off and specify the language used for OCR.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ocr_on                    | Configuration for the ocr extractor. We can turn it on/off and specify the language used for OCR.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |

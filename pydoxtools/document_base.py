@@ -537,15 +537,25 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         """
         output_infos = cls.operator_infos()
 
-        node_docs = []
+        all_operators = set(oc for o in output_infos.values() for oc in o['operator_class'])
+        func_operator_docs = []
+        conf_operator_docs = []
+        aliases = []
         for k, v in output_infos.items():
             return_types = " | ".join(sorted(str(i) for i in v['output_types']))
             return_types = return_types.replace(">", r"\>")
             pipeline_flows = ", ".join(sorted(v['pipe_types']))
             pipeline_flows = pipeline_flows.replace(">", r"\>")
+            if operators_base.Configuration in v['operator_class']:
+                conf_operator_docs.append({
+                    'name': k,
+                    'type': return_types,
+                    'description': v['description'],
+                    'document types/pipelines': pipeline_flows
+                })
+            else:
+                single_node_doc = f"""### {k}
 
-            single_node_doc = f"""### {k}
-            
 {v['description']}
 
 Can be called using:
@@ -559,10 +569,11 @@ return type
 
 supports pipeline flows:
 : {pipeline_flows}"""
-            node_docs.append(single_node_doc)
+                func_operator_docs.append(single_node_doc)
 
-        docs = '\n\n'.join(node_docs)
-        return docs
+        configuration_docs = pd.DataFrame(conf_operator_docs).to_html()
+        docs = '\n\n'.join(func_operator_docs)
+        return docs, configuration_docs
 
     def gather_inputs(self, mapped_args: dict[str, str], traceable: bool):
         """

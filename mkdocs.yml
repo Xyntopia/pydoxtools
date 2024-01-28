@@ -8,7 +8,6 @@ nav:
   - Reference:
       - Document: document.md
       - DocumentBag: documentbag.md
-      - Agent: agent.md
       - Other Classes: reference.md
 
 theme:

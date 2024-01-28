@@ -12,41 +12,8 @@ and functions that are created by the pipeline are documented here.
 Pipeline visualizations for the structure of the Document pipelines for different
 document types can be found [here](https://github.com/Xyntopia/pydoxtools/tree/gh-pages/images).
 
-
-### doc_configuration
-            
-We can pass through a configuration object to Documents that are created in our document bag. Any setting that is supported by Document can be specified here.
-
-Can be called using:
-
-    <DocumentBag>.x('doc_configuration')
-    # or
-    <DocumentBag>.doc_configuration
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
-
-### forgiving_extracts
-            
-When enabled, if we execute certain batch operations on our document bag, this will not stop the extraction, but rather put an error message in the document.
-
-Can be called using:
-
-    <DocumentBag>.x('forgiving_extracts')
-    # or
-    <DocumentBag>.forgiving_extracts
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
-
 ### _stats
-            
+
 A constant value
 
 Can be called using:
@@ -61,26 +28,8 @@ return type
 supports pipeline flows:
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
-### verbosity
-            
-Configuration for values:
-
-* verbosity = None (default)
-
-Can be called using:
-
-    <DocumentBag>.x('verbosity')
-    # or
-    <DocumentBag>.verbosity
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
-
 ### get_dicts
-            
+
 Returns a function closure which returns a bag of the specified
     property of the enclosed documents.
 
@@ -97,7 +46,7 @@ supports pipeline flows:
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### d
-            
+
 Alias for: 
 
 * get_dicts->d (output)
@@ -115,7 +64,7 @@ supports pipeline flows:
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### bag_apply
-            
+
 Basically it applies a function element-wise
     on documents in a dask bag and then creates a new DocumentBag from that. This
     works similar to pandas dataframes and series. But with documents
@@ -135,7 +84,7 @@ supports pipeline flows:
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### apply
-            
+
 Basically it creates a Documentbag from two sets of
     on documents in a dask bag and then creates a new DocumentBag from that. This
     works similar to pandas dataframes and series. But with documents
@@ -155,7 +104,7 @@ supports pipeline flows:
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### exploded
-            
+
 
 
 Can be called using:
@@ -171,7 +120,7 @@ supports pipeline flows:
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### e
-            
+
 Alias for: 
 
 * exploded->e (output)
@@ -189,7 +138,7 @@ supports pipeline flows:
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### stats
-            
+
 gather a number of statistics from documents as a pandas dataframe
 
 Can be called using:
@@ -205,7 +154,7 @@ supports pipeline flows:
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### Document
-            
+
 Get a factory for pre-configured documents. Can be called just like [pydoxtools.Document][] class, but automatically gets assigned the same configuration as all Documents in this bag
 
 Can be called using:
@@ -221,7 +170,7 @@ supports pipeline flows:
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### vectorizer
-            
+
 vectorizes a query, using the document configuration of the Documentbag to determine which model to use.
 
 Can be called using:
@@ -237,7 +186,7 @@ supports pipeline flows:
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### docs
-            
+
 create a bag with one document for each file that was foundFrom this point we can hand off the logic to str(Bag) pipeline.
 
 Can be called using:
@@ -253,7 +202,7 @@ supports pipeline flows:
 : <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### take
-            
+
 No documentation
 
 Can be called using:
@@ -269,7 +218,7 @@ supports pipeline flows:
 : <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### compute
-            
+
 No documentation
 
 Can be called using:
@@ -285,7 +234,7 @@ supports pipeline flows:
 : <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### sql
-            
+
 No documentation
 
 Can be called using:
@@ -301,7 +250,7 @@ supports pipeline flows:
 : <class 'pydoxtools.document.DatabaseSource'\>
 
 ### connection_string
-            
+
 No documentation
 
 Can be called using:
@@ -317,7 +266,7 @@ supports pipeline flows:
 : <class 'pydoxtools.document.DatabaseSource'\>
 
 ### index_column
-            
+
 No documentation
 
 Can be called using:
@@ -332,26 +281,8 @@ return type
 supports pipeline flows:
 : <class 'pydoxtools.document.DatabaseSource'\>
 
-### bytes_per_chunk
-            
-Configuration for values:
-
-* bytes_per_chunk = 256 MiB (default)
-
-Can be called using:
-
-    <DocumentBag>.x('bytes_per_chunk')
-    # or
-    <DocumentBag>.bytes_per_chunk
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: <class 'pydoxtools.document.DatabaseSource'\>
-
 ### dataframe
-            
+
 Load a table using dask/pandas read_sql
 
     sql: can either be the entire table or an SQL expression
@@ -369,7 +300,7 @@ supports pipeline flows:
 : <class 'pydoxtools.document.DatabaseSource'\>
 
 ### bag
-            
+
 create a dask bag with all the filepaths in it
 
 Can be called using:
@@ -385,7 +316,7 @@ supports pipeline flows:
 : <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### root_path
-            
+
 Alias for: 
 
 * source->root_path (output)
@@ -403,7 +334,7 @@ supports pipeline flows:
 : <class 'list'\>, <class 'pathlib.Path'\>
 
 ### paths
-            
+
 
 
 Can be called using:
@@ -419,7 +350,7 @@ supports pipeline flows:
 : <class 'list'\>, <class 'pathlib.Path'\>
 
 ### file_path_list
-            
+
 No documentation
 
 Can be called using:
@@ -435,7 +366,7 @@ supports pipeline flows:
 : <class 'list'\>, <class 'pathlib.Path'\>
 
 ### dir_list
-            
+
 No documentation
 
 Can be called using:
@@ -449,3 +380,16 @@ return type
 
 supports pipeline flows:
 : <class 'list'\>, <class 'pathlib.Path'\>
+
+### Configuration parameters
+
+| name               | description                                                                                                                                                    |
+|:-------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| doc_configuration  | We can pass through a configuration object to Documents that are created in our document bag. Any setting that is supported by Document can be specified here. |
+| forgiving_extracts | When enabled, if we execute certain batch operations on our document bag, this will not stop the extraction, but rather put an error message in the document.  |
+| verbosity          | Configuration for values:                                                                                                                                      |
+|                    |                                                                                                                                                                |
+|                    | * verbosity = None (default)                                                                                                                                   |
+| bytes_per_chunk    | Configuration for values:                                                                                                                                      |
+|                    |                                                                                                                                                                |
+|                    | * bytes_per_chunk = 256 MiB (default)                                                                                                                          |

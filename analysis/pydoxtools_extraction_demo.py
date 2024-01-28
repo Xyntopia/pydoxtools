@@ -170,8 +170,8 @@ pdf.slow_summary
 # %%
 from IPython.display import Markdown
 
-print(len(pdf.markdown_docs()))
-Markdown(pdf.markdown_docs()[5000:10000])
+print(len(pdf.markdown_docs()[0]))
+Markdown(pdf.markdown_docs()[0][5000:10000])
 
 # %% [markdown]
 # ## extract a knowledge graph
