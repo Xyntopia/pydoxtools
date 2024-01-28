@@ -14,12 +14,12 @@ keywords = ["AI", "document-analysis", "LLM", "NLP", "ML"]
 clone-data = "clone_data:clone_submodule"
 
 [tool.poetry.dependencies]
-python = ">=3.8,<4.0" # python version constraints are caused by scipy
-goose3 = { optional = true, version = ">=3.1.6" }
+python = "^3.8" # python version constraints are caused by scipy
+goose3 = { optional = true, version = "^3.1.6" }
 # we are using this version of readability as the other version has a little bug...
-readability-lxml = { optional = true, version = ">=0.8.1" }
-appdirs = ">=1.4.4"
-langdetect = { optional = true, version = ">=1.0.8" }
+readability-lxml = { optional = true, version = "^0.8.1" }
+appdirs = "^1.4.4"
+langdetect = { optional = true, version = "^1.0.8" }
 transformers = { optional = true, version = ">=4.17.0" }
 # TODO: get rid of this library, can be replace by custom function
 tldextract = { optional = true, version = ">=2.2.3" }
@@ -29,7 +29,7 @@ quantulum3 = { optional = true, version = ">=0.7.4" }
 quantities = { optional = true, version = ">=0.12.4" }
 tqdm = { optional = true, version = ">=4.47.0" }
 urlextract = { optional = true, version = ">=1.1.0" }
-pydantic = { version = ">=1.7.2" }
+pydantic = { version = "^2.0.0" }
 beautifulsoup4 = { optional = true, version = ">=4.8.0" }
 lxml = { optional = true, version = ">=4.6.2" }
 # stemming is needed for quantulum3
@@ -51,7 +51,7 @@ python-magic = { version = "^0.4.27" } # for fil type identification
 openai = { version = "^0.27.4", optional = true }
 python-pptx = { version = "^0.6.21", optional = true }
 # TODO: odp  / open document presentation
-pandoc = { version = "^2.3", optional = true }
+pandoc = "^2.4b0"
 packaging = "^23.0"
 # this is a temporary workaround, as poetry install
 # for some reason doesn't install libcublas with pytorch 2.0.1 etc...
