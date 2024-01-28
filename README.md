@@ -188,7 +188,7 @@ doc.configuration
 # 'ocr_on': True}
 ```
 
-FOr more information check the documenation:
+For more information check the -> [documentation](https://pydoxtools.xyntopia.com/document/#configuration-parameters):
 
 ### PDF Table Extraction Algorithms
 
