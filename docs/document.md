@@ -605,7 +605,7 @@ Can be called using:
     <Document>.spacy_vectors
 
 return type
-: typing.Union[torch.Tensor, typing.Any]
+: torch.Tensor | typing.Any
 
 supports pipeline flows:
 : *, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -1589,7 +1589,7 @@ Can be called using:
     <Document>.images
 
 return type
-: dict[<module 'PIL.Image' from '/home/tom/.cache/pypoetry/virtualenvs/pydoxtools-ob-vhHEj-py3.10/lib/python3.10/site-packages/PIL/Image.py'\>] | typing.Any
+: dict[<module 'PIL.Image' from '/home/tom/.cache/pypoetry/virtualenvs/pydoxtools-UuJZOkke-py3.11/lib/python3.11/site-packages/PIL/Image.py'\>] | typing.Any
 
 supports pipeline flows:
 : PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff

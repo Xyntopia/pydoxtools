@@ -236,22 +236,6 @@ return type
 supports pipeline flows:
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
-### add_to_chroma
-            
-in order to build an index in chrome db we need a key, text, embeddings and a key. Those come from a daskbag with dictionaries with those keys. pydoxtools will return two functions which will - create the index- query the index
-
-Can be called using:
-
-    <DocumentBag>.x('add_to_chroma')
-    # or
-    <DocumentBag>.add_to_chroma
-
-return type
-: typing.Any
-
-supports pipeline flows:
-: *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
-
 ### docs
             
 create a bag with one document for each file that was foundFrom this point we can hand off the logic to str(Bag) pipeline.

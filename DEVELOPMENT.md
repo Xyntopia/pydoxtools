@@ -16,4 +16,16 @@ pip install -U "pydoxtools[etl,inference] @ git+https://github.com/xyntopia/pydo
 
 --> refer to "document"
 
+## Testing
+
+For unit-testing, the test dataset is needed. You can download it with this commmand:
+
+```bash
+poetry run clone-data
+```
+
+As of Jan 2024, only one dataset with some proprietary data is available an "open" dataset is being worked on. Contact
+the author of pydoxtools if you would like to have access to the test dataset.
+
+
 ## Contribution Guidelines
