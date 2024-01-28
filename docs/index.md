@@ -16,7 +16,7 @@ manipulation consisting of three main classes:
 The Pipeline class is the base of it and helps to compose dynamic pipelines
 which adapt to the underlying data.
 
-> in pydoxtools >= 0.8.0 support for agents was removed again
+> in pydoxtools >= 0.8.0 support for agents was removed.
 > the functionality can now be found in another app:
 > (taskyon.space)[https://taskyon.space]
 
@@ -61,20 +61,6 @@ To develop a custom pipeline, you can utilize the extensive library of
 [pydoxtools.Document][] or [pydoxtools.DocumentBag][] as a base for
 a new pipeline and only replace small parts to achieve the desired
 custom functionality.
-
-### Basic Agent Functionality
-
-Pydoxtools provides basic LLM Agent functionality out-of-the-box. It provides
-an [Agent][pydoxtools.Agent] class which implements the basic functionality
-needed to create AI Agents which make use of pydoxtools Pipelines, especially
-[Document][pydoxtools.Document] and [DocumentBag][pydoxtools.DocumentBag].
-
-The agent can be customized, and complicated applications can be created with just
-a few lines of code. Some examples are:
-
-- Automatic Documenttext writing in under 100 lines:
-  [example](https://github.com/Xyntopia/pydoxtools/blob/main/examples/automatic_project_writing.py)
-- TODO: add more examples...
 
 ## Visualizing Pipelines
 
