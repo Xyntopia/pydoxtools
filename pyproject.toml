@@ -10,6 +10,8 @@ repository = "https://github.com/xyntopia/pydoxtools"
 documentation = "https://pydoxtools.xyntopia.com"
 keywords = ["AI", "document-analysis", "LLM", "NLP", "ML"]
 
+[tool.poetry.scripts]
+clone-data = "clone_data:clone_submodule"
 
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0" # python version constraints are caused by scipy
