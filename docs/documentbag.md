@@ -16,16 +16,13 @@ document types can be found [here](https://github.com/Xyntopia/pydoxtools/tree/g
 
 A constant value
 
-Can be called using:
+*name*
+: `<DocumentBag>.x('_stats') or <DocumentBag>._stats`
 
-    <DocumentBag>.x('_stats')
-    # or
-    <DocumentBag>._stats
-
-return type
+*return type*
 : typing.Any
 
-supports pipeline flows:
+*supports pipeline flows*
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### get_dicts
@@ -33,16 +30,13 @@ supports pipeline flows:
 Returns a function closure which returns a bag of the specified
     property of the enclosed documents.
 
-Can be called using:
+*name*
+: `<DocumentBag>.x('get_dicts') or <DocumentBag>.get_dicts`
 
-    <DocumentBag>.x('get_dicts')
-    # or
-    <DocumentBag>.get_dicts
-
-return type
+*return type*
 : typing.Callable[[typing.Any], dask.bag.core.Bag]
 
-supports pipeline flows:
+*supports pipeline flows*
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### d
@@ -51,16 +45,13 @@ Alias for:
 
 * get_dicts->d (output)
 
-Can be called using:
+*name*
+: `<DocumentBag>.x('d') or <DocumentBag>.d`
 
-    <DocumentBag>.x('d')
-    # or
-    <DocumentBag>.d
-
-return type
+*return type*
 : typing.Any
 
-supports pipeline flows:
+*supports pipeline flows*
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### bag_apply
@@ -71,16 +62,13 @@ Basically it applies a function element-wise
     as a basic datatype. And apply functions are also required to
     produce data which can be used as a document again (which is a lot).
 
-Can be called using:
+*name*
+: `<DocumentBag>.x('bag_apply') or <DocumentBag>.bag_apply`
 
-    <DocumentBag>.x('bag_apply')
-    # or
-    <DocumentBag>.bag_apply
-
-return type
+*return type*
 : typing.Callable[..., dask.bag.core.Bag]
 
-supports pipeline flows:
+*supports pipeline flows*
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### apply
@@ -91,32 +79,26 @@ Basically it creates a Documentbag from two sets of
     as a basic datatype. And apply functions are also required to
     produce data which can be used as a document again (which is a lot).
 
-Can be called using:
+*name*
+: `<DocumentBag>.x('apply') or <DocumentBag>.apply`
 
-    <DocumentBag>.x('apply')
-    # or
-    <DocumentBag>.apply
-
-return type
+*return type*
 : typing.Callable[..., pydoxtools.document.DocumentBag]
 
-supports pipeline flows:
+*supports pipeline flows*
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### exploded
 
 
 
-Can be called using:
+*name*
+: `<DocumentBag>.x('exploded') or <DocumentBag>.exploded`
 
-    <DocumentBag>.x('exploded')
-    # or
-    <DocumentBag>.exploded
-
-return type
+*return type*
 : typing.Callable[..., pydoxtools.document.DocumentBag]
 
-supports pipeline flows:
+*supports pipeline flows*
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### e
@@ -125,160 +107,136 @@ Alias for:
 
 * exploded->e (output)
 
-Can be called using:
+*name*
+: `<DocumentBag>.x('e') or <DocumentBag>.e`
 
-    <DocumentBag>.x('e')
-    # or
-    <DocumentBag>.e
-
-return type
+*return type*
 : typing.Any
 
-supports pipeline flows:
+*supports pipeline flows*
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### stats
 
 gather a number of statistics from documents as a pandas dataframe
 
-Can be called using:
+*name*
+: `<DocumentBag>.x('stats') or <DocumentBag>.stats`
 
-    <DocumentBag>.x('stats')
-    # or
-    <DocumentBag>.stats
-
-return type
+*return type*
 : typing.Any
 
-supports pipeline flows:
+*supports pipeline flows*
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### Document
 
 Get a factory for pre-configured documents. Can be called just like [pydoxtools.Document][] class, but automatically gets assigned the same configuration as all Documents in this bag
 
-Can be called using:
+*name*
+: `<DocumentBag>.x('Document') or <DocumentBag>.Document`
 
-    <DocumentBag>.x('Document')
-    # or
-    <DocumentBag>.Document
-
-return type
+*return type*
 : typing.Any
 
-supports pipeline flows:
+*supports pipeline flows*
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### vectorizer
 
 vectorizes a query, using the document configuration of the Documentbag to determine which model to use.
 
-Can be called using:
+*name*
+: `<DocumentBag>.x('vectorizer') or <DocumentBag>.vectorizer`
 
-    <DocumentBag>.x('vectorizer')
-    # or
-    <DocumentBag>.vectorizer
-
-return type
+*return type*
 : typing.Any
 
-supports pipeline flows:
+*supports pipeline flows*
 : *, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### docs
 
-create a bag with one document for each file that was foundFrom this point we can hand off the logic to str(Bag) pipeline.
+| document types                                | description                                                                                                                |
+|:----------------------------------------------|:---------------------------------------------------------------------------------------------------------------------------|
+| <class 'dask.bag.core.Bag'\>                  | Alias for:                                                                                                                 |
+|                                               |                                                                                                                            |
+|                                               | * source->docs (output)                                                                                                    |
+| <class 'list'\>, <class 'pathlib.Path'\>      | create a bag with one document for each file that was foundFrom this point we can hand off the logic to str(Bag) pipeline. |
+| <class 'pydoxtools.document.DatabaseSource'\> | Create a dask bag of one data document for each row of the source table                                                    |
 
-Can be called using:
+*name*
+: `<DocumentBag>.x('docs') or <DocumentBag>.docs`
 
-    <DocumentBag>.x('docs')
-    # or
-    <DocumentBag>.docs
-
-return type
+*return type*
 : <class 'dask.bag.core.Bag'\> | typing.Any
 
-supports pipeline flows:
+*supports pipeline flows*
 : <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### take
 
 No documentation
 
-Can be called using:
+*name*
+: `<DocumentBag>.x('take') or <DocumentBag>.take`
 
-    <DocumentBag>.x('take')
-    # or
-    <DocumentBag>.take
-
-return type
+*return type*
 : typing.Any
 
-supports pipeline flows:
+*supports pipeline flows*
 : <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### compute
 
 No documentation
 
-Can be called using:
+*name*
+: `<DocumentBag>.x('compute') or <DocumentBag>.compute`
 
-    <DocumentBag>.x('compute')
-    # or
-    <DocumentBag>.compute
-
-return type
+*return type*
 : typing.Any
 
-supports pipeline flows:
+*supports pipeline flows*
 : <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### sql
 
 No documentation
 
-Can be called using:
+*name*
+: `<DocumentBag>.x('sql') or <DocumentBag>.sql`
 
-    <DocumentBag>.x('sql')
-    # or
-    <DocumentBag>.sql
-
-return type
+*return type*
 : typing.Any
 
-supports pipeline flows:
+*supports pipeline flows*
 : <class 'pydoxtools.document.DatabaseSource'\>
 
 ### connection_string
 
 No documentation
 
-Can be called using:
+*name*
+: `<DocumentBag>.x('connection_string') or <DocumentBag>.connection_string`
 
-    <DocumentBag>.x('connection_string')
-    # or
-    <DocumentBag>.connection_string
-
-return type
+*return type*
 : typing.Any
 
-supports pipeline flows:
+*supports pipeline flows*
 : <class 'pydoxtools.document.DatabaseSource'\>
 
 ### index_column
 
 No documentation
 
-Can be called using:
+*name*
+: `<DocumentBag>.x('index_column') or <DocumentBag>.index_column`
 
-    <DocumentBag>.x('index_column')
-    # or
-    <DocumentBag>.index_column
-
-return type
+*return type*
 : typing.Any
 
-supports pipeline flows:
+*supports pipeline flows*
 : <class 'pydoxtools.document.DatabaseSource'\>
 
 ### dataframe
@@ -287,32 +245,29 @@ Load a table using dask/pandas read_sql
 
     sql: can either be the entire table or an SQL expression
 
-Can be called using:
+*name*
+: `<DocumentBag>.x('dataframe') or <DocumentBag>.dataframe`
 
-    <DocumentBag>.x('dataframe')
-    # or
-    <DocumentBag>.dataframe
-
-return type
+*return type*
 : <class 'dask.dataframe.core.DataFrame'\>
 
-supports pipeline flows:
+*supports pipeline flows*
 : <class 'pydoxtools.document.DatabaseSource'\>
 
 ### bag
 
-create a dask bag with all the filepaths in it
+| document types                                                 | description                                    |
+|:---------------------------------------------------------------|:-----------------------------------------------|
+| <class 'list'\>, <class 'pydoxtools.document.DatabaseSource'\> | No documentation                               |
+| <class 'pathlib.Path'\>                                        | create a dask bag with all the filepaths in it |
 
-Can be called using:
+*name*
+: `<DocumentBag>.x('bag') or <DocumentBag>.bag`
 
-    <DocumentBag>.x('bag')
-    # or
-    <DocumentBag>.bag
-
-return type
+*return type*
 : typing.Any
 
-supports pipeline flows:
+*supports pipeline flows*
 : <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
 
 ### root_path
@@ -321,75 +276,71 @@ Alias for:
 
 * source->root_path (output)
 
-Can be called using:
+*name*
+: `<DocumentBag>.x('root_path') or <DocumentBag>.root_path`
 
-    <DocumentBag>.x('root_path')
-    # or
-    <DocumentBag>.root_path
-
-return type
+*return type*
 : typing.Any
 
-supports pipeline flows:
+*supports pipeline flows*
 : <class 'list'\>, <class 'pathlib.Path'\>
 
 ### paths
 
 
 
-Can be called using:
+*name*
+: `<DocumentBag>.x('paths') or <DocumentBag>.paths`
 
-    <DocumentBag>.x('paths')
-    # or
-    <DocumentBag>.paths
-
-return type
+*return type*
 : typing.Callable
 
-supports pipeline flows:
+*supports pipeline flows*
 : <class 'list'\>, <class 'pathlib.Path'\>
 
 ### file_path_list
 
-No documentation
+| document types          | description                                                                       |
+|:------------------------|:----------------------------------------------------------------------------------|
+| <class 'list'\>         | Applies any function on items in a dask bag and filters them based on the result. |
+|                         |     if func returns False, the element will be dropped from the bag.              |
+| <class 'pathlib.Path'\> | No documentation                                                                  |
 
-Can be called using:
+*name*
+: `<DocumentBag>.x('file_path_list') or <DocumentBag>.file_path_list`
 
-    <DocumentBag>.x('file_path_list')
-    # or
-    <DocumentBag>.file_path_list
-
-return type
+*return type*
 : <class 'dask.bag.core.Bag'\> | typing.Any
 
-supports pipeline flows:
+*supports pipeline flows*
 : <class 'list'\>, <class 'pathlib.Path'\>
 
 ### dir_list
 
-No documentation
+| document types          | description                                                                       |
+|:------------------------|:----------------------------------------------------------------------------------|
+| <class 'list'\>         | Applies any function on items in a dask bag and filters them based on the result. |
+|                         |     if func returns False, the element will be dropped from the bag.              |
+| <class 'pathlib.Path'\> | No documentation                                                                  |
 
-Can be called using:
+*name*
+: `<DocumentBag>.x('dir_list') or <DocumentBag>.dir_list`
 
-    <DocumentBag>.x('dir_list')
-    # or
-    <DocumentBag>.dir_list
-
-return type
+*return type*
 : <class 'dask.bag.core.Bag'\> | typing.Any
 
-supports pipeline flows:
+*supports pipeline flows*
 : <class 'list'\>, <class 'pathlib.Path'\>
 
 ### Configuration parameters
 
-| name               | description                                                                                                                                                    |
-|:-------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| doc_configuration  | We can pass through a configuration object to Documents that are created in our document bag. Any setting that is supported by Document can be specified here. |
-| forgiving_extracts | When enabled, if we execute certain batch operations on our document bag, this will not stop the extraction, but rather put an error message in the document.  |
-| verbosity          | Configuration for values:                                                                                                                                      |
-|                    |                                                                                                                                                                |
-|                    | * verbosity = None (default)                                                                                                                                   |
-| bytes_per_chunk    | Configuration for values:                                                                                                                                      |
-|                    |                                                                                                                                                                |
-|                    | * bytes_per_chunk = 256 MiB (default)                                                                                                                          |
+| name               | descriptions                                                                                                                                                   | default value   |
+|:-------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------|:----------------|
+| doc_configuration  | We can pass through a configuration object to Documents that are created in our document bag. Any setting that is supported by Document can be specified here. | {}              |
+| forgiving_extracts | When enabled, if we execute certain batch operations on our document bag, this will not stop the extraction, but rather put an error message in the document.  | False           |
+| verbosity          | Configuration for values:                                                                                                                                      |                 |
+|                    |                                                                                                                                                                |                 |
+|                    | * verbosity = None (default)                                                                                                                                   |                 |
+| bytes_per_chunk    | Configuration for values:                                                                                                                                      | 256 MiB         |
+|                    |                                                                                                                                                                |                 |
+|                    | * bytes_per_chunk = 256 MiB (default)                                                                                                                          |                 |

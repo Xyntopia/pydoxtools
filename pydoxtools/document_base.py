@@ -19,6 +19,7 @@ import numpy as np
 import pandas as pd
 import pydantic
 import spacy.tokens
+import tabulate
 import yaml
 from diskcache import Cache
 
@@ -544,8 +545,18 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
 
         Returns:
             str: A formatted string containing the documentation for each pipeline operation, including
-                 operation name, usage, return type, and supported pipelines.
+                 operation name, usage, return type, supported pipelines, default values, and descriptions.
         """
+
+        def are_all_values_same(dictionary):
+            """
+            Check if all values in the dictionary are the same.
+            This function handles comparison of unhashable types like dicts.
+            """
+            iterator = iter(dictionary.values())
+            first_value = next(iterator, None)
+            return all(first_value == rest for rest in iterator)
+
         output_infos = cls.operator_infos()
 
         all_operators = set(oc for o in output_infos.values() for oc in o['operator_class'])
@@ -557,22 +568,44 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
             return_types = return_types.replace(">", r"\>")
             pipeline_flows = ", ".join(sorted(v['pipe_types']))
             pipeline_flows = pipeline_flows.replace(">", r"\>")
+
+            if are_all_values_same(v['descriptions']):
+                # All default values are the same
+                aggregated_descriptions = next(iter(v['descriptions'].values()))
+            else:
+                # Different default values for each pipeline
+                # Aggregate descriptions
+                description_groups = {}
+                for pipeline, description in v['descriptions'].items():
+                    description_groups.setdefault(description, []).append(
+                        pipeline.replace('*', r'\*').replace(">", r"\>"))
+                tab = [{"document types":", ".join(k),"description":v} for v,k in description_groups.items()]
+                aggregated_descriptions = pd.DataFrame(tab).to_markdown(index=False)
+
             if operators_base.Configuration in v['operator_class']:
+                # Handle default values
+                default_values = v['default_values']
+                if are_all_values_same(default_values):
+                    # All default values are the same
+                    default_value = next(iter(default_values.values()))
+                else:
+                    # Different default values for each pipeline
+                    default_value = default_values
                 conf_operator_docs.append({
                     'name': k,
                     # 'type': return_types,
-                    'descriptions': v['descriptions'],
+                    'descriptions': aggregated_descriptions,
                     # 'document types/pipelines': pipeline_flows
-                    'default_value': v['default_values']
+                    'default value': default_value
                 })
             else:
                 single_node_doc = f"""### {k}
 
-{v['descriptions']}
+{aggregated_descriptions}
 
 *name*
 : `<{cls.__name__}>.x('{k}') or <{cls.__name__}>.{k}`
-    
+
 *return type*
 : {return_types}
 
