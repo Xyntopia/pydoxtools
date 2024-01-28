@@ -63,11 +63,11 @@ pyyaml = "^6.0"
 dask = { extras = ["complete"], version = "^2023.4.1", optional = true }
 diskcache = "^5.6.1"
 chardet = "^5.1.0"
-chromadb = { version = "^0.3.23", optional = true }
 gpt4all = "^1.0.8"
 fastcoref = "^2.1.6" # needed for knowlecdge base creation
 timm = "^0.9.5" # this one is needed for document layout analysis
 pygraphviz = {version = "^1.11", optional = true}
+pydantic-settings = "^2.1.0"
 
 [tool.poetry.extras]
 # extraction-transformation-load facilities
@@ -79,7 +79,7 @@ etl = ["goose3", "langdetect", "tldextract", "spacy", "pdfminer.six",
 ]
 # TODO: rename & regroups extras (e.g. light, medium average or something like that...)
 inference = ["transformers", "scikit-learn", "tqdm", "torch", "pytorch-lightning", "spacy",
-    "beautifulsoup4", "pandas", "urlextract", "hnswlib", "chromadb", "gpt4all", "timm", "fastcoref"]
+    "beautifulsoup4", "pandas", "urlextract", "hnswlib", "gpt4all", "timm", "fastcoref"]
 
 [tool.poetry.group.colab]
 optional = true

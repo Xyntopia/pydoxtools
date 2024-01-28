@@ -13,7 +13,7 @@ from pathlib import Path
 
 import appdirs
 # TODO: remove joblib as a dependency from here ...
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 logger = logging.getLogger(__name__)
 
@@ -31,16 +31,16 @@ class _Settings(BaseSettings):
     PDX_CACHE_DIR_BASE: Path = Path(appdirs.user_cache_dir(appname, appauthor))
     PDX_ENABLE_DISK_CACHE: bool = False
     TRAINING_DATA_DIR: Path = _PYDOXTOOLS_DIR / 'training_data'
-    PDX_MODEL_DIR = PDX_CACHE_DIR_BASE / "models"
+    PDX_MODEL_DIR: Path = PDX_CACHE_DIR_BASE / "models"
 
     # in order to be able to access OPENAI api
     OPENAI_API_KEY: str = "sk ...."
 
     # PDXT_STANDARD_QAM_MODEL = 'distilbert-base-cased-distilled-squad'
-    PDXT_STANDARD_QAM_MODEL = 'deepset/minilm-uncased-squad2'
+    PDXT_STANDARD_QAM_MODEL: str = 'deepset/minilm-uncased-squad2'
     # be careful with this one here!!  we would have to retrain ALL of our
     # own, custom models!!!!
-    PDXT_STANDARD_TOKENIZER = 'distilbert-base-multilingual-cased'
+    PDXT_STANDARD_TOKENIZER: str = 'distilbert-base-multilingual-cased'
 
     # TODO: download classifiers in cache memory...
     def MODEL_STORE(self, name) -> Path:
