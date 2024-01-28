@@ -677,16 +677,15 @@ TextStructureNodes = [
     FunctionOperator(lambda x: [tb for tb in x if tb.type == ElementType.TextBox])
     .input(x="elements").out("text_box_elements").t(list[str]).cache()
     .docs("Text boxes extracted as a pandas Dataframe with some additional metadata"),
-
     DocumentElementFilter(element_type=ElementType.Header)
     .input("elements").out("headers").cache()
     .docs("Extracts the headers from the document"),
     # get tables only from document_objects this will also give as the correct reference!
-    FunctionOperator(lambda do: {t.id: t for t in do.values() if t.type == ElementType.Table})
+    FunctionOperator(lambda do: {idx: t for idx, t in do.items() if t.type == ElementType.Table})
     .t(dict[int, DocumentElement])
     .input(do="document_objects").out("tables").cache()
     .docs("Extracts the tables from the document as a dataframe"),
-    FunctionOperator(lambda x: [pd.DataFrame(t.obj) for t in x]).t(list[pd.DataFrame])
+    FunctionOperator(lambda x: [pd.DataFrame(t.obj) for idx, t in x.items()]).t(list[pd.DataFrame])
     .input(x="tables").out("tables_df").cache(),
     DocumentElementFilter(element_type=ElementType.List)
     .input("elements").out("lists").cache()

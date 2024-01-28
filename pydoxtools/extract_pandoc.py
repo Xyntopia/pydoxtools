@@ -114,7 +114,7 @@ class PandocToPdxConverter(pydoxtools.operators_base.Operator):
         pdx_elements = []  # declare our own element "format"
         section_title = None
         boxnum = 0
-        for el in pdoc[1]:  # [0] is potential metadata
+        for id, el in enumerate(pdoc[1]):  # [0] is potential metadata
             if isinstance(el, pandoc.types.Header):
                 section_title = PandocConverter()(el, output_format="plain").strip()
                 boxnum += 1
