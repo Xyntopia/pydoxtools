@@ -8,12 +8,12 @@ from typing import Optional, Any
 import networkx
 import numpy as np
 import pandas as pd
+import pydoxtools.document_base
 import spacy
 import torch
 from spacy import Language
 from spacy.tokens import Doc, Token, Span
 
-import pydoxtools.document_base
 from . import list_utils
 from .document_base import TokenCollection
 from .operators_base import Operator
@@ -110,16 +110,19 @@ class TrfContextualVectors:
 
         # pre-calculate all vectors for every token:
 
+        # For spaCy v3.7+, trf pipelines use spacy-curated-transformers and doc._.trf_data
+        # is a DocTransformerOutput object. --> https://spacy.io/api/curatedtransformer#doctransformeroutput
         # calculate groups for spacy token boundaries in the trf vectors
-        vec_idx_splits = np.cumsum(sdoc._.trf_data.align.lengths)
+        vec_idx_splits = np.cumsum(sdoc._.trf_data.last_hidden_layer_state.lengths)
         # get transformer vectors and reshape them into one large continous tensor
-        trf_vecs = sdoc._.trf_data.tensors[0].reshape(-1, 768)
+        trf_vecs = sdoc._.trf_data.last_hidden_layer_state.data
         # calculate mapping groups from spacy tokens to transformer vector indices
-        vec_idxs = np.split(sdoc._.trf_data.align.dataXd, vec_idx_splits)
+        vec_idxs = np.split(range(0, sdoc._.trf_data.last_hidden_layer_state.data.shape[0]), vec_idx_splits)
 
         # take sum of mapped transformer vector indices for spacy vectors
         # TOOD: add more pooling methods than just sum...
         #       if we do this we probabyl need to declare a factory function...
+        # i
         vecs = np.stack([trf_vecs[idx].sum(0) for idx in vec_idxs[:-1]])
         sdoc._.trf_token_vecs = vecs
 

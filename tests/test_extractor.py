@@ -684,8 +684,9 @@ if __name__ == "__main__":
     # test_all_documents()
     file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/PFR-PR23_BAT-110__V1.00_.pdf"
     doc = Document(file)
-    test_zero_shot_classifier()
+    #test_zero_shot_classifier()
     # test_document_graph()
+    test_summarization()
 
     # doc.text_box_elements
     pass

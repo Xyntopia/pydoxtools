@@ -8158,4 +8158,4 @@ inference = ["beautifulsoup4", "fastcoref", "gpt4all", "hnswlib", "pandas", "pyt
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "f1e527ec0c5a154e8775d7b8c18aa704be9caf40c59f1931f1a73fd5fae2b310"
+content-hash = "fbdedddb72d7597e460ea1e27f08a83557b111d586032876babc4502d4ceea37"
