@@ -2,47 +2,37 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://xyntopia.github.io/pydoxtools/</loc>
-         <lastmod>2023-08-22</lastmod>
+         <lastmod>2024-01-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://xyntopia.github.io/pydoxtools/DEVELOPMENT/</loc>
-         <lastmod>2023-08-22</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://xyntopia.github.io/pydoxtools/agent/</loc>
-         <lastmod>2023-08-22</lastmod>
+         <lastmod>2024-01-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://xyntopia.github.io/pydoxtools/document/</loc>
-         <lastmod>2023-08-22</lastmod>
+         <lastmod>2024-01-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://xyntopia.github.io/pydoxtools/documentbag/</loc>
-         <lastmod>2023-08-22</lastmod>
+         <lastmod>2024-01-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://xyntopia.github.io/pydoxtools/examples/</loc>
-         <lastmod>2023-08-22</lastmod>
+         <lastmod>2024-01-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://xyntopia.github.io/pydoxtools/readme_cp/</loc>
-         <lastmod>2023-08-22</lastmod>
+         <lastmod>2024-01-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://xyntopia.github.io/pydoxtools/reference/</loc>
-         <lastmod>2023-08-22</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://xyntopia.github.io/pydoxtools/examples/automated_blog_writing/</loc>
-         <lastmod>2023-08-22</lastmod>
+         <lastmod>2024-01-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
