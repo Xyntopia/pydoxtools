@@ -488,35 +488,46 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         the return type of the operation, and the operation's docstring.
 
         Returns:
-            output_infos (Dict[str, Dict[str, Union[Set, str]]]): The aggregated information
+            output_infos (Dict[str, Dict[str, Union[Set, str, dict]]]): The aggregated information
                 about pipeline operations, with operation keys as the top-level keys, and
-                metadata such as pipeline types, output types, and descriptions as nested
-                dictionaries.
+                metadata such as pipeline types, output types, descriptions, default values,
+                and callable params as nested dictionaries.
         """
         output_infos = {}
         # aggregate information
         op: Operator
         for pipeline_id, ops in cls._pipelines.items():
             for op_k, op in ops.items():
-                # BUG: TODO: find a better method here than just "overwriting" operator information
-                #       for different pipelines
-                oi: dict[str, set] = output_infos.get(op_k, None) or dict(
-                    pipe_types=set(), output_types=set(), operator_class=set())
+                oi: dict[str, set | dict] = output_infos.get(op_k, None) or dict(
+                    pipe_types=set(), output_types=set(), operator_class=set(),
+                    descriptions={}, default_values={})
                 oi["pipe_types"].add(pipeline_id)
                 if return_type := op.return_type:
                     oi["output_types"].add(return_type[op_k])
                 else:
                     oi["output_types"].add(typing.Any)
-                # TODO: merge multiple descriptions by making clear which description is for which pipeline type.
+                    # Aggregate descriptions for each pipeline
                 try:
-                    oi["description"] = op.documentation[op_k]
+                    # we are taking the documentation for this specific operator here.
+                    description = op.documentation[op_k]
                 except TypeError:
-                    oi["description"] = op.documentation
-                oi["description"] = oi["description"].strip()
+                    description = op.documentation
+                description = description.strip()
+                oi["descriptions"][pipeline_id] = description
+                # Check for configuration_map and aggregate default values
+                try:
+                    oi["default_values"][pipeline_id] = op._configuration_map[op_k]
+                except AttributeError:
+                    pass
                 # TODO: merge multiple callable params by pipeline type.
                 oi["callable_params"] = getattr(op, "callable_params", None)
                 oi["operator_class"].add(op.__class__)
                 output_infos[op_k] = oi
+
+                # Sort descriptions for each operation
+            for op_k, info in output_infos.items():
+                info["descriptions"] = dict(sorted(info["descriptions"].items()))
+                info["default_values"] = dict(sorted(info["default_values"].items()))
 
         if pipeline_type:
             return output_infos[pipeline_type]
@@ -549,29 +560,27 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
             if operators_base.Configuration in v['operator_class']:
                 conf_operator_docs.append({
                     'name': k,
-                    'type': return_types,
-                    'description': v['description'],
-                    'document types/pipelines': pipeline_flows
+                    # 'type': return_types,
+                    'descriptions': v['descriptions'],
+                    # 'document types/pipelines': pipeline_flows
+                    'default_value': v['default_values']
                 })
             else:
                 single_node_doc = f"""### {k}
 
-{v['description']}
+{v['descriptions']}
 
-Can be called using:
-
-    <{cls.__name__}>.x('{k}')
-    # or
-    <{cls.__name__}>.{k}
-
-return type
+*name*
+: `<{cls.__name__}>.x('{k}') or <{cls.__name__}>.{k}`
+    
+*return type*
 : {return_types}
 
-supports pipeline flows:
+*supports pipeline flows*
 : {pipeline_flows}"""
                 func_operator_docs.append(single_node_doc)
 
-        configuration_docs = pd.DataFrame(conf_operator_docs).to_html()
+        configuration_docs = pd.DataFrame(conf_operator_docs).to_markdown(index=False)
         docs = '\n\n'.join(func_operator_docs)
         return docs, configuration_docs
 
