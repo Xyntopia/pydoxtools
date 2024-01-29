@@ -10,3 +10,4 @@ training_data/
 dist/
 build/
 site/
+tests/data

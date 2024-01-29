@@ -34,7 +34,7 @@ from .extract_filesystem import PathLoader
 from .extract_filesystem import force_decode, load_raw_file_content
 from .extract_html import HtmlExtractor
 from .extract_index import IndexExtractor, KnnQuery, \
-    SimilarityGraph, TextrankOperator, TextPieceSplitter, ChromaIndexFromBag
+    SimilarityGraph, TextrankOperator, TextPieceSplitter
 from .extract_objects import EntityExtractor
 from .extract_ocr import OCRExtractor
 from .extract_pandoc import PandocLoader, PandocConverter, PandocToPdxConverter
@@ -421,7 +421,7 @@ SpacyNodes = [
         spacy_model="we can also explicitly specify the spacy model we want to use.",
         use_clean_text_for_spacy="Whether pydoxtools cleans up the text before using spacy on it."
     ),
-    FunctionOperator(lambda x, ct, ft: "\n\n".join(x(["Table", "Figure"]).values()) if ct else ft)
+    FunctionOperator(lambda x, ct, ft: "\n\n".join(x([ElementType.Table, ElementType.Figure]).values()) if ct else ft)
     .input(x="page_templates", ct="use_clean_text_for_spacy", ft="full_text")
     .out("clean_spacy_text").t(str)
     .docs("Generate text to be used for spacy. Depending on the 'use_clean_text_for_spacy' option"
@@ -677,16 +677,15 @@ TextStructureNodes = [
     FunctionOperator(lambda x: [tb for tb in x if tb.type == ElementType.TextBox])
     .input(x="elements").out("text_box_elements").t(list[str]).cache()
     .docs("Text boxes extracted as a pandas Dataframe with some additional metadata"),
-
     DocumentElementFilter(element_type=ElementType.Header)
     .input("elements").out("headers").cache()
     .docs("Extracts the headers from the document"),
     # get tables only from document_objects this will also give as the correct reference!
-    FunctionOperator(lambda do: {t.id: t for t in do.values() if t.type == ElementType.Table})
+    FunctionOperator(lambda do: {idx: t for idx, t in do.items() if t.type == ElementType.Table})
     .t(dict[int, DocumentElement])
     .input(do="document_objects").out("tables").cache()
     .docs("Extracts the tables from the document as a dataframe"),
-    FunctionOperator(lambda x: [pd.DataFrame(t.obj) for t in x]).t(list[pd.DataFrame])
+    FunctionOperator(lambda x: [pd.DataFrame(t.obj) for idx, t in x.items()]).t(list[pd.DataFrame])
     .input(x="tables").out("tables_df").cache(),
     DocumentElementFilter(element_type=ElementType.List)
     .input("elements").out("lists").cache()
@@ -1505,16 +1504,6 @@ class DocumentBag(Pipeline):
             .input(doc="Document").out("vectorizer").cache()
             .docs("vectorizes a query, using the document configuration of the Documentbag"
                   " to determine which model to use."),
-            ###### building an index ######
-            ChromaIndexFromBag()
-            .input(query_vectorizer="vectorizer", doc_bag="docs")
-            .out("add_to_chroma").cache(allow_disk_cache=False).docs(
-                "in order to build an index in chrome db we need a key, text, embeddings and a key."
-                " Those come from a daskbag with dictionaries with those keys."
-                " pydoxtools will return two functions which will "
-                "- create the index"
-                "- query the index"
-            )
         ]
     }
 

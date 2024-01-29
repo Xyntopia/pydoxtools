@@ -7,11 +7,11 @@ from dataclasses import asdict
 import numpy as np
 import pandas as pd
 import pdfminer
+import pydoxtools.operators_base
 from pdfminer.layout import LTTextLineVertical
+from pydoxtools import document_base
 from sklearn.ensemble import IsolationForest
 
-import pydoxtools.operators_base
-from pydoxtools import document_base
 from . import cluster_utils
 from . import list_utils
 
@@ -220,7 +220,7 @@ class TitleExtractor(pydoxtools.operators_base.Operator):
 
         features = set(dfl.columns) - {'obj', 'linewidth', 'non_stroking_color', 'stroking_color', 'stroke',
                                        'fill', 'evenodd', 'type', 'text', 'font_infos', 'font', 'rawtext',
-                                       'color', 'char_orientations'}
+                                       'color', 'char_orientations', 'labels'}
 
         # detect outliers to isolate titles and other content from "normal"
         # content

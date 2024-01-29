@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 import pandoc
 
-pydoxtools_link = "https://github.com/jgm/pandoc/releases/tag/2.19.2"
+pydoxtools_link = "https://github.com/jgm/pandoc/releases"
 
 try:
     import pandoc.types
@@ -28,7 +28,7 @@ except RuntimeError:
     logger.warning(f"""pandoc does not seem to be installed, in order to load some documents
     such as *.docx, *.rtf this library needs to be installed.
     
-    Checkout this link here: {pydoxtools_link}
+    Checkout this link here: {pydoxtools_link}. In order to work correctly, pandoc version 3.1.X is needed...
     """)
 
     pandoc_installed = False
@@ -114,7 +114,7 @@ class PandocToPdxConverter(pydoxtools.operators_base.Operator):
         pdx_elements = []  # declare our own element "format"
         section_title = None
         boxnum = 0
-        for el in pdoc[1]:  # [0] is potential metadata
+        for id, el in enumerate(pdoc[1]):  # [0] is potential metadata
             if isinstance(el, pandoc.types.Header):
                 section_title = PandocConverter()(el, output_format="plain").strip()
                 boxnum += 1

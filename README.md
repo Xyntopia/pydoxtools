@@ -18,7 +18,8 @@ keywords: [ pydoxtools, AI, AI-Composition, ETL, pipelines, knowledge graphs ]
 
 [Documentation](https://pydoxtools.xyntopia.com)
 
-*If you have any problems or questions, please create a github [issue](https://github.com/Xyntopia/pydoxtools/issues). So that other poeple who might want to use it can see the potential solution!*
+*If you have any problems or questions, please create a github [issue](https://github.com/Xyntopia/pydoxtools/issues).
+So that other poeple who might want to use it can see the potential solution!*
 
 ## Summary
 
@@ -150,12 +151,44 @@ the [documentation](http://pydoxtools.xyntopia.com/reference/#pydoxtools.documen
 Pipelines can be configured. For example the local model used for
 question answering can be selected like this:
 
-    doc = Document(fobj="./data/PFR-PR23_BAT-110__V1.00_.pdf"))
-            .config(qam_model_id='bert-large-uncased-whole-word-masking-finetuned-squad')
+```python
+doc = Document(fobj="./data/PFR-PR23_BAT-110__V1.00_.pdf")
+.config(qam_model_id='bert-large-uncased-whole-word-masking-finetuned-squad')
+```
 
 where "qam_model_id" can be any model from huggingface for question answering.
 
-    TODO: document how to configure a pipeline
+You can get a list of configuration options like this:
+
+```python
+doc.configuration
+
+# >> will give you something like this:
+# {'spacy_model_size': 'md',
+# 'spacy_model': 'auto',
+# 'use_clean_text_for_spacy': True,
+# 'coreference_method': 'fast',
+# 'graph_debug_context_size': 0,
+# 'vectorizer_model': 'sentence-transformers/all-MiniLM-L6-v2',
+# 'vectorizer_only_tokenizer': False,
+# 'vectorizer_overlap_ratio': 0.1,
+# 'min_size_text_segment': 256,
+# 'max_size_text_segment': 512,
+# 'text_segment_overlap': 0.3,
+# 'max_text_segment_num': 100,
+# 'top_k_text_rank_keywords': 5,
+# 'top_k_text_rank_sentences': 5,
+# 'summarizer_model': 'sshleifer/distilbart-cnn-12-6',
+# 'summarizer_token_overlap': 50,
+# 'summarizer_max_text_len': 200,
+# 'qam_model_id': 'deepset/minilm-uncased-squad2',
+# 'chat_model_id': 'gpt-3.5-turbo',
+# 'image_dpi': 216,
+# 'ocr_lang': 'auto',
+# 'ocr_on': True}
+```
+
+For more information check the -> [documentation](https://pydoxtools.xyntopia.com/document/#configuration-parameters):
 
 ### PDF Table Extraction Algorithms
 
@@ -266,3 +299,7 @@ setting:
 Here is a list of Libraries, that this project is based on:
 
 [list](poetry.lock)
+
+### Changelog
+
+[changelog](CHANGELOG.md)

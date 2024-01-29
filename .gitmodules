@@ -1,5 +1,0 @@
-[submodule "tests/data"]
-	path = tests/data
-	url = ../pydoxtools_test_data.git
-	update = none
-	shallow = true

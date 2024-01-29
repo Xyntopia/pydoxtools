@@ -19,6 +19,7 @@ import numpy as np
 import pandas as pd
 import pydantic
 import spacy.tokens
+import tabulate
 import yaml
 from diskcache import Cache
 
@@ -488,35 +489,46 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         the return type of the operation, and the operation's docstring.
 
         Returns:
-            output_infos (Dict[str, Dict[str, Union[Set, str]]]): The aggregated information
+            output_infos (Dict[str, Dict[str, Union[Set, str, dict]]]): The aggregated information
                 about pipeline operations, with operation keys as the top-level keys, and
-                metadata such as pipeline types, output types, and descriptions as nested
-                dictionaries.
+                metadata such as pipeline types, output types, descriptions, default values,
+                and callable params as nested dictionaries.
         """
         output_infos = {}
         # aggregate information
         op: Operator
         for pipeline_id, ops in cls._pipelines.items():
             for op_k, op in ops.items():
-                # BUG: TODO: find a better method here than just "overwriting" operator information
-                #       for different pipelines
-                oi: dict[str, set] = output_infos.get(op_k, None) or dict(
-                    pipe_types=set(), output_types=set(), operator_class=set())
+                oi: dict[str, set | dict] = output_infos.get(op_k, None) or dict(
+                    pipe_types=set(), output_types=set(), operator_class=set(),
+                    descriptions={}, default_values={})
                 oi["pipe_types"].add(pipeline_id)
                 if return_type := op.return_type:
                     oi["output_types"].add(return_type[op_k])
                 else:
                     oi["output_types"].add(typing.Any)
-                # TODO: merge multiple descriptions by making clear which description is for which pipeline type.
+                    # Aggregate descriptions for each pipeline
                 try:
-                    oi["description"] = op.documentation[op_k]
+                    # we are taking the documentation for this specific operator here.
+                    description = op.documentation[op_k]
                 except TypeError:
-                    oi["description"] = op.documentation
-                oi["description"] = oi["description"].strip()
+                    description = op.documentation
+                description = description.strip()
+                oi["descriptions"][pipeline_id] = description
+                # Check for configuration_map and aggregate default values
+                try:
+                    oi["default_values"][pipeline_id] = op._configuration_map[op_k]
+                except AttributeError:
+                    pass
                 # TODO: merge multiple callable params by pipeline type.
                 oi["callable_params"] = getattr(op, "callable_params", None)
                 oi["operator_class"].add(op.__class__)
                 output_infos[op_k] = oi
+
+                # Sort descriptions for each operation
+            for op_k, info in output_infos.items():
+                info["descriptions"] = dict(sorted(info["descriptions"].items()))
+                info["default_values"] = dict(sorted(info["default_values"].items()))
 
         if pipeline_type:
             return output_infos[pipeline_type]
@@ -533,36 +545,77 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
 
         Returns:
             str: A formatted string containing the documentation for each pipeline operation, including
-                 operation name, usage, return type, and supported pipelines.
+                 operation name, usage, return type, supported pipelines, default values, and descriptions.
         """
+
+        def are_all_values_same(dictionary):
+            """
+            Check if all values in the dictionary are the same.
+            This function handles comparison of unhashable types like dicts.
+            """
+            iterator = iter(dictionary.values())
+            first_value = next(iterator, None)
+            return all(first_value == rest for rest in iterator)
+
         output_infos = cls.operator_infos()
 
-        node_docs = []
+        all_operators = set(oc for o in output_infos.values() for oc in o['operator_class'])
+        func_operator_docs = []
+        conf_operator_docs = []
+        aliases = []
         for k, v in output_infos.items():
             return_types = " | ".join(sorted(str(i) for i in v['output_types']))
             return_types = return_types.replace(">", r"\>")
             pipeline_flows = ", ".join(sorted(v['pipe_types']))
             pipeline_flows = pipeline_flows.replace(">", r"\>")
 
-            single_node_doc = f"""### {k}
-            
-{v['description']}
+            if are_all_values_same(v['descriptions']):
+                # All default values are the same
+                aggregated_descriptions = next(iter(v['descriptions'].values()))
+            else:
+                # Different default values for each pipeline
+                # Aggregate descriptions
+                description_groups = {}
+                for pipeline, description in v['descriptions'].items():
+                    description_groups.setdefault(description, []).append(
+                        pipeline.replace('*', r'\*').replace(">", r"\>"))
+                tab = [{"document types":", ".join(k),"description":v} for v,k in description_groups.items()]
+                aggregated_descriptions = pd.DataFrame(tab).to_markdown(index=False)
 
-Can be called using:
+            if operators_base.Configuration in v['operator_class']:
+                # Handle default values
+                default_values = v['default_values']
+                if are_all_values_same(default_values):
+                    # All default values are the same
+                    default_value = next(iter(default_values.values()))
+                else:
+                    # Different default values for each pipeline
+                    default_value = default_values
+                conf_operator_docs.append({
+                    'name': k,
+                    # 'type': return_types,
+                    'descriptions': aggregated_descriptions,
+                    # 'document types/pipelines': pipeline_flows
+                    'default value': default_value
+                })
+            else:
+                single_node_doc = f"""### {k}
 
-    <{cls.__name__}>.x('{k}')
-    # or
-    <{cls.__name__}>.{k}
+{aggregated_descriptions}
 
-return type
+*name*
+: `<{cls.__name__}>.x('{k}') or <{cls.__name__}>.{k}`
+
+*return type*
 : {return_types}
 
-supports pipeline flows:
+*supports pipeline flows*
 : {pipeline_flows}"""
-            node_docs.append(single_node_doc)
+                func_operator_docs.append(single_node_doc)
 
-        docs = '\n\n'.join(node_docs)
-        return docs
+        configuration_docs = pd.DataFrame(conf_operator_docs).to_markdown(index=False)
+        docs = '\n\n'.join(func_operator_docs)
+        return docs, configuration_docs
 
     def gather_inputs(self, mapped_args: dict[str, str], traceable: bool):
         """

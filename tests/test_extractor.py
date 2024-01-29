@@ -115,7 +115,7 @@ def run_single_non_interactive_document_test(file_name):
     assert doc
     assert doc._stats["cache_hits"] >= 0
     # make sure we are always using "full_text" for spacy docs
-    assert str(doc.spacy_doc.text) == doc.full_text
+    assert str(doc.spacy_doc.text) == doc.clean_spacy_text
 
     with open(file_name, "rb") as file:
         doc_str = file.read()
@@ -682,10 +682,11 @@ if __name__ == "__main__":
     # a = pd.DataFrame(sd.sents)
     # a[2]
     # test_all_documents()
-    file = "/home/tom/git/doxcavator/backend/lib/componardo/pydoxtools/tests/data/PFR-PR23_BAT-110__V1.00_.pdf"
+    file = "/home/tom/git/pydoxtools/tests/data/north_american_countries.png"
     doc = Document(file)
-    test_zero_shot_classifier()
+    #test_zero_shot_classifier()
     # test_document_graph()
+    doc.titles
 
     # doc.text_box_elements
     pass
