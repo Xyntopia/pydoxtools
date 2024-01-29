@@ -197,7 +197,8 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
     def __init__(
             self,
             # laparams=LAParams(detect_vertical=True, boxes_flow=-1.0, all_texts=False),
-            laparams=LAParams(detect_vertical=False),
+            # we set boxes_flow=None in order to prevent pdfminer from detecting layout...
+            laparams=LAParams(detect_vertical=False, boxes_flow=None),
             **kwargs
     ):
         """

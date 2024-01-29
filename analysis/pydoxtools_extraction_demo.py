@@ -99,7 +99,7 @@ pdf.page_set
 # ## Do some layout document analysis
 
 # %%
-page = 18
+page = 17
 pdf = pdx.Document(pdf_file, page_numbers=[page])
 vda.plot_box_layers(
     box_layers=[
@@ -197,7 +197,7 @@ svg = vd.draw(pdf.noun_graph, engine="fdp", format='svg')
 svg
 
 # %%
-pdf = pydoxtools.Document("https://en.wikipedia.org/wiki/Rocket", 
+pdf = pdx.Document("https://en.wikipedia.org/wiki/Rocket", 
                           spacy_model_size="lg", coreference_method="fast")
 
 # %% [markdown]
@@ -207,7 +207,7 @@ pdf = pydoxtools.Document("https://en.wikipedia.org/wiki/Rocket",
 #pdf.x("graph_nodes",disk_cache=True)
 
 # %%
-pdf = pydoxtools.Document("https://en.wikipedia.org/wiki/Rocket", 
+pdf = pdx.Document("https://en.wikipedia.org/wiki/Rocket", 
                           spacy_model_size="lg", coreference_method="fast")
 KG = pdf.x("document_graph")
 

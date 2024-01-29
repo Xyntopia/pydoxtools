@@ -203,7 +203,7 @@ def test_qam_machine():
     ))
     assert answers[0][0][0] == 'bst bat - 110'
     assert answers[1][0][0] == 'bst bat - 110'
-    assert answers[2][0][0] == 'the bst'
+    assert answers[2] == []
 
 
 def test_address_extraction():
@@ -679,6 +679,26 @@ def test_zero_shot_classifier():
     assert res[0]['encyclopdia article'] > res[0]['license']
 
 
+def test_pdf_speed_w_caching():
+    doc = Document(make_path_absolute("./data/Doxcavator.pdf"))
+
+    start_time = time.time()
+    # Assuming this is how you load and extract elements using your library
+    x = doc.x("elements", disk_cache=False)
+    end_time = time.time()
+
+    timer1 = end_time - start_time
+
+    x = doc.x("elements", disk_cache=True)
+    start_time = time.time()
+    # Assuming this is how you load and extract elements using your library
+    x = doc.x("elements", disk_cache=True)
+    end_time = time.time()
+
+    timer2 = end_time - start_time
+
+    assert timer1 > timer2
+
 # TODO: write a test which checks if the output of all operators confirm to their type
 
 if __name__ == "__main__":
@@ -690,7 +710,6 @@ if __name__ == "__main__":
     op_types = Document.operator_types()
     # doc.text_box_elements
     # test_zero_shot_classifier()
-    # test_document_graph()
     test_typing()
 
     # doc.text_box_elements
