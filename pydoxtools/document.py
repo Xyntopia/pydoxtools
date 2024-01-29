@@ -1149,8 +1149,12 @@ operations and include the documentation there. Lambda functions should not be u
                             mimetype = magic.from_file(_fobj, mime=True)
                         else:
                             logger.warning("install magic to guess file type!")
+                elif isinstance(_fobj, Path):
+                    raise FileNotFoundError(f'could not find file: {_fobj}')
                 else:
                     mimetype = "string"
+            except FileNotFoundError:
+                raise
             except OSError:  # could happen if we try to use a string as filename and that is too long
                 mimetype = "string"
 
