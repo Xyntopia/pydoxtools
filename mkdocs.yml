@@ -22,6 +22,8 @@ watch:
   - pydoxtools
   - docs
 
+markdown_extensions:
+  - admonition
 
 plugins:
   - search

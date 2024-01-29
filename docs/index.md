@@ -16,9 +16,10 @@ manipulation consisting of three main classes:
 The Pipeline class is the base of it and helps to compose dynamic pipelines
 which adapt to the underlying data.
 
-> in pydoxtools >= 0.8.0 support for agents was removed.
-> the functionality can now be found in another app:
-> (taskyon.space)[https://taskyon.space]
+!!! notes 
+    Support for agents was removed in Pydoxtools >= 0.8.0.
+    The functionality can now be found in another app:
+    (taskyon.space)[https://taskyon.space]
 
 <!--
 ### Here are some examples to get started:
