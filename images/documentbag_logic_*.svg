@@ -35,7 +35,7 @@ Document -->
 <g id="node3" class="node">
 <title>FunctionOperator
 Document</title>
-<text text-anchor="middle" x="93" y="-374.3" font-family="Times,serif" font-size="14.00">FunctionOperator</text>
+<text text-anchor="middle" x="93" y="-374.3" font-family="Times,serif" font-size="14.00">FO:&lt;lambda&gt;</text>
 </g>
 <!-- doc_configuration&#45;&gt;FunctionOperator
 Document -->
@@ -64,7 +64,7 @@ vectorizer -->
 <g id="node5" class="node">
 <title>FunctionOperator
 vectorizer</title>
-<text text-anchor="middle" x="93" y="-230.3" font-family="Times,serif" font-size="14.00">FunctionOperator</text>
+<text text-anchor="middle" x="93" y="-230.3" font-family="Times,serif" font-size="14.00">FO:&lt;lambda&gt;</text>
 </g>
 <!-- Document&#45;&gt;FunctionOperator
 vectorizer -->
@@ -305,15 +305,15 @@ stats -->
 <g id="node18" class="node">
 <title>FunctionOperator
 stats</title>
-<text text-anchor="middle" x="763" y="-374.3" font-family="Times,serif" font-size="14.00">FunctionOperator</text>
+<text text-anchor="middle" x="756" y="-374.3" font-family="Times,serif" font-size="14.00">FO:&lt;lambda&gt;</text>
 </g>
 <!-- _stats&#45;&gt;FunctionOperator
 stats -->
 <g id="edge18" class="edge">
 <title>_stats&#45;&gt;FunctionOperator
 stats</title>
-<path fill="none" stroke="black" d="M689.72,-434.15C702,-424.92 718.05,-412.83 732,-402.33"/>
-<polygon fill="black" stroke="black" points="734.47,-404.85 740.36,-396.04 730.26,-399.26 734.47,-404.85"/>
+<path fill="none" stroke="black" d="M688.24,-434.15C699.48,-425 714.15,-413.06 726.97,-402.63"/>
+<polygon fill="black" stroke="black" points="729.52,-405.07 735.07,-396.04 725.1,-399.64 729.52,-405.07"/>
 </g>
 <!-- stats -->
 <g id="node19" class="node">
@@ -326,8 +326,8 @@ stats&#45;&gt;stats -->
 <g id="edge19" class="edge">
 <title>FunctionOperator
 stats&#45;&gt;stats</title>
-<path fill="none" stroke="black" d="M775.36,-359.7C781.47,-351.14 788.95,-340.67 795.63,-331.33"/>
-<polygon fill="black" stroke="black" points="798.51,-333.31 801.47,-323.14 792.81,-329.25 798.51,-333.31"/>
+<path fill="none" stroke="black" d="M770.09,-359.7C777.23,-350.93 786.01,-340.15 793.76,-330.63"/>
+<polygon fill="black" stroke="black" points="796.64,-332.63 800.24,-322.67 791.21,-328.22 796.64,-332.63"/>
 </g>
 <!-- Configuration
 verbosity -->
