@@ -708,7 +708,13 @@ TextStructureNodes = [
     #     # TODO: replace with a generalized page template generator...
     extract_textstructure.PageTemplateGenerator()
     .input("document_objects").out("page_templates").cache()
-    .docs("generates a text page with table & figure hints"),
+    .docs("Generates a text page while replacing certain elements of the page "
+          "which can be specified as a list of ElementTypes. It also automatically replaces "
+          "elements which don't have a textual representation with an identifier. "
+          "This is often the case with images & figures for example. "
+          "The Id of the placeholder refers to the index of the DocumentObject. "
+          "So for example, if we encounter and Identifier:  {Table_22}, "
+          "we would be able to find it using doc.document_objects[22] or doc.do[22]."),
 
     FunctionOperator(lambda pt, ps: "".join(f"\n\n-------- {p} --------\n\n" + pt()[p] for p in ps))
     .input(pt="page_templates", ps="page_set").out("page_templates_str").cache()

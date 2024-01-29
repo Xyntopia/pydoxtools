@@ -7,7 +7,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.5
+#       jupytext_version: 1.16.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -23,8 +23,8 @@
 
 import sys
 
-import componardo.documentx
 import pydoxtools.visualization as vd
+import pydoxtools as pdx
 
 sys.path.append("../../analysis")
 
@@ -46,9 +46,7 @@ from pydoxtools import visual_document_analysis as vda
 import numpy as np
 import yaml
 from pydoxtools import pdf_utils, file_utils, nlp_utils, cluster_utils
-import componardo.documentx
 import torch
-import componardo.spec_utils as su
 import pathlib
 import pydoxtools.cluster_utils
 
@@ -67,7 +65,7 @@ nlp_utils.device, torch.cuda.is_available(), torch.__version__
 # ## analyze sample html + optional pdf
 
 # %%
-training_data = pathlib.Path.home() / "comcharax/data"
+training_data = pathlib.Path.home() / "Sync/comcharax_data/data/"
 # get all pdf files in subdirectory
 # files = file_utils.get_nested_paths(training_data / "pdfs/datasheet", "*.pdf")
 file = "/tests/data/Datasheet-Centaur-Charger-DE.6f.pdf"
@@ -85,7 +83,7 @@ print(pdf_file)
 # %%
 pages = np.arange(10, 15).tolist()
 pages = [10, 18, 19]  # we have an unreasonable number of elements here..  what is going on?
-pdf = componardo.documentx.DocumentX(pdf_file, page_numbers=pages)
+pdf = pdx.Document(pdf_file, page_numbers=pages)
 x = pdf.x("elements", disk_cache=True)
 
 # %%
@@ -102,12 +100,12 @@ pdf.page_set
 
 # %%
 page = 18
-pdf = componardo.documentx.DocumentX(pdf_file, page_numbers=[page])
+pdf = pdx.Document(pdf_file, page_numbers=[page])
 vda.plot_box_layers(
     box_layers=[
-        [pdf.line_elements[box_cols].values, vda.LayerProps(alpha=0.5, color="red", filled=False)],
-        [pdf.image_elements[box_cols].values, vda.LayerProps(alpha=0.5, color="blue", filled=False)],
-        [pdf.graphic_elements[box_cols].values, vda.LayerProps(alpha=0.5, color="yellow", filled=False)],
+        [pdf.df('line_elements')[box_cols].values, vda.LayerProps(alpha=0.5, color="red", filled=False)],
+        [pdf.df('image_elements')[box_cols].values, vda.LayerProps(alpha=0.5, color="blue", filled=False)],
+        [pdf.df('graphic_elements')[box_cols].values, vda.LayerProps(alpha=0.5, color="yellow", filled=False)],
         [pdf.table_areas[box_cols].values, vda.LayerProps(alpha=1.0, color="green", filled=False)],
         # [candidate_areas, vda.LayerProps(alpha=1.0, color="green", filled=False)],
         # [tables[box_cols].values, vda.LayerProps(alpha=1.0, color="red", filled=False)],
@@ -131,9 +129,15 @@ pdf.tables_df[0]
 # %% [markdown]
 # ## document templates
 
+# %% [markdown]
+# We can replace individual elements of our document with placeholders. The id of the placeholder
+# refers to the index of the DocumentObject
+
 # %%
-from pydoxtools import document_base
-print("".join(f"\n\n-------- {{page_{p}}} --------\n\n" + pdf.page_templates(exclude=document_base.ElementType.Table)[p] for p in pdf.pages_with_tables))
+from pydoxtools.document_base import ElementType
+#print("\n\n".join(pdf.page_templates([ElementType.Table, ElementType.Image, ElementType.TextBox]).values()))
+#print("\n\n".join(pdf.page_templates([ElementType.Table], include=[ElementType.Image]).values()))
+print("\n\n".join(pdf.page_templates([ElementType.Table]).values()))
 
 # %% [markdown]
 # ## extract summary information
@@ -171,7 +175,7 @@ pdf.slow_summary
 from IPython.display import Markdown
 
 print(len(pdf.markdown_docs()[0]))
-Markdown(pdf.markdown_docs()[0][5000:10000])
+Markdown(pdf.markdown_docs()[0][4000:7000])
 
 # %% [markdown]
 # ## extract a knowledge graph
@@ -180,7 +184,7 @@ Markdown(pdf.markdown_docs()[0][5000:10000])
 #pdf.noun_graph
 
 # %%
-pdf = pydoxtools.Document(pdf_file, page_numbers=list(range(164, 166)))
+pdf = pdx.Document(pdf_file, page_numbers=list(range(164, 166)))
 
 # %%
 #import networkx as nx
