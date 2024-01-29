@@ -65,7 +65,7 @@ class LayerProps(pydantic.BaseModel):
     linestyle: str = "-"
     color: typing.Optional[typing.Union[typing.Tuple[int, int, int], str]] = None
     filled: bool = True
-    box_numbers = False
+    box_numbers: bool = False
 
 
 def plot_boxes(
