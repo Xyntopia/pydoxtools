@@ -87,4 +87,4 @@ class DocumentExtract(BaseModel):
     price: list[str] = []
 
     class Config:
-        orm_mode = True
+        from_attributes = True
