@@ -19,7 +19,7 @@ import typing
 from io import StringIO
 from pathlib import Path
 
-import PIL
+import PIL.Image
 import numpy as np
 import pandas as pd
 import pdf2image
@@ -151,7 +151,7 @@ def repair_pdf_if_damaged(function):
 class PDFImageRenderer(pydoxtools.operators_base.Operator):
     """Take a document PDF and render an image from it."""
 
-    def __call__(self, fobj: bytes, dpi: int, page_numbers: list[int]) -> dict[str, dict[PIL.Image]]:
+    def __call__(self, fobj: bytes, dpi: int, page_numbers: list[int]) -> dict[str, dict[int, PIL.Image.Image]]:
         images = {}
         for page in page_numbers:
             image = pdf2image.convert_from_bytes(
