@@ -567,12 +567,12 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
 
         output_infos = cls.operator_infos()
 
-        all_operators = set(oc for o in output_infos.values() for oc in o['operator_class'])
+        all_operators = set(oc for o in output_infos.values() for oc in o.operator_class)
         func_operator_docs = []
         conf_operator_docs = []
         aliases = []
         for k, v in output_infos.items():
-            return_types = " | ".join(sorted(str(i) for i in v['output_types']))
+            return_types = " | ".join(sorted(str(i) for i in v.output_types))
             return_types = return_types.replace(">", r"\>")
             pipeline_flows = ", ".join(sorted(v.pipe_types))
             pipeline_flows = pipeline_flows.replace(">", r"\>")
