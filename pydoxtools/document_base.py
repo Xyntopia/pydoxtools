@@ -12,16 +12,16 @@ import uuid
 from enum import Enum
 from functools import cached_property
 from time import time
-from typing import Any
+from typing import Any, Type
 
 import networkx as nx
 import numpy as np
 import pandas as pd
 import pydantic
 import spacy.tokens
-import tabulate
 import yaml
 from diskcache import Cache
+from pydantic import BaseModel
 
 from . import operators_base
 from .list_utils import deep_str_convert
@@ -266,6 +266,15 @@ class DocumentLocation(pydantic.BaseModel):
         None, description="Source can be a file or URL or any other source of origin")
 
 
+class OperatorInfoModel(BaseModel):
+    pipe_types: set[str] = set()
+    output_types: set[Any] = set()
+    operator_class: set[Type] = set()
+    descriptions: dict[str, str] = {}
+    default_values: dict[str, Any] = {}
+    callable_params: Any = None
+
+
 class Pipeline(metaclass=MetaPipelineClassConfiguration):
     """
     Base class for all document classes in pydoxtools, defining a common pipeline
@@ -480,7 +489,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         NotImplementedError("TODO: search for functions that are type hinted as callable")
 
     @classmethod
-    def operator_infos(cls, pipeline_type=None) -> dict[str, dict[str, Any]]:
+    def operator_infos(cls, pipeline_type=None) -> dict[str, OperatorInfoModel] | OperatorInfoModel:
         """
         Aggregates the pipeline operations and their corresponding types and metadata.
 
@@ -494,41 +503,40 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
                 metadata such as pipeline types, output types, descriptions, default values,
                 and callable params as nested dictionaries.
         """
-        output_infos = {}
+        output_infos: dict[str, OperatorInfoModel] = {}
         # aggregate information
-        op: Operator
-        for pipeline_id, ops in cls._pipelines.items():
-            for op_k, op in ops.items():
-                oi: dict[str, set | dict] = output_infos.get(op_k, None) or dict(
-                    pipe_types=set(), output_types=set(), operator_class=set(),
-                    descriptions={}, default_values={})
-                oi["pipe_types"].add(pipeline_id)
-                if return_type := op.return_type:
-                    oi["output_types"].add(return_type[op_k])
+        operator: Operator
+        for pipeline_id, operators in cls._pipelines.items():
+            for operator_name, operator in operators.items():
+                op_info: OperatorInfoModel = output_infos.get(operator_name, None) or OperatorInfoModel()
+                op_info.pipe_types.add(pipeline_id)
+                if return_type := operator.return_type:
+                    op_info.output_types.add(return_type[operator_name])
                 else:
-                    oi["output_types"].add(typing.Any)
+                    op_info.output_types.add(typing.Any)
                     # Aggregate descriptions for each pipeline
                 try:
                     # we are taking the documentation for this specific operator here.
-                    description = op.documentation[op_k]
+                    description = operator.documentation[operator_name]
                 except TypeError:
-                    description = op.documentation
+                    description = operator.documentation
                 description = description.strip()
-                oi["descriptions"][pipeline_id] = description
-                # Check for configuration_map and aggregate default values
+                op_info.descriptions[pipeline_id] = description
+                # Check for configuration_map and aggregate default values of
+                # configuration operators
                 try:
-                    oi["default_values"][pipeline_id] = op._configuration_map[op_k]
+                    op_info.default_values[pipeline_id] = operator._configuration_map[operator_name]
                 except AttributeError:
                     pass
                 # TODO: merge multiple callable params by pipeline type.
-                oi["callable_params"] = getattr(op, "callable_params", None)
-                oi["operator_class"].add(op.__class__)
-                output_infos[op_k] = oi
+                op_info.callable_params = getattr(operator, "callable_params", None)
+                op_info.operator_class.add(operator.__class__)
+                output_infos[operator_name] = op_info
 
                 # Sort descriptions for each operation
-            for op_k, info in output_infos.items():
-                info["descriptions"] = dict(sorted(info["descriptions"].items()))
-                info["default_values"] = dict(sorted(info["default_values"].items()))
+            for operator_name, op_info in output_infos.items():
+                op_info.descriptions = dict(sorted(op_info.descriptions.items()))
+                op_info.default_values = dict(sorted(op_info.default_values.items()))
 
         if pipeline_type:
             return output_infos[pipeline_type]
@@ -566,25 +574,25 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         for k, v in output_infos.items():
             return_types = " | ".join(sorted(str(i) for i in v['output_types']))
             return_types = return_types.replace(">", r"\>")
-            pipeline_flows = ", ".join(sorted(v['pipe_types']))
+            pipeline_flows = ", ".join(sorted(v.pipe_types))
             pipeline_flows = pipeline_flows.replace(">", r"\>")
 
-            if are_all_values_same(v['descriptions']):
+            if are_all_values_same(v.descriptions):
                 # All default values are the same
-                aggregated_descriptions = next(iter(v['descriptions'].values()))
+                aggregated_descriptions = next(iter(v.descriptions.values()))
             else:
                 # Different default values for each pipeline
                 # Aggregate descriptions
                 description_groups = {}
-                for pipeline, description in v['descriptions'].items():
+                for pipeline, description in v.descriptions.items():
                     description_groups.setdefault(description, []).append(
                         pipeline.replace('*', r'\*').replace(">", r"\>"))
-                tab = [{"document types":", ".join(k),"description":v} for v,k in description_groups.items()]
+                tab = [{"document types": ", ".join(k), "description": v} for v, k in description_groups.items()]
                 aggregated_descriptions = pd.DataFrame(tab).to_markdown(index=False)
 
-            if operators_base.Configuration in v['operator_class']:
+            if operators_base.Configuration in v.operator_class:
                 # Handle default values
-                default_values = v['default_values']
+                default_values = v.default_values
                 if are_all_values_same(default_values):
                     # All default values are the same
                     default_value = next(iter(default_values.values()))
@@ -623,7 +631,8 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
 
         This method retrieves all required input parameters from _in_mapping, which was declared with "pipe".
         It first checks if the parameter is available as an extractor. If so, it calls the function to get the value.
-        Otherwise, it gets the "native" member-variables or other functions if an extractor with that name is not found.
+        Otherwise, it gets the member-variables or functions of the derived pipeline
+        class if an extractor with that name cannot be found.
 
         Args:
             **kwargs (dict): A dictionary containing the keys to be mapped to the corresponding values.
@@ -790,46 +799,47 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
             return default_return
 
     @classmethod
-    def operator_types(cls, json_schema=False):
+    def operator_types(cls, only_valid_json_schema_types=False):
         """
         This function returns a dictionary of operators with their types
         which is suitable for declaring a pydantic model.
 
-        json_schema: if this is set to True, we make sure that only valid json
-                     schema types are included in the model.
-                     The typical use case is to expose the pipeline via this
-                     model to an http API e.g. through fastapi. In this
-                     case we should only allow types that are valid json schema.
-                     Therefore, this is set to "False" by default.
+        only_valid_json_schema_types:    if this is set to True, we make sure that only valid json
+                                         schema types are included in the model.
+                                         The typical use case is to expose the pipeline via this
+                                         model to an http API e.g. through fastapi. In this
+                                         case we should only allow types that are valid json schema.
+                                         Therefore, this is set to "False" by default.
         """
         # get types
         types = cls.operator_infos()
         operator_signatures = {}
         for k, v in types.items():
-            operator_types = tuple(t for t in v['output_types']) or typing.Any
-            if isinstance(operator_types, typing.Tuple):
-                operator_types = typing.Union[operator_types]
+            operator_output_types = tuple(t for t in v.output_types) or typing.Any
+            if isinstance(operator_output_types, typing.Tuple):
+                operator_output_types = typing.Union[operator_output_types]
             # check if we can generate json schema otherwise omit value:
             try:
-                pydantic.schema_json_of(operator_types)
+                pydantic.schema_json_of(operator_output_types)
             except:
-                if json_schema:
+                if only_valid_json_schema_types:
                     # if a model should be a valid json schema, omit the definition
                     continue
 
-            arg = (typing.Optional[operator_types],
-                   pydantic.Field(
-                       None, description=v['description'],
-                       callable_params=v['callable_params'],
-                       operator_class=v['operator_class']
-                   ))
+            arg = (typing.Optional[operator_output_types],
+                   pydantic.Field(description=v.descriptions,
+                                  callable_params=v.callable_params,
+                                  operator_class=v.operator_class
+                                  ))
             operator_signatures[k] = arg
+
+            break
 
         return operator_signatures
 
     @classmethod
     def Model(cls):
-        operator_signatures = cls.operator_types(json_schema=True)
+        operator_signatures = cls.operator_types(only_valid_json_schema_types=True)
 
         class Config:
             arbitrary_types_allowed = True
