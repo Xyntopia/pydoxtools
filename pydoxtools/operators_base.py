@@ -109,7 +109,7 @@ class Operator(ABC, typing.Generic[OperatorReturnType]):
         return typing_dict
 
     @functools.cached_property
-    def return_type(self) -> dict[Any]:
+    def return_type(self) -> dict[str, Any]:
         """
         this property returns the type that was specified for the function operator
 
@@ -141,7 +141,7 @@ class Operator(ABC, typing.Generic[OperatorReturnType]):
             output_type = typing.get_args(typed_class)
             return self.map_output_types(output_type)
 
-        return {}
+        return typing.Any
 
     @abc.abstractmethod
     def __call__(self, *args, **kwargs) -> OperatorReturnType:

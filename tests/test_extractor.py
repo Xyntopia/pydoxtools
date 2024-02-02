@@ -535,7 +535,7 @@ def test_typing():
     # TODO: actually test the types with some asserts...
     from pydoxtools.operators_base import FunctionOperator
     d = Document("asasd")
-    docs = Document.operator_infos()
+    docs = Document.node_infos()
     optypes = Document.operator_types()
     m = Document.Model()()
     func = d._pipelines["*"]["full_text"]
