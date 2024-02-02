@@ -519,18 +519,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         return operator_infos
 
     @classmethod
-    def markdown_docs(cls):
-        """
-        Returns a formatted string containing the documentation for each pipeline operation in the class.
-
-        This class method iterates through the pipeline operations, collects information about their
-        output types and supported pipelines, and formats the documentation accordingly.
-
-        Returns:
-            str: A formatted string containing the documentation for each pipeline operation, including
-                 operation name, usage, return type, supported pipelines, default values, and descriptions.
-        """
-
+    def node_infos_agg(cls, as_string=True):
         output_infos = pd.DataFrame(cls.node_infos())
 
         # aggregate pipeline nodes info for documentation purposes
@@ -540,21 +529,38 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
             doc_table = doc_df[['pipe_type', 'description']].to_markdown(
                 index=False)  # , tablefmt="grid") #tablefmt oesnt work for mkdocs
             doc_str = "\n\n---\n\n".join(doc_df.description)
-            default_values = ""
+            default_values = [""]
             node_type = ""
             if operators_base.Configuration in x.operator_class.to_list():
-                default_values = " | ".join(sorted(i for i in set(x.default_value.apply(str))))
+                default_values = sorted(i for i in set(x.default_value.apply(str)))
                 node_type = "config"
-            return pd.Series({
-                "return_types": " | ".join(sorted(i for i in set(x.output_type.apply(str)))),
-                "pipeline_flows": ", ".join(sorted(x.pipe_type)),
-                "description": doc_table if (len(doc_df) > 1) else doc_str,
-                "description_str": doc_str,
-                "default_values": default_values,
-                "node_type": node_type
-            })
+            if as_string:
+                default_values = " | ".join(default_values)
+                return pd.Series({
+                    "return_types": " | ".join(sorted(i for i in set(x.output_type.apply(str)))),
+                    "pipeline_flows": ", ".join(sorted(x.pipe_type)),
+                    "description": doc_table if (len(doc_df) > 1) else doc_str,
+                    "description_str": doc_str,
+                    "default_values": default_values,
+                    "node_type": node_type
+                })
+            else:
+                return pd.Series({
+                    "return_types": set(x.output_type),
+                    "pipeline_flows": sorted(x.pipe_type),
+                    "description": doc_table if (len(doc_df) > 1) else doc_str,
+                    "description_str": doc_str,
+                    "default_values": default_values,
+                    "node_type": node_type
+                })
 
         node_docs = output_infos.groupby('name', sort=True).apply(aggregate_infos)
+        return node_docs
+
+    @classmethod
+    def markdown_docs(cls):
+        node_docs = cls.node_infos_agg()
+
         # sanitize output to work in html...
         node_docs = node_docs.applymap(lambda x: x.replace(">", r"\>").replace('*', r'\*'))
 
@@ -757,7 +763,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
             return default_return
 
     @classmethod
-    def operator_types(cls, only_valid_json_schema_types=False):
+    def operator_types(cls):
         """
         This function returns a dictionary of operators with their types
         which is suitable for declaring a pydantic model.
@@ -769,31 +775,20 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
                                          case we should only allow types that are valid json schema.
                                          Therefore, this is set to "False" by default.
         """
-        # get types
-        types = cls.node_infos()
-        operator_signatures = {}
-        for k, v in types.items():
-            operator_output_types = tuple(t for t in v.output_types) or typing.Any
-            if isinstance(operator_output_types, typing.Tuple):
-                operator_output_types = typing.Union[operator_output_types]
-            # check if we can generate json schema otherwise omit value:
+
+        def test_json_schema(x):
             try:
-                pydantic.schema_json_of(operator_output_types)
+                pydantic.schema_json_of()
+                return True
             except:
-                if only_valid_json_schema_types:
-                    # if a model should be a valid json schema, omit the definition
-                    continue
+                # if a model should be a valid json schema, omit the definition
+                return False
 
-            arg = (typing.Optional[operator_output_types],
-                   pydantic.Field(description=v.descriptions,
-                                  callable_params=v.callable_params,
-                                  operator_class=v.operator_class
-                                  ))
-            operator_signatures[k] = arg
-
-            break
-
-        return operator_signatures
+        # get types
+        types = cls.node_infos_agg(as_string=False).copy()
+        types['return_types_union'] = types.return_types.apply(lambda x: typing.Union[tuple(x)])
+        types['works_as_json_schema'] = types.return_types_union.apply(test_json_schema)
+        return types
 
     @classmethod
     def Model(cls):
