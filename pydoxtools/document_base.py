@@ -361,6 +361,8 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
     def get_configuration_names(cls, pipeline: str) -> list[str]:
         """Returns a list of names of all configuration objects for a given pipeline.
 
+        This is a cached function which is important,
+
         Args:
             pipeline (str): The name of the pipeline to retrieve configuration objects from.
 
@@ -778,7 +780,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
 
         def test_json_schema(x):
             try:
-                pydantic.schema_json_of()
+                pydantic.schema_json_of(x)
                 return True
             except:
                 # if a model should be a valid json schema, omit the definition
