@@ -35,7 +35,7 @@ Letter/digit ratio of the text
 : `<Document>.x('a_d_ratio') or <Document>.a_d_ratio`
 
 *return type*
-: typing.Any
+: <class 'float'\>
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -237,7 +237,7 @@ Builds a [networkx graph](https://networkx.org/documentation/stable/reference/cl
 : `<Document>.x('elements') or <Document>.elements`
 
 *return type*
-: <class 'pandas.core.frame.DataFrame'\> | list[pydoxtools.document_base.DocumentElement] | typing.Any
+: <class 'pandas.core.frame.DataFrame'\> | list[pydoxtools.document_base.DocumentElement]
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -1102,7 +1102,7 @@ exracts nounchunks from spacy. Will not be cached because it is allin the spacy 
 : `<Document>.x('spacy_noun_chunks') or <Document>.spacy_noun_chunks`
 
 *return type*
-: typing.Any
+: typing.List[pydoxtools.document_base.TokenCollection]
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -1141,7 +1141,7 @@ Vectors for all tokens calculated by spacy
 : `<Document>.x('spacy_vectors') or <Document>.spacy_vectors`
 
 *return type*
-: typing.Any
+: torch.Tensor | typing.Any
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -1212,7 +1212,7 @@ Outputs a dictionary with the context of each table in the document
 : `<Document>.x('table_context') or <Document>.table_context`
 
 *return type*
-: <class 'str'\>
+: dict[int, str]
 
 *supports pipeline flows*
 : PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff
@@ -1268,7 +1268,7 @@ List of Table
 : `<Document>.x('tables_dict') or <Document>.tables_dict`
 
 *return type*
-: list[dict]
+: list[dict[int, dict[int, str]]]
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf

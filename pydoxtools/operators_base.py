@@ -120,6 +120,8 @@ class Operator(ABC, typing.Generic[OperatorReturnType]):
         # TODO: what do we do if callable is a dict?? --> incorporate that!
         #       we need to check output valus and map output value dictionary
         #       to types
+        #       NOTE: I am note sure. but this might already be taken care of in
+        #             other locations :P
         if self._output_type:
             typing_dict = self.map_output_types(self._output_type)
             return typing_dict
@@ -134,6 +136,7 @@ class Operator(ABC, typing.Generic[OperatorReturnType]):
                     #       in the pipeline.x() function. Where a dict automatically gets mapped
                     #       to the output map
                     return self.map_output_types((output_type,))
+
         except TypeError:
             raise TypeError(f"Could not get type hints for {self} with output: {self._out_mapping}")
 
@@ -297,12 +300,12 @@ class FunctionOperator(Operator[CallableType]):
     def return_type(self):
         """this property returns the type that was specified for the function operator"""
         if return_type := super().return_type:
-            return return_type
-
-        if type_hints := typing.get_type_hints(self._func):
-            output_types = type_hints.get('return', typing.Any)
-            typing_dict = self.map_output_types((output_types,))
-            return typing_dict
+            if return_type != typing.Any:
+                return return_type
+            if type_hints := typing.get_type_hints(self._func):
+                output_types = type_hints.get('return', typing.Any)
+                typing_dict = self.map_output_types((output_types,))
+                return typing_dict
 
         return self.map_output_types((typing.Any,))
 
