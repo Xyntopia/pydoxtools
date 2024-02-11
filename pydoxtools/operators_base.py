@@ -161,7 +161,7 @@ class Operator(ABC, typing.Generic[OperatorReturnType]):
     def t(self, output_type=None, **output_types_dict):
         """declare an optional return type which is used for documentation & downstream tasks"""
         if output_type:
-            self._output_type = output_types_dict
+            self._output_type = output_type
         else:
             self._output_type = output_types_dict
         return self

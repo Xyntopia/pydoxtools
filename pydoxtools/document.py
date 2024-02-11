@@ -171,7 +171,7 @@ PDFDocumentStructureNodes = [
         k: extract_textstructure.get_bbox_context(v.bbox, elements, v.page, "table")
         for k, v in enumerate(tables)
     }).input("elements", tables="valid_tables").out("table_context").cache()
-    .t(dict[int, str])
+    .t(table_context=dict[int, str])
     .docs("Outputs a dictionary with the context of each table in the document"),
 ]
 
@@ -682,9 +682,9 @@ TextStructureNodes = [
     .docs("Extracts the headers from the document"),
     # get tables only from document_objects this will also give as the correct reference!
     FunctionOperator(lambda do: {idx: t for idx, t in do.items() if t.type == ElementType.Table})
-    .t(dict[int, DocumentElement])
+    .t(tables=dict[int, DocumentElement])
     .input(do="document_objects").out("tables").cache()
-    .docs("Extracts the tables from the document as a dataframe"),
+    .docs("Extracts the tables from the document as a document element"),
     FunctionOperator(lambda x: [pd.DataFrame(t.obj) for idx, t in x.items()]).t(list[pd.DataFrame])
     .input(x="tables").out("tables_df").cache(),
     DocumentElementFilter(element_type=ElementType.List)

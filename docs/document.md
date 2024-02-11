@@ -48,7 +48,7 @@ get addresses from text
 : `<Document>.x('addresses') or <Document>.addresses`
 
 *return type*
-: typing.Any
+: list[str]
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -100,7 +100,7 @@ Generate text to be used for spacy. Depending on the 'use_clean_text_for_spacy' 
 : `<Document>.x('clean_spacy_text') or <Document>.clean_spacy_text`
 
 *return type*
-: typing.Any
+: <class 'str'\>
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -118,7 +118,7 @@ Generate text to be used for spacy. Depending on the 'use_clean_text_for_spacy' 
 : `<Document>.x('clean_text') or <Document>.clean_text`
 
 *return type*
-: <class 'str'\> | typing.Any
+: <class 'str'\>
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -162,7 +162,7 @@ Resolve coreferences in the text
 : `<Document>.x('data') or <Document>.data`
 
 *return type*
-: typing.Any
+: <built-in function array\> | typing.Any
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -219,7 +219,7 @@ Builds a [networkx graph](https://networkx.org/documentation/stable/reference/cl
 : `<Document>.x('document_objects') or <Document>.document_objects`
 
 *return type*
-: dict[int, pydoxtools.document_base.DocumentElement] | typing.Any
+: <class 'pydoxtools.document_base.DocumentElement'\> | dict[int, pydoxtools.document_base.DocumentElement]
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -429,7 +429,7 @@ Filters the document elements and only keeps the image elements
 : `<Document>.x('images') or <Document>.images`
 
 *return type*
-: dict[int, PIL.Image.Image] | typing.Any
+: <class 'PIL.Image.Image'\> | dict[int, PIL.Image.Image]
 
 *supports pipeline flows*
 : PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff
@@ -709,7 +709,7 @@ Vectors for nouns and corresponding noun ids in order to find them in the spacy 
 : `<Document>.x('num_pages') or <Document>.num_pages`
 
 *return type*
-: typing.Any
+: <class 'int'\>
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -722,7 +722,7 @@ number of sentences
 : `<Document>.x('num_sents') or <Document>.num_sents`
 
 *return type*
-: typing.Any
+: <class 'int'\>
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -735,7 +735,7 @@ Number of words in the document
 : `<Document>.x('num_words') or <Document>.num_words`
 
 *return type*
-: typing.Any
+: <class 'int'\>
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -806,7 +806,7 @@ Outputs a nice text version of the documents with annotated document objects suc
 : `<Document>.x('page_templates_str') or <Document>.page_templates_str`
 
 *return type*
-: typing.Any
+: <class 'str'\>
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -819,7 +819,7 @@ No documentation
 : `<Document>.x('page_templates_str_minimal') or <Document>.page_templates_str_minimal`
 
 *return type*
-: typing.Any
+: <class 'str'\>
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -879,7 +879,7 @@ Extracts the main content from the html document, removing boilerplate and other
 : `<Document>.x('pil_image') or <Document>.pil_image`
 
 *return type*
-: typing.Any
+: <class 'PIL.Image.Image'\> | typing.Any
 
 *supports pipeline flows*
 : PIL.Image.Image, image, image/jpeg, image/png, image/tiff
@@ -1115,7 +1115,7 @@ List of sentences by spacy nlp framework
 : `<Document>.x('spacy_sents') or <Document>.spacy_sents`
 
 *return type*
-: typing.Any
+: list[str]
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -1212,7 +1212,7 @@ Outputs a dictionary with the context of each table in the document
 : `<Document>.x('table_context') or <Document>.table_context`
 
 *return type*
-: typing.Any
+: <class 'str'\>
 
 *supports pipeline flows*
 : PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff
@@ -1232,13 +1232,13 @@ Filter valid tables from table candidates by looking if meaningful values can be
 
 ### tables
 
-Extracts the tables from the document as a dataframe
+Extracts the tables from the document as a document element
 
 *name*
 : `<Document>.x('tables') or <Document>.tables`
 
 *return type*
-: typing.Any
+: dict[int, pydoxtools.document_base.DocumentElement]
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -1255,7 +1255,7 @@ Extracts the tables from the document as a dataframe
 : `<Document>.x('tables_df') or <Document>.tables_df`
 
 *return type*
-: typing.Any
+: list[pandas.core.frame.DataFrame] | typing.Any
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -1268,7 +1268,7 @@ List of Table
 : `<Document>.x('tables_dict') or <Document>.tables_dict`
 
 *return type*
-: typing.Any
+: list[dict]
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -1287,7 +1287,7 @@ List of Table
 : `<Document>.x('text_box_elements') or <Document>.text_box_elements`
 
 *return type*
-: typing.Any
+: <class 'pandas.core.frame.DataFrame'\> | list[str] | typing.Any
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
