@@ -389,7 +389,7 @@ MetaDataNodes = [
     .input(ft="full_text").out("a_d_ratio").cache()
     .docs("Letter/digit ratio of the text"),
     FunctionOperator(lambda full_text: langdetect.detect(full_text))
-    .input("full_text").out("language").cache()
+    .input("full_text").out("language").cache().t(str)
     .default("unknown").docs(
         "Detect language of a document, return 'unknown' in case of an error"),
 
