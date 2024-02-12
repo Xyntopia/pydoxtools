@@ -564,7 +564,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         node_docs = cls.node_infos_agg()
 
         # sanitize output to work in html...
-        node_docs = node_docs.map(lambda x: x.replace(">", r"\>").replace('*', r'\*'))
+        node_docs = node_docs.applymap(lambda x: x.replace(">", r"\>").replace('*', r'\*'))
 
         # add functional operator nodes
         func_operator_docs = []

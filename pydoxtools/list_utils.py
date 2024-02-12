@@ -127,7 +127,7 @@ def flatten_dict(
     return result
 
 
-def deep_str_convert(obj: Any) -> Any:
+def deep_str_convert(obj: Iterable | str | pydantic.BaseModel | object | bytes) -> Any:
     """
     Recursively process a nested Python object, converting various types to their string representations.
 
@@ -167,7 +167,7 @@ def deep_str_convert(obj: Any) -> Any:
     elif isinstance(obj, pydantic.BaseModel):
         res = deep_str_convert(obj.dict())
     elif dataclasses.is_dataclass(obj):
-        res = deep_str_convert(dataclasses.asdict(obj))
+        res = deep_str_convert(obj.asdict())
     elif isinstance(obj, bytes):
         try:
             res = obj.decode('utf-8')

@@ -161,7 +161,7 @@ class PDFImageRenderer(pydoxtools.operators_base.Operator):
         return dict(images=images)
 
 
-def meta_infos(f: io.IOBase):
+def meta_infos(f: io.IOBase) -> dict[str, typing.Any]:
     parser = PDFParser(f)
 
     doc = pdfminer.pdfdocument.PDFDocument(parser)
@@ -172,7 +172,7 @@ def meta_infos(f: io.IOBase):
         logger.warning(f"could not read pagenumber of {f}, trying the 'slow' method")
         pagenum = sum(1 for p in extract_pages(f))
 
-    res = list_utils.deep_str_convert({
+    res: dict[str, typing.Any] = list_utils.deep_str_convert({
         **(doc.info[0]),
         "pagenum": pagenum
     })
