@@ -7,6 +7,7 @@ import logging
 import mimetypes
 import re
 import tempfile
+import typing
 from functools import cached_property
 from pathlib import Path
 from typing import IO, Protocol, Any, Callable
@@ -802,7 +803,7 @@ document_operators = {
         FunctionOperator(lambda x: force_decode(x)).t(str)
         .input(x="raw_content").out("full_text").docs(
             "Full text as a string value"),
-        Alias(clean_text="full_text").t(str),
+        Alias(clean_text="full_text"),
         # TODO: replace this with a real, generic table detection
         #       e.g. running the text through pandoc or scan for html tables
         Constant(tables_df=[]),
@@ -1331,6 +1332,9 @@ class DocumentBagCreator(Operator):
         return doc_creator_func
 
 
+DocumentBag = typing.ForwardRef('DocumentBag')
+
+
 class DocumentBagExplode(Operator):
     """
     This operator wil take a DocumentBag and check whether the documents
@@ -1341,7 +1345,7 @@ class DocumentBagExplode(Operator):
     def __call__(
             self, apply_map_func: Callable,
             configuration: dict[str, Any]
-    ) -> Callable[..., "DocumentBag"]:
+    ) -> Callable[..., DocumentBag]:
         def split_func(d: Document) -> list[Document]:
             if d.document_type == "<class 'list'>":
                 new_docs = []

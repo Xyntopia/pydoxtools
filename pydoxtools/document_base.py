@@ -160,60 +160,63 @@ class MetaPipelineClassConfiguration(type):
                 logger.info(f"configure {new_class} class...")
 
                 # get all parent classes except the two document base definitions which don't
-                # have a logic defined
+                # have a logic defined. We do this in order to incorporate pipelines
+                # from parent classes
                 class_hierarchy = new_class.mro()[:-2]
 
-                # first we map all functions of the extraction logic (and configurations)
-                # into a dictionary using their outputs as a key and we do this for every defined filetype and
-                # parent class.
-                # This is similar to how we can access them in the final class, but we will combine them
-                # with fall-back-filetypes at a later stage to create the final extraction logic
+                # first we map all operators of the pipeline logic (and configurations)
+                # into a dictionary using their outputs as a key and we do this for every defined pipeline and
+                # also all pipelines in the parent class.
                 #
-                # We also combine _extractor definitions from parent class and child class
+                # This is similar to how we can access them in the compiled pipeline, but we will combine them
+                # with a pipeline hierarchy/fall-back pipelines at a later stage to create
+                # the final extraction logic. By overwriting pipelines which are lower in the tree hierarchy.
+                #
+                # We also combine _operator definitions from parent class and child class
                 # here. We need to do this here and not use the _pipelines from parent class as
                 # we need to make sure that new functions that were added to e.g. "*" also get added
-                # to "*.pdf" and other document logic if we use the already calculated _pipelines this
+                # to "application/pdf" and other document logic. If we use the already calculated _pipelines this
                 # would not be guaranteed.
 
                 uncombined_operators: dict[str, dict[str, Operator]] = {}
-                extractor_combinations: dict[str, list[str]] = {}  # record the extraction hierarchy
-                ex: Operator | str
+                pipeline_tree: dict[str, list[str]] = {}  # record the extraction hierarchy
+                op: Operator | str
                 # loop through class hierarchy in order to get the logic of parent classes as well,
                 # including the newly defined class
                 for cl in reversed(class_hierarchy):
                     # loop through doc types
-                    for doc_type, ex_list in cl._operators.items():
+                    for pipeline_type, operator_list in cl._operators.items():
                         doc_type_pipeline = {}  # save function mappings for single doc_type
-                        extractor_combinations[doc_type] = []  # save combination list for single doctype
-                        for ex in ex_list:
+                        pipeline_tree[pipeline_type] = []  # save combination list for single doctype
+                        for op in operator_list:
                             # strings indicate that we would like to
                             # add all the functions from that document type as well but with
                             # lower priority
-                            if isinstance(ex, str):
-                                extractor_combinations[doc_type].append(ex)
+                            if isinstance(op, str):
+                                pipeline_tree[pipeline_type].append(op)
                             else:
                                 # go through all outputs of an extractor and
                                 # map them to extraction variables inside document
                                 # TODO: we could explicitly add the variables as property functions
                                 #       which refer to the "x"-function in document?
-                                for ex_key, doc_key in ex._out_mapping.items():
+                                for ex_key, doc_key in op._out_mapping.items():
                                     # input<->output mapping is already done i the extractor itself
                                     # check out Operator.pipe and Operator.map member functions
-                                    doc_type_pipeline[doc_key] = ex
+                                    doc_type_pipeline[doc_key] = op
 
-                        uncombined_operators[doc_type] = uncombined_operators.get(doc_type, {})
-                        uncombined_operators[doc_type].update(doc_type_pipeline)
+                        uncombined_operators[pipeline_type] = uncombined_operators.get(pipeline_type, {})
+                        uncombined_operators[pipeline_type].update(doc_type_pipeline)
 
                 logger.debug("combining... extraction logic")
                 # we need to re-initialize the class logic so that they are not linked
                 # to the logic of the parent classes.
                 new_class._pipelines = {}
-                doc_type: str
-                # add all extractors by combining the logic for the different document types
-                for doc_type in uncombined_operators:
+                pipeline_type: str
+                # add all Operators by combining the logic for the different document types
+                for pipeline_type in uncombined_operators:
                     # first take our other document type and then add the current document type
                     # itself on top of it because of its higher priority overwriting
-                    # extractors of the lower priority extractors
+                    # Operators of the lower priority operators
                     # TODO: how do we make sure that we adhere to the tree structure?
                     #       we need to make sure that we generate the "lowest" priority (= top of tree)
                     #       document types first, and then subsequently until we are at the bottom
@@ -222,30 +225,45 @@ class MetaPipelineClassConfiguration(type):
                     # TODO: add classes recursively (we can not combine logic blocks using multiple
                     #       levels right now). We probably need to run this function multiple times
                     #       in order for this to work.
-                    new_class._pipelines[doc_type] = {}
+                    new_class._pipelines[pipeline_type] = {}
 
                     # build class combination in correct order:
                     # the first one is the least important, because it gets
                     # overwritten by subsequent classes
                     # TODO: get rid of the "standard" fallback...  for the pipeline
                     doc_type_order = ["*"]  # always use "*" as a fallback
-                    if doc_type != "*":
+                    if pipeline_type != "*":
                         doc_type_order += list(
-                            reversed(extractor_combinations[doc_type])) + [doc_type]
+                            reversed(pipeline_tree[pipeline_type])) + [pipeline_type]
 
                     # now save the x-functions/configurations in the _pipelines dict
                     # (which might already exist from the parent class) in the correct order.
                     # already existing functions from the parent class get overwritten by the
                     # ones defined in the child class in "uncombined_operators"
                     for ordered_doc_type in doc_type_order:
-                        # add newly defined extractors overriding extractors defined
+                        # add newly defined operators overriding operators defined
                         # in lower hierarchy logic
-                        new_class._pipelines[doc_type].update(uncombined_operators[ordered_doc_type])
+                        new_class._pipelines[pipeline_type].update(uncombined_operators[ordered_doc_type])
 
-                # TODO: remove "dangling" extractors which lack input mapping
+                # TODO: remove "dangling" operators which lack input mapping
+
+                # TODO: check if everything is alright here. like if types fit etc,
+                #       if we have any "free" inputs which shouldnt be the case etc......
+                for pipeline_name in new_class._pipelines:
+                    for output_name, op in new_class._pipelines[pipeline_name].items():
+                        # here, we want to make sure, that all Aliases inherit the type hints
+                        # of their parents
+                        if isinstance(op, operators_base.Alias):
+                            for upstream_name in op._out_mapping:
+                                parent_op: operators_base.Operator
+                                if parent_op := new_class._pipelines[pipeline_name].get(upstream_name):
+                                    if not op._output_type:
+                                        print(output_name)
+                                        op._output_type[upstream_name] = parent_op.return_type[upstream_name]
+
 
         else:
-            raise ConfigurationError(f"no extractors defined in class {new_class}")
+            raise ConfigurationError(f"no operators defined in class {new_class}")
 
         elapsed = round((time() - start_time) * 1000, 4)
         logger.info(f"setting up Document class {new_class} took: {elapsed}ms")
@@ -287,7 +305,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
 
     Todo:
         * Use pandera (https://github.com/unionai-oss/pandera) to validate dataframes
-          exchanged between extractors & loaders
+          exchanged between operators & loaders
           (https://pandera.readthedocs.io/en/stable/pydantic_integration.html)
     """
 
@@ -477,7 +495,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
         return out
 
     def non_interactive_pipeline(self) -> dict[str, Operator]:
-        """return all non-interactive extractors/pipeline nodes"""
+        """return all non-interactive operators/pipeline nodes"""
         NotImplementedError("TODO: search for functions that are type hinted as callable")
 
     @classmethod
@@ -869,22 +887,22 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
 
     def x_all(self):
         """
-        Retrieves the results of all extractors defined in the pipeline.
+        Retrieves the results of all operators defined in the pipeline.
 
         Returns:
-            dict: A dictionary containing the results of all extractors, with keys as the extractor
+            dict: A dictionary containing the results of all operators, with keys as the extractor
                   names and values as the corresponding results.
         """
         return {property: self.x(property) for property in self.x_funcs}
 
     def run_pipeline(self, exclude: list[str] = None):
         """
-        Runs all extractors defined in the pipeline for testing or pre-caching purposes.
+        Runs all operators defined in the pipeline for testing or pre-caching purposes.
 
         !!IMPORTANT!!!  This function should normally not be used as the pipeline is lazily executed
         anyway.
 
-        This method iterates through the defined extractors and calls each one, ensuring that the
+        This method iterates through the defined operators and calls each one, ensuring that the
         extractor logic is functioning correctly and caching the results if required.
         """
         # print(pdfdoc.elements)
@@ -899,9 +917,9 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
 
     def pre_cache(self):
         """
-        Pre-caches the results of all extractors that have caching enabled.
+        Pre-caches the results of all operators that have caching enabled.
 
-        This method iterates through the defined extractors and calls each one with caching enabled,
+        This method iterates through the defined operators and calls each one with caching enabled,
         storing the results for faster access in future calls.
 
         Returns:

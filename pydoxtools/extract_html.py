@@ -241,7 +241,7 @@ class HtmlExtractor(pydoxtools.operators_base.Operator):
         # TODO: decide which main content is the "correct one"
         # TODO: deduplicate tables
         # TODO: move table detection into its own class
-        # TODO: move moe functions into their own Extractors
+        # TODO: move moe functions into their own operators
         return dict(
             main_content_clean_html=main_content_clean_html,
             main_content=main_content,

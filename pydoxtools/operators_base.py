@@ -8,13 +8,14 @@ from __future__ import annotations  # this is so, that we can use python3.10 ann
 
 import abc
 import functools
-import itertools
+import logging
 import typing
 from abc import ABC
 from typing import Callable, Iterable, Any
 
 import pydantic
 
+logger = logging.getLogger(__name__)
 OperatorReturnType = typing.TypeVar('OperatorReturnType')
 
 
@@ -30,14 +31,20 @@ class Operator(ABC, typing.Generic[OperatorReturnType]):
     """Base class to build extraction logic for information extraction from
     unstructured documents and loading files
 
-    Extractors should always be stateless! This means one should not save
+    operators should always be stateless! This means one should not save
     any variables in them that persist over the lifecycle over a single extraction
     operation.
 
-    - Extractors can be "hooked" into the document pipeline by using:
+    - operators can be "hooked" into the document pipeline by using:
         pipe, out and cache calls.
     - all parameters given in "out" can be accessed through the "x" property
       (e.g. doc.x("extraction_parameter"))
+    - an operator can have multiple outputs. This will be specified as a dictionary
+      with the "out" method.
+    - if an operator has multiple outputs it is required to specify the type
+      for each output with keyword arguments using the Operator.t(**kwargs) function.
+      TODO: example
+
 
     dynamic configuration of an extractor parameters can be configured through
     "config" function which will indicate to the parent document class
@@ -83,31 +90,6 @@ class Operator(ABC, typing.Generic[OperatorReturnType]):
         self._default = None
         self.__node_doc__: str | dict[str, str] = self.__doc__
 
-    def map_output_types(self, output_type):
-        """
-        map a list of output types to our output keys for type checking
-        purposes.
-        """
-        if isinstance(output_type, dict):
-            return {v: output_type[k] for k, v in self._out_mapping.items()}
-
-        if not isinstance(output_type, tuple):
-            # if the output isn't in a tuple
-            # if we have an output type like list[int] we want it to be enclosed in a tuple
-            output_type = (output_type,)
-        if dict == typing.get_origin(output_type[0]) and (len(output_type) == 1):
-            # extract new output type from dict
-            noutput_type = (typing.get_args(output_type[0])[1],)
-        else:
-            noutput_type = output_type
-
-        out_keys = self._out_mapping.values()
-        if (len(noutput_type) < len(out_keys)) and len(noutput_type) == 1:
-            typing_dict = dict(itertools.zip_longest(out_keys, noutput_type, fillvalue=noutput_type[0]))
-        else:
-            typing_dict = dict(zip(out_keys, noutput_type, strict=True))
-        return typing_dict
-
     @functools.cached_property
     def return_type(self) -> dict[str, Any]:
         """
@@ -117,29 +99,35 @@ class Operator(ABC, typing.Generic[OperatorReturnType]):
              the return type.
         """
 
+        if self.multiple_outputs:
+            if (not self._output_type) or (not isinstance(self._output_type, dict)):
+                # TODO: define a strict mode, where non-typed operators
+                #       are not allowed
+                """raise TypeError(f"Expected Operator output_type to map outputs: {self._out_mapping} "
+                                f"to types, because"
+                                f" we have multiple outputs for this node, but "
+                                f"got {self._output_type} instead.")"""
+                pass
+
+        # if our _output_type was specified, simply map it to the single _out_mapping
         if self._output_type:
-            typing_dict = self.map_output_types(self._output_type)
+            if not isinstance(self._output_type, dict):
+                typing_dict = {v: self._output_type for v in self._out_mapping.values()}
+                return typing_dict
+            # here we map our internal output names to the external ones...
+            typing_dict = {v: self._output_type[k] for k, v in self._out_mapping.items()}
             return typing_dict
+        # try to get type from __call__
+        elif type_hints := typing.get_type_hints(self.__call__):
+            output_type = type_hints.get('return', typing.Any)
+            if output_type != CallableType:
+                typing_dict = {v: output_type for v in self._out_mapping.values()}
+                return typing_dict
+            # TODO: define types for callables!
 
-        try:
-            if type_hints := typing.get_type_hints(self.__call__):
-                output_type = type_hints.get('return', typing.Any)
-                if output_type != CallableType:
-                    # TODO: make all output types a type of something like "operator.result".
-                    #       this is important, this way we can
-                    #       break the implicit dependency here between dict types which get mapped
-                    #       in the pipeline.x() function. Where a dict automatically gets mapped
-                    #       to the output map
-                    return self.map_output_types((output_type,))
-
-        except TypeError:
-            raise TypeError(f"Could not get type hints for {self} with output: {self._out_mapping}")
-
-        if typed_class := getattr(self, "__orig_class__", None):
-            output_type = typing.get_args(typed_class)
-            return self.map_output_types(output_type)
-
-        return typing.Any
+        logger.warning(f'we were not able to determine type(s) for {self._out_mapping} of '
+                       f'operator {self.name()}')
+        return {v: typing.Any for v in self._out_mapping.values()}
 
     @abc.abstractmethod
     def __call__(self, *args, **kwargs) -> OperatorReturnType:
@@ -242,6 +230,11 @@ class Alias(Operator):
 
     Alias will map "values" to "keys". So speaking in pipeline terms, "keys" are the downstream
     variable names.
+
+    if we have an existing output called "existing" and we want to map it to "new", we
+    woul specify the Alias like this:
+
+    Alias(new=existing)
     """
 
     def __init__(self, **kwargs):
