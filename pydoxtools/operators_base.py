@@ -117,6 +117,12 @@ class Operator(ABC, typing.Generic[OperatorReturnType]):
             # here we map our internal output names to the external ones...
             typing_dict = {v: self._output_type[k] for k, v in self._out_mapping.items()}
             return typing_dict
+        elif typed_class := getattr(self, "__orig_class__", None):
+            # here we find out if our Operator was typed similar to this
+            #  MyOperatore[MySpecialOutputType].out("someout").in("someine")
+            # mySpecialOutputType will be assigned to all outs
+            output_type = typing.get_args(typed_class)[0]
+            return {v: output_type for v in self._out_mapping.values()}
         # try to get type from __call__
         elif type_hints := typing.get_type_hints(self.__call__):
             output_type = type_hints.get('return', typing.Any)
