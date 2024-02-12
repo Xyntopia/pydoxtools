@@ -222,8 +222,7 @@ PDFNodes = [
     # .pipe()
     FunctionOperator(text_boxes_from_elements)
     .input("line_elements").out("text_box_elements").cache()
-    .docs("Extracts a dataframe of text boxes from the document by grouping text elements")
-    .t(pd.DataFrame),
+    .docs("Extracts a dataframe of text boxes from the document by grouping text elements"),
     FunctionOperator(lambda tb: "\n\n".join(te.text for te in tb)).t(str)
     .input(tb="text_box_elements").out("full_text").cache()
     .docs("Extracts the full text from the document by grouping text elements"),
@@ -258,17 +257,18 @@ HTMLNodes = [
         boxnum=i,
         level=1,
     ) for i, tb in enumerate(get_text_only_blocks(x))]).cache()
-    .input(x="raw_content").out("text_box_elements")
+    .input(x="raw_content").out("text_box_elements").t(list[DocumentElement])
     .docs("Extracts the text boxes from the html document"),
-    FunctionOperator(lambda t, s: [t, s])
+    FunctionOperator(lambda t, s: (t, s)).t(tuple[str, str])
     .input(t="title", s="short_title").out("titles").cache()
     .docs("Extracts the titles from the html document"),
-    FunctionOperator(lambda x: {w.strip() for w in x.split(",")})
+    FunctionOperator(lambda x: {w.strip() for w in x.split(",")}).t(set[str])
     .input(x="html_keywords_str").out("html_keywords").cache()
     .docs("Extracts explicitly given keywords from the html document"),
 
     ########### AGGREGATION ##############
     FunctionOperator(lambda **kwargs: set(list_utils.flatten(kwargs.values())))
+    .t(set[str])
     .input("html_keywords", "textrank_keywords").out("keywords").cache()
     .docs("Aggregates the keywords from the html document and found by other algorithms"),
 ]
@@ -287,6 +287,7 @@ PandocNodes = [
     .out("full_text").t(str).cache()
     .docs("Converts the document to a string using pandoc"),
     FunctionOperator(lambda x: lambda o: PandocConverter()(x, output_format=o))
+    .t(Callable)
     .input(x="pandoc_document").out("convert_to").cache()
     .docs("Generic pandoc converter for other document formats. TODO: better docs"),
     Constant(clean_format="plain")
@@ -309,7 +310,7 @@ PandocNodes = [
 
 PILImageNodes = [
     "image", "application/pdf",
-    FunctionOperator(lambda x: np.array(x))
+    FunctionOperator(lambda x: np.array(x)).t(np.ndarray)
     .input(x="_fobj").out("data").cache()
     .docs("Converts the image to a numpy array"),
     Alias(pil_image="_fobj"),
@@ -326,7 +327,7 @@ OCRNodes = [
     .input(x="raw_content").out("pil_image").cache().t(PIL.Image.Image)
     .docs("Converts the image to a PIL-style image for downstream processing tasks"),
     FunctionOperator(lambda x: np.array(x))
-    .input(x="pil_image").out("data").cache().t(np.array)
+    .input(x="pil_image").out("data").cache().t(np.ndarray)
     .docs("Converts the image to a numpy array for downstream processing tasks"),
     FunctionOperator(lambda x: {0: x}).input(x="pil_image")
     .out("images").no_cache().t(dict[int, PIL.Image.Image])
@@ -372,8 +373,10 @@ ClassifierNodes = [
 
 MetaDataNodes = [
     Constant(embedded_meta={}).docs("represents the metadata embedded in the file"),
-    FunctionOperator(lambda x, em: dict(meta={**(x or dict()), **em})).t(dict[str, Any])
-    .input(x="_meta", em="embedded_meta").out("meta").docs("Metadata of the document"),
+    FunctionOperator(lambda x, em: {**(x or dict()), **em})
+    .t(dict[str, Any])
+    .input(x="_meta", em="embedded_meta").out("meta")
+    .docs("Metadata of the document"),
 
     ## calculate some metadata values
     FunctionOperator(lambda full_text: 1 + (len(full_text) // 1000))

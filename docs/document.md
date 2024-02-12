@@ -131,7 +131,7 @@ Generic pandoc converter for other document formats. TODO: better docs
 : `<Document>.x('convert_to') or <Document>.convert_to`
 
 *return type*
-: typing.Any
+: typing.Callable
 
 *supports pipeline flows*
 : application/epub+zip, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, mediawiki, pandoc, text/markdown, text/rtf
@@ -162,7 +162,7 @@ Resolve coreferences in the text
 : `<Document>.x('data') or <Document>.data`
 
 *return type*
-: <built-in function array\> | typing.Any
+: <class 'numpy.ndarray'\> | typing.Any
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -387,7 +387,7 @@ Extracts explicitly given keywords from the html document
 : `<Document>.x('html_keywords') or <Document>.html_keywords`
 
 *return type*
-: typing.Any
+: set[str]
 
 *supports pipeline flows*
 : text/html
@@ -473,7 +473,7 @@ Get the keys of the dictionary
 : `<Document>.x('keywords') or <Document>.keywords`
 
 *return type*
-: typing.Any
+: set[str] | typing.Any
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -613,7 +613,7 @@ meta information from pandoc document
 : `<Document>.x('meta_pdf') or <Document>.meta_pdf`
 
 *return type*
-: typing.Any
+: <class 'dict'\>
 
 *supports pipeline flows*
 : PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff
@@ -1287,7 +1287,7 @@ List of Table
 : `<Document>.x('text_box_elements') or <Document>.text_box_elements`
 
 *return type*
-: <class 'pandas.core.frame.DataFrame'\> | list[str] | typing.Any
+: list[pydoxtools.document_base.DocumentElement] | list[str]
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -1407,7 +1407,7 @@ Extracts the main content from the html document, removing boilerplate and other
 : `<Document>.x('titles') or <Document>.titles`
 
 *return type*
-: typing.Any
+: tuple[str, str] | typing.Any
 
 *supports pipeline flows*
 : PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff, text/html

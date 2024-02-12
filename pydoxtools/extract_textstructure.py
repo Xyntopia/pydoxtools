@@ -7,11 +7,11 @@ from dataclasses import asdict
 import numpy as np
 import pandas as pd
 import pdfminer
-import pydoxtools.operators_base
 from pdfminer.layout import LTTextLineVertical
-from pydoxtools import document_base
 from sklearn.ensemble import IsolationForest
 
+import pydoxtools.operators_base
+from pydoxtools import document_base
 from . import cluster_utils
 from . import list_utils
 
@@ -124,7 +124,7 @@ def group_elements(elements: pd.DataFrame, by: list[str], agg: str):
         return df["text"].to_dict()
 
 
-def text_boxes_from_elements(line_elements: list[document_base.DocumentElement]) -> dict[str, pd.DataFrame | None]:
+def text_boxes_from_elements(line_elements: list[document_base.DocumentElement]) -> list[document_base.DocumentElement]:
     """
     # TODO: get rid of this function.... too many levels
 
@@ -155,7 +155,7 @@ def text_boxes_from_elements(line_elements: list[document_base.DocumentElement])
         boxnum=x.name[1],
         x0=x.x0, y0=x.y0, x1=x.x1, y1=x.y1,
     ), axis=1).to_list()
-    return dict(text_box_elements=tbs)
+    return tbs
 
 
 class SectionsExtractor(pydoxtools.operators_base.Operator):

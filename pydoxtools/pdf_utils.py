@@ -224,7 +224,7 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
             pages="A list of the extracted pages of the pdf",
             elements="Extract a list of textelements from pdf: Textlines, Graphics, Figures")
         self.t(
-            meta=typing.Any,
+            meta=dict,
             elements=pd.DataFrame,
             pages=set[int],
             pages_bbox=np.ndarray
