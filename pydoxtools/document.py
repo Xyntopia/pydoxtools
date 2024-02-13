@@ -453,7 +453,6 @@ SpacyNodes = [
 ]
 
 KnowledgeGraphNodes = [
-
     # TODO: combine entities with coreferences
     EntityExtractor().cache()
     .input("spacy_doc").out("entities").cache()

@@ -392,7 +392,7 @@ class PDFDocumentObjects(pydoxtools.operators_base.Operator):
         objs = {el.id: el for el in elements_df.apply(
             lambda x: document_base.DocumentElement(**x.to_dict()), axis=1
         ).to_list()}
-        return dict(document_objects=objs)
+        return objs
 
 
 class PageTemplateGenerator(pydoxtools.operators_base.Operator):

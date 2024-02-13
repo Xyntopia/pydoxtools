@@ -258,7 +258,6 @@ class MetaPipelineClassConfiguration(type):
                                 parent_op: operators_base.Operator
                                 if parent_op := new_class._pipelines[pipeline_name].get(upstream_name):
                                     if not op._output_type:
-                                        print(output_name)
                                         op._output_type[upstream_name] = parent_op.return_type[upstream_name]
 
 
@@ -740,13 +739,13 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
 
             # TODO: this can probably made more elegant
             # TODO: get rid of "dict" results...
-            if isinstance(res, dict):
+            if operator_function.multiple_outputs:
                 res = {operator_function._out_mapping[k]: v for k, v in res.items()
                        if k in operator_function._out_mapping}
             else:
                 # use first key of out_mapping for output if
                 # we only have a single return value
-                res = {next(iter(operator_function._out_mapping)): res}
+                res = {next(iter(operator_function._out_mapping.values())): res}
 
         except OperatorException as e:
             logger.error(f"Extraction error in {self}, '{operator_name}': {e}")

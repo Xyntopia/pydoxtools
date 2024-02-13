@@ -250,7 +250,10 @@ class Alias(Operator):
         self.__node_doc__ = "Alias for: \n\n" + "\n".join(f"* {v}->{k} (output)" for k, v in kwargs.items())
 
     def __call__(self, **kwargs):
-        return kwargs
+        if self.multiple_outputs:
+            return kwargs
+        else:
+            return next(iter(kwargs.values()))
 
 
 class Constant(Operator):
@@ -264,7 +267,10 @@ class Constant(Operator):
         self.__node_doc__ = "A constant value"
 
     def __call__(self):
-        return self.const_result
+        if self.multiple_outputs:
+            return self.const_result
+        else:
+            return next(iter(self.const_result.values()))
 
 
 CallableType = typing.TypeVar('CallableType')
@@ -299,16 +305,6 @@ class FunctionOperator(Operator[CallableType]):
             if self.multiple_outputs:
                 if not isinstance(res, dict):
                     raise TypeError(f"Function {self._func} does not return a dictionary, but has multiple outputs")
-            else:
-                output_key = next(iter(self._out_mapping))
-                # check if we have a dictionary, if not, we will "make it one"
-                if isinstance(res, dict):
-                    # only use the result if it contains the output key
-                    if output_key in res:
-                        return res
-
-                res = {output_key: res}
-
             return res
         except Exception as err:
             if self._default_return_value:

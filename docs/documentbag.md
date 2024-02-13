@@ -124,7 +124,7 @@ Alias for:
 : `<DocumentBag>.x('d') or <DocumentBag>.d`
 
 *return type*
-: typing.Any
+: typing.Callable[[typing.Any], dask.bag.core.Bag]
 
 *supports pipeline flows*
 : \*, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
@@ -190,7 +190,7 @@ Alias for:
 : `<DocumentBag>.x('e') or <DocumentBag>.e`
 
 *return type*
-: typing.Any
+: typing.Callable[..., ForwardRef('DocumentBag')]
 
 *supports pipeline flows*
 : \*, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>
@@ -203,7 +203,7 @@ Alias for:
 : `<DocumentBag>.x('exploded') or <DocumentBag>.exploded`
 
 *return type*
-: typing.Callable[..., pydoxtools.document.DocumentBag]
+: typing.Callable[..., ForwardRef('DocumentBag')]
 
 *supports pipeline flows*
 : \*, <class 'dask.bag.core.Bag'\>, <class 'list'\>, <class 'pathlib.Path'\>, <class 'pydoxtools.document.DatabaseSource'\>

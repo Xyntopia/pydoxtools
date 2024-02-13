@@ -16,7 +16,7 @@ urlextractor.update_when_older(7)  # updates when list is older that 7 days
 
 
 class EntityExtractor(Operator):
-    def __call__(self, spacy_doc) -> dict[str, list[str]]:
+    def __call__(self, spacy_doc) -> list[str]:
         """TODO: add more entity extraction algorithms (e.g. hugginface)"""
         # TODO: add transformers as ner recognition as well:
         #       from transformers import pipeline
@@ -37,9 +37,7 @@ class EntityExtractor(Operator):
         # entity_groups = entities.groupby('label').apply(lambda x: x.entity.value_counts().to_dict())
         entity_groups = entities.groupby('label').entity.apply(list)
 
-        return dict(
-            entities=entity_groups.to_dict()
-        )
+        return entity_groups.to_dict()
 
 
 def grouped_ner(self) -> dict[str, Any]:
