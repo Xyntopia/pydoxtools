@@ -811,7 +811,7 @@ class Pipeline(metaclass=MetaPipelineClassConfiguration):
 
     @classmethod
     def Model(cls):
-        operator_signatures = cls.operator_types(only_valid_json_schema_types=True)
+        operator_signatures = cls.operator_types()
 
         class Config:
             arbitrary_types_allowed = True

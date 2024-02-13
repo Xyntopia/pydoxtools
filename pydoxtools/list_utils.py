@@ -167,7 +167,7 @@ def deep_str_convert(obj: Iterable | str | pydantic.BaseModel | object | bytes) 
     elif isinstance(obj, pydantic.BaseModel):
         res = deep_str_convert(obj.dict())
     elif dataclasses.is_dataclass(obj):
-        res = deep_str_convert(obj.asdict())
+        res = deep_str_convert(dataclasses.asdict(obj))
     elif isinstance(obj, bytes):
         try:
             res = obj.decode('utf-8')

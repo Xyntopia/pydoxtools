@@ -606,7 +606,8 @@ def test_pdf_pages():
 
 
 def test_pdf_text_extraction():
-    training_data = pathlib.Path.home() / "comcharax/data"
+    #TODO.  choose a better file here...
+    training_data = pathlib.Path.home() / "Sync/comcharax_data/data"
     page = 15
     pdf_file = training_data / "sparepartsnow/06_Kraftspannfutter_Zylinder_Luenetten_2020.01_de_web.pdf"
     # %% jupyter={"outputs_hidden": true}
@@ -678,15 +679,19 @@ def test_zero_shot_classifier():
     assert res[0]['encyclopdia article'] > res[0]['license']
 
 
+# TODO: write a test which checks if the output of all operators confirm to their type
+
 if __name__ == "__main__":
     # a = pd.DataFrame(sd.sents)
     # a[2]
     # test_all_documents()
-    file = "/home/tom/git/pydoxtools/tests/data/north_american_countries.png"
-    doc = Document(file)
-    #test_zero_shot_classifier()
+    fpath = make_path_absolute("./data/PFR-PR23_BAT-110__V1.00_.pdf")
+    doc = Document(fobj=fpath)
+    op_types = Document.operator_types()
+    # doc.text_box_elements
+    # test_zero_shot_classifier()
     # test_document_graph()
-    doc.titles
+    test_typing()
 
     # doc.text_box_elements
     pass
