@@ -151,14 +151,14 @@ def repair_pdf_if_damaged(function):
 class PDFImageRenderer(pydoxtools.operators_base.Operator):
     """Take a document PDF and render an image from it."""
 
-    def __call__(self, fobj: bytes, dpi: int, page_numbers: list[int]) -> dict[str, dict[int, PIL.Image.Image]]:
+    def __call__(self, fobj: bytes, dpi: int, page_numbers: list[int]) -> dict[int, PIL.Image.Image]:
         images = {}
         for page in page_numbers:
             image = pdf2image.convert_from_bytes(
                 fobj, dpi=dpi, first_page=page + 1, last_page=page + 1, use_cropbox=False
             )
             images[page] = image[0]
-        return dict(images=images)
+        return images
 
 
 def meta_infos(f: io.IOBase) -> dict[str, typing.Any]:

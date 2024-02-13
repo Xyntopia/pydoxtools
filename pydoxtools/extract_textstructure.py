@@ -327,7 +327,7 @@ class PDFDocumentObjects(pydoxtools.operators_base.Operator):
             valid_tables,
             elements: list[document_base.DocumentElement],
             labeled_text_boxes: list[document_base.DocumentElement],
-    ) -> dict[str, dict[int, document_base.DocumentElement]]:
+    ) -> dict[int, document_base.DocumentElement]:
         # so first, we add everything to the document elements...
         elements_df = pd.DataFrame(elements)
 

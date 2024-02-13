@@ -373,7 +373,7 @@ ClassifierNodes = [
 ]
 
 MetaDataNodes = [
-    Constant(embedded_meta={}).docs("represents the metadata embedded in the file"),
+    Constant(embedded_meta={}).docs("represents the metadata embedded in the file").t(dict),
     FunctionOperator(lambda x, em: {**(x or dict()), **em})
     .t(dict[str, Any])
     .input(x="_meta", em="embedded_meta").out("meta")

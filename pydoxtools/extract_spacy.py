@@ -8,12 +8,12 @@ from typing import Optional, Any
 import networkx
 import numpy as np
 import pandas as pd
-import pydoxtools.document_base
 import spacy
 import torch
 from spacy import Language
 from spacy.tokens import Doc, Token, Span
 
+import pydoxtools.document_base
 from . import list_utils
 from .document_base import TokenCollection
 from .operators_base import Operator
@@ -156,13 +156,20 @@ class TrfContextualVectors:
 
 
 class SpacyOperator(Operator):
+    def __init__(self):
+        super().__init__()
+        self.t(
+            doc=Doc,
+            nlp=Language
+        )
+
     def __call__(
             self,
             full_text: str,
             language: str,
             spacy_model: str,
             model_size: str
-    ) -> typing.Dict[str, Language | Doc]:
+    ):
         """Load a document using spacy"""
         if spacy_model == "auto":
             nlp_modelid = get_spacy_model_id(language, model_size)
