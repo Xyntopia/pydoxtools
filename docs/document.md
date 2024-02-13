@@ -787,7 +787,7 @@ Document('somefile.pdf').page_classifier(candidate_labels=['table_of_contents', 
 
 ### page_templates
 
-generates a text page with table & figure hints
+Generates a text page while replacing certain elements of the page which can be specified as a list of ElementTypes. It also automatically replaces elements which don't have a textual representation with an identifier. This is often the case with images & figures for example. The Id of the placeholder refers to the index of the DocumentObject. So for example, if we encounter and Identifier:  {Table_22}, we would be able to find it using doc.document_objects[22] or doc.do[22].
 
 *name*
 : `<Document>.x('page_templates') or <Document>.page_templates`
