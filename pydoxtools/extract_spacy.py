@@ -373,7 +373,7 @@ def build_document_graph(
 
         def identify_mean_node(token_list: pd.Series):
             toks = pd.DataFrame(token_list.nodes, columns=["tok"])
-            toks["text"] = toks.apply(lambda x: x[0].text, axis=1)
+            toks["text"] = toks.apply(lambda x: x.iloc[0].text, axis=1)
             most_occuring_text = toks["text"].value_counts().index[0]
             first_token = token_list.nodes[0]
             node_attrs = dict(

@@ -310,7 +310,7 @@ def get_area_context(
 
     # TODO:  just use the normal "document-elements" for this instead of creating a fake
     #       area element
-    boxes = pd.DataFrame(text_boxes_from_elements(le)["text_box_elements"])
+    boxes = pd.DataFrame(text_boxes_from_elements(le))
     boxes = pd.concat([boxes.reset_index(), area_box], ignore_index=True).sort_values(
         by=["y0", "x0"], ascending=[False, True])
 

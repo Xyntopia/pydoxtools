@@ -406,7 +406,10 @@ class Configuration(Operator):
         self.__node_doc__ = f"Configuration for values:\n\n{confdocs}"
 
     def __call__(self):
-        return self._configuration_map
+        if self.multiple_outputs:
+            return self._configuration_map
+        else:
+            return next(iter(self._configuration_map.values()))
 
 
 class OperatorException(Exception):

@@ -190,7 +190,7 @@ Alias for:
 : `<Document>.x('do') or <Document>.do`
 
 *return type*
-: dict[str, dict[int, pydoxtools.document_base.DocumentElement]]
+: dict[int, pydoxtools.document_base.DocumentElement]
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -219,7 +219,7 @@ Builds a [networkx graph](https://networkx.org/documentation/stable/reference/cl
 : `<Document>.x('document_objects') or <Document>.document_objects`
 
 *return type*
-: dict[int, pydoxtools.document_base.DocumentElement] | dict[str, dict[int, pydoxtools.document_base.DocumentElement]]
+: dict[int, pydoxtools.document_base.DocumentElement]
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -284,7 +284,7 @@ Extract entities from text
 : `<Document>.x('entities') or <Document>.entities`
 
 *return type*
-: dict[str, list[str]]
+: list[str]
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -429,7 +429,7 @@ Filters the document elements and only keeps the image elements
 : `<Document>.x('images') or <Document>.images`
 
 *return type*
-: dict[int, PIL.Image.Image] | dict[str, dict[int, PIL.Image.Image]]
+: dict[int, PIL.Image.Image]
 
 *supports pipeline flows*
 : PIL.Image.Image, application/pdf, image, image/jpeg, image/png, image/tiff
@@ -1063,7 +1063,7 @@ Spacy Document and Language Model for this document
 : `<Document>.x('spacy_doc') or <Document>.spacy_doc`
 
 *return type*
-: typing.Dict[str, spacy.language.Language | spacy.tokens.doc.Doc]
+: <class 'spacy.tokens.doc.Doc'\>
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
@@ -1089,7 +1089,7 @@ Spacy Document and Language Model for this document
 : `<Document>.x('spacy_nlp') or <Document>.spacy_nlp`
 
 *return type*
-: typing.Dict[str, spacy.language.Language | spacy.tokens.doc.Doc]
+: <class 'spacy.language.Language'\>
 
 *supports pipeline flows*
 : \*, <class 'dict'\>, <class 'list'\>, PIL.Image.Image, application/epub+zip, application/pdf, application/vnd.oasis.opendocument.text, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/x-yaml, image, image/jpeg, image/png, image/tiff, mediawiki, pandoc, text/html, text/markdown, text/rtf
