@@ -814,7 +814,7 @@ document_operators = {
         Constant(tables_df=[]),
         # TODO: define datatype correctly
         FunctionOperator(lambda tables_df: [df.to_dict('index') for df in tables_df]).cache()
-        .input("tables_df").out("tables_dict").t(list[dict[int, dict[int, str]]])
+        .input("tables_df").out("tables_dict").t(list[dict[int | str, dict[int | str, str]]])
         .docs("List of Table"),
         Alias(tables="tables_dict"),
 

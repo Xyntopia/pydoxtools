@@ -1021,7 +1021,7 @@ class TableCandidateAreasExtractor(Operator):
         box_iterations: dict[int, list[pd.DataFrame]] = {}
         table_candidates: list[PDFTableCandidate] = []
         for p in pages:
-            tbe = text_box_elements.loc[text_box_elements.p_num==p].copy()
+            tbe = text_box_elements.loc[text_box_elements.p_num == p].copy()
             # do some calculations
             # tbe['y_mean'] = tbe[['y0', 'y1']].mean(axis=1)
             # tbe['x_mean'] = tbe[['x0', 'x1']].mean(axis=1)
@@ -1047,7 +1047,7 @@ class TableCandidateAreasExtractor(Operator):
             _table = (
                 PDFTableCandidate(
                     df_le, df_ge,
-                    initial_area=row[box_cols],
+                    initial_area=row[box_cols].values,
                     page_bbox=page_bbox, page=p, file_name=filename
                 ) for _, row in table_areas.iterrows()
             )
@@ -1157,7 +1157,8 @@ def detect_table_area_candidates(
     # filter our empty groups
     # TODO: right now, we don't really know what would be a good filter...
     #       maybe do this by using an optimization approach
-    text_cell_num = boxes[box_cols].apply(lambda x: len(boundarybox_intersection_query(bbs=df_le, bbox=x)), axis=1)
+    text_cell_num = boxes[box_cols].apply(lambda x: len(boundarybox_intersection_query(bbs=df_le, bbox=x.values)),
+                                          axis=1)
     boxes[text_cell_num > 0].copy()
     table_groups: pd.DataFrame = _filter_boxes(
         boxes,

@@ -6,7 +6,7 @@ from __future__ import annotations  # this is so, that we can use python3.10 ann
 import difflib
 import functools
 import typing
-from typing import List, Tuple
+from typing import List, Tuple, Sequence, Union
 
 import numpy as np
 import pandas as pd
@@ -633,7 +633,7 @@ def pairwise_weighted_distance_combination(
 #       those into a "minimum" function.
 
 
-def boundarybox_query(bbs, bbox, tol=10.0, exclude=False):
+def boundarybox_query(bbs, bbox: Union[Sequence[float], Sequence[int]], tol=10.0, exclude=False):
     """
     This function filters a pandas list of boundingboxes for
     boxes that are fully contained in a specific region
