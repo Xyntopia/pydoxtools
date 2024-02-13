@@ -296,7 +296,8 @@ class FunctionOperator(Operator[CallableType]):
         self._default_return_value = fallback_return_value
         self.__node_doc__ = "No documentation"
         if type_hints := typing.get_type_hints(self._func):
-            self.t(type_hints['return'])
+            if return_type := type_hints.get('return'):
+                self.t(return_type)
 
     def __call__(self, *args, **kwargs) -> CallableType:
         try:
