@@ -81,6 +81,7 @@ etl = ["goose3", "langdetect", "tldextract", "spacy", "pdfminer.six",
 inference = ["transformers", "scikit-learn", "tqdm", "torch", "pytorch-lightning", "spacy",
     "beautifulsoup4", "pandas", "urlextract", "hnswlib", "gpt4all", "timm", "fastcoref"]
 pdf = ["pikepdf"]
+pyodide = ["pillow", "extruct", ""]
 
 [tool.poetry.group.colab]
 optional = true
