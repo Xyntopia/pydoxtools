@@ -14,7 +14,7 @@ keywords = ["AI", "document-analysis", "LLM", "NLP", "ML"]
 clone-data = "clone_data:clone_submodule"
 
 [tool.poetry.dependencies]
-python = "^3.8" # python version constraints are caused by scipy
+python = "^3.10" # python version constraints are caused by scipy
 goose3 = { optional = true, version = "^3.1.6" }
 # we are using this version of readability as the other version has a little bug...
 readability-lxml = { optional = true, version = "^0.8.1" }
@@ -29,7 +29,7 @@ quantulum3 = { optional = true, version = ">=0.7.4" }
 quantities = { optional = true, version = ">=0.12.4" }
 tqdm = { optional = true, version = ">=4.47.0" }
 urlextract = { optional = true, version = ">=1.1.0" }
-pydantic = { version = "^2.0.0" }
+pydantic = { version = "^1.0.0", markers = "platform_machine == 'wasm32' or sys_platform == 'emscripten'" }
 beautifulsoup4 = { optional = true, version = ">=4.8.0" }
 lxml = { optional = true, version = ">=4.6.2" }
 # stemming is needed for quantulum3
@@ -67,7 +67,6 @@ gpt4all = "^1.0.8"
 fastcoref = "^2.1.6" # needed for knowlecdge base creation
 timm = "^0.9.5" # this one is needed for document layout analysis
 pygraphviz = {version = "^1.11", optional = true}
-pydantic-settings = "^2.1.0"
 tabulate = "^0.9.0"
 
 [tool.poetry.extras]
@@ -148,6 +147,7 @@ pygraphviz = "^1.10"
 mkdocs = "^1.4.2"
 mkdocstrings = { extras = ["crystal", "python"], version = "^0.21.2" }
 mkdocs-material = "^9.1.8"
+pyodide-build = "^0.25.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
