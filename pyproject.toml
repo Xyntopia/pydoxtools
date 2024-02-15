@@ -36,8 +36,8 @@ lxml = { optional = true, version = ">=4.6.2" }
 stemming = { optional = true, version = ">=1.0.1" }
 # TODO: try to replace quantulum with Pint
 Pint = ">=0.16.1"
-# used to "repair" pdfs
-pikepdf = ">=2.10.0"
+# used to "repair" pdfssa
+pikepdf = {version="^2.10.0", optional=true}
 # TODO: try to get rid of this and move it only to "development"
 pytorch-lightning = { optional = true, version = ">=1.5.6" }
 pdf2image = { version = "^1.16.0", optional = true }
@@ -80,6 +80,7 @@ etl = ["goose3", "langdetect", "tldextract", "spacy", "pdfminer.six",
 # TODO: rename & regroups extras (e.g. light, medium average or something like that...)
 inference = ["transformers", "scikit-learn", "tqdm", "torch", "pytorch-lightning", "spacy",
     "beautifulsoup4", "pandas", "urlextract", "hnswlib", "gpt4all", "timm", "fastcoref"]
+pdf = ["pikepdf"]
 
 [tool.poetry.group.colab]
 optional = true
