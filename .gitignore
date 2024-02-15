@@ -11,3 +11,5 @@ dist/
 build/
 site/
 tests/data
+
+.pyodide-xbuildenv/
