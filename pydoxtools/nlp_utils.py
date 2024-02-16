@@ -28,14 +28,19 @@ import numpy as np
 import pandas as pd
 import sklearn as sk
 import sklearn.linear_model
-import torch
 from scipy.spatial.distance import pdist, squareform
-from tqdm import tqdm
-from transformers import AutoTokenizer, AutoModel, AutoModelForQuestionAnswering
 
 from pydoxtools.settings import settings
 
 logger = logging.getLogger(__name__)
+
+try:
+    import transformers, torch
+
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    logger.info(f"using {device}-device for nlp_operations!")
+except ModuleNotFoundError:
+    logger.warning('pytorch/transformers not available... probably on a non x86 platform')
 
 # from transformers import pipeline #for sentiment analysis
 compare = sklearn.metrics.pairwise.cosine_similarity
@@ -50,22 +55,18 @@ def str_similarity(a, b):
     return SequenceMatcher(None, a, b).ratio()
 
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-logger.info(f"using {device}-device for nlp_operations!")
-
-
 @functools.lru_cache(maxsize=32)
 def load_tokenizer(model_id):
     logger.info("load_tokenizer")
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    tokenizer = transformers.AutoTokenizer.from_pretrained(model_id)
     return tokenizer
 
 
 @functools.lru_cache
 def load_model(model_id: str) -> Any:
     logger.info(f"load model {model_id} on device: {device}")
-    # model = AutoModelForQuestionAnswering.from_pretrained(model_id, output_hidden_states=True)
-    model = AutoModel.from_pretrained(model_id, output_hidden_states=True)
+    # model = transformers.transformers.AutoModelForQuestionAnswering.from_pretrained(model_id, output_hidden_states=True)
+    model = transformers.AutoModel.from_pretrained(model_id, output_hidden_states=True)
     model.to(device)
     model.eval()
     return model
@@ -242,6 +243,7 @@ def longtxt_embeddings(
         tok_wins = tok_wins[:100]
 
     if status_bar:  # only use tqdm for "long lasting" transformations
+        from tqdm import tqdm
         vec_wins = [transform_to_contextual_embeddings(win, model_id=model_id)
                     for win in tqdm(tok_wins)]
     else:
@@ -469,7 +471,7 @@ def load_qa_models(model_id: str):
     # model, tokenizer = load_models(model_id)
     # TODO: use load_tokenizer function for this
     tokenizer = load_tokenizer(model_id)
-    model = AutoModelForQuestionAnswering.from_pretrained(model_id)
+    model = transformers.AutoModelForQuestionAnswering.from_pretrained(model_id)
     logger.info(f"finished loading Q & A models... {model_id}")
     return model, tokenizer
 

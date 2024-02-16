@@ -1,19 +1,26 @@
 from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
+import logging
 import operator
 import typing
 from dataclasses import asdict
 
 import numpy as np
 import pandas as pd
-import pdfminer
-from pdfminer.layout import LTTextLineVertical
 from sklearn.ensemble import IsolationForest
 
 import pydoxtools.operators_base
 from pydoxtools import document_base
 from . import cluster_utils
 from . import list_utils
+
+logger = logging.getLogger(__name__)
+
+try:
+    import pdfminer
+    from pdfminer.layout import LTTextLineVertical
+except ModuleNotFoundError:
+    logger.warning('no pdf miner available for typing hints')
 
 
 def _line2txt(LTOBJ: typing.Iterable, size_hints=False):

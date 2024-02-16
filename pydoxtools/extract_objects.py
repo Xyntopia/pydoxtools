@@ -3,16 +3,8 @@ from __future__ import annotations  # this is so, that we can use python3.10 ann
 from typing import Any
 
 import pandas as pd
-from urlextract import URLExtract
 
 from pydoxtools.operators_base import Operator
-from pydoxtools.settings import settings
-
-dns_cache_dir = settings.PDX_CACHE_DIR_BASE / "urlextract"
-dns_cache_dir.mkdir(parents=True, exist_ok=True)
-urlextractor = URLExtract(extract_email=True, cache_dns=True, extract_localhost=True,
-                          cache_dir=dns_cache_dir)
-urlextractor.update_when_older(7)  # updates when list is older that 7 days
 
 
 class EntityExtractor(Operator):

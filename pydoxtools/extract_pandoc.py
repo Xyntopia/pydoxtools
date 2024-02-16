@@ -4,18 +4,16 @@ import logging
 import mimetypes
 
 import pandas as pd
-from packaging import version
 
 import pydoxtools.operators_base
 
 logger = logging.getLogger(__name__)
-
-import pandoc
-
 pydoxtools_link = "https://github.com/jgm/pandoc/releases"
 
 try:
+    import pandoc
     import pandoc.types
+    from packaging import version
 
     pandoc_version = pandoc._configuration['version']
     if version.parse(pandoc_version) < version.parse('2.14.2'):
@@ -23,7 +21,8 @@ try:
                        f"in order to be able to use rtf, you need to install a pandoc version >= 2.14.2"
                        f"Checkout this link here: {pydoxtools_link}")
     pandoc_installed = True
-
+except ModuleNotFoundError:
+    logger.warning("pandoc is not available on this platform")
 except RuntimeError:
     logger.warning(f"""pandoc does not seem to be installed, in order to load some documents
     such as *.docx, *.rtf this library needs to be installed.

@@ -3,15 +3,19 @@ from __future__ import annotations  # this is so, that we can use python3.10 ann
 import io
 import logging
 
-import langdetect
-import pytesseract
 from PIL import Image
-from pdfminer.high_level import extract_text
 
+import langdetect
 from pydoxtools import ocr_language_mappings
 from pydoxtools.operators_base import Operator
 
 logger = logging.getLogger(__name__)
+
+try:
+    import pytesseract
+    from pdfminer.high_level import extract_text
+except:
+    logger.warning("pytesseract & pdfminer not available.")
 
 
 class OCRException(Exception):

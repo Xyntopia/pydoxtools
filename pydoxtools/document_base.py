@@ -15,10 +15,8 @@ from time import time
 from typing import Any
 
 import networkx as nx
-import numpy as np
 import pandas as pd
 import pydantic
-import spacy.tokens
 import yaml
 from diskcache import Cache
 
@@ -96,31 +94,6 @@ class DocumentElement:
     @property
     def place_holder_text(self):
         return f"{self.type.name}_{self.id}"
-
-
-class TokenCollection:
-    def __init__(self, tokens: list[spacy.tokens.Token]):
-        self._tokens = tokens
-
-    @cached_property
-    def vector(self):
-        return np.mean([t.vector for t in self._tokens], 0)
-
-    @cached_property
-    def text(self):
-        return self.__str__()
-
-    def __len__(self):
-        return len(self._tokens)
-
-    def __getitem__(self, item):
-        return self._tokens[item]
-
-    def __str__(self):
-        return " ".join(t.text for t in self._tokens)
-
-    def __repr__(self):
-        return "|".join(t.text for t in self._tokens)
 
 
 class ConfigurationError(Exception):

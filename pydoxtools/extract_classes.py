@@ -5,15 +5,19 @@ import functools
 import logging
 import typing
 
-import langdetect
 import pandas as pd
-from transformers import AutoModelForSequenceClassification, pipeline, AutoTokenizer
 
+import langdetect
 import pydoxtools.document_base
 from pydoxtools.operators_base import Operator
 from pydoxtools.settings import settings
 
 logger = logging.getLogger(__name__)
+
+try:
+    import transformers
+except ModuleNotFoundError:
+    logger.warning("no transformers available for classification")
 
 
 class LanguageExtractor(Operator):
@@ -38,10 +42,10 @@ def zero_shot_classifier(
 
         pip install sentencepiece
     """
-    tokenizer = AutoTokenizer.from_pretrained(zero_shot_model_name)
-    model = AutoModelForSequenceClassification.from_pretrained(zero_shot_model_name)
+    tokenizer = transformers.AutoTokenizer.from_pretrained(zero_shot_model_name)
+    model = transformers.AutoModelForSequenceClassification.from_pretrained(zero_shot_model_name)
 
-    pipe = pipeline(task="zero-shot-classification", model=model, tokenizer=tokenizer)
+    pipe = transformers.pipeline(task="zero-shot-classification", model=model, tokenizer=tokenizer)
     # pipe = pipeline(model=)
 
     res = pipe(text,
@@ -82,7 +86,7 @@ class TextBlockClassifier(Operator):
     def __call__(
             self, text_box_elements: list[pydoxtools.document_base.DocumentElement]
     ) -> list[pydoxtools.document_base.DocumentElement]:
-        tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+        tokenizer = transformers.AutoTokenizer.from_pretrained("bert-base-uncased")
         model_name = "txtblockclassifier"
         model_dir = settings.PDX_MODEL_DIR / model_name
         if not model_dir.exists():
@@ -92,8 +96,8 @@ class TextBlockClassifier(Operator):
         # tokenizer_kwargs = {'padding': True, 'truncation': True, 'max_length': 512, 'return_tensors': 'pt'}
         # TODO: optionally enable CUDA...
         # TODO: only extract "unique" addresses
-        model = AutoModelForSequenceClassification.from_pretrained(model_dir, num_labels=2)  # .to("cuda")
-        model = pipeline("text-classification", model=model, tokenizer=tokenizer)
+        model = transformers.AutoModelForSequenceClassification.from_pretrained(model_dir, num_labels=2)  # .to("cuda")
+        model = transformers.pipeline("text-classification", model=model, tokenizer=tokenizer)
         text = [t.text.strip() for t in text_box_elements]
         res = [model([x], truncation=True, padding=True)[0]["label"] for x in text]
         labeled_text_boxes = [

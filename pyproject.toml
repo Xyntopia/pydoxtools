@@ -15,7 +15,7 @@ clone-data = "clone_data:clone_submodule"
 
 [tool.poetry.dependencies]
 python = "^3.10" # python version constraints are caused by scipy
-goose3 = { optional = true, version = "^3.1.6" }
+goose3 = { optional = true, version = "^3.1.12" }
 # we are using this version of readability as the other version has a little bug...
 readability-lxml = { optional = true, version = "^0.8.1" }
 appdirs = "^1.4.4"
@@ -28,7 +28,6 @@ extruct = { optional = true, version = ">=0.9.0" }
 quantulum3 = { optional = true, version = ">=0.7.4" }
 quantities = { optional = true, version = ">=0.12.4" }
 tqdm = { optional = true, version = ">=4.47.0" }
-urlextract = { optional = true, version = ">=1.1.0" }
 pydantic = { version = "^1.0.0", markers = "platform_machine == 'wasm32' or sys_platform == 'emscripten'" }
 beautifulsoup4 = { optional = true, version = ">=4.8.0" }
 lxml = { optional = true, version = ">=4.6.2" }
@@ -37,14 +36,17 @@ stemming = { optional = true, version = ">=1.0.1" }
 # TODO: try to replace quantulum with Pint
 Pint = ">=0.16.1"
 # used to "repair" pdfssa
-pikepdf = {version="^2.10.0", optional=true}
+pikepdf = { version = "^2.10.0", optional = true }
 # TODO: try to get rid of this and move it only to "development"
 pytorch-lightning = { optional = true, version = ">=1.5.6" }
 pdf2image = { version = "^1.16.0", optional = true }
 Shapely = { version = "^1.8.0", optional = true }
 scikit-learn = { version = "^1.0.2", optional = true }
 spacy = { version = "^3.7.0", optional = true }
-pandas = "^2.0.1"
+pandas = [
+    { version = "1.5.3", markers = "platform_machine == 'wasm32' or sys_platform == 'emscripten'" },
+    { version = "^2.0.1", markers = "platform_machine != 'wasm32' and sys_platform != 'emscripten'" }
+]
 hnswlib = { version = ">=0.6.2", optional = true }
 networkx = { version = "^2.8.6", optional = true }
 python-magic = { version = "^0.4.27" } # for fil type identification
@@ -66,7 +68,7 @@ chardet = "^5.1.0"
 gpt4all = "^1.0.8"
 fastcoref = "^2.1.6" # needed for knowlecdge base creation
 timm = "^0.9.5" # this one is needed for document layout analysis
-pygraphviz = {version = "^1.11", optional = true}
+pygraphviz = { version = "^1.11", optional = true }
 tabulate = "^0.9.0"
 
 [tool.poetry.extras]
@@ -75,13 +77,14 @@ etl = ["goose3", "langdetect", "tldextract", "spacy", "pdfminer.six",
     "extruct", "urlextract", "quantulum3", "stemming",
     "quantities", "readability-lxml", "pandas", "beautifulsoup4", "hnswlib",
     "networkx", "openai", "textract", "pandoc", "python-pptx", "dask", "pytesseract",
-    "pdf2image","pygraphviz"
+    "pdf2image", "pygraphviz"
 ]
 # TODO: rename & regroups extras (e.g. light, medium average or something like that...)
 inference = ["transformers", "scikit-learn", "tqdm", "torch", "pytorch-lightning", "spacy",
     "beautifulsoup4", "pandas", "urlextract", "hnswlib", "gpt4all", "timm", "fastcoref"]
 pdf = ["pikepdf"]
-pyodide = ["pillow", "extruct", ""]
+pyodide = ["pillow", "extruct", "readability-lxml", "goose3", "langdetect",
+    "networkx", "pandas", "dask", "quantulum3", "scikit-learn"]
 
 [tool.poetry.group.colab]
 optional = true

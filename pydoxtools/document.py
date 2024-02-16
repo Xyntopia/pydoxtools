@@ -15,7 +15,6 @@ from urllib.parse import urlparse
 
 import PIL
 import dask.bag
-import langdetect
 import networkx
 import numpy as np
 import pandas as pd
@@ -24,6 +23,7 @@ import requests
 import yaml
 from dask.bag import Bag
 
+import langdetect
 from . import dask_operators
 from . import extract_nlpchat
 from . import list_utils
@@ -176,66 +176,70 @@ PDFDocumentStructureNodes = [
     .docs("Outputs a dictionary with the context of each table in the document"),
 ]
 
-PDFNodes = [
-    PDFFileLoader()
-    .input(fobj="raw_content", page_numbers="_page_numbers", max_pages="_max_pages")
-    .out("pages_bbox", "elements", meta="meta_pdf", pages="page_set").cache().docs(
-        "Loads a pdf file and returns a list of basic document elements such as lines, figures, etc."),
-    Alias(embedded_meta="meta_pdf"),
-    Configuration(image_dpi=72 * 3)
-    .docs("The dpi when rendering the document."
-          " The standard image generation resolution is set to 216 dpi for pdfs"
-          " as we want to have sufficient DPI for downstram OCR tasks (e.g."
-          " table extraction)"),
-    PDFImageRenderer()
-    .input(fobj="raw_content", dpi="image_dpi", page_numbers="page_set")
-    .out("images").cache()
-    .docs("Render a pdf into images which can be used for further downstream processing"),
-    FunctionOperator(lambda pages: len(pages)).t(int)
-    .input(pages="page_set").out("num_pages").cache()
-    .docs("Outputs the number of pages in the document"),
+try:
+    PDFNodes = [
+        PDFFileLoader()
+        .input(fobj="raw_content", page_numbers="_page_numbers", max_pages="_max_pages")
+        .out("pages_bbox", "elements", meta="meta_pdf", pages="page_set").cache().docs(
+            "Loads a pdf file and returns a list of basic document elements such as lines, figures, etc."),
+        Alias(embedded_meta="meta_pdf"),
+        Configuration(image_dpi=72 * 3)
+        .docs("The dpi when rendering the document."
+              " The standard image generation resolution is set to 216 dpi for pdfs"
+              " as we want to have sufficient DPI for downstram OCR tasks (e.g."
+              " table extraction)"),
+        PDFImageRenderer()
+        .input(fobj="raw_content", dpi="image_dpi", page_numbers="page_set")
+        .out("images").cache()
+        .docs("Render a pdf into images which can be used for further downstream processing"),
+        FunctionOperator(lambda pages: len(pages)).t(int)
+        .input(pages="page_set").out("num_pages").cache()
+        .docs("Outputs the number of pages in the document"),
 
-    #########  TABLE STUFF ##############
-    ListExtractor().cache()
-    .input("line_elements").out("lists")
-    .docs("Extracts lists from the document text elements"),
-    TableCandidateAreasExtractor()
-    .input("graphic_elements", "line_elements", "pages_bbox", "text_box_elements", "filename")
-    .out("table_candidates", box_levels="table_box_levels").cache()
-    .docs("Detects table candidates from the document elements"),
-    FunctionOperator(lambda x: [t for t in x if t.is_valid])
-    .input(x="table_candidates").out("valid_tables")
-    .docs("Filter valid tables from table candidates by looking if meaningful values can be extracted"),
-    FunctionOperator(lambda x: [t.df for t in x])
-    .input(x="valid_tables").out("table_df0").cache(allow_disk_cache=True)
-    .t(table_df0=list[pd.DataFrame])
-    .docs("Filter valid tables from table candidates by looking if meaningful values can be extracted"),
-    FunctionOperator(lambda x: pd.DataFrame([t.bbox for t in x], columns=["x0", "y0", "x1", "y1"]))
-    .input(x="valid_tables").out("table_areas").cache()
-    .t(table_areas=list[np.ndarray])
-    .docs("Areas of all detected tables"),
-    FunctionOperator(lambda table_df0, lists: table_df0 + ([] if lists.empty else [lists]))
-    .cache().input("table_df0", "lists").out("tables_df").cache()
-    .t(list[pd.DataFrame])
-    .docs("Dataframes of all tables"),
-    ############## END TABLE STUFF ##############
-    # FunctionOperator()
-    # .pipe()
-    FunctionOperator(text_boxes_from_elements)
-    .input("line_elements").out("text_box_elements").cache()
-    .docs("Extracts a dataframe of text boxes from the document by grouping text elements"),
-    FunctionOperator(lambda tb: "\n\n".join(te.text for te in tb)).t(str)
-    .input(tb="text_box_elements").out("full_text").cache()
-    .docs("Extracts the full text from the document by grouping text elements"),
-    TitleExtractor()
-    .input("line_elements").out("titles", "side_titles").cache()
-    .docs("Extracts the titles from the document by detecting unusual font styles"),
-    LanguageExtractor().cache()
-    .input(text="full_text").out("language").cache()
-    .docs("Extracts the language of the document"),
+        #########  TABLE STUFF ##############
+        ListExtractor().cache()
+        .input("line_elements").out("lists")
+        .docs("Extracts lists from the document text elements"),
+        TableCandidateAreasExtractor()
+        .input("graphic_elements", "line_elements", "pages_bbox", "text_box_elements", "filename")
+        .out("table_candidates", box_levels="table_box_levels").cache()
+        .docs("Detects table candidates from the document elements"),
+        FunctionOperator(lambda x: [t for t in x if t.is_valid])
+        .input(x="table_candidates").out("valid_tables")
+        .docs("Filter valid tables from table candidates by looking if meaningful values can be extracted"),
+        FunctionOperator(lambda x: [t.df for t in x])
+        .input(x="valid_tables").out("table_df0").cache(allow_disk_cache=True)
+        .t(table_df0=list[pd.DataFrame])
+        .docs("Filter valid tables from table candidates by looking if meaningful values can be extracted"),
+        FunctionOperator(lambda x: pd.DataFrame([t.bbox for t in x], columns=["x0", "y0", "x1", "y1"]))
+        .input(x="valid_tables").out("table_areas").cache()
+        .t(table_areas=list[np.ndarray])
+        .docs("Areas of all detected tables"),
+        FunctionOperator(lambda table_df0, lists: table_df0 + ([] if lists.empty else [lists]))
+        .cache().input("table_df0", "lists").out("tables_df").cache()
+        .t(list[pd.DataFrame])
+        .docs("Dataframes of all tables"),
+        ############## END TABLE STUFF ##############
+        # FunctionOperator()
+        # .pipe()
+        FunctionOperator(text_boxes_from_elements)
+        .input("line_elements").out("text_box_elements").cache()
+        .docs("Extracts a dataframe of text boxes from the document by grouping text elements"),
+        FunctionOperator(lambda tb: "\n\n".join(te.text for te in tb)).t(str)
+        .input(tb="text_box_elements").out("full_text").cache()
+        .docs("Extracts the full text from the document by grouping text elements"),
+        TitleExtractor()
+        .input("line_elements").out("titles", "side_titles").cache()
+        .docs("Extracts the titles from the document by detecting unusual font styles"),
+        LanguageExtractor().cache()
+        .input(text="full_text").out("language").cache()
+        .docs("Extracts the language of the document"),
 
-    *PDFDocumentStructureNodes
-]
+        *PDFDocumentStructureNodes
+    ]
+except:
+    logger.warning("no pdf functions!")
+    PDFNodes = []
 
 HTMLNodes = [
     HtmlExtractor()
@@ -317,42 +321,45 @@ PILImageNodes = [
     Alias(pil_image="_fobj"),
 ]
 
-OCRNodes = [
-    # add a "base-document" type (.pdf) images get converted into pdfs
-    # and then further processed from there
-    "application/pdf",  # as we are extracting a pdf we would like to use the pdf functions...
-    Configuration(ocr_lang="auto", ocr_on=True)
-    .docs("Configuration for the ocr extractor. We can turn it on/off and specify the language"
-          " used for OCR."),
-    FunctionOperator(lambda x: PIL.Image.open(io.BytesIO(x)))
-    .input(x="raw_content").out("pil_image").cache().t(PIL.Image.Image)
-    .docs("Converts the image to a PIL-style image for downstream processing tasks"),
-    FunctionOperator(lambda x: np.array(x))
-    .input(x="pil_image").out("data").cache().t(np.ndarray)
-    .docs("Converts the image to a numpy array for downstream processing tasks"),
-    FunctionOperator(lambda x: {0: x}).input(x="pil_image")
-    .out("images").no_cache().t(dict[int, PIL.Image.Image])
-    .docs("Access images as a dictionary with page numbers as keys for downstream processing tasks "),
-    OCRExtractor()
-    .input("ocr_on", "ocr_lang", file="raw_content")
-    .out("ocr_pdf_file").cache()
-    .docs("Extracts the text from the document using OCR. It does this by creating a pdf which "
-          "is important in order to keep the positional information of the text elements."),
-    # we need to do overwrite the pdf loading for images we inherited from
-    # the ".pdf" logic as we are
-    # now taking the pdf from a different variable
-    PDFFileLoader()
-    .input(fobj="ocr_pdf_file")
-    .out("pages_bbox", "elements", meta="meta_pdf", pages="page_set")
-    .cache().docs("Loads the pdf file into a list of [][pydoxtools.document_base.DocumentElement]"),
-    TableCandidateAreasExtractor(method="images")
-    .input("graphic_elements", "line_elements", "pages_bbox", "text_box_elements", "filename",
-           "images")
-    .out("table_candidates", box_levels="table_box_levels").cache()
-    .docs("Extracts the table candidates from the document. As this is an image, we need to "
-          "use a different method than for pdfs. Right now this relies on neural networks."
-          " TODO: add adtitional pure text-based method."),
-]
+try:
+    OCRNodes = [
+        # add a "base-document" type (.pdf) images get converted into pdfs
+        # and then further processed from there
+        "application/pdf",  # as we are extracting a pdf we would like to use the pdf functions...
+        Configuration(ocr_lang="auto", ocr_on=True)
+        .docs("Configuration for the ocr extractor. We can turn it on/off and specify the language"
+              " used for OCR."),
+        FunctionOperator(lambda x: PIL.Image.open(io.BytesIO(x)))
+        .input(x="raw_content").out("pil_image").cache().t(PIL.Image.Image)
+        .docs("Converts the image to a PIL-style image for downstream processing tasks"),
+        FunctionOperator(lambda x: np.array(x))
+        .input(x="pil_image").out("data").cache().t(np.ndarray)
+        .docs("Converts the image to a numpy array for downstream processing tasks"),
+        FunctionOperator(lambda x: {0: x}).input(x="pil_image")
+        .out("images").no_cache().t(dict[int, PIL.Image.Image])
+        .docs("Access images as a dictionary with page numbers as keys for downstream processing tasks "),
+        OCRExtractor()
+        .input("ocr_on", "ocr_lang", file="raw_content")
+        .out("ocr_pdf_file").cache()
+        .docs("Extracts the text from the document using OCR. It does this by creating a pdf which "
+              "is important in order to keep the positional information of the text elements."),
+        # we need to do overwrite the pdf loading for images we inherited from
+        # the ".pdf" logic as we are
+        # now taking the pdf from a different variable
+        PDFFileLoader()
+        .input(fobj="ocr_pdf_file")
+        .out("pages_bbox", "elements", meta="meta_pdf", pages="page_set")
+        .cache().docs("Loads the pdf file into a list of [][pydoxtools.document_base.DocumentElement]"),
+        TableCandidateAreasExtractor(method="images")
+        .input("graphic_elements", "line_elements", "pages_bbox", "text_box_elements", "filename",
+               "images")
+        .out("table_candidates", box_levels="table_box_levels").cache()
+        .docs("Extracts the table candidates from the document. As this is an image, we need to "
+              "use a different method than for pdfs. Right now this relies on neural networks."
+              " TODO: add adtitional pure text-based method."),
+    ]
+except:
+    OCRNodes = []
 
 ClassifierNodes = [
     TextBlockClassifier()
@@ -415,42 +422,47 @@ MetaDataNodes = [
         "Some fast-to-calculate metadata information about a document"),
 ]
 
-SpacyNodes = [
-    Configuration(
-        spacy_model_size="md",
-        spacy_model="auto",
-        use_clean_text_for_spacy=True
-    ).docs(
-        spacy_model_size="the model size which is used for spacy text analysis. Can be:  sm,md,lg,trf.",
-        spacy_model="we can also explicitly specify the spacy model we want to use.",
-        use_clean_text_for_spacy="Whether pydoxtools cleans up the text before using spacy on it."
-    ),
-    FunctionOperator(lambda x, ct, ft: "\n\n".join(x([ElementType.Table, ElementType.Figure]).values()) if ct else ft)
-    .input(x="page_templates", ct="use_clean_text_for_spacy", ft="full_text")
-    .out("clean_spacy_text").t(str)
-    .docs("Generate text to be used for spacy. Depending on the 'use_clean_text_for_spacy' option"
-          " it will use page templates and replace complicated text structures such as tables for"
-          " better text understanding."),
-    SpacyOperator()
-    .input(
-        "language", "spacy_model",
-        full_text="clean_spacy_text", model_size="spacy_model_size"
-    ).out(doc="spacy_doc", nlp="spacy_nlp").cache()
-    .docs("Spacy Document and Language Model for this document"),
-    FunctionOperator(extract_spacy_token_vecs)
-    .input("spacy_doc").out("spacy_vectors")
-    .docs("Vectors for all tokens calculated by spacy"),
-    FunctionOperator(get_spacy_embeddings)
-    .input("spacy_nlp").out("spacy_embeddings")
-    .docs("Embeddings calculated by a spacy transformer"),
-    FunctionOperator(lambda spacy_doc: list(spacy_doc.sents))
-    .input("spacy_doc").out("spacy_sents").t(list[str])
-    .docs("List of sentences by spacy nlp framework"),
-    FunctionOperator(extract_noun_chunks)
-    .input("spacy_doc").out("spacy_noun_chunks")
-    .docs("exracts nounchunks from spacy. Will not be cached because it is all"
-          "in the spacy doc already"),
-]
+try:
+    SpacyNodes = [
+        Configuration(
+            spacy_model_size="md",
+            spacy_model="auto",
+            use_clean_text_for_spacy=True
+        ).docs(
+            spacy_model_size="the model size which is used for spacy text analysis. Can be:  sm,md,lg,trf.",
+            spacy_model="we can also explicitly specify the spacy model we want to use.",
+            use_clean_text_for_spacy="Whether pydoxtools cleans up the text before using spacy on it."
+        ),
+        FunctionOperator(
+            lambda x, ct, ft: "\n\n".join(x([ElementType.Table, ElementType.Figure]).values()) if ct else ft)
+        .input(x="page_templates", ct="use_clean_text_for_spacy", ft="full_text")
+        .out("clean_spacy_text").t(str)
+        .docs("Generate text to be used for spacy. Depending on the 'use_clean_text_for_spacy' option"
+              " it will use page templates and replace complicated text structures such as tables for"
+              " better text understanding."),
+        SpacyOperator()
+        .input(
+            "language", "spacy_model",
+            full_text="clean_spacy_text", model_size="spacy_model_size"
+        ).out(doc="spacy_doc", nlp="spacy_nlp").cache()
+        .docs("Spacy Document and Language Model for this document"),
+        FunctionOperator(extract_spacy_token_vecs)
+        .input("spacy_doc").out("spacy_vectors")
+        .docs("Vectors for all tokens calculated by spacy"),
+        FunctionOperator(get_spacy_embeddings)
+        .input("spacy_nlp").out("spacy_embeddings")
+        .docs("Embeddings calculated by a spacy transformer"),
+        FunctionOperator(lambda spacy_doc: list(spacy_doc.sents))
+        .input("spacy_doc").out("spacy_sents").t(list[str])
+        .docs("List of sentences by spacy nlp framework"),
+        FunctionOperator(extract_noun_chunks)
+        .input("spacy_doc").out("spacy_noun_chunks")
+        .docs("exracts nounchunks from spacy. Will not be cached because it is all"
+              "in the spacy doc already"),
+    ]
+except:
+    logger.warning("no spacy nodes available")
+    SpacyNodes=[]
 
 KnowledgeGraphNodes = [
     # TODO: combine entities with coreferences

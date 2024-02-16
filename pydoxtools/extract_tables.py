@@ -11,7 +11,6 @@ import PIL.Image
 import numpy as np
 import pandas as pd
 import pydantic
-from pdfminer.layout import LTChar
 from sklearn.neighbors import KernelDensity
 
 import pydoxtools
@@ -26,6 +25,11 @@ from pydoxtools.operators_base import Operator
 logger = logging.getLogger(__name__)
 
 idx = pd.IndexSlice
+
+try:
+    from pdfminer.layout import LTChar
+except ModuleNotFoundError:
+    logger.warning("can not extract tables from pdfs")
 
 
 class TableExtractionParameters(pydantic.BaseModel):

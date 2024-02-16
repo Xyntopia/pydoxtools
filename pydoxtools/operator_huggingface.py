@@ -11,14 +11,17 @@ import functools
 import logging
 from typing import Dict, List, Tuple, Callable
 
-import torch
-
 from pydoxtools import nlp_utils
 from pydoxtools.list_utils import ensure_list
 from pydoxtools.nlp_utils import tokenize_windows
 from pydoxtools.operators_base import Operator
 
 logger = logging.getLogger(__name__)
+
+try:
+    import torch
+except ModuleNotFoundError:
+    logger.warning("no pytorch available for huggingface operations")
 
 
 def answer_questions_on_long_text(questions, text, model_id) -> Dict[str, List[Tuple[str, float]]]:

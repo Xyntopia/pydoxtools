@@ -83,6 +83,8 @@ def gpt4_models():
     except requests.exceptions.ConnectionError:
         logger.warning("no internet connection, can not retrieve GPT4all models")
         return ["We were not able to get the list of models from GPT4all, no internet connection"]
+    except ModuleNotFoundError:
+        logger.warning("we could not import the gpt4all module in order to get a list of supported models")
 
 
 @cache.memoize()

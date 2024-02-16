@@ -12,8 +12,13 @@ import os
 from pathlib import Path
 
 import appdirs
+
 # TODO: remove joblib as a dependency from here ...
-from pydantic_settings import BaseSettings
+try:
+    from pydantic_settings import BaseSettings
+except ModuleNotFoundError:
+    # in the case of pydantic < v2.0.0
+    from pydantic import BaseSettings
 
 logger = logging.getLogger(__name__)
 

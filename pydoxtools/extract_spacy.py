@@ -3,22 +3,29 @@ import itertools
 import logging
 import subprocess
 import typing
-from typing import Optional, Any
+from typing import Optional
 
 import networkx
 import numpy as np
 import pandas as pd
-import spacy
-import torch
-from spacy import Language
-from spacy.tokens import Doc, Token, Span
 
 import pydoxtools.document_base
 from . import list_utils
-from .document_base import TokenCollection
+from .extract_index import TokenCollection
 from .operators_base import Operator
 
 logger = logging.getLogger(__name__)
+
+try:
+    import spacy
+    import torch
+    from spacy import Language
+    from spacy.tokens import Doc, Token, Span
+
+    spacy_available = True
+except:
+    logger.warning("spacy functions are not available on this platform!")
+    spacy_available = False
 
 
 def download_model(model_id: str):
@@ -37,7 +44,7 @@ def extract_noun_chunks(spacy_doc) -> typing.List[TokenCollection]:
     return token_list
 
 
-def extract_spacy_token_vecs(spacy_doc) -> torch.Tensor | Any:
+def extract_spacy_token_vecs(spacy_doc) -> "torch.Tensor | Any":
     if spacy_doc.has_vector:
         return spacy_doc.tensor
     else:
@@ -69,7 +76,7 @@ def get_spacy_model_id(model_language, size="sm") -> Optional[str]:
 
 
 @functools.lru_cache
-def load_cached_spacy_model(model_id: str) -> Language:
+def load_cached_spacy_model(model_id: str) -> "Language":
     """
     load spacy nlp model and in case of a transformer model add custom vector pipeline...
 
@@ -89,70 +96,71 @@ def load_cached_spacy_model(model_id: str) -> Language:
     return nlp
 
 
-@Language.factory('trf_vectors')
-class TrfContextualVectors:
-    """
-    Spacy pipeline which add transformer vectors to each token based on user hooks.
+if spacy_available:
+    @Language.factory('trf_vectors')
+    class TrfContextualVectors:
+        """
+        Spacy pipeline which add transformer vectors to each token based on user hooks.
 
-    https://spacy.io/usage/processing-pipelines#custom-components-user-hooks
-    https://github.com/explosion/spaCy/discussions/6511
-    """
+        https://spacy.io/usage/processing-pipelines#custom-components-user-hooks
+        https://github.com/explosion/spaCy/discussions/6511
+        """
 
-    def __init__(self, nlp: Language, name: str):
-        # TODO: we can configure this class for different pooling methods...
-        self.name = name
-        Doc.set_extension("trf_token_vecs", default=None)
+        def __init__(self, nlp: Language, name: str):
+            # TODO: we can configure this class for different pooling methods...
+            self.name = name
+            Doc.set_extension("trf_token_vecs", default=None)
 
-    def __call__(self, sdoc):
-        # inject hooks from this class into the pipeline
-        if type(sdoc) == str:
-            sdoc = self._nlp(sdoc)
+        def __call__(self, sdoc):
+            # inject hooks from this class into the pipeline
+            if type(sdoc) == str:
+                sdoc = self._nlp(sdoc)
 
-        # pre-calculate all vectors for every token:
+            # pre-calculate all vectors for every token:
 
-        # For spaCy v3.7+, trf pipelines use spacy-curated-transformers and doc._.trf_data
-        # is a DocTransformerOutput object. --> https://spacy.io/api/curatedtransformer#doctransformeroutput
-        # calculate groups for spacy token boundaries in the trf vectors
-        vec_idx_splits = np.cumsum(sdoc._.trf_data.last_hidden_layer_state.lengths)
-        # get transformer vectors and reshape them into one large continous tensor
-        trf_vecs = sdoc._.trf_data.last_hidden_layer_state.data
-        # calculate mapping groups from spacy tokens to transformer vector indices
-        vec_idxs = np.split(range(0, sdoc._.trf_data.last_hidden_layer_state.data.shape[0]), vec_idx_splits)
+            # For spaCy v3.7+, trf pipelines use spacy-curated-transformers and doc._.trf_data
+            # is a DocTransformerOutput object. --> https://spacy.io/api/curatedtransformer#doctransformeroutput
+            # calculate groups for spacy token boundaries in the trf vectors
+            vec_idx_splits = np.cumsum(sdoc._.trf_data.last_hidden_layer_state.lengths)
+            # get transformer vectors and reshape them into one large continous tensor
+            trf_vecs = sdoc._.trf_data.last_hidden_layer_state.data
+            # calculate mapping groups from spacy tokens to transformer vector indices
+            vec_idxs = np.split(range(0, sdoc._.trf_data.last_hidden_layer_state.data.shape[0]), vec_idx_splits)
 
-        # take sum of mapped transformer vector indices for spacy vectors
-        # TOOD: add more pooling methods than just sum...
-        #       if we do this we probabyl need to declare a factory function...
-        # i
-        vecs = np.stack([trf_vecs[idx].sum(0) for idx in vec_idxs[:-1]])
-        sdoc._.trf_token_vecs = vecs
+            # take sum of mapped transformer vector indices for spacy vectors
+            # TOOD: add more pooling methods than just sum...
+            #       if we do this we probabyl need to declare a factory function...
+            # i
+            vecs = np.stack([trf_vecs[idx].sum(0) for idx in vec_idxs[:-1]])
+            sdoc._.trf_token_vecs = vecs
 
-        sdoc.user_token_hooks["vector"] = self.token_vector
-        sdoc.user_span_hooks["vector"] = self.span_vector
-        sdoc.user_hooks["vector"] = self.doc_vector
-        sdoc.user_token_hooks["has_vector"] = self.has_vector
-        sdoc.user_span_hooks["has_vector"] = self.has_vector
-        sdoc.user_hooks["has_vector"] = self.has_vector
-        # sdoc.user_token_hooks["similarity"] = self.similarity
-        # sdoc.user_span_hooks["similarity"] = self.similarity
-        # sdoc.user_hooks["similarity"] = self.similarity
-        return sdoc
+            sdoc.user_token_hooks["vector"] = self.token_vector
+            sdoc.user_span_hooks["vector"] = self.span_vector
+            sdoc.user_hooks["vector"] = self.doc_vector
+            sdoc.user_token_hooks["has_vector"] = self.has_vector
+            sdoc.user_span_hooks["has_vector"] = self.has_vector
+            sdoc.user_hooks["has_vector"] = self.has_vector
+            # sdoc.user_token_hooks["similarity"] = self.similarity
+            # sdoc.user_span_hooks["similarity"] = self.similarity
+            # sdoc.user_hooks["similarity"] = self.similarity
+            return sdoc
 
-    @functools.lru_cache
-    def token_vector(self, token: Token):
-        return token.doc._.trf_token_vecs[token.i]
+        @functools.lru_cache
+        def token_vector(self, token: Token):
+            return token.doc._.trf_token_vecs[token.i]
 
-    @functools.lru_cache
-    def span_vector(self, span: Span):
-        vecs = span.doc._.trf_token_vecs
-        return vecs[span.start: span.end].sum(0)
+        @functools.lru_cache
+        def span_vector(self, span: Span):
+            vecs = span.doc._.trf_token_vecs
+            return vecs[span.start: span.end].sum(0)
 
-    @functools.lru_cache
-    def doc_vector(self, doc: Doc):
-        vecs = doc._.trf_token_vecs
-        return vecs.sum(0)
+        @functools.lru_cache
+        def doc_vector(self, doc: Doc):
+            vecs = doc._.trf_token_vecs
+            return vecs.sum(0)
 
-    def has_vector(self, token):
-        return True
+        def has_vector(self, token):
+            return True
 
 
 class SpacyOperator(Operator):
@@ -183,7 +191,7 @@ class SpacyOperator(Operator):
         )
 
 
-def get_token_context(token: spacy.tokens.Token, ct_size=100) -> tuple[str, str, str]:
+def get_token_context(token: "spacy.tokens.Token", ct_size=100) -> tuple[str, str, str]:
     if ct_size:
         document_text: str = token.doc.text
         n = token.idx
@@ -204,7 +212,7 @@ def get_token_context(token: spacy.tokens.Token, ct_size=100) -> tuple[str, str,
 
 class ExtractRelationships(Operator):
     def __call__(
-            self, spacy_doc: Doc
+            self, spacy_doc: "Doc"
     ) -> pd.DataFrame:
         """Extract some semantic_relations of a spacy document for use in a knowledge graph"""
         relationships = []
@@ -280,7 +288,7 @@ def load_cached_fast_coref_model(method='fast'):
 
 class CoreferenceResolution(Operator):
     def __call__(
-            self, spacy_doc: Doc,
+            self, spacy_doc: "Doc",
             method='fast'
     ) -> list[list[tuple[int, int]]]:
         """Resolve coreferences in a spacy document"""

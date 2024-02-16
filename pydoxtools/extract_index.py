@@ -1,22 +1,22 @@
 from __future__ import annotations  # this is so, that we can use python3.10 annotations..
 
 import logging
-import uuid
+from functools import cached_property
 from typing import Callable
 
-import dask.bag
-import hnswlib
 import networkx as nx
 import numpy as np
-import pydantic
 
-import pydoxtools
-from pydoxtools.document_base import TokenCollection
 from pydoxtools.nlp_utils import calculate_string_embeddings
 from pydoxtools.operators_base import Operator
-from . import list_utils
 
 logger = logging.getLogger(__name__)
+
+try:
+    import hnswlib
+    import spacy.tokens
+except ModuleNotFoundError:
+    logger.warning("hnswlib & spacy are not available for index creation")
 
 
 class TextPieceSplitter(Operator):
@@ -146,7 +146,7 @@ class KnnQuery(Operator):
             else:
                 search_vec = txt.vector
 
-            k = min(len(idx_values),k)
+            k = min(len(idx_values), k)
             try:
                 similar = index.knn_query([search_vec], k=k)
             except RuntimeError:  # text is probably too small
@@ -194,3 +194,28 @@ class TextrankOperator(Operator):
         seen = set()  # use set to remove duplicates
         seen_add = seen.add
         return [x[0] for x in top_nodes if not (x[0] in seen or seen_add(x[0]))]
+
+
+class TokenCollection:
+    def __init__(self, tokens: list[spacy.tokens.Token]):
+        self._tokens = tokens
+
+    @cached_property
+    def vector(self):
+        return np.mean([t.vector for t in self._tokens], 0)
+
+    @cached_property
+    def text(self):
+        return self.__str__()
+
+    def __len__(self):
+        return len(self._tokens)
+
+    def __getitem__(self, item):
+        return self._tokens[item]
+
+    def __str__(self):
+        return " ".join(t.text for t in self._tokens)
+
+    def __repr__(self):
+        return "|".join(t.text for t in self._tokens)

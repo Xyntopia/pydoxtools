@@ -22,28 +22,32 @@ from pathlib import Path
 import PIL.Image
 import numpy as np
 import pandas as pd
-import pdf2image
-# TODO: evaluate tabula as an additional table-read mechanism
-import pdfminer
-import pdfminer.high_level
-import pdfminer.pdfdocument
-import pdfminer.psparser
-import pikepdf
-from pdfminer.converter import TextConverter
-from pdfminer.high_level import extract_pages
-from pdfminer.layout import LAParams
-from pdfminer.layout import LTChar, LTCurve, LTFigure, LTTextLine, LTAnno
-from pdfminer.layout import LTTextContainer
-from pdfminer.pdfdocument import PDFDocument
-from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
-from pdfminer.pdfinterp import resolve1
-from pdfminer.pdfpage import PDFPage
-from pdfminer.pdfparser import PDFParser
 
 import pydoxtools.operators_base
 from pydoxtools import document_base, list_utils
 
 logger = logging.getLogger(__name__)
+
+try:
+    import pdf2image
+    # TODO: evaluate tabula as an additional table-read mechanism
+    import pdfminer
+    import pdfminer.high_level
+    import pdfminer.pdfdocument
+    import pdfminer.psparser
+    import pikepdf
+    from pdfminer.converter import TextConverter
+    from pdfminer.high_level import extract_pages
+    from pdfminer.layout import LAParams
+    from pdfminer.layout import LTChar, LTCurve, LTFigure, LTTextLine, LTAnno
+    from pdfminer.layout import LTTextContainer
+    from pdfminer.pdfdocument import PDFDocument
+    from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
+    from pdfminer.pdfinterp import resolve1
+    from pdfminer.pdfpage import PDFPage
+    from pdfminer.pdfparser import PDFParser
+except ModuleNotFoundError:
+    logger.warning("no pdf loading on this platform")
 
 try:
     from functools import cached_property
@@ -198,7 +202,7 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
             self,
             # laparams=LAParams(detect_vertical=True, boxes_flow=-1.0, all_texts=False),
             # we set boxes_flow=None in order to prevent pdfminer from detecting layout...
-            laparams=LAParams(detect_vertical=False, boxes_flow=None),
+            laparams=None,
             **kwargs
     ):
         """
@@ -216,7 +220,7 @@ class PDFFileLoader(pydoxtools.operators_base.Operator):
         )
         """
         super().__init__()
-        self._laparams = laparams
+        self._laparams = laparams if laparams else LAParams(detect_vertical=False, boxes_flow=None)
         self.docs(
             pages_bbox="Return the 'mediabox' property of the pdf page which gives"
                        " the size of the page of a pdf in 72 dpi,"
