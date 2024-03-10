@@ -1,5 +1,5 @@
 {
-  description = "Nix Development Flake for your package";
+  description = "Nix Development Flake for Pydoxtools";
   #inputs.nixpkgs.url = "github:NixOS/nixpkgs/master";
 
   inputs = {
@@ -24,7 +24,7 @@
       in
       {
         devShells.default = pkgs.mkShell rec {
-          name = "your_package";
+          name = "pydoxtools_dev_shell";
           nativeBuildInputs = [ pkgs.bashInteractive ];
           buildInputs = with pkgs; [
             poetry
