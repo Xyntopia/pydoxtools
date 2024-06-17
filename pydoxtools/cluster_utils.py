@@ -733,7 +733,24 @@ def cluster1D(data: np.array, agg_func: typing.Callable, merge_tol=5.0) -> np.ar
     return np.array([agg_func(bb) for bb in bb_groups])
 
 
-def merge_groups(df: pd.DataFrame, group_labels: str, **kwargs) -> Tuple[List[np.ndarray], np.ndarray]:
+def merge_groups(df: pd.DataFrame, group_labels: str) -> Tuple[List[np.ndarray], np.ndarray]:
+    """
+    Splits a DataFrame into groups based on a specified column.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame to be split into groups.
+        group_labels (str): The column name to group by.
+        **kwargs: Additional keyword arguments (not used in this implementation).
+
+    Returns:
+        Tuple[List[np.ndarray], np.ndarray]: A tuple containing:
+            - A list of NumPy arrays, each representing a group of rows from the original DataFrame.
+            - A NumPy array of group sizes, indicating the number of rows in each group.
+
+    Notes:
+        The input DataFrame is sorted by the specified column before grouping.
+        Rows with missing values in the specified column are dropped before grouping.
+    """
     # need to sort into groups in order for the numpy function to be able
     # to group labels
     df = df.dropna(subset=[group_labels]).sort_values(group_labels)
@@ -744,6 +761,7 @@ def merge_groups(df: pd.DataFrame, group_labels: str, **kwargs) -> Tuple[List[np
         return_index=True, return_counts=True)[1:]
     # TODO: also allow for dataframes to be split here...
     # groups = np.split(df[box_cols].values, group_split_indices[1:])
+    # TODO: use df.index here instead of those groups..   return the index directly...
     groups = np.split(df.drop(columns=group_labels).values, group_split_indices[1:])
     return groups, group_sizes
 
